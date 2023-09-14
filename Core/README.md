@@ -1,4 +1,4 @@
-# ModularSystem Core *(Under Development)*
+# ModularSystem Core Module *(Under Development)*
 
 ## _Build a Solid Basic CRUD Within Minutes_
 
