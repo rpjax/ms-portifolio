@@ -1,0 +1,6 @@
+Future version applied changes
+
+Breaking Changes
+	Location class deprecated
+	Person class deprecated
+	Citizen class deprecated
