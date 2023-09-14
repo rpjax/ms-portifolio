@@ -86,9 +86,9 @@ public class IdentityPermission : IEquatable<IdentityPermission>
     /// <summary>
     /// Creates a wildcard permission that signifies a broad or universal permission.
     /// </summary>
-    public static IdentityPermission WildcardPermission(string? action = null, List<Flag>? flags = null)
+    public static IdentityPermission WildcardPermission(string? permission = null, List<Flag>? flags = null)
     {
-        return new IdentityPermission(Wildcard, Wildcard, action ?? Wildcard, flags);
+        return new IdentityPermission(Wildcard, Wildcard, permission ?? Wildcard, flags);
     }
 
     /// <summary>
@@ -146,6 +146,109 @@ public class IdentityPermission : IEquatable<IdentityPermission>
             Name = name;
             Value = value;
         }
+    }
+}
+
+/// <summary>
+/// Represents the default implementation of <see cref="IIdentity"/>.
+/// </summary>
+/// <remarks>
+/// This implementation provides methods to associate permissions and roles with the identity.
+/// </remarks>
+public class Identity : IIdentity
+{
+    /// <summary>
+    /// Gets or sets the unique identifier for this identity.
+    /// </summary>
+    public string UniqueIdentifier { get; set; }
+
+    /// <summary>
+    /// Gets or sets the list of permissions associated with this identity.
+    /// </summary>
+    public List<IdentityPermission> Permissions { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the list of role names associated with this identity.
+    /// </summary>
+    /// <remarks>
+    /// This list contains the names of the roles that the identity belongs to. It helps in quickly determining <br/>
+    /// the role membership of the identity without the need to evaluate permissions. 
+    /// </remarks>
+    public List<string> Roles { get; set; } = new();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Identity"/> class using a unique identifier.
+    /// </summary>
+    /// <param name="uniqueIdentifier">The unique identifier for the identity.</param>
+    [JsonConstructor]
+    public Identity(string uniqueIdentifier)
+    {
+        UniqueIdentifier = uniqueIdentifier;
+    }
+
+    /// <summary>
+    /// Returns the list of permissions associated with this identity.
+    /// </summary>
+    /// <returns>An enumerable collection of <see cref="IdentityPermission"/>.</returns>
+    public IEnumerable<IdentityPermission> GetPermissions()
+    {
+        return Permissions;
+    }
+
+    /// <summary>
+    /// Associates a single permission with the identity, if it's not already present.
+    /// </summary>
+    /// <param name="permission">The permission to associate with the identity.</param>
+    /// <returns>The current <see cref="Identity"/> instance for fluent chaining.</returns>
+    public Identity AddPermission(IdentityPermission permission)
+    {
+        if (Permissions.Where(x => x.Equals(permission)).IsEmpty())
+        {
+            Permissions.Add(permission);
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Associates a collection of permissions with the identity.
+    /// </summary>
+    /// <param name="permissions">The collection of permissions to associate.</param>
+    /// <returns>The current <see cref="Identity"/> instance for fluent chaining.</returns>
+    public Identity AddPermissions(IEnumerable<IdentityPermission> permissions)
+    {
+        foreach (var permission in permissions)
+        {
+            AddPermission(permission);
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Associates all permissions of a specific role with the identity.
+    /// </summary>
+    /// <param name="role">The role whose permissions should be associated with the identity.</param>
+    /// <returns>The current <see cref="Identity"/> instance for fluent chaining.</returns>
+    public Identity AddRole(IdentityRole role)
+    {
+        AddPermissions(role.Permissions);
+        return this;
+    }
+
+    /// <summary>
+    /// Associates all permissions of a collection of roles with the identity.
+    /// </summary>
+    /// <param name="roles">The collection of roles whose permissions should be associated.</param>
+    /// <returns>The current <see cref="Identity"/> instance for fluent chaining.</returns>
+    public Identity AddRoles(IEnumerable<IdentityRole> roles)
+    {
+        foreach (var role in roles)
+        {
+            AddRole(role);
+        }
+
+        return this;
     }
 }
 
@@ -230,96 +333,63 @@ public class IdentityRole
 }
 
 /// <summary>
-/// Represents the default implementation of <see cref="IIdentity"/>.
+/// Represents a specific action with associated permissions, defining how a resource is accessed.
 /// </summary>
 /// <remarks>
-/// This implementation provides methods to associate permissions and roles with the identity.
+/// An action encapsulates a set of permissions tailored for a specific operation on a resource. <br/>
+/// This provides finer-grained access control, allowing for operations such as partial 
+/// data reads or specific hard/soft operations. <br/>
+/// It becomes especially useful when an identity 
+/// is granted permissions to a resource, but access needs to be partial or limited. <br/>
+/// Through the action, a specific use case can be mapped to a specific set of permissions.
 /// </remarks>
-public class Identity : IIdentity
+public class IdentityAction
 {
     /// <summary>
-    /// Gets or sets the unique identifier for this identity.
+    /// Gets or sets the domain associated with the action.
     /// </summary>
-    public string UniqueIdentifier { get; set; }
+    public string Domain { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the list of permissions associated with this identity.
+    /// Gets or sets the specific resource under a domain that the action targets.
     /// </summary>
-    public List<IdentityPermission> Permissions { get; set; } = new();
+    public string Resource { get; set; } = string.Empty;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Identity"/> class using a unique identifier.
+    /// Gets or sets the name of the action.
     /// </summary>
-    /// <param name="uniqueIdentifier">The unique identifier for the identity.</param>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the permissions required for executing this action on the specified resource.
+    /// </summary>
+    public List<IdentityPermission> RequiredPermissions { get; set; } = new();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="IdentityAction"/> class based on an action string.
+    /// </summary>
+    /// <param name="actionString">The action string in the format "domain:resource:action".</param>
+    /// <remarks>
+    /// The action string should adhere to the format "domain:resource:action". 
+    /// It provides a structured way to quickly define actions and their scope.
+    /// </remarks>
     [JsonConstructor]
-    public Identity(string uniqueIdentifier)
+    public IdentityAction(string actionString)
     {
-        UniqueIdentifier = uniqueIdentifier;
-    }
+        var split = actionString.Split(':');
 
-    /// <summary>
-    /// Returns the list of permissions associated with this identity.
-    /// </summary>
-    /// <returns>An enumerable collection of <see cref="IdentityPermission"/>.</returns>
-    public IEnumerable<IdentityPermission> GetPermissions()
-    {
-        return Permissions;
-    }
-
-    /// <summary>
-    /// Associates a single permission with the identity, if it's not already present.
-    /// </summary>
-    /// <param name="permission">The permission to associate with the identity.</param>
-    /// <returns>The current <see cref="Identity"/> instance for fluent chaining.</returns>
-    public Identity AddPermission(IdentityPermission permission)
-    {
-        if (Permissions.Where(x => x.Equals(permission)).IsEmpty())
+        if (split.Length != 3)
         {
-            Permissions.Add(permission);
+            throw new ArgumentException(nameof(actionString));
+        }
+        if (split[0].IsEmpty() || split[1].IsEmpty() || split[2].IsEmpty())
+        {
+            throw new ArgumentException(nameof(actionString));
         }
 
-        return this;
-    }
-
-    /// <summary>
-    /// Associates a collection of permissions with the identity.
-    /// </summary>
-    /// <param name="permissions">The collection of permissions to associate.</param>
-    /// <returns>The current <see cref="Identity"/> instance for fluent chaining.</returns>
-    public Identity AddPermissions(IEnumerable<IdentityPermission> permissions)
-    {
-        foreach (var permission in permissions)
-        {
-            AddPermission(permission);
-        }
-
-        return this;
-    }
-
-    /// <summary>
-    /// Associates all permissions of a specific role with the identity.
-    /// </summary>
-    /// <param name="role">The role whose permissions should be associated with the identity.</param>
-    /// <returns>The current <see cref="Identity"/> instance for fluent chaining.</returns>
-    public Identity AddRole(IdentityRole role)
-    {
-        AddPermissions(role.Permissions);
-        return this;
-    }
-
-    /// <summary>
-    /// Associates all permissions of a collection of roles with the identity.
-    /// </summary>
-    /// <param name="roles">The collection of roles whose permissions should be associated.</param>
-    /// <returns>The current <see cref="Identity"/> instance for fluent chaining.</returns>
-    public Identity AddRoles(IEnumerable<IdentityRole> roles)
-    {
-        foreach (var role in roles)
-        {
-            AddRole(role);
-        }
-
-        return this;
+        Domain = split[0];
+        Resource = split[1];
+        Name = split[2];
     }
 }
 
