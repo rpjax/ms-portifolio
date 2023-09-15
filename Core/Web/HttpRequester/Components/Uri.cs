@@ -1,6 +1,4 @@
-﻿using System.Xml.Linq;
-
-namespace ModularSystem.Web.Http;
+﻿namespace ModularSystem.Web.Http;
 
 /// <summary>
 /// Uri facade.

@@ -374,7 +374,7 @@ public class IdentityAction
     /// It provides a structured way to quickly define actions and their scope.
     /// </remarks>
     [JsonConstructor]
-    public IdentityAction(string actionString)
+    public IdentityAction(string actionString, IEnumerable<IdentityPermission>? requiredPermissions = null)
     {
         var split = actionString.Split(':');
 
@@ -390,6 +390,45 @@ public class IdentityAction
         Domain = split[0];
         Resource = split[1];
         Name = split[2];
+        RequiredPermissions = requiredPermissions?.ToList() ?? new();
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="IdentityAction"/> class using explicit domain, resource, and action name.
+    /// </summary>
+    /// <param name="domain">The domain associated with the action.</param>
+    /// <param name="resource">The specific resource under the domain that the action targets.</param>
+    /// <param name="name">The name of the action.</param>
+    /// <param name="requiredPermissions">The list of permissions associated with this action.</param>
+    public IdentityAction(string domain, string resource, string name, IEnumerable<IdentityPermission>? requiredPermissions = null)
+    {
+        Domain = domain;
+        Resource = resource;
+        Name = name;
+        RequiredPermissions = requiredPermissions?.ToList() ?? new();
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="IdentityAction"/> class by copying an existing action.
+    /// </summary>
+    /// <param name="action">The action to be copied.</param>
+    public IdentityAction(IdentityAction action)
+    {
+        Domain = action.Domain;
+        Resource = action.Resource;
+        Name = action.Name;
+        RequiredPermissions = action.RequiredPermissions;
+    }
+
+    /// <summary>
+    /// Returns a string that represents the current action.
+    /// </summary>
+    /// <returns>
+    /// A string in the format "domain:resource:action".
+    /// </returns>
+    public override string ToString()
+    {
+        return $"{Domain}:{Resource}:{Name}";
     }
 }
 

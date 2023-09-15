@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
-using ModularSystem.Core.Cryptography;
 using ModularSystem.Core;
+using ModularSystem.Core.Cryptography;
+using ModularSystem.Core.Helpers;
 using ModularSystem.Core.Security;
 using System.Text.Json;
-using ModularSystem.Core.Helpers;
 
 namespace ModularSystem.Web.Authentication;
 

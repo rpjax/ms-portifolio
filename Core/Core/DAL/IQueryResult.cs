@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace ModularSystem.Core;
+﻿namespace ModularSystem.Core;
 
 /// <summary>
 /// Defines the structure for the result of a query that is designed to work on data of type <typeparamref name="T"/>.

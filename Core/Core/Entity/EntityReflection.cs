@@ -18,7 +18,7 @@ public static class EntityReflection
 
         return assemblies
             .SelectMany(assembly => assembly.GetTypes())
-            .Where(type => !type.IsAbstract && type.IsSubclassOfRawGeneric(abstractEntityType))
+            .Where(type => !type.IsAbstract && type.IsSubtypeOf(abstractEntityType))
             .ToArray();
     }
 
@@ -33,7 +33,7 @@ public static class EntityReflection
 
         return assemblies
             .SelectMany(assembly => assembly.GetTypes())
-            .Where(type => !type.IsAbstract && type.IsSubclassOfRawGeneric(abstractEntityConfigType))
+            .Where(type => !type.IsAbstract && type.IsSubtypeOf(abstractEntityConfigType))
             .ToList();
     }
 

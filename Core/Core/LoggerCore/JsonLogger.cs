@@ -1,11 +1,5 @@
-﻿using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using SQLitePCL;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
-using System.Xml;
 
 namespace ModularSystem.Core.Logging;
 

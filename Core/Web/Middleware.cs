@@ -3,7 +3,6 @@ using Microsoft.Extensions.Primitives;
 using ModularSystem.Core;
 using ModularSystem.Core.Logging;
 using System.Text;
-using System.Text.Unicode;
 
 namespace ModularSystem.Web;
 

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ModularSystem.Core.Helpers;
+﻿namespace ModularSystem.Core.Helpers;
 
 /// <summary>
 /// Represents a size in memory, providing methods for easy conversion and representation.
