@@ -5,13 +5,15 @@ using ModularSystem.Core.Security;
 namespace ModularSystem.Web;
 
 /// <summary>
-/// Middleware responsible for authenticating users based on the IAM system. <br/>
-/// It extracts the identity from the incoming HTTP request and injects it for further processing, if valid.
+/// Middleware that integrates the Identity and Access Management (IAM) system for user authentication within the application pipeline.<br/> 
+/// It intercepts incoming requests and attempts to extract a user's identity from them. <br/> 
+/// If successfully authenticated, this identity is made available within the request's context for subsequent components. <br/> 
+/// This middleware relies on the registered implementation of the <see cref="IIamSystem"/> interface to provide the authentication logic and mechanisms.
 /// </summary>
 public class IamAuthenticationMiddleware : Middleware
 {
     /// <summary>
-    /// Gets the IAM system responsible for authentication tasks.
+    /// The IAM system that handles authentication-related operations.
     /// </summary>
     private IIamSystem Iam { get; }
 
@@ -43,7 +45,7 @@ public class IamAuthenticationMiddleware : Middleware
             InjectIdentity(context, identity);
         }
 
-        return Task.FromResult(false);
+        return Task.FromResult(true);
     }
 
     /// <summary>

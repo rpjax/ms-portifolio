@@ -4,56 +4,75 @@ using ModularSystem.Web.Authorization;
 namespace ModularSystem.Web;
 
 /// <summary>
-/// Provides an implementation of the Identity and Access Management (IAM) system that utilizes AES cryptography.
+/// Provides a concrete implementation of the Identity and Access Management (IAM) system that employs <br/>
+/// AES (Advanced Encryption Standard) cryptographic techniques. <br/>
+/// This class encapsulates both authentication and authorization operations <br/>
+/// using AES for secure token management and attribute-based authorization.
 /// </summary>
 public class AesIamSystem : IIamSystem
 {
     /// <summary>
-    /// Gets the provider used for authentication operations.
+    /// Gets the provider responsible for handling authentication processes using AES encryption.
     /// </summary>
     public IAuthenticationProvider AuthenticationProvider { get; }
 
     /// <summary>
-    /// Gets the provider used for authorization operations.
+    /// Gets the provider responsible for handling authorization processes based on attributes.
     /// </summary>
     public IAuthorizationProvider AuthorizationProvider { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AesIamSystem"/> class.
+    /// Initializes a new instance of the <see cref="AesIamSystem"/> class with the provided configuration options.
     /// </summary>
-    /// <param name="options">Configuration options for the IAM system.</param>
-    public AesIamSystem(Options? options = null)
+    /// <param name="options">Configuration parameters needed to initialize the AES-based IAM system.</param>
+    public AesIamSystem(Options options)
     {
-        AuthenticationProvider = new AesAuthenticationProvider(options?.AuthenticationOptions);
-        AuthorizationProvider = new AesAuthorizationProvider();
+        AuthenticationProvider = new AesAuthenticationProvider(options.AuthenticationOptions);
+        AuthorizationProvider = new AttributeAuthorizationProvider(options.AuthorizationOptions);
     }
 
     /// <summary>
-    /// Retrieves the current authentication provider that utilizes AES cryptography.
+    /// Obtains the specific authentication provider in use that leverages AES cryptographic methods.
     /// </summary>
-    /// <returns>The <see cref="AesAuthenticationProvider"/> used in this IAM system.</returns>
+    /// <returns>The <see cref="AesAuthenticationProvider"/> instance managing authentication in the current IAM system.</returns>
     public AesAuthenticationProvider GetAuthenticationProvider()
     {
         return (AesAuthenticationProvider)AuthenticationProvider;
     }
 
     /// <summary>
-    /// Retrieves the current authorization provider that utilizes AES cryptography.
+    /// Retrieves the specific authorization provider in use that operates on attribute-driven policies.
     /// </summary>
-    /// <returns>The <see cref="AesAuthorizationProvider"/> used in this IAM system.</returns>
-    public AesAuthorizationProvider GetAuthorizationProvider()
+    /// <returns>The <see cref="AttributeAuthorizationProvider"/> instance managing authorization in the current IAM system.</returns>
+    public AttributeAuthorizationProvider GetAuthorizationProvider()
     {
-        return (AesAuthorizationProvider) AuthorizationProvider;
+        return (AttributeAuthorizationProvider)AuthorizationProvider;
     }
 
     /// <summary>
-    /// Represents the configuration options for the <see cref="AesIamSystem"/>.
+    /// Defines the configuration settings necessary for initializing the <see cref="AesIamSystem"/>.
     /// </summary>
     public class Options
     {
         /// <summary>
-        /// Gets or sets the authentication provider options specific to AES token encryption and decryption.
+        /// Gets or sets the settings associated with the AES-based authentication provider, particularly pertaining to token encryption and decryption.
         /// </summary>
-        public AesAuthenticationProvider.Options? AuthenticationOptions { get; set; } = null;
+        public AesAuthenticationProvider.Options AuthenticationOptions { get; set; }
+
+        /// <summary>
+        /// Gets or sets the settings associated with the attribute-driven authorization provider.
+        /// </summary>
+        public AttributeAuthorizationProvider.Options AuthorizationOptions { get; set; }
+
+        /// <summary>
+        /// Constructs a new instance of the <see cref="Options"/> class with the given authentication and authorization settings.
+        /// </summary>
+        /// <param name="authenticationOptions">Settings specific to AES token management.</param>
+        /// <param name="authorizationOptions">Settings specific to attribute-driven authorization.</param>
+        public Options(AesAuthenticationProvider.Options authenticationOptions, AttributeAuthorizationProvider.Options authorizationOptions)
+        {
+            AuthenticationOptions = authenticationOptions;
+            AuthorizationOptions = authorizationOptions;
+        }
     }
 }

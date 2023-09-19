@@ -8,7 +8,7 @@ using System.Text.Json;
 namespace ModularSystem.Web.Authentication;
 
 /// <summary>
-/// Provides authentication services using AES encrypted tokens.
+/// Provides authentication services using AES encrypted tokens. <br/>
 /// This implementation supports token encryption and salt generation for enhanced security.
 /// </summary>
 public class AesAuthenticationProvider : IAuthenticationProvider

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using ModularSystem.Core;
-using ModularSystem.Web.Authentication;
 
 namespace ModularSystem.Web;
 
@@ -20,6 +19,7 @@ public static class IApplicationBuilderExtension
         DependencyContainer.TryRegister(iamSystem);
 
         return builder
-            .UseMiddleware<IamAuthenticationMiddleware>();
+            .UseMiddleware<IamAuthenticationMiddleware>()
+            .UseMiddleware<IamAuthorizationMiddleware>();
     }
 }

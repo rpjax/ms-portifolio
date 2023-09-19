@@ -6,7 +6,7 @@ namespace ModularSystem.Web.Attributes;
 /// Represents an attribute used to annotate MVC action methods with identity-related action information.
 /// </summary>
 /// <remarks>
-/// The attribute provides a way to map a controller action method to a specific identity action, <br/>
+/// The attribute provides a way to map a controller action method to a specific <see cref="ModularSystem.Core.Security.IdentityAction"/>, <br/>
 /// which is used for access control purposes based on the defined domain, resource, and action.
 /// </remarks>
 public class IdentityActionAttribute : Attribute

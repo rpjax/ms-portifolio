@@ -423,11 +423,11 @@ public class IdentityAction
     /// Initializes a new instance of the <see cref="IdentityAction"/> class based on an action string.
     /// </summary>
     /// <param name="actionString">The action string in the format "domain:resource:action".</param>
+    /// <param name="requiredPermissions"></param>
     /// <remarks>
     /// The action string should adhere to the format "domain:resource:action". 
     /// It provides a structured way to quickly define actions and their scope.
     /// </remarks>
-    [JsonConstructor]
     public IdentityAction(string actionString, IEnumerable<IdentityPermission>? requiredPermissions = null)
     {
         var split = actionString.Split(':');
