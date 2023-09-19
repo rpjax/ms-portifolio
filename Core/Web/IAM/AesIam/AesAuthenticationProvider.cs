@@ -11,7 +11,7 @@ namespace ModularSystem.Web.Authentication;
 /// Provides authentication services using AES encrypted tokens.
 /// This implementation supports token encryption and salt generation for enhanced security.
 /// </summary>
-public class AesTokenAuthenticationProvider : IAuthenticationProvider
+public class AesAuthenticationProvider : IAuthenticationProvider
 {
     /// <summary>
     /// The default token lifetime, set to 24 hours.
@@ -49,10 +49,10 @@ public class AesTokenAuthenticationProvider : IAuthenticationProvider
     ISaltGenerator SaltGenerator { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AesTokenAuthenticationProvider"/> class.
+    /// Initializes a new instance of the <see cref="AesAuthenticationProvider"/> class.
     /// </summary>
     /// <param name="options">Parameters for token life cycle and other configurations.</param>
-    public AesTokenAuthenticationProvider(Options? options = null)
+    public AesAuthenticationProvider(Options? options = null)
     {
         options ??= new Options();
 
@@ -69,9 +69,14 @@ public class AesTokenAuthenticationProvider : IAuthenticationProvider
     {
         var rawToken = httpContext.GetBearerToken();
 
-        if (rawToken == null || !TokenEncrypter.Verify(rawToken))
+        if (rawToken == null)
         {
             return null;
+        }
+
+        if(!TokenEncrypter.Verify(rawToken))
+        {
+            throw new AppException("Invalid or unrecognized credentials provided. Authentication failed.", ExceptionCode.CredentialsInvalid);
         }
 
         return TokenEncrypter.Decrypt(rawToken);
@@ -111,11 +116,16 @@ public class AesTokenAuthenticationProvider : IAuthenticationProvider
     {
         try
         {
+            if (token.Payload == null)
+            {
+                throw new AppException("Invalid or unrecognized credentials provided. Authentication failed.", ExceptionCode.CredentialsInvalid);
+            }
+
             return JsonSerializer.Deserialize<Identity>(token.Payload);
         }
         catch (Exception e)
         {
-            throw new AppException("Could not deserialize the token payload into an Identity instance.", ExceptionCode.Internal, e)
+            throw new AppException("Failed to deserialize the token's payload.", ExceptionCode.Internal, e)
                 .AddData(token);
         }
     }
@@ -177,7 +187,7 @@ public class AesTokenAuthenticationProvider : IAuthenticationProvider
     }
 
     /// <summary>
-    /// Configuration parameters for the <see cref="AesTokenAuthenticationProvider"/>.
+    /// Configuration parameters for the <see cref="AesAuthenticationProvider"/>.
     /// </summary>
     public class Options
     {

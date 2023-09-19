@@ -11,7 +11,11 @@ namespace ModularSystem.Web;
 /// </summary>
 public abstract class Middleware
 {
-    protected readonly RequestDelegate next;
+    /// <summary>
+    /// Gets the next middleware in the request processing pipeline. <br/>
+    /// This delegate is invoked after the current middleware completes its processing.
+    /// </summary>
+    protected RequestDelegate Next { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Middleware"/> class with the specified next delegate in the pipeline.
@@ -19,11 +23,13 @@ public abstract class Middleware
     /// <param name="next">The next delegate in the request pipeline.</param>
     public Middleware(RequestDelegate next)
     {
-        this.next = next;
+        Next = next;
     }
 
     /// <summary>
-    /// Invokes the middleware with the given context.
+    /// Invokes the middleware with the given context. <br/>
+    /// If <see cref="BeforeNextAsync"/> returns true, the next middleware in the pipeline will be executed. <br/>
+    /// After that, if <see cref="AfterNextAsync"/> returns true, reserved future additions (if any) will be executed.
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
@@ -31,9 +37,15 @@ public abstract class Middleware
     {
         try
         {
-            await BeforeNextAsync(context);
-            await next(context);
-            await AfterNextAsync(context);
+            if (await BeforeNextAsync(context))
+            {
+                await Next(context);
+            }
+
+            if(await AfterNextAsync(context))
+            {
+                // reserved for future additions...
+            }
         }
         catch (Exception e)
         {
@@ -45,20 +57,20 @@ public abstract class Middleware
     /// Method to be executed before the next middleware in the pipeline.
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    protected virtual Task BeforeNextAsync(HttpContext context)
+    /// <returns>A task that, when executed, will return true if the next middleware should be executed, otherwise false.</returns>
+    protected virtual Task<bool> BeforeNextAsync(HttpContext context)
     {
-        return Task.CompletedTask;
+        return Task.FromResult(true);
     }
 
     /// <summary>
     /// Method to be executed after the next middleware in the pipeline.
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    protected virtual Task AfterNextAsync(HttpContext context)
+    /// <returns>A task that, when executed, will return true if reserved future additions should be executed, otherwise false.</returns>
+    protected virtual Task<bool> AfterNextAsync(HttpContext context)
     {
-        return Task.CompletedTask;
+        return Task.FromResult(true);
     }
 
     /// <summary>

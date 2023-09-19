@@ -1,4 +1,7 @@
-﻿namespace ModularSystem.Web.Authentication;
+﻿using ModularSystem.Web.Authentication;
+using ModularSystem.Web.Authorization;
+
+namespace ModularSystem.Web;
 
 /// <summary>
 /// Provides an implementation of the Identity and Access Management (IAM) system that utilizes AES cryptography.
@@ -21,17 +24,26 @@ public class AesIamSystem : IIamSystem
     /// <param name="options">Configuration options for the IAM system.</param>
     public AesIamSystem(Options? options = null)
     {
-        AuthenticationProvider = new AesTokenAuthenticationProvider(options?.AuthenticationOptions);
-        AuthorizationProvider = new DefaultAuthorizationProvider();
+        AuthenticationProvider = new AesAuthenticationProvider(options?.AuthenticationOptions);
+        AuthorizationProvider = new AesAuthorizationProvider();
     }
 
     /// <summary>
     /// Retrieves the current authentication provider that utilizes AES cryptography.
     /// </summary>
-    /// <returns>The <see cref="AesTokenAuthenticationProvider"/> used in this IAM system.</returns>
-    public AesTokenAuthenticationProvider GetAuthenticationProvider()
+    /// <returns>The <see cref="AesAuthenticationProvider"/> used in this IAM system.</returns>
+    public AesAuthenticationProvider GetAuthenticationProvider()
     {
-        return (AesTokenAuthenticationProvider)AuthenticationProvider;
+        return (AesAuthenticationProvider)AuthenticationProvider;
+    }
+
+    /// <summary>
+    /// Retrieves the current authorization provider that utilizes AES cryptography.
+    /// </summary>
+    /// <returns>The <see cref="AesAuthorizationProvider"/> used in this IAM system.</returns>
+    public AesAuthorizationProvider GetAuthorizationProvider()
+    {
+        return (AesAuthorizationProvider) AuthorizationProvider;
     }
 
     /// <summary>
@@ -42,6 +54,6 @@ public class AesIamSystem : IIamSystem
         /// <summary>
         /// Gets or sets the authentication provider options specific to AES token encryption and decryption.
         /// </summary>
-        public AesTokenAuthenticationProvider.Options? AuthenticationOptions { get; set; } = null;
+        public AesAuthenticationProvider.Options? AuthenticationOptions { get; set; } = null;
     }
 }

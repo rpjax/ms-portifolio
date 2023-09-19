@@ -1,16 +1,24 @@
 ﻿using Microsoft.AspNetCore.Http;
 using ModularSystem.Core;
 using ModularSystem.Core.Security;
-using ModularSystem.Web.Authentication;
 
 namespace ModularSystem.Web;
 
+/// <summary>
+/// Middleware responsible for authenticating users based on the IAM system. <br/>
+/// It extracts the identity from the incoming HTTP request and injects it for further processing, if valid.
+/// </summary>
 public class IamAuthenticationMiddleware : Middleware
 {
-    public static bool ThrowOnExpiredToken { get; set; } = true;
+    /// <summary>
+    /// Gets the IAM system responsible for authentication tasks.
+    /// </summary>
+    private IIamSystem Iam { get; }
 
-    readonly IIamSystem _iam;
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="IamAuthenticationMiddleware"/> class.
+    /// </summary>
+    /// <param name="next">The next middleware in the request pipeline.</param>
     public IamAuthenticationMiddleware(RequestDelegate next) : base(next)
     {
         if (!DependencyContainer.TryGetInterface<IIamSystem>(out var iam))
@@ -18,40 +26,49 @@ public class IamAuthenticationMiddleware : Middleware
             throw new InvalidOperationException("The IamAuthenticationMiddleware requires an implementation of IIamSystem to be registered in the DependencyContainer. Ensure that an appropriate implementation is registered before using this middleware.");
         }
 
-        _iam = iam;
+        Iam = iam;
     }
 
-    protected override Task BeforeNextAsync(HttpContext context)
+    /// <summary>
+    /// Executes tasks before the next middleware in the pipeline. In this context, it retrieves the identity from the HTTP context and, if valid, injects it for further processing.
+    /// </summary>
+    /// <param name="context">The current HTTP context.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a value indicating if the next middleware should be invoked.</returns>
+    protected override Task<bool> BeforeNextAsync(HttpContext context)
     {
-        var token = _iam.AuthenticationProvider.GetToken(context);
+        var identity = GetIdentityFrom(context);
+
+        if (identity != null)
+        {
+            InjectIdentity(context, identity);
+        }
+
+        return Task.FromResult(false);
+    }
+
+    /// <summary>
+    /// Retrieves and validates the user's identity using the token present in the HTTP context.
+    /// </summary>
+    /// <param name="context">The current HTTP context.</param>
+    /// <returns>The user's identity, or null if the identity cannot be determined or is invalid.</returns>
+    private IIdentity? GetIdentityFrom(HttpContext context)
+    {
+        var token = Iam.AuthenticationProvider.GetToken(context);
 
         if (token == null)
         {
-            return Task.CompletedTask;
-        }
-        if (token.IsExpired())
-        {
-            if (ThrowOnExpiredToken)
-            {
-                throw new AppException("The provided credentials is expired.", ExceptionCode.CredentialsExpired);
-            }
-
-            return Task.CompletedTask;
+            return null;
         }
 
-        var identity = _iam.AuthenticationProvider.GetIdentity(token);
-
-        if (identity == null)
-        {
-            return Task.CompletedTask;
-        }
-
-        SetIdentity(context, identity);
-
-        return Task.CompletedTask;
+        return Iam.AuthenticationProvider.GetIdentity(token);
     }
 
-    void SetIdentity(HttpContext context, IIdentity identity)
+    /// <summary>
+    /// Injects the validated identity into the HTTP context for further use by subsequent middlewares or request handlers.
+    /// </summary>
+    /// <param name="context">The current HTTP context.</param>
+    /// <param name="identity">The validated identity to inject.</param>
+    private void InjectIdentity(HttpContext context, IIdentity identity)
     {
         context.Items.Add(WebController.HTTP_CONTEXT_IDENTITY_KEY, identity);
     }

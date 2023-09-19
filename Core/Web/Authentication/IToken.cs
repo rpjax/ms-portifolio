@@ -59,6 +59,9 @@ public class Token : IToken
     /// <inheritdoc/>
     public DateTime ExpiresAt { get; set; }
 
+    /// <summary>
+    /// Initializes a new instance of token with <see cref="CreatedAt"/> and <see cref="ExpiresAt"/> set to <see cref="TimeProvider.UtcNow"/>.
+    /// </summary>
     public Token()
     {
         CreatedAt = TimeProvider.UtcNow();
