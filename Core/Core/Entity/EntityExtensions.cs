@@ -31,6 +31,11 @@ public static class EntityExtensions
         return entity.QueryAsync(new Query<T>());
     }
 
+    public static Task DeleteAsync<T>(this Entity<T> entity, T instance) where T : IQueryableModel
+    {
+        return entity.DeleteAsync(instance.GetId());
+    }
+
     public static async Task DeleteAsync<T>(this Entity<T> entity, IEnumerable<string> ids) where T : IQueryableModel
     {
         if (ids.IsEmpty())

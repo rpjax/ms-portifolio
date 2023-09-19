@@ -88,7 +88,7 @@ public class AesEncrypter : Encrypter
         using var cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write);
 
         cryptoStream.Write(data, 0, data.Length);
-        cryptoStream.Flush();
+        cryptoStream.FlushFinalBlock();
 
         encryptedData = memoryStream.ToArray();
 
@@ -106,7 +106,7 @@ public class AesEncrypter : Encrypter
         using var reader = new StreamReader(cryptoStream);
         using var buffer = new MemoryStream();
 
-        reader.BaseStream.CopyTo(buffer);
+        cryptoStream.CopyTo(buffer);
         return buffer.ToArray();
     }
 

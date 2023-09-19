@@ -60,10 +60,14 @@ public class EmptyResourcePolicy : IResourcePolicy
 /// </summary>
 public class ResourcePolicy : IResourcePolicy
 {
-    protected static readonly IdentityPermission SystemPermission = DefinedPermissions.CreateSystemPermission();
+    /// <summary>
+    /// Generates a wildcard system-level permission.
+    /// </summary>
+    protected static readonly IdentityPermission SystemPermission = DefinedPermissions.GetSystemPermission();
 
     /// <summary>
-    /// Gets or sets a value indicating whether system-level permissions should bypass the authorization checks.
+    /// Gets or sets a value indicating whether system-level permissions should bypass the authorization checks. <br/>
+    /// This permission is set at <see cref="DefinedPermissions.GetSystemPermission"/>.
     /// </summary>
     public bool UseSystemBypass { get; set; } = true;
 
@@ -177,17 +181,9 @@ public class ResourcePolicy : IResourcePolicy
                 return true;
             }
 
-            var serviceMatch =
-            identityPermission.Domain == IdentityPermission.Wildcard ||
-            identityPermission.Domain == requriedPermission.Domain;
-
-            var resourceMatch =
-                identityPermission.Resource == IdentityPermission.Wildcard ||
-                identityPermission.Resource == requriedPermission.Resource;
-
-            var actionMatch =
-                identityPermission.Name == IdentityPermission.Wildcard ||
-                identityPermission.Name == requriedPermission.Name;
+            var serviceMatch = DomainMatch(requriedPermission, identityPermission);
+            var resourceMatch = ResourceMatch(requriedPermission, identityPermission);
+            var actionMatch = NameMatch(requriedPermission, identityPermission);
 
             var identityHasPermission = serviceMatch && resourceMatch && actionMatch;
 
@@ -198,5 +194,38 @@ public class ResourcePolicy : IResourcePolicy
         }
 
         return false;
+    }
+
+    bool DomainMatch(IdentityPermission requriedPermission, IdentityPermission identityPermission)
+    {
+        if (requriedPermission.Domain.IsEmpty())
+        {
+            return true;
+        }
+
+        return identityPermission.Domain == IdentityPermission.Wildcard ||
+            identityPermission.Domain == requriedPermission.Domain;
+    }
+
+    bool ResourceMatch(IdentityPermission requriedPermission, IdentityPermission identityPermission)
+    {
+        if (requriedPermission.Resource.IsEmpty())
+        {
+            return true;
+        }
+
+        return identityPermission.Resource == IdentityPermission.Wildcard ||
+            identityPermission.Resource == requriedPermission.Resource;
+    }
+
+    bool NameMatch(IdentityPermission requriedPermission, IdentityPermission identityPermission)
+    {
+        if (requriedPermission.Name.IsEmpty())
+        {
+            return true;
+        }
+
+        return identityPermission.Name == IdentityPermission.Wildcard ||
+            identityPermission.Name == requriedPermission.Name;
     }
 }

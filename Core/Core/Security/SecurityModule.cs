@@ -52,23 +52,34 @@ public class IdentityPermission : IEquatable<IdentityPermission>
     public List<Flag> Flags { get; set; }
 
     /// <summary>
+    /// Initializes an empty instance of <see cref="IdentityPermission"/> with all values set to <see cref="string.Empty"/>.
+    /// </summary>
+    [JsonConstructor]
+    public IdentityPermission()
+    {
+        Domain = string.Empty;
+        Resource = string.Empty;
+        Name = string.Empty;
+        Flags = new();
+    }
+
+    /// <summary>
     /// Constructs an IdentityPermission with specified domain, resource, and name.
     /// Optionally, a list of flags can be provided.
     /// </summary>
-    [JsonConstructor]
-    public IdentityPermission(string domain, string resource, string name, List<Flag>? flags = null)
+    public IdentityPermission(string domain, string resource, string name, IEnumerable<Flag>? flags = null)
     {
         Domain = domain;
         Resource = resource;
         Name = name;
-        Flags = flags ?? new();
+        Flags = flags?.ToList() ?? new();
     }
 
     /// <summary>
     /// Constructs an IdentityPermission based on a permission string in the format "domain:resource:name".
     /// Optionally, a list of flags can be provided.
     /// </summary>
-    public IdentityPermission(string permission, List<Flag>? flags = null)
+    public IdentityPermission(string permission, IEnumerable<Flag>? flags = null)
     {
         var split = permission.Split(':');
 
@@ -80,7 +91,7 @@ public class IdentityPermission : IEquatable<IdentityPermission>
         Domain = split[0];
         Resource = split[1];
         Name = split[2];
-        Flags = flags ?? new();
+        Flags = flags?.ToList() ?? new();
     }
 
     /// <summary>
@@ -177,10 +188,19 @@ public class Identity : IIdentity
     public List<string> Roles { get; set; } = new();
 
     /// <summary>
+    /// Initializes an empty instance of <see cref="Identity"/>.
+    /// </summary>
+    [JsonConstructor]
+    public Identity()
+    {
+        UniqueIdentifier = string.Empty;
+        Permissions = new();
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Identity"/> class using a unique identifier.
     /// </summary>
     /// <param name="uniqueIdentifier">The unique identifier for the identity.</param>
-    [JsonConstructor]
     public Identity(string uniqueIdentifier)
     {
         UniqueIdentifier = uniqueIdentifier;
@@ -226,12 +246,24 @@ public class Identity : IIdentity
     }
 
     /// <summary>
+    /// Associates a role with the identity.
+    /// </summary>
+    /// <param name="role"></param>
+    /// <returns></returns>
+    public Identity AddRole(string role)
+    {
+        Roles.Add(role);
+        return this;
+    }
+
+    /// <summary>
     /// Associates all permissions of a specific role with the identity.
     /// </summary>
     /// <param name="role">The role whose permissions should be associated with the identity.</param>
     /// <returns>The current <see cref="Identity"/> instance for fluent chaining.</returns>
     public Identity AddRole(IdentityRole role)
     {
+        Roles.Add(role.Name);
         AddPermissions(role.Permissions);
         return this;
     }
@@ -245,6 +277,7 @@ public class Identity : IIdentity
     {
         foreach (var role in roles)
         {
+            Roles.Add(role.Name);
             AddRole(role);
         }
 
@@ -268,12 +301,21 @@ public class IdentityRole
     public List<IdentityPermission> Permissions { get; set; }
 
     /// <summary>
+    /// Initializes an empty instance of <see cref="IdentityRole"/>.
+    /// </summary>
+    [JsonConstructor]
+    public IdentityRole()
+    {
+        Name = string.Empty;
+        Permissions = new();
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="IdentityRole"/> class with a specified name 
     /// and an optional list of permissions.
     /// </summary>
     /// <param name="name">The name of the role.</param>
     /// <param name="permissions">An optional list of permissions to associate with this role.</param>
-    [JsonConstructor]
     public IdentityRole(string name, IEnumerable<IdentityPermission>? permissions = null)
     {
         Name = name;
@@ -366,6 +408,18 @@ public class IdentityAction
     public List<IdentityPermission> RequiredPermissions { get; set; } = new();
 
     /// <summary>
+    /// Initializes an empty instance of <see cref="IdentityAction"/> with all values set to <see cref="string.Empty"/>.
+    /// </summary>
+    [JsonConstructor]
+    public IdentityAction()
+    {
+        Domain = string.Empty;
+        Resource = string.Empty;
+        Name = string.Empty;
+        RequiredPermissions =  new();
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="IdentityAction"/> class based on an action string.
     /// </summary>
     /// <param name="actionString">The action string in the format "domain:resource:action".</param>
@@ -379,10 +433,6 @@ public class IdentityAction
         var split = actionString.Split(':');
 
         if (split.Length != 3)
-        {
-            throw new ArgumentException(nameof(actionString));
-        }
-        if (split[0].IsEmpty() || split[1].IsEmpty() || split[2].IsEmpty())
         {
             throw new ArgumentException(nameof(actionString));
         }
@@ -430,6 +480,26 @@ public class IdentityAction
     {
         return $"{Domain}:{Resource}:{Name}";
     }
+
+    /// <summary>
+    /// Sets the required permissions for this action and returns the current instance.
+    /// </summary>
+    /// <param name="requiredPermissions">The list of permissions to be set for this action.</param>
+    /// <returns>The current <see cref="IdentityAction"/> instance after updating the required permissions.</returns>
+    public IdentityAction SetRequiredPermissions(IEnumerable<IdentityPermission> requiredPermissions)
+    {
+        RequiredPermissions = RequiredPermissions.ToList();
+        return this;
+    }
+
+    /// <summary>
+    /// Constructs a new <see cref="ResourcePolicy"/> based on the permissions specified for this action.
+    /// </summary>
+    /// <returns>A new instance of <see cref="ResourcePolicy"/> derived from the required permissions of this action.</returns>
+    public virtual ResourcePolicy GetResourcePolicy()
+    {
+        return new ResourcePolicy(RequiredPermissions);
+    }
 }
 
 /// <summary>
@@ -439,23 +509,25 @@ public class IdentityAction
 public static partial class DefinedPermissions
 {
     /// <summary>
-    /// Represents the system-level permission.
+    /// Represents predefined roles with associated permissions.
     /// </summary>
-    public const string System = "system";
+    public static class Roles
+    {
+        /// <summary>
+        /// Represents the system-level permission.
+        /// </summary>
+        public const string System = "system";
 
-    /// <summary>
-    /// Represents the administrative-level permission.
-    /// </summary>
-    public const string Admin = "admin";
+        /// <summary>
+        /// Represents the administrative-level permission.
+        /// </summary>
+        public const string Admin = "admin";
 
-    /// <summary>
-    /// Represents the user-level permission.
-    /// </summary>
-    public const string User = "user";
-
-    //*
-    // spacer
-    //*
+        /// <summary>
+        /// Represents the user-level permission.
+        /// </summary>
+        public const string User = "user";
+    }
 
     /// <summary>
     /// Permission to create entities or resources.
@@ -483,18 +555,96 @@ public static partial class DefinedPermissions
     public const string Write = "write";
 
     /// <summary>
-    /// List of permissions that grant both create and read access.
-    /// </summary>
-    public static readonly IReadOnlyList<string> CreateRead = new[] { Create, Read };
-
-    /// <summary>
     /// List of standard CRUD permissions.
     /// </summary>
     public static readonly IReadOnlyList<string> Crud = new[] { Create, Read, Update, Delete };
 
-    public static IdentityPermission CreateSystemPermission()
+    /// <summary>
+    /// Generates an empty permission that is ignored by the identity system.
+    /// </summary>
+    public static IdentityPermission GetEmptyPermission()
     {
-        return IdentityPermission.WildcardPermission(System);
+        return new IdentityPermission();
+    }
+
+    /// <summary>
+    /// Generates a wildcard system-level permission.
+    /// </summary>
+    public static IdentityPermission GetSystemPermission()
+    {
+        return IdentityPermission.WildcardPermission(Roles.System);
+    }
+
+    /// <summary>
+    /// Generates an administrative-level permission for the specified domain and resource.
+    /// </summary>
+    /// <param name="domain">The domain to which the permission applies. Uses wildcard by default.</param>
+    /// <param name="resource">The resource within the domain. Uses wildcard by default.</param>
+    /// <param name="flags">Additional permission flags if needed.</param>
+    /// <returns>An <see cref="IdentityPermission"/> object representing administrative access to the specified domain and resource.</returns>
+    public static IdentityPermission GetAdminPermission(string domain = IdentityPermission.Wildcard, string resource = IdentityPermission.Wildcard, IEnumerable<IdentityPermission.Flag>? flags = null)
+    {
+        return new IdentityPermission(domain, resource, Roles.Admin, flags);
+    }
+
+    /// <summary>
+    /// Generates a user-level permission for the specified domain and resource.
+    /// </summary>
+    /// <param name="domain">The domain to which the permission applies. Uses wildcard by default.</param>
+    /// <param name="resource">The resource within the domain. Uses wildcard by default.</param>
+    /// <param name="flags">Additional permission flags if needed.</param>
+    /// <returns>An <see cref="IdentityPermission"/> object representing user access to the specified domain and resource.</returns>
+    public static IdentityPermission GetUserPermission(string domain = IdentityPermission.Wildcard, string resource = IdentityPermission.Wildcard, IEnumerable<IdentityPermission.Flag>? flags = null)
+    {
+        return new IdentityPermission(domain, resource, Roles.User, flags);
+    }
+
+    /// <summary>
+    /// Generates a permission for creating entities or resources within the specified domain and resource.
+    /// </summary>
+    /// <param name="domain">The domain to which the permission applies. Uses wildcard by default.</param>
+    /// <param name="resource">The resource within the domain. Uses wildcard by default.</param>
+    /// <param name="flags">Additional permission flags if needed.</param>
+    /// <returns>An <see cref="IdentityPermission"/> object representing create access to the specified domain and resource.</returns>
+    public static IdentityPermission GetCreatePermission(string domain = IdentityPermission.Wildcard, string resource = IdentityPermission.Wildcard, IEnumerable<IdentityPermission.Flag>? flags = null)
+    {
+        return new IdentityPermission(domain, resource, Create, flags);
+    }
+
+    /// <summary>
+    /// Generates a permission for reading entities or resources within the specified domain and resource.
+    /// </summary>
+    /// <param name="domain">The domain to which the permission applies. Uses wildcard by default.</param>
+    /// <param name="resource">The resource within the domain. Uses wildcard by default.</param>
+    /// <param name="flags">Additional permission flags if needed.</param>
+    /// <returns>An <see cref="IdentityPermission"/> object representing read access to the specified domain and resource.</returns>
+    public static IdentityPermission GetReadPermission(string domain = IdentityPermission.Wildcard, string resource = IdentityPermission.Wildcard, IEnumerable<IdentityPermission.Flag>? flags = null)
+    {
+        return new IdentityPermission(domain, resource, Read, flags);
+    }
+
+    /// <summary>
+    /// Generates a permission for updating entities or resources within the specified domain and resource.
+    /// </summary>
+    /// <param name="domain">The domain to which the permission applies. Uses wildcard by default.</param>
+    /// <param name="resource">The resource within the domain. Uses wildcard by default.</param>
+    /// <param name="flags">Additional permission flags if needed.</param>
+    /// <returns>An <see cref="IdentityPermission"/> object representing update access to the specified domain and resource.</returns>
+    public static IdentityPermission GetUpdatePermission(string domain = IdentityPermission.Wildcard, string resource = IdentityPermission.Wildcard, IEnumerable<IdentityPermission.Flag>? flags = null)
+    {
+        return new IdentityPermission(domain, resource, Update, flags);
+    }
+
+    /// <summary>
+    /// Generates a permission for deleting entities or resources within the specified domain and resource.
+    /// </summary>
+    /// <param name="domain">The domain to which the permission applies. Uses wildcard by default.</param>
+    /// <param name="resource">The resource within the domain. Uses wildcard by default.</param>
+    /// <param name="flags">Additional permission flags if needed.</param>
+    /// <returns>An <see cref="IdentityPermission"/> object representing delete access to the specified domain and resource.</returns>
+    public static IdentityPermission GetDeletePermission(string domain = IdentityPermission.Wildcard, string resource = IdentityPermission.Wildcard, IEnumerable<IdentityPermission.Flag>? flags = null)
+    {
+        return new IdentityPermission(domain, resource, Delete, flags);
     }
 }
 
@@ -545,7 +695,7 @@ public static partial class DefinedRoles
     /// <returns>The administrative role.</returns>
     public static IdentityRole Admin() =>
         new IdentityRole("domain_resource_admin")
-        .AddPermission(new(WildcardString, WildcardString, DefinedPermissions.Admin));
+        .AddPermission(DefinedPermissions.GetAdminPermission());
 
     /// <summary>
     /// Constructs an administrative role for a specific domain that provides general administrative access across all resources within that domain.
@@ -554,7 +704,7 @@ public static partial class DefinedRoles
     /// <returns>The administrative role for the specified domain.</returns>
     public static IdentityRole Admin(string domain) =>
         new IdentityRole("resource_admin")
-        .AddPermission(new(domain, WildcardString, DefinedPermissions.Admin));
+        .AddPermission(DefinedPermissions.GetAdminPermission(domain));
 
     /// <summary>
     /// Constructs an administrative role for a specific domain and resource.
@@ -564,7 +714,7 @@ public static partial class DefinedRoles
     /// <returns>The administrative role for the specified domain and resource.</returns>
     public static IdentityRole Admin(string domain, string resource) =>
         new IdentityRole("admin")
-        .AddPermission(new(domain, resource, DefinedPermissions.Admin));
+        .AddPermission(DefinedPermissions.GetAdminPermission(domain, resource));
 
     /// <summary>
     /// Constructs a read-only role for a specific domain and resource.
@@ -574,7 +724,7 @@ public static partial class DefinedRoles
     /// <returns>The read-only role for the specified domain and resource.</returns>
     public static IdentityRole ReadOnly(string domain, string resource) =>
         new IdentityRole("read_only")
-        .AddPermission(new(domain, resource, DefinedPermissions.Read));
+        .AddPermission(DefinedPermissions.GetReadPermission(domain, resource));
 
     /// <summary>
     /// Constructs a role with both create and read permissions for a specific domain and resource.
@@ -584,8 +734,8 @@ public static partial class DefinedRoles
     /// <returns>The create-read role for the specified domain and resource.</returns>
     public static IdentityRole CreateReadOnly(string domain, string resource) =>
         new IdentityRole("create_read")
-        .AddPermission(new(domain, resource, DefinedPermissions.Create))
-        .AddPermission(new(domain, resource, DefinedPermissions.Read));
+        .AddPermission(DefinedPermissions.GetCreatePermission(domain, resource))
+        .AddPermission(DefinedPermissions.GetReadPermission(domain, resource));
 
     /// <summary>
     /// Constructs a role with standard CRUD permissions for a specific domain and resource.
