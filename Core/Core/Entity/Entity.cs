@@ -67,6 +67,12 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     //*
     // CREATE.
     //*
+
+    /// <summary>
+    /// Asynchronously creates a new entity.
+    /// </summary>
+    /// <param name="entry">The entity to be created.</param>
+    /// <returns>The ID of the created entity.</returns>
     public virtual async Task<string> CreateAsync(T entry)
     {
         if (Validator != null)
@@ -85,6 +91,11 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
         return entry.GetId();
     }
 
+    /// <summary>
+    /// Asynchronously creates multiple new entities.
+    /// </summary>
+    /// <param name="entries">The entities to be created.</param>
+    /// <returns>A task that represents the asynchronous create operation.</returns>
     public virtual async Task CreateAsync(IEnumerable<T> entries)
     {
         var valdiationTasks = new List<Task<Exception?>>(entries.Count());
@@ -150,6 +161,12 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     //*
     // READ.
     //*
+
+    /// <summary>
+    /// Tries to asynchronously retrieve an entity by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the entity.</param>
+    /// <returns>The retrieved entity or default if not found.</returns>
     public virtual async Task<T?> TryGetAsync(string id)
     {
         await this.RunIdValidationAsync(id);
@@ -165,6 +182,12 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
         return queryResult.First!;
     }
 
+    /// <summary>
+    /// Asynchronously retrieves an entity by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the entity.</param>
+    /// <returns>The retrieved entity.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the entity is not found.</exception>
     public virtual async Task<T> GetAsync(string id)
     {
         var data = await TryGetAsync(id);
@@ -177,6 +200,11 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
         return data;
     }
 
+    /// <summary>
+    /// Asynchronously queries entities based on the provided query parameters.
+    /// </summary>
+    /// <param name="query">The query parameters.</param>
+    /// <returns>The results of the query.</returns>
     public virtual async Task<IQueryResult<T>> QueryAsync(IQuery<T> query)
     {
         if (QueryValidator != null)
@@ -195,6 +223,12 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     //*
     // UPDATE.
     //*
+
+    /// <summary>
+    /// Asynchronously updates an entity.
+    /// </summary>
+    /// <param name="overrider">The entity with updated values.</param>
+    /// <returns>A task that represents the asynchronous update operation.</returns>
     public virtual async Task UpdateAsync(T overrider)
     {
         var original = await GetAsync(overrider.GetId());
@@ -217,11 +251,22 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     //*
     // DELETE.
     //*
+
+    /// <summary>
+    /// Asynchronously deletes entities that match the specified predicate.
+    /// </summary>
+    /// <param name="predicate">The predicate to determine which entities to delete.</param>
+    /// <returns>A task that represents the asynchronous delete operation.</returns>
     public virtual Task DeleteAsync(Expression<Func<T, bool>> predicate)
     {
         return DataAccessObject.DeleteAsync(this.Visit<T, Func<T, bool>>(predicate));
     }
 
+    /// <summary>
+    /// Asynchronously deletes all entities. Requires confirmation.
+    /// </summary>
+    /// <param name="confirm">If set to <c>true</c>, all entities will be deleted.</param>
+    /// <returns>A task that represents the asynchronous delete operation.</returns>
     public virtual Task DeleteAllAsync(bool confirm = false)
     {
         if (confirm)
@@ -232,6 +277,11 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Asynchronously deletes an entity by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the entity.</param>
+    /// <returns>A task that represents the asynchronous delete operation.</returns>
     public virtual async Task DeleteAsync(string id)
     {
         if (ValidateIdBeforeDeletion)
@@ -245,11 +295,22 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     //*
     // ID VALIDATIONS.
     //*
+
+    /// <summary>
+    /// Validates the format of the given ID.
+    /// </summary>
+    /// <param name="id">The ID to be validated.</param>
+    /// <returns><c>true</c> if the ID format is valid; otherwise, <c>false</c>.</returns>
     public bool ValidateIdFormat(string id)
     {
         return DataAccessObject.ValidateIdFormat(id);
     }
 
+    /// <summary>
+    /// Asynchronously validates if the given ID exists in the data source.
+    /// </summary>
+    /// <param name="id">The ID to be validated.</param>
+    /// <returns><c>true</c> if the ID exists; otherwise, <c>false</c>.</returns>
     public virtual async Task<bool> ValidateIdAsync(string id)
     {
         if (DataAccessObject.ValidateIdFormat(id))
@@ -264,11 +325,21 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     //*
     // OTHER STUFF.
     //*
+
+    /// <summary>
+    /// Asynchronously counts entities that match the specified predicate.
+    /// </summary>
+    /// <param name="predicate">The predicate to determine which entities to count.</param>
+    /// <returns>The number of entities that match the predicate.</returns>
     public Task<long> CountAsync(Expression<Func<T, bool>> predicate)
     {
         return DataAccessObject.CountAsync(this.Visit<T, Func<T, bool>>(predicate));
     }
 
+    /// <summary>
+    /// Asynchronously counts all entities.
+    /// </summary>
+    /// <returns>The total number of entities.</returns>
     public virtual Task<long> CountAllAsync()
     {
         return DataAccessObject.CountAllAsync();
@@ -295,13 +366,11 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     //*
 
     /// <summary>
-    /// Maps the <see cref="IQueryableModel.GetId"/> method to its implementation.<br/>
-    /// This should look like this:<br/>
-    /// <code>              
-    /// MemberExpression => ParameterExpression    
-    /// </code>
+    /// Maps the <see cref="IQueryableModel.GetId"/> method to its implementation.
+    /// This should look like: <br/>
+    /// MemberExpression => ParameterExpression
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The member expression mapped to the parameter expression.</returns>
     protected abstract MemberExpression CreateIdSelectorExpression(ParameterExpression parameter);
 
     /// <summary>
@@ -311,6 +380,12 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// <returns></returns>
     protected abstract object? TryParseId(string id);
 
+    /// <summary>
+    /// Converts the stringified version of the ID into its implementation Type, throwing an exception if the conversion is unsuccessful.
+    /// </summary>
+    /// <param name="id">The string representation of the ID.</param>
+    /// <returns>The parsed ID value.</returns>
+    /// <exception cref="AppException">Thrown if the ID value cannot be parsed.</exception>
     protected virtual object ParseId(string id)
     {
         var parsedValue = TryParseId(id);
@@ -326,6 +401,13 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     //*
     // ON CREATE CALLBACKS.
     //*
+
+    /// <summary>
+    /// Executes operations before the entity instance is created.
+    /// By default, it sets the `CreatedAt` and `LastModifiedAt` properties.
+    /// </summary>
+    /// <param name="instance">The entity instance to be processed.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     protected virtual Task BeforeCreateAsync(T instance)
     {
         instance.CreatedAt = TimeProvider.UtcNow();
@@ -333,6 +415,11 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Executes operations after the entity instance has been created.
+    /// </summary>
+    /// <param name="instance">The created entity instance.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     protected virtual Task AfterCreateAsync(T instance)
     {
         return Task.CompletedTask;
@@ -341,6 +428,14 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     //*
     // ON UPDATE CALLBACKS.
     //*
+
+    /// <summary>
+    /// Executes operations before the entity instance is updated.
+    /// By default, it updates the `LastModifiedAt` property and maintains the values of `IsSoftDeleted` and `CreatedAt`.
+    /// </summary>
+    /// <param name="original">The original entity instance before the update.</param>
+    /// <param name="overrider">The entity instance that contains the updates.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     protected virtual Task BeforeUpdateAsync(T original, T overrider)
     {
         overrider.IsSoftDeleted = overrider.IsSoftDeleted;
@@ -349,11 +444,16 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Executes operations after the entity instance has been updated.
+    /// </summary>
+    /// <param name="original">The original entity instance before the update.</param>
+    /// <param name="overrider">The updated entity instance.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     protected virtual Task AfterUpdateAsync(T original, T overrider)
     {
         return Task.CompletedTask;
     }
-
 }
 
 //*
@@ -369,13 +469,12 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
 
 public static class EntityLinq
 {
-    //public const string IdEqualsFlag = "ID_EQUALS";
-
     /// <summary>
     /// Signals the LINQ provider to replace this flag with an <see cref="Expression"/>.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="flagName"></param>
+    /// <param name="data"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
     public static T ReplacementFlag<T>(string flagName, object? data = null)

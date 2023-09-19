@@ -416,7 +416,7 @@ public class IdentityAction
         Domain = string.Empty;
         Resource = string.Empty;
         Name = string.Empty;
-        RequiredPermissions =  new();
+        RequiredPermissions = new();
     }
 
     /// <summary>

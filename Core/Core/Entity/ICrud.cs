@@ -14,11 +14,11 @@ public interface ICrud<T>
     Task<string> CreateAsync(T entry);
 
     /// <summary>
-    /// Asynchronously retrieves an entity by its ID.
+    /// Asynchronously retrieves an entity by its ID, if it exists.
     /// </summary>
     /// <param name="id">The ID of the entity to retrieve.</param>
-    /// <returns>A task that represents the asynchronous retrieve operation. The task result contains the retrieved entity of type <typeparamref name="T"/>.</returns>
-    Task<T> GetAsync(string id);
+    /// <returns>A task that returns the retrieved entity, or null if not found.</returns>
+    Task<T?> TryGetAsync(string id);
 
     /// <summary>
     /// Asynchronously updates an existing entity.

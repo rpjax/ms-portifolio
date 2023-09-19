@@ -42,7 +42,7 @@ public abstract class Middleware
                 await Next(context);
             }
 
-            if(await AfterNextAsync(context))
+            if (await AfterNextAsync(context))
             {
                 // reserved for future additions...
             }

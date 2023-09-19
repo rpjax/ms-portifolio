@@ -26,6 +26,7 @@ public static class Program
 
     static void Test()
     {
+
         HashContext a;
     }
 }

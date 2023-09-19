@@ -3,6 +3,9 @@ using System.Linq.Expressions;
 
 namespace ModularSystem.Core;
 
+/// <summary>
+/// Provides extension methods for <see cref="Entity{T}"/>.
+/// </summary>
 public static class EntityExtensions
 {
     //*
@@ -31,11 +34,31 @@ public static class EntityExtensions
         return entity.QueryAsync(new Query<T>());
     }
 
+    /// <summary>
+    /// Asynchronously deletes the specified instance of type <typeparamref name="T"/> from the given entity.
+    /// </summary>
+    /// <typeparam name="T">The type of the instance, which must implement the <see cref="IQueryableModel"/> interface.</typeparam>
+    /// <param name="entity">The entity representing the data set of type <typeparamref name="T"/> from which the instance will be deleted.</param>
+    /// <param name="instance">The instance to be deleted.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <remarks>
+    /// This method leverages the <see cref="IQueryableModel.GetId"/> method to retrieve the identifier of the instance and subsequently deletes it from the entity.
+    /// </remarks>
     public static Task DeleteAsync<T>(this Entity<T> entity, T instance) where T : IQueryableModel
     {
         return entity.DeleteAsync(instance.GetId());
     }
 
+    /// <summary>
+    /// Asynchronously deletes the instances of type <typeparamref name="T"/> from the given entity using a collection of IDs.
+    /// </summary>
+    /// <typeparam name="T">The type of the instance, which must implement the <see cref="IQueryableModel"/> interface.</typeparam>
+    /// <param name="entity">The entity representing the data set of type <typeparamref name="T"/>.</param>
+    /// <param name="ids">An enumeration of identifiers representing the instances to be deleted.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous deletion operation.</returns>
+    /// <remarks>
+    /// If the entity's <c>ValidateIdBeforeDeletion</c> property is set to true, this method will validate the IDs asynchronously before deletion.
+    /// </remarks>
     public static async Task DeleteAsync<T>(this Entity<T> entity, IEnumerable<string> ids) where T : IQueryableModel
     {
         if (ids.IsEmpty())
@@ -75,6 +98,13 @@ public static class EntityExtensions
         await entity.DeleteAsync(expression!);
     }
 
+    /// <summary>
+    /// Runs the ID format validation for the provided ID. Throws an exception if the ID is malformed.
+    /// </summary>
+    /// <typeparam name="T">The type of the instance, which must implement the <see cref="IQueryableModel"/> interface.</typeparam>
+    /// <param name="entity">The entity representing the data set of type <typeparamref name="T"/>.</param>
+    /// <param name="id">The identifier to be validated.</param>
+    /// <exception cref="AppException">Thrown when the provided ID is malformed.</exception>
     public static void RunIdFormatValidation<T>(this Entity<T> entity, string id) where T : IQueryableModel
     {
         var isValid = entity.DataAccessObject.ValidateIdFormat(id);
@@ -85,6 +115,14 @@ public static class EntityExtensions
         }
     }
 
+    /// <summary>
+    /// Asynchronously runs the ID validation for the provided ID. Throws an exception if the ID is invalid or malformed.
+    /// </summary>
+    /// <typeparam name="T">The type of the instance, which must implement the <see cref="IQueryableModel"/> interface.</typeparam>
+    /// <param name="entity">The entity representing the data set of type <typeparamref name="T"/>.</param>
+    /// <param name="id">The identifier to be validated.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous validation operation.</returns>
+    /// <exception cref="AppException">Thrown when the provided ID is invalid or malformed.</exception>
     public static async Task RunIdValidationAsync<T>(this Entity<T> entity, string id) where T : IQueryableModel
     {
         var isValid = await entity.ValidateIdAsync(id);
@@ -95,6 +133,13 @@ public static class EntityExtensions
         }
     }
 
+    /// <summary>
+    /// Asynchronously counts the instances of type <typeparamref name="T"/> from the given entity that matches the provided ID.
+    /// </summary>
+    /// <typeparam name="T">The type of the instance, which must implement the <see cref="IQueryableModel"/> interface.</typeparam>
+    /// <param name="entity">The entity representing the data set of type <typeparamref name="T"/>.</param>
+    /// <param name="id">The identifier used for filtering and counting the instances.</param>
+    /// <returns>A <see cref="Task"/> that results in the count of instances that match the provided ID.</returns>
     public static async Task<long> CountAsync<T>(this Entity<T> entity, string id) where T : IQueryableModel
     {
         await entity.RunIdValidationAsync(id);

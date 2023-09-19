@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Primitives;
 using ModularSystem.Core;
 using ModularSystem.Core.Security;
-using ModularSystem.Web.Authentication;
 using System.Text.RegularExpressions;
 
 namespace ModularSystem.Web;
@@ -108,12 +107,12 @@ public static class HttpContextExtensions
             var identity = value?.TryTypeCast<IIdentity>();
 
             if (identity != null)
-            { 
+            {
                 return identity;
-            }        
+            }
         }
 
-        if(!fromHeaders)
+        if (!fromHeaders)
         {
             return null;
         }

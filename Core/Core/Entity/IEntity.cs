@@ -6,7 +6,7 @@ namespace ModularSystem.Core;
 /// Defines enterprise-level business rules for an entity, including CRUD operations, data access, validation, and querying.
 /// </summary>
 /// <typeparam name="T">The type of the entity being operated on.</typeparam>
-public interface IEntity<T> : ICrud<T>, IDisposable
+public interface IEntity<T> : IDisposable
 {
     /// <summary>
     /// Gets the data access object associated with the entity.
@@ -24,6 +24,13 @@ public interface IEntity<T> : ICrud<T>, IDisposable
     IValidator<T>? UpdateValidator { get; }
 
     /// <summary>
+    /// Asynchronously creates a new entity.
+    /// </summary>
+    /// <param name="entry">The entity to create.</param>
+    /// <returns>A task that represents the asynchronous create operation. The task result contains the ID of the created entity.</returns>
+    Task<string> CreateAsync(T entry);
+
+    /// <summary>
     /// Asynchronously creates a collection of entities.
     /// </summary>
     /// <param name="entries">The entities to create.</param>
@@ -38,11 +45,32 @@ public interface IEntity<T> : ICrud<T>, IDisposable
     Task<T?> TryGetAsync(string id);
 
     /// <summary>
+    /// Asynchronously retrieves an entity by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the entity to retrieve.</param>
+    /// <returns>A task that represents the asynchronous retrieve operation. The task result contains the retrieved entity of type <typeparamref name="T"/>.</returns>
+    Task<T> GetAsync(string id);
+
+    /// <summary>
     /// Asynchronously queries entities based on specified criteria.
     /// </summary>
     /// <param name="query">The criteria for querying entities.</param>
     /// <returns>A task that returns a collection of queried entities.</returns>
     Task<IQueryResult<T>> QueryAsync(IQuery<T> query);
+
+    /// <summary>
+    /// Asynchronously updates an existing entity.
+    /// </summary>
+    /// <param name="data">The updated data of the entity.</param>
+    /// <returns>A task that represents the asynchronous update operation.</returns>
+    Task UpdateAsync(T data);
+
+    /// <summary>
+    /// Asynchronously deletes an entity by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the entity to delete.</param>
+    /// <returns>A task that represents the asynchronous delete operation.</returns>
+    Task DeleteAsync(string id);
 
     /// <summary>
     /// Asynchronously deletes entities based on a given predicate.

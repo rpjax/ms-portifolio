@@ -17,7 +17,7 @@ public class AttributeAuthorizationProvider : IAuthorizationProvider
     /// identity action are permitted. When set to <c>true</c>, attributes without a corresponding action <br/>
     /// will not throw an error. Defaults to <c>false</c>.
     /// </summary>
-    public bool AllowActionlessAttributes { get; set; } 
+    public bool AllowActionlessAttributes { get; set; }
 
     /// <summary>
     /// Represents the strategy for obtaining an <see cref="IdentityAction"/> based on the <see cref="IdentityActionAttribute"/>.
@@ -48,7 +48,7 @@ public class AttributeAuthorizationProvider : IAuthorizationProvider
 
         if (action == null)
         {
-            if(!AllowActionlessAttributes)
+            if (!AllowActionlessAttributes)
             {
                 throw new AppException($"The strategy failed to resolve an IdentityAction for the provided IdentityActionAttribute: {attribute.GetType().Name}.");
             }

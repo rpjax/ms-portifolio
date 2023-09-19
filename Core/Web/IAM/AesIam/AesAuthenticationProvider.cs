@@ -74,7 +74,7 @@ public class AesAuthenticationProvider : IAuthenticationProvider
             return null;
         }
 
-        if(!TokenEncrypter.Verify(rawToken))
+        if (!TokenEncrypter.Verify(rawToken))
         {
             throw new AppException("Invalid or unrecognized credentials provided. Authentication failed.", ExceptionCode.CredentialsInvalid);
         }

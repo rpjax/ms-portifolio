@@ -20,6 +20,34 @@ The entity interface employs a generic type `T`, which inherits from a base clas
 
 The Entity Interface serves as the foundation for CRUD operations. It consolidates validation logic, data access layers, and much more to expose methods through the entity.
 
+### Initializing the Library
+
+For the library to function correctly, it's essential to initialize it before use. 
+This step ensures that all modules and components are properly set up and ready for use.
+
+#### Step-by-step Guide:
+
+* Import the necessary namespace: 
+    Add the ModularSystem.Core namespace to your application.
+  
+* Call the Initializer:
+    Use the Initializer.Run() method to initialize the library.
+
+Example:
+```
+using ModularSystem.Core;
+
+namespace MyApp;
+
+public static class Program
+{
+    public static void Main(string[] args)
+    {
+        Initializer.Run();
+    }
+}
+```
+
 ### Getting Started
 
 * To begin, create the data structure for the entity model. This model should implement the `IQueryableModel` interface. Extend from `QueryableModel` to      automatically implement all required methods.

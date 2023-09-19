@@ -40,7 +40,7 @@ public class IamAuthorizationMiddleware : Middleware
     {
         var resourcePolicy = await Iam.AuthorizationProvider.GetResourcePolicyAsync(context);
 
-        if(resourcePolicy == null)
+        if (resourcePolicy == null)
         {
             return true;
         }

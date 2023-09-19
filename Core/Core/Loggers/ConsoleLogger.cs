@@ -18,7 +18,7 @@ public class ConsoleLoggerInitializer : Initializer
     /// <param name="options">Custom options for initializing the console logger.</param>
     public override void BeforeInit(Options options)
     {
-        if (!options.InitConsoleLogger)
+        if (!options.InitConsoleLogger || !ConsoleLogger.ConsoleIsAvailable())
         {
             return;
         }
