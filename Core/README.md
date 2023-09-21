@@ -20,6 +20,8 @@ The entity interface employs a generic type `T`, which inherits from a base clas
 
 The Entity Interface serves as the foundation for CRUD operations. It consolidates validation logic, data access layers, and much more to expose methods through the entity.
 
+## Usage
+
 ### Initializing the Library
 
 For the library to function correctly, it's essential to initialize it before use. 

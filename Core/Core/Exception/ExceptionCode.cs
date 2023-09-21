@@ -6,6 +6,12 @@
 public enum ExceptionCode
 {
     /// <summary>
+    /// Represents an unexpected internal error within the application. Details of this error should typically<br/>
+    /// not be exposed to end users for security reasons.
+    /// </summary>
+    Internal,
+
+    /// <summary>
     /// Indicates the request was malformed. Typically, this means the structure, syntax, or composition<br/>
     /// of the provided data is incorrect.
     /// </summary>
@@ -18,20 +24,18 @@ public enum ExceptionCode
     InvalidInput,
 
     /// <summary>
-    /// Indicates the request lacks the necessary permissions to be processed, possibly due to missing,<br/>
-    /// invalid, or insufficient authentication credentials.
+    /// Indicates the request lacks valid authentication credentials.
+    /// </summary>
+    Unauthenticated,
+
+    /// <summary>
+    /// Indicates the request lacks the required permissions for execution. <br/>
     /// </summary>
     Unauthorized,
 
     /// <summary>
-    /// Represents an unexpected internal error within the application. Details of this error should typically<br/>
-    /// not be exposed to end users for security reasons.
-    /// </summary>
-    Internal,
-
-    /// <summary>
-    /// The credentials provided with the request have expired and are no longer valid. The requester might<br/>
-    /// need to renew their authentication token or session.
+    /// The credentials provided with the request have expired and are no longer valid. <br/>
+    /// The requester might need to renew their authentication token or session.
     /// </summary>
     CredentialsExpired,
 

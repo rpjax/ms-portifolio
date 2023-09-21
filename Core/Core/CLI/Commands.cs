@@ -4,9 +4,8 @@ namespace ModularSystem.Core.Cli.Commands;
 
 public class ClearCmd : CliCommand
 {
-    public override void Execute(CLI cli, PromptContext context)
+    public ClearCmd(CLI cli, PromptContext context) : base(cli, context)
     {
-        cli.Clear();
     }
 
     public override string Instruction()
@@ -19,17 +18,16 @@ public class ClearCmd : CliCommand
         return "Clears the screen.";
     }
 
-    public override bool IsHandlerTo(PromptContext node)
+    protected override void Execute()
     {
-        return node.Instruction == "clear" || node.Instruction == "cls";
+        CliReference.Clear();
     }
 }
 
 public class ExitCmd : CliCommand
 {
-    public override void Execute(CLI cli, PromptContext context)
+    public ExitCmd(CLI cli, PromptContext context) : base(cli, context)
     {
-        cli.Stop();
     }
 
     public override string Instruction()
@@ -42,24 +40,16 @@ public class ExitCmd : CliCommand
         return "Exits the CLI.";
     }
 
-    public override bool IsHandlerTo(PromptContext node)
+    protected override void Execute()
     {
-        return node.Instruction == "exit";
+        CliReference.Stop();
     }
 }
 
 public class HelpCmd : CliCommand
 {
-    public override void Execute(CLI cli, PromptContext context)
+    public HelpCmd(CLI cli, PromptContext context) : base(cli, context)
     {
-        var commands = cli.Commands;
-
-        cli.Print($"CLI v{CLI.VERSION}");
-
-        foreach (var cmd in commands)
-        {
-            cli.Print($"'{cmd?.Instruction()}': {cmd?.Description()}");
-        }
     }
 
     public override string Instruction()
@@ -70,14 +60,25 @@ public class HelpCmd : CliCommand
     public override string Description()
     {
         return "Lists all available instructions with a description.";
+    } 
+
+    protected override void Execute()
+    {
+        var commands = CliReference.Commands;
+
+        CliReference.Print($"CLI v{CLI.Version}");
+
+        foreach (var cmd in commands.OrderBy(x => x))
+        {
+            CliReference.Print($"{cmd}");
+        }
     }
 }
 
 public class KillCmd : CliCommand
 {
-    public override void Execute(CLI cli, PromptContext context)
+    public KillCmd(CLI cli, PromptContext context) : base(cli, context)
     {
-        Process.GetCurrentProcess().Kill();
     }
 
     public override string Instruction()
@@ -88,65 +89,83 @@ public class KillCmd : CliCommand
     public override string Description()
     {
         return "Terminates all threads and exits the process execution. Use it with caution.";
+    }   
+    
+    protected override void Execute()
+    {
+        Process.GetCurrentProcess().Kill();
     }
 }
 
-public class PrintArgsCmd : CliCommand
-{
-    public override void Execute(CLI cli, PromptContext context)
-    {
-        foreach (var arg in context.Arguments)
-        {
-            cli.Print($"{arg.Key}: {arg.Value}");
-        }
-    }
+//public class PrintArgsCmd : CliCommand
+//{
+//    public PrintArgsCmd(CLI cli, PromptContext context) : base(cli, context)
+//    {
+//    }
 
-    public override string Instruction()
-    {
-        return "print_args";
-    }
+//    public override string Instruction()
+//    {
+//        return "print_args";
+//    }
 
-    public override string Description()
-    {
-        return "Prints all arguments passed.";
-    }
-}
+//    public override string Description()
+//    {
+//        return "Prints all arguments passed.";
+//    }  
 
-public class PrintFlagsCmd : CliCommand
-{
-    public override void Execute(CLI cli, PromptContext context)
-    {
-        foreach (var flag in context.Flags)
-        {
-            cli.Print($"{flag}");
-        }
-    }
+//    protected override void Execute()
+//    {
+//        foreach (var arg in Context.Arguments)
+//        {
+//            CliReference.Print($"{arg.Key}: {arg.Value}");
+//        }
+//    }
+//}
 
-    public override string Instruction()
-    {
-        return "print_flags";
-    }
+//public class PrintFlagsCmd : CliCommand
+//{
+//    public PrintFlagsCmd(CLI cli, PromptContext context) : base(cli, context)
+//    {
+//    }
 
-    public override string Description()
-    {
-        return "Prints all flags passed.";
-    }
-}
+//    public override string Instruction()
+//    {
+//        return "print_flags";
+//    }
+
+//    public override string Description()
+//    {
+//        return "Prints all flags passed.";
+//    }    
+
+//    protected override void Execute()
+//    {
+//        foreach (var flag in Context.Flags)
+//        {
+//            CliReference.Print($"{flag}");
+//        }
+//    }
+
+//}
 
 public class ListRunningContextsCmd : CliCommand
 {
-    public override void Execute(CLI cli, PromptContext context)
+    public ListRunningContextsCmd(CLI cli, PromptContext context) : base(cli, context)
     {
-        cli.PrintRunningCommands();
     }
 
     public override string Instruction()
     {
-        return "lst,list_threads";
+        return "lst";
     }
 
     public override string Description()
     {
         return "Lists all the commands that are executing in the background, in a separeted thread.";
+    }  
+    
+    protected override void Execute()
+    {
+        CliReference.PrintRunningCommands();
     }
 }

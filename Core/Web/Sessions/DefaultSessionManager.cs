@@ -129,7 +129,7 @@ public class DefaultSessionManager : EFEntity<EFSession>, ISessionManager
         }
     }
 
-    internal class CleanerSubRoutine : SubRoutine
+    internal class CleanerSubRoutine : ScheduledCallback
     {
         public override void Execute()
         {

@@ -1,7 +1,5 @@
-﻿using ModularSystem.Core.Cli.Commands;
-using ModularSystem.Core.Cli;
+﻿using ModularSystem.Core.Cli;
 using ModularSystem.Web;
-using ModularSystem.Web.Authentication;
 
 namespace ModularSystem.Tester;
 
@@ -71,7 +69,7 @@ public class WebApplicationServer
         app.UseHttpsRedirection();
         app.UseAuthorization();
         app.MapControllers();
-        app.UseIamSystem(new AesIamSystem());
+        //app.UseIamSystem(new AesIamSystem());
 
         stopFunction = () =>
         {
@@ -84,7 +82,11 @@ public class WebApplicationServer
 
 public class StartWebAppCmd : CliCommand
 {
-    public override void Execute(CLI cli, PromptContext context)
+    public StartWebAppCmd(CLI cli, PromptContext context) : base(cli, context)
+    {
+    }
+
+    protected override void Execute()
     {
         WebApplicationServer.StartSingleton();
     }
@@ -102,7 +104,11 @@ public class StartWebAppCmd : CliCommand
 
 public class StopWebAppCmd : CliCommand
 {
-    public override void Execute(CLI cli, PromptContext context)
+    public StopWebAppCmd(CLI cli, PromptContext context) : base(cli, context)
+    {
+    }
+
+    protected override void Execute()
     {
         WebApplicationServer.StopSingleton();
     }

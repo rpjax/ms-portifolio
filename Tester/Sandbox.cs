@@ -1,6 +1,5 @@
 ﻿using ModularSystem.Core;
 using ModularSystem.Core.Cli;
-using ModularSystem.Core.Cli.Commands;
 using ModularSystem.Core.Security;
 using ModularSystem.Mailing;
 using ModularSystem.Mongo;
@@ -9,13 +8,17 @@ namespace ModularSystem.Tester;
 
 public partial class Sandbox : CliCommand
 {
+    public Sandbox(CLI cli, PromptContext context) : base(cli, context)
+    {
+    }
+
     class Env
     {
         public string? Environment { get; set; }
         public string[]? Uris { get; set; }
     }
 
-    public override void Execute(CLI cli, PromptContext context)
+    protected override void Execute()
     {
         Identity a;
     }

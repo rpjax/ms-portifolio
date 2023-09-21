@@ -1,6 +1,19 @@
 ﻿using ModularSystem.Core.Logging;
 
-namespace ModularSystem.Core.Jobs;
+namespace ModularSystem.Core.Threading;
+
+public class JobPoolInitializer : Initializer
+{
+    public override void OnInit(Options options)
+    {
+        JobPool.Init();
+
+        if (options.EnableInitializationLogs)
+        {
+            ConsoleLogger.Info("Job pool initialized, worker thread started.");
+        }
+    }
+}
 
 public interface IJob : IDisposable
 {
@@ -65,6 +78,7 @@ public static class JobPool
     {
         Jobs = new List<IJob>(100);
         MainWorker = new Thread(ThreadLoop);
+        MainWorker.IsBackground = true;
     }
 
     /// <summary>
@@ -201,19 +215,6 @@ public static class JobPool
         catch (Exception e)
         {
             ConsoleLogger.Error(e.Message);
-        }
-    }
-}
-
-public class JobPoolInitializer : Initializer
-{
-    public override void OnInit(Options options)
-    {
-        JobPool.Init();
-
-        if (options.EnableInitializationLogs)
-        {
-            ConsoleLogger.Info("Job pool initialized, worker thread started.");
         }
     }
 }

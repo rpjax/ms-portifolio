@@ -1,11 +1,7 @@
 ﻿using ModularSystem.Core;
 using ModularSystem.Core.Cli;
-using ModularSystem.Core.Cryptography;
 using ModularSystem.Core.Logging;
-using ModularSystem.Core.Security;
 using ModularSystem.EntityFramework;
-using ModularSystem.Web.Authentication;
-using System.Text.Json;
 
 namespace ModularSystem.Tester;
 
@@ -19,15 +15,8 @@ public static class Program
         };
 
         Initializer.Run(config);
-        Test();
         CLI.StartInstance();
         //WebApplicationServer.StartSingleton();
-    }
-
-    static void Test()
-    {
-
-        HashContext a;
     }
 }
 

@@ -33,11 +33,11 @@ public class CliSyntaxGrammar : SyntaxGrammar
     {
         if (token.Type == ARGUMENT_STATE_ID)
         {
-            token.Value = token.Value.Replace(CLI.ARGUMENT_IDENTIFIER, "");
+            token.Value = token.Value.Replace(CLI.ArgumentIdentifier, "");
         }
         if (token.Type == FLAG_STATE_ID)
         {
-            token.Value = token.Value.Replace(CLI.FLAG_IDENTIFIER, "");
+            token.Value = token.Value.Replace(CLI.FlagIdentifier, "");
         }
         if (token.Type == STRING_LITERAL_STATE_ID)
         {
@@ -67,7 +67,7 @@ class ArgProducer : TokenProducer
 {
     public override string ProductionPattern()
     {
-        return $"{CLI.ARGUMENT_IDENTIFIER}(?:[a-zA-Z_]\\w*)|^{CLI.ARGUMENT_IDENTIFIER}";
+        return $"{CLI.ArgumentIdentifier}(?:[a-zA-Z_]\\w*)|^{CLI.ArgumentIdentifier}";
     }
 
     public override string StateIdentifier()

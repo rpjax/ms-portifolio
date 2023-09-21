@@ -8,63 +8,44 @@ namespace ModularSystem.Core.Threading;
 /// </summary>
 public class SingleThreadRoutine : IDisposable
 {
-    int executionIntervalMilliseconds;
-    List<SubRoutine> routines;
-    Thread thread;
-    bool isRunning;
-
-    public SingleThreadRoutine(TimeSpan executionInterval)
-    {
-        executionIntervalMilliseconds = (int)executionInterval.TotalMilliseconds;
-        routines = new();
-        thread = new Thread(ThreadLoop);
-        isRunning = false;
-
-        thread.Name = "Routine Worker";
-    }
-
-    public SingleThreadRoutine(TimeSpan executionInterval, SubRoutine routine)
-    {
-        executionIntervalMilliseconds = (int)executionInterval.TotalMilliseconds;
-        routines = new() { routine };
-        thread = new Thread(ThreadLoop);
-        isRunning = false;
-
-        thread.Name = "Routine Worker";
-    }
-
-    public SingleThreadRoutine(TimeSpan executionInterval, IEnumerable<SubRoutine> routines)
-    {
-        executionIntervalMilliseconds = (int)executionInterval.TotalMilliseconds;
-        this.routines = routines.ToList();
-        thread = new Thread(ThreadLoop);
-        isRunning = false;
-
-        thread.Name = "Routine Worker";
-    }
-
     public bool LogExceptions { get; set; } = true;
+
+    private int ExecutionIntervalMilliseconds { get; set; }
+    private bool IsRunning { get; set; }
+    private List<ScheduledCallback> Routines { get; set; }
+    private Thread Worker { get; set; }
+
+    public SingleThreadRoutine(TimeSpan executionInterval, IEnumerable<ScheduledCallback>? routines = null)
+    {
+        ExecutionIntervalMilliseconds = (int)executionInterval.TotalMilliseconds;
+        IsRunning = false;
+        Routines = routines?.ToList() ?? new();
+        Worker = new Thread(ThreadLoop);
+
+        Worker.Name = "Routine Worker";
+        Worker.IsBackground = true;
+    }
 
     public void Dispose()
     {
-        isRunning = false;
+        IsRunning = false;
     }
 
     public SingleThreadRoutine SetExecutionInterval(int milliseconds)
     {
-        executionIntervalMilliseconds = milliseconds;
+        ExecutionIntervalMilliseconds = milliseconds;
         return this;
     }
 
     public SingleThreadRoutine SetExecutionInterval(TimeSpan timeSpan)
     {
-        executionIntervalMilliseconds = (int)timeSpan.TotalMilliseconds;
+        ExecutionIntervalMilliseconds = (int)timeSpan.TotalMilliseconds;
         return this;
     }
 
-    public SingleThreadRoutine SetSubRoutine(SubRoutine subRoutine)
+    public SingleThreadRoutine AddSubRoutine(ScheduledCallback subRoutine)
     {
-        routines.Add(subRoutine);
+        Routines.Add(subRoutine);
         return this;
     }
 
@@ -74,8 +55,8 @@ public class SingleThreadRoutine : IDisposable
     /// <returns></returns>
     public SingleThreadRoutine Start()
     {
-        isRunning = true;
-        thread.Start();
+        IsRunning = true;
+        Worker.Start();
         return this;
     }
 
@@ -89,13 +70,20 @@ public class SingleThreadRoutine : IDisposable
 
     void ThreadLoop()
     {
-        while (isRunning)
+        while (IsRunning)
         {
             try
             {
-                foreach (var routine in routines)
+                foreach (var routine in Routines)
                 {
-                    routine.Execute();
+                    try
+                    {
+                        routine.Execute();
+                    }
+                    catch (Exception e)
+                    {
+                        routine.OnException(e);
+                    }
                 }
             }
             catch (Exception e)
@@ -104,16 +92,22 @@ public class SingleThreadRoutine : IDisposable
             }
             finally
             {
-                Thread.Sleep(executionIntervalMilliseconds);
+                Thread.Sleep(ExecutionIntervalMilliseconds);
             }
         }
     }
 }
 
-public abstract class SubRoutine
+public abstract class ScheduledCallback
 {
     /// <summary>
     /// Invoked by the routine's worker thread.
     /// </summary>
     public abstract void Execute();
+
+
+    public virtual void OnException(Exception e)
+    {
+
+    }
 }

@@ -1,107 +1,46 @@
 ﻿using ModularSystem.Core.Cli.Commands;
 using ModularSystem.Core.Logging;
 using MongoDB.Driver;
+using System.Collections.Concurrent;
 using System.Text;
 
 namespace ModularSystem.Core.Cli;
-
-public abstract class ExecutionContext
-{
-    public PromptContext PromptContext => context;
-
-    protected CLI cli;
-    protected PromptContext context;
-    protected Thread worker;
-
-    public ExecutionContext(CLI cli, PromptContext context)
-    {
-        this.cli = cli;
-        this.context = context;
-        worker = new Thread(ThreadFunction);
-    }
-
-    public void Start()
-    {
-        worker.Start();
-    }
-
-    void ThreadFunction()
-    {
-        try
-        {
-            Execute();
-        }
-        catch (Exception e)
-        {
-            OnException(e);
-        }
-        finally
-        {
-            OnExit();
-        }
-    }
-
-    void OnExit()
-    {
-        cli.DisposeExecutionContext(this);
-    }
-
-    protected abstract void Execute();
-    protected virtual void OnException(Exception e)
-    {
-        cli.Print($"Execution of '{context.Instruction}' threw an exception: {e.Message}\n\n# stack trace: '{e.StackTrace}'.\n");
-    }
-}
-
-public class LambdaExecutionContext : ExecutionContext
-{
-    Action lambda;
-
-    public LambdaExecutionContext(CLI cli, PromptContext context, Action lambda) : base(cli, context)
-    {
-        this.lambda = lambda;
-    }
-
-    protected override void Execute()
-    {
-        lambda.Invoke();
-    }
-}
 
 /// <summary>
 /// A simple command line interface (work in progress)
 /// </summary>
 public class CLI : IDisposable
 {
-    public const string VERSION = "0.3.0";
-    public const string PREFIX_TEXT_DEFAULT = ">:";
-    public const string ARGUMENT_IDENTIFIER = "-";
-    public const string FLAG_IDENTIFIER = "--";
+    public const string Version = "0.3.0";
+    public const string DefaultInputPrefixText = "<: ";
+    public const string DefaultOutputPrefixText = "=> ";
 
-    public string inputPrefix = "<: ";
-    public string outputPrefix = "=> ";
-    public TimeSpan SleepTime = TimeSpan.FromMilliseconds(1);
-    public List<CliCommand> Commands => commands;
+    public const string ArgumentIdentifier = "-";
+    public const string FlagIdentifier = "--";
 
-    static int InstanceCounter = 0;
+    public string InputPrefix { get; private set; } = "$:";
+    public string OutputPrefix { get; private set; } = "> ";
+    public TimeSpan SleepTime { get; set; } = TimeSpan.FromMilliseconds(1);
+    public IEnumerable<string> Commands => FactoryDictionary.Keys;
 
-    bool isRunning = false;
+    static int InstanceCounter { get; set; } = 0;
 
-    List<string> inputQueue = new();
-    List<string> printQueue = new();
+    bool IsRunning { get; set; } 
+    bool ShouldRestoreConsoleLoggerAsStdIo { get; set; }
 
-    List<CliCommand> commands = new();
-    List<ExecutionContext> executionContexts = new();
+    List<string> InputQueue { get; set; } = new();
+    List<string> PrintQueue { get; set; } = new();
 
-    TextReader? consoleIn;
-    TextReader? cliIn = null;
+    Dictionary<string, ExecutionContextFactory> FactoryDictionary { get; } = new();
+    List<ExecutionContext> ExecutionContexts { get; set; } = new();
 
-    TextWriter? consoleOut;
-    TextWriter? cliOut = null;
+    TextReader? ConsoleIn { get; set; } = null;
+    TextReader? CliIn { get; set; } = null;
 
-    Thread? inputWorker;
+    TextWriter? ConsoleOut { get; set; } = null;
+    TextWriter? CliOut { get; set; } = null;
 
-    bool _shouldRestoreConsoleLoggerAsStdIo = false;
+    Thread? InputWorker { get; set; } = null;
 
     public CLI()
     {
@@ -109,6 +48,11 @@ public class CLI : IDisposable
         {
             throw new InvalidOperationException("Multiple CLI instances were created simoutaniously.");
         }
+    }
+
+    public void Dispose()
+    {
+        IsRunning = false;
     }
 
     public static void StartInstance()
@@ -121,22 +65,17 @@ public class CLI : IDisposable
         return ConsoleLogger.ConsoleIsAvailable();
     }
 
-    public void Dispose()
-    {
-        isRunning = false;
-    }
-
     public void DisposeExecutionContext(ExecutionContext executionContext)
     {
-        lock (executionContexts)
+        lock (ExecutionContexts)
         {
-            executionContexts.Remove(executionContext);
+            ExecutionContexts.Remove(executionContext);
         }
     }
 
     public CLI MapCommands()
     {
-        commands.AddRange(GetCommandsFromAssembly());
+        CreateFactories();
         return this;
     }
 
@@ -145,29 +84,29 @@ public class CLI : IDisposable
         if (ConsoleLogger.IsActive)
         {
             ConsoleLogger.UnsetAsCurrentStdIo();
-            _shouldRestoreConsoleLoggerAsStdIo = true;
+            ShouldRestoreConsoleLoggerAsStdIo = true;
         }
 
-        isRunning = true;
+        IsRunning = true;
         InstanceCounter++;
 
-        cliIn = new CliTextInput();
-        cliOut = new CliTextOutput(this);
+        CliIn = new CliTextInput();
+        CliOut = new CliTextOutput(this);
 
-        consoleIn = Console.In;
-        consoleOut = Console.Out;
+        ConsoleIn = Console.In;
+        ConsoleOut = Console.Out;
 
-        Console.SetIn(cliIn);
-        Console.SetOut(cliOut);
+        Console.SetIn(CliIn);
+        Console.SetOut(CliOut);
 
-        InternalPrint($"CLI started v{VERSION}");
-        InternalPrint($"I/O indicators: '{inputPrefix}' indicates input, '{outputPrefix}' indicates output.");
+        InternalPrint($"CLI started v{Version}");
+        InternalPrint($"I/O indicators: '{InputPrefix}' indicates input, '{OutputPrefix}' indicates output.");
         InternalPrint("Type 'help' to see all available commands...");
 
-        inputWorker = new Thread(InputWorkerThreadFunction);
-        inputWorker.Start();
+        InputWorker = new Thread(InputWorkerThreadFunction);
+        InputWorker.Start();
 
-        while (isRunning)
+        while (IsRunning)
         {
             InputRoutine();
             OutputRoutine();
@@ -185,33 +124,33 @@ public class CLI : IDisposable
             Console.WriteLine("CLI exited.");
         }
 
-        Console.SetIn(consoleIn);
-        Console.SetOut(consoleOut);
-        cliIn.Dispose();
-        cliOut.Dispose();
+        Console.SetIn(ConsoleIn);
+        Console.SetOut(ConsoleOut);
+        CliIn.Dispose();
+        CliOut.Dispose();
 
         InstanceCounter--;
     }
 
     public void Stop()
     {
-        if (consoleIn == null)
+        if (ConsoleIn == null)
         {
             throw new InvalidOperationException();
         }
-        if (consoleOut == null)
+        if (ConsoleOut == null)
         {
             throw new InvalidOperationException();
         }
-        isRunning = false;
+        IsRunning = false;
 
-        Console.SetIn(consoleIn);
-        Console.SetOut(consoleOut);
+        Console.SetIn(ConsoleIn);
+        Console.SetOut(ConsoleOut);
 
-        cliIn?.Dispose();
-        cliOut?.Dispose();
+        CliIn?.Dispose();
+        CliOut?.Dispose();
 
-        if (_shouldRestoreConsoleLoggerAsStdIo)
+        if (ShouldRestoreConsoleLoggerAsStdIo)
         {
             ConsoleLogger.SetAsCurrentStdIo();
         }
@@ -224,15 +163,26 @@ public class CLI : IDisposable
             return;
         }
 
-        lock (printQueue)
+        lock(PrintQueue)
         {
-            printQueue.Add(message);
+            PrintQueue.Add(message);
+        }
+    }
+
+    public void Print(IEnumerable<string> messages )
+    {
+        lock (PrintQueue)
+        {
+            foreach (var message in messages)
+            {
+                PrintQueue.Add(message);
+            }
         }
     }
 
     public void PrintRunningCommands()
     {
-        if (executionContexts.IsNotEmpty())
+        if (ExecutionContexts.IsNotEmpty())
         {
             Print($"Commands running in the background:");
         }
@@ -241,14 +191,14 @@ public class CLI : IDisposable
             Print($"No commands running...");
         }
 
-        foreach (var context in executionContexts)
+        foreach (var context in ExecutionContexts)
         {
-            if (new ListRunningContextsCmd().IsHandlerTo(context.PromptContext))
+            if (context.GetType() == typeof(ListRunningContextsCmd))
             {
                 continue;
             }
 
-            Print($" # executing: {context.PromptContext.Instruction}");
+            Print($"executing \"{context.PromptContext.Instruction}\"");
         }
     }
 
@@ -274,10 +224,37 @@ public class CLI : IDisposable
         }
         else
         {
-            consoleOut.Write(new string(' ', Console.WindowWidth));
+            ConsoleOut.Write(new string(' ', Console.WindowWidth));
         }
 
         Console.SetCursorPosition(0, currentLineCursor);
+    }
+
+    void CreateFactories()
+    {
+        var types = AppDomain.CurrentDomain
+            .GetAssemblies()
+            .SelectMany(assembly => assembly.GetTypes())
+            .Where(type => type.IsSubclassOf(typeof(CliCommand)));
+
+        foreach (var type in types)
+        {
+            var factory = new ExecutionContextFactory(type);
+            var typeInstance = factory.Create(null, null).TypeCast<CliCommand>();
+            var key = typeInstance.Instruction();
+            var value = factory;
+
+            if (key == null)
+            {
+                throw new InvalidOperationException();
+            }
+            if (FactoryDictionary.ContainsKey(key))
+            {
+                throw new Exception($"The CLI instruction \"{key}\" is already mapped.");
+            }
+
+            FactoryDictionary.Add(key, value);
+        }
     }
 
     void InternalPrint(string message)
@@ -286,11 +263,11 @@ public class CLI : IDisposable
 
         if (ConsoleLogger.IsActive)
         {
-            ConsoleLogger.ConsoleWriter.WriteLine($"{outputPrefix}{message}");
+            ConsoleLogger.ConsoleWriter.WriteLine($"{OutputPrefix}{message}");
         }
         else
         {
-            consoleOut.WriteLine($"{outputPrefix}{message}");
+            ConsoleOut.WriteLine($"{OutputPrefix}{message}");
         }
     }
 
@@ -300,47 +277,35 @@ public class CLI : IDisposable
 
         if (ConsoleLogger.IsActive)
         {
-            ConsoleLogger.ConsoleWriter.Write($"{inputPrefix}");
+            ConsoleLogger.ConsoleWriter.Write($"{InputPrefix}");
         }
         else
         {
-            consoleOut.Write($"{inputPrefix}");
+            ConsoleOut.Write($"{InputPrefix}");
         }
-    }
-
-    List<CliCommand> GetCommandsFromAssembly()
-    {
-        return AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(assembly => assembly.GetTypes())
-            .Where(type => type.IsSubclassOf(typeof(CliCommand)))
-            .Select(type => Activator.CreateInstance(type) as CliCommand)
-            .ToList()!;
     }
 
     void ExecutePrompt(PromptContext promptContext)
     {
-        bool handlerFound = false;
-
-        foreach (var command in commands)
+        if(promptContext.Instruction == null)
         {
-            if (command.IsHandlerTo(promptContext))
-            {
-                handlerFound = true;
-                var executionContext = command.CreateExecutionContext(this, promptContext);
-
-                lock (executionContexts)
-                {
-                    executionContexts.Add(executionContext);
-                }
-
-                executionContext.Start();
-            }
+            return;
         }
 
-        if (!handlerFound && !string.IsNullOrEmpty(promptContext.Instruction))
+        if(!FactoryDictionary.TryGetValue(promptContext.Instruction, out var factory))
         {
             Print($"No handlers for the command '{promptContext.Instruction}' were found.");
+            return;
         }
+
+        var executionContext = factory.Create(this, promptContext);
+
+        lock (ExecutionContexts)
+        {
+            ExecutionContexts.Add(executionContext);
+        }
+
+        executionContext.Start();
 
         if (promptContext.Next != null)
         {
@@ -350,24 +315,24 @@ public class CLI : IDisposable
 
     void InputWorkerThreadFunction()
     {
-        while (isRunning)
+        while (IsRunning)
         {
-            if (printQueue.IsNotEmpty())
+            if (PrintQueue.IsNotEmpty())
             {
                 continue;
             }
 
             PromptUser();
-            string? input = consoleIn.ReadLine();
+            string? input = ConsoleIn!.ReadLine();
 
             if (input == null)
             {
                 continue;
             }
 
-            lock (inputQueue)
+            lock (InputQueue)
             {
-                inputQueue.Add(input);
+                InputQueue.Add(input);
             }
         }
     }
@@ -376,15 +341,16 @@ public class CLI : IDisposable
     {
         try
         {
-            if (inputQueue.IsEmpty())
+            if (InputQueue.IsEmpty())
             {
                 return;
             }
+
             string input;
 
-            lock (inputQueue)
+            lock (InputQueue)
             {
-                input = inputQueue.Pop();
+                input = InputQueue.Pop();
             }
 
             var prompt = PromptContext.From(input);
@@ -402,20 +368,43 @@ public class CLI : IDisposable
 
     void OutputRoutine()
     {
-        if (printQueue.IsEmpty())
+        if (PrintQueue.IsEmpty())
         {
             return;
         }
 
-        while (printQueue.IsNotEmpty())
+        while (PrintQueue.IsNotEmpty())
         {
-            lock (printQueue)
+            lock (PrintQueue)
             {
-                InternalPrint(printQueue.Pop());
+                InternalPrint(PrintQueue.Pop());
             }
         }
 
         PromptUser();
+    }
+
+    private class ExecutionContextFactory
+    {      
+        private Type Type { get; }
+
+        public ExecutionContextFactory(Type type)
+        {
+            Type = type;
+        }
+
+        public ExecutionContext Create(CLI? cli, PromptContext? promptContext)
+        {
+            var args = new object?[] { cli, promptContext };
+            var instance = Activator.CreateInstance(Type, args);
+
+            if (instance == null)
+            {
+                throw new InvalidOperationException($"Could not create instance of type \"{Type.FullName ?? Type.Name}\"."); ;
+            }
+
+            return instance.TypeCast<ExecutionContext>();
+        }
     }
 }
 

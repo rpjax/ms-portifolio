@@ -1,4 +1,4 @@
-﻿using ModularSystem.Core.Jobs;
+﻿using ModularSystem.Core.Threading;
 
 namespace ModularSystem.Core.Logging;
 
