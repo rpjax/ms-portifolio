@@ -94,9 +94,10 @@ public class ConsoleLogger
     {
         try
         {
-            _ = Console.Out;
-            _ = Console.CursorTop;
-            return true;
+            return
+                Environment.UserInteractive && 
+                Console.OpenStandardInput() != Stream.Null && 
+                Console.OpenStandardOutput() != Stream.Null;
         }
         catch (Exception e)
         {

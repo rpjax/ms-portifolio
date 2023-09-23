@@ -1,48 +1,74 @@
 ﻿namespace ModularSystem.Core.Threading;
 
-public class TaskRoutine : IDisposable
+/// <summary>
+/// Represents a routine that repetitively performs an asynchronous task with a specified delay between iterations.
+/// </summary>
+public abstract class TaskRoutine : IDisposable
 {
-    private bool IsRunning { get; set; }
-    private TimeSpan Delay { get; set; }
-    private ScheduledTask? ScheduledTask { get; set; }
+    /// <summary>
+    /// Gets a value indicating whether the routine is currently running.
+    /// </summary>
+    public bool IsRunning { get; private set; }
 
-    public TaskRoutine(TimeSpan delay, ScheduledTask? scheduledTask = null)
+    private TimeSpan Delay { get; set; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TaskRoutine"/> class with a defined delay interval.
+    /// </summary>
+    /// <param name="delay">The interval between task executions.</param>
+    public TaskRoutine(TimeSpan delay)
     {
         Delay = delay;
-        ScheduledTask = scheduledTask;
     }
 
+    /// <summary>
+    /// Stops the execution of the task routine and releases resources.
+    /// </summary>
     public void Dispose()
     {
-        IsRunning = false;
+        Stop();
     }
 
-    public TaskRoutine SetSleepTime(TimeSpan timeSpan)
+    /// <summary>
+    /// Configures the delay interval between task executions.
+    /// </summary>
+    /// <param name="timeSpan">The desired delay interval.</param>
+    /// <returns>The current instance, enabling method chaining.</returns>
+    public TaskRoutine SetDelay(TimeSpan timeSpan)
     {
         Delay = timeSpan;
         return this;
     }
 
-    public TaskRoutine SetScheduledTask(ScheduledTask scheduledTask)
-    {
-        ScheduledTask = scheduledTask;
-        return this;
-    }
-
-    public TaskRoutine SetScheduledTask(Func<Task> callback)
-    {
-        ScheduledTask = new LambdaScheduledTask(callback);
-        return this;
-    }
-
+    /// <summary>
+    /// Initiates the task routine.
+    /// </summary>
     public void Start()
-    {
-        TimerQueueTimer timer;
+    {   
+        lock(this)
+        {
+            if (IsRunning)
+            {
+                return;
+            }
+
+            IsRunning = true;
+            Task.Run(InternalExecuteAsync);
+        }
     }
 
-    public void Stop() { }
+    /// <summary>
+    /// Halts the execution of the task routine.
+    /// </summary>
+    public void Stop()
+    {
+        lock (this)
+        {
+            IsRunning = false;
+        }
+    }
 
-    private async Task ExecuteAsync()
+    private async Task InternalExecuteAsync()
     {
         while (IsRunning)
         {
@@ -53,67 +79,83 @@ public class TaskRoutine : IDisposable
             }
             catch (Exception e)
             {
-                OnException(e);
+                await OnInternalExceptionAsync(e);
             }
         }
-    }
 
-    private void OnException(Exception e)
-    {
-
+        OnExit();
     }
 
     private async Task IterationWork()
     {
-        if (ScheduledTask == null)
-        {
-            return;
-        }
-
         try
         {
-            await ScheduledTask.ExecuteAsync();
+            await OnExecuteAsync();
         }
         catch (Exception e)
         {
-            await ScheduledTask.OnExceptionAsync(e);
-        }
-        finally
-        {
-            ScheduledTask.OnExit();
+            await OnExceptionAsync(e);
         }
     }
-}
 
-public abstract class ScheduledTask
-{
     /// <summary>
-    /// Invoked by the routine's worker thread.
+    /// Provides internal handling for exceptions caught during the main execution loop.
     /// </summary>
-    public abstract Task ExecuteAsync();
-
-
-    public virtual Task OnExceptionAsync(Exception e)
+    /// <param name="e">The exception that occurred.</param>
+    private Task OnInternalExceptionAsync(Exception e)
     {
         return Task.CompletedTask;
     }
 
-    public virtual void OnExit()
+    /// <summary>
+    /// Main execution logic to be implemented by derived classes.
+    /// </summary>
+    protected abstract Task OnExecuteAsync();
+
+    /// <summary>
+    /// Exception handling logic for errors that occur during <see cref="OnExecuteAsync"/>.
+    /// </summary>
+    /// <param name="e">The exception encountered during task execution.</param>
+    protected virtual Task OnExceptionAsync(Exception e)
+    {
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Logic to be executed after the TaskRoutine stops running, either when it is manually stopped or completes its execution.
+    /// Derived classes can override this method to provide custom behavior when the TaskRoutine stops.
+    /// </summary>
+    protected virtual void OnExit()
     {
 
     }
+
 }
 
-internal class LambdaScheduledTask : ScheduledTask
+/// <summary>
+/// A concrete implementation of <see cref="TaskRoutine"/> which performs a given callback function.
+/// </summary>
+public class LambdaTaskRoutine : TaskRoutine
 {
+    /// <summary>
+    /// The callback function to be executed.
+    /// </summary>
     protected Func<Task> Callback { get; set; }
 
-    public LambdaScheduledTask(Func<Task> callback)
+    /// <summary>
+    /// Constructs a new <see cref="LambdaTaskRoutine"/> with a specified delay and callback function.
+    /// </summary>
+    /// <param name="delay">The delay between executions of the callback.</param>
+    /// <param name="callback">The callback function to be executed.</param>
+    public LambdaTaskRoutine(TimeSpan delay, Func<Task> callback) : base(delay)
     {
         Callback = callback;
     }
 
-    public override Task ExecuteAsync()
+    /// <summary>
+    /// Executes the provided callback function.
+    /// </summary>
+    protected override Task OnExecuteAsync()
     {
         return Callback.Invoke();
     }

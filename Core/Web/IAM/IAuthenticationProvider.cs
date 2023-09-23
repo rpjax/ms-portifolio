@@ -16,12 +16,6 @@ public interface IAuthenticationProvider
     IToken GetToken(IIdentity identity);
 
     /// <summary>
-    /// Retrieves the token encrypter used by the authentication provider.
-    /// </summary>
-    /// <returns>An instance of <see cref="ITokenEncrypter"/> responsible for encryption and decryption of tokens.</returns>
-    ITokenEncrypter GetTokenEncrypter();
-
-    /// <summary>
     /// Retrieves the token associated with the given HTTP context.
     /// </summary>
     /// <param name="httpContext">The HTTP context for which the token should be retrieved.</param>
@@ -47,12 +41,6 @@ public interface IAsyncAuthenticationProvider
     /// <param name="identity">The identity for which a token should be generated.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IToken"/> instance.</returns>
     Task<IToken> GetTokenAsync(IIdentity identity);
-
-    /// <summary>
-    /// Retrieves the token encrypter used by the authentication provider.
-    /// </summary>
-    /// <returns>An instance of <see cref="ITokenEncrypter"/> responsible for encryption and decryption of tokens.</returns>
-    ITokenEncrypter GetTokenEncrypter();
 
     /// <summary>
     /// Asynchronously retrieves the token associated with the given HTTP context.

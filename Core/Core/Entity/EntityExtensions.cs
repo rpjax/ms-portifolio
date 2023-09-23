@@ -116,7 +116,7 @@ public static class EntityExtensions
     }
 
     /// <summary>
-    /// Asynchronously runs the ID validation for the provided ID. Throws an exception if the ID is invalid or malformed.
+    /// Asynchronously runs the ID validation for the provided ID. Throws an exception if the ID is invalid or malformed. An entry with this ID has to exist in order for the ID to be valid.
     /// </summary>
     /// <typeparam name="T">The type of the instance, which must implement the <see cref="IQueryableModel"/> interface.</typeparam>
     /// <param name="entity">The entity representing the data set of type <typeparamref name="T"/>.</param>

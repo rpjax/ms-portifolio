@@ -12,9 +12,9 @@ namespace ModularSystem.Web;
 /// <summary>
 /// Default implementation of <see cref="ISessionManager"/> that uses SQLite to store it's data.
 /// </summary>
+[Obsolete]
 public class DefaultSessionManager : EFEntity<EFSession>, ISessionManager
 {
-    public static string DefaultEncodedSessionQueryParamName { get; set; } = "";
     /// <summary>
     /// Defaults to 15 seconds.
     /// </summary>
@@ -22,16 +22,21 @@ public class DefaultSessionManager : EFEntity<EFSession>, ISessionManager
 
     static byte[]? DefaultEncryptionKeyCache { get; set; } = null;
 
-    public bool EnableHttpForwarding { get; set; }
+    /// <summary>
+    /// <inheritdoc/>
+    /// </summary>
     public override IDataAccessObject<EFSession> DataAccessObject { get => new EFCoreDataAccessObject<EFSession>(DefaultStorageContext()); }
 
     ITokenEncrypter TokenEncrypter { get; }
     SingleThreadRoutine CleanerRoutine { get; }
 
+    public bool EnableHttpForwarding => throw new NotImplementedException();
+
     public DefaultSessionManager()
     {
         UpdateValidator = new DefaultSessionValidator();
-        CleanerRoutine = new SingleThreadRoutine(DefaultCleanerRoutineExecutionInterval, new CleanerSubRoutine());
+        CleanerRoutine = new SingleThreadRoutine(DefaultCleanerRoutineExecutionInterval)
+            .AddSubRoutine(new CleanerSubRoutine());
 
         CleanerRoutine.Start();
     }

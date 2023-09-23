@@ -169,17 +169,17 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// <returns>The retrieved entity or default if not found.</returns>
     public virtual async Task<T?> TryGetAsync(string id)
     {
-        await this.RunIdValidationAsync(id);
+        this.RunIdFormatValidation(id);
 
         var query = this.WhereIdEqualsQuery(id);
         var queryResult = await QueryAsync(query);
 
-        if (queryResult.IsEmpty)
+        if (queryResult.First == null)
         {
             return default;
         }
 
-        return queryResult.First!;
+        return queryResult.First;
     }
 
     /// <summary>
@@ -187,14 +187,14 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// </summary>
     /// <param name="id">The ID of the entity.</param>
     /// <returns>The retrieved entity.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the entity is not found.</exception>
+    /// <exception cref="AppException">Thrown when no entity matches the provided ID.</exception>
     public virtual async Task<T> GetAsync(string id)
     {
         var data = await TryGetAsync(id);
 
         if (data == null)
         {
-            throw new InvalidOperationException();
+            throw new AppException($"No entity found with the given ID: \"{id}\".", ExceptionCode.InvalidInput);
         }
 
         return data;
