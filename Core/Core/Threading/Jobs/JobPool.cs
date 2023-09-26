@@ -4,14 +4,16 @@ namespace ModularSystem.Core.Threading;
 
 public class JobPoolInitializer : Initializer
 {
-    public override void OnInit(Options options)
+    public override Task InternalInitAsync(Options options)
     {
         JobPool.Init();
 
         if (options.EnableInitializationLogs)
         {
-            ConsoleLogger.Info("Job pool initialized, worker thread started.");
+            ConsoleLogger.Info("Job pool initialized.");
         }
+
+        return Task.CompletedTask;
     }
 }
 

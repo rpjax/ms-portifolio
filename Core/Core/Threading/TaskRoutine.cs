@@ -6,11 +6,16 @@
 public abstract class TaskRoutine : IDisposable
 {
     /// <summary>
-    /// Gets a value indicating whether the routine is currently running.
+    /// Gets a value indicating whether the routine can start.
     /// </summary>
-    public bool IsRunning { get; private set; }
+    public bool CanStart => !IsRunning && ExitEvent.IsSet;
 
+    private bool IsRunning { get; set; }
     private TimeSpan Delay { get; set; }
+    private ManualResetEventSlim ExitEvent { get; set; }
+    private CancellationTokenSource? CancellationTokenSource { get; set; }
+
+    private readonly object LockObject = new object();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TaskRoutine"/> class with a defined delay interval.
@@ -19,6 +24,7 @@ public abstract class TaskRoutine : IDisposable
     public TaskRoutine(TimeSpan delay)
     {
         Delay = delay;
+        ExitEvent = new(true);
     }
 
     /// <summary>
@@ -27,6 +33,8 @@ public abstract class TaskRoutine : IDisposable
     public void Dispose()
     {
         Stop();
+        ExitEvent.Dispose();
+        CancellationTokenSource?.Dispose();
     }
 
     /// <summary>
@@ -45,14 +53,17 @@ public abstract class TaskRoutine : IDisposable
     /// </summary>
     public void Start()
     {   
-        lock(this)
-        {
-            if (IsRunning)
+        lock(LockObject)
+        {            
+            if(!CanStart)
             {
-                return;
+                throw new InvalidOperationException("Cannot start the task routine because there is an instance running or that has not exited yet.");
             }
 
             IsRunning = true;
+            ExitEvent.Reset();
+            CancellationTokenSource = new();
+
             Task.Run(InternalExecuteAsync);
         }
     }
@@ -62,10 +73,31 @@ public abstract class TaskRoutine : IDisposable
     /// </summary>
     public void Stop()
     {
-        lock (this)
+        lock(LockObject)
         {
+            if(!IsRunning)
+            {
+                return;
+            }
+
             IsRunning = false;
         }
+
+        CancellationTokenSource?.Cancel();
+        ExitEvent.Wait();
+    }
+
+    /// <summary>
+    /// Awaits the exit of the task routine.
+    /// </summary>
+    public void WaitExit()
+    {
+        if(ExitEvent.IsSet)
+        {
+            return;
+        }
+
+        ExitEvent.Wait();
     }
 
     private async Task InternalExecuteAsync()
@@ -75,7 +107,7 @@ public abstract class TaskRoutine : IDisposable
             try
             {
                 await IterationWork();
-                await Task.Delay(Delay);
+                await Task.Delay(Delay, CancellationTokenSource!.Token);
             }
             catch (Exception e)
             {
@@ -90,7 +122,7 @@ public abstract class TaskRoutine : IDisposable
     {
         try
         {
-            await OnExecuteAsync();
+            await OnExecuteAsync(CancellationTokenSource!.Token);
         }
         catch (Exception e)
         {
@@ -110,7 +142,7 @@ public abstract class TaskRoutine : IDisposable
     /// <summary>
     /// Main execution logic to be implemented by derived classes.
     /// </summary>
-    protected abstract Task OnExecuteAsync();
+    protected abstract Task OnExecuteAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Exception handling logic for errors that occur during <see cref="OnExecuteAsync"/>.
@@ -127,7 +159,10 @@ public abstract class TaskRoutine : IDisposable
     /// </summary>
     protected virtual void OnExit()
     {
+        CancellationTokenSource?.Dispose();
+        CancellationTokenSource = null;
 
+        ExitEvent.Set();
     }
 
 }
@@ -140,14 +175,14 @@ public class LambdaTaskRoutine : TaskRoutine
     /// <summary>
     /// The callback function to be executed.
     /// </summary>
-    protected Func<Task> Callback { get; set; }
+    protected Func<CancellationToken, Task> Callback { get; set; }
 
     /// <summary>
     /// Constructs a new <see cref="LambdaTaskRoutine"/> with a specified delay and callback function.
     /// </summary>
     /// <param name="delay">The delay between executions of the callback.</param>
     /// <param name="callback">The callback function to be executed.</param>
-    public LambdaTaskRoutine(TimeSpan delay, Func<Task> callback) : base(delay)
+    public LambdaTaskRoutine(TimeSpan delay, Func<CancellationToken, Task> callback) : base(delay)
     {
         Callback = callback;
     }
@@ -155,8 +190,8 @@ public class LambdaTaskRoutine : TaskRoutine
     /// <summary>
     /// Executes the provided callback function.
     /// </summary>
-    protected override Task OnExecuteAsync()
+    protected override Task OnExecuteAsync(CancellationToken cancellationToken)
     {
-        return Callback.Invoke();
+        return Callback.Invoke(cancellationToken);
     }
 }

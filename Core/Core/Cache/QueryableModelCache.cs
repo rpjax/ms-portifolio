@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core.Threading;
+using System.Collections.Concurrent;
 
 namespace ModularSystem.Core.Caching;
 
@@ -6,25 +7,31 @@ namespace ModularSystem.Core.Caching;
 /// Do not forget to call the dispose method before the object goes out of scope, or on references are to be found.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class EntityCache<T> : IDisposable where T : class, IQueryableModel
+public class QueryableModelCache<T> : IDisposable where T : class, IQueryableModel
 {
     public static readonly TimeSpan DefaultRecordLifetime = TimeSpan.FromMinutes(60);
     public static readonly TimeSpan DefaultDeletionRoutineDelay = TimeSpan.FromMinutes(1);
 
-    private Dictionary<string, CacheRecord<T>> Records { get; set; }
+    public long Size { get => Records.Count; }
+    public long SizeLimit { get; private set; }
+
+    private ConcurrentDictionary<string, CacheRecord<T>> Records { get; set; }
 
     private TimeSpan RecordLifetime { get; set; }
     private TimeSpan DeletionRoutineDelay { get; set; }
     private DateTime DeletionRoutineLastRanAt { get; set; }
     private TaskRoutine DeletionRoutine { get; }
 
-    public EntityCache()
+    public QueryableModelCache(long sizeLimit)
     {
-        Records = new ();
+        SizeLimit = sizeLimit;
+        Records = new();
         RecordLifetime = DefaultRecordLifetime;
         DeletionRoutineDelay = DefaultDeletionRoutineDelay;
         DeletionRoutineLastRanAt = TimeProvider.UtcNow();
         DeletionRoutine = new DeletionTaskRoutine(this, DefaultDeletionRoutineDelay);
+
+        DeletionRoutine.Start();
     }
 
     /// <summary>
@@ -35,16 +42,29 @@ public class EntityCache<T> : IDisposable where T : class, IQueryableModel
         DeletionRoutine.Dispose();
     }
 
-    public EntityCache<T> SetRecordLifetime(TimeSpan recordLifetime)
+    public QueryableModelCache<T> SetRecordLifetime(TimeSpan recordLifetime)
     {
         RecordLifetime = recordLifetime;
         return this;
     }
 
-    public EntityCache<T> SetDeletionRoutineDelay(TimeSpan deletionRoutineDelay)
+    public QueryableModelCache<T> SetDeletionRoutineDelay(TimeSpan deletionRoutineDelay)
     {
         DeletionRoutineDelay = deletionRoutineDelay;
         return this;
+    }
+
+    public bool IsFull()
+    {
+        return Records.Count >= SizeLimit;
+    }
+
+    public IQueryable<T> AsQueryable()
+    {
+        return Records.Values
+            .AsQueryable()
+            .Where(x => x.Value != null)
+            .Select(x => x.Value!);
     }
 
     public T? TryGet(string key)
@@ -52,7 +72,7 @@ public class EntityCache<T> : IDisposable where T : class, IQueryableModel
         return TryGetRecord(key)?.Value;
     }
 
-    public void Set(T data, TimeSpan? lifetime = null)
+    public bool TrySet(T data, TimeSpan? lifetime = null)
     {
         var id = data.GetId();
         var record = TryGetRecord(id);
@@ -66,36 +86,38 @@ public class EntityCache<T> : IDisposable where T : class, IQueryableModel
             record = new CacheRecord<T>(data, lifetime ?? RecordLifetime);
         }
 
-        lock (Records)
+        if (IsFull())
         {
-            Records[id] = record;
+            return false;
         }
 
-        if(!DeletionRoutine.IsRunning)
+        Records[id] = record;
+
+        return true;
+    }
+
+    public void Set(T data, TimeSpan? lifetime = null)
+    {
+        if(!TrySet(data, lifetime))
         {
-            DeletionRoutine.Start();
+            throw new Exception("Failed to add the record to the cache because it would surpass the maximum allowed size.");
         }
     }
 
-    public void Delete(string key)
+    public T? Remove(string key)
     {
-        lock (Records)
-        {
-            Records.Remove(key);
-
-            if (Records.IsEmpty())
-            {
-                DeletionRoutine.Stop();
-            }
-        }     
+        Records.Remove(key, out var value);
+        return value?.Value;
     }
 
     public void Clear()
     {
-        lock (Records)
-        {
-            Records.Clear();
-        }
+        Records.Clear();
+    }
+
+    public void DisableDeletionRoutine()
+    {
+        DeletionRoutine.Stop();
     }
 
     private CacheRecord<T>? TryGetRecord(string key)
@@ -109,14 +131,14 @@ public class EntityCache<T> : IDisposable where T : class, IQueryableModel
         return null;
     }
 
-    internal class CacheRecord<T> where T : class, IQueryableModel
+    internal class CacheRecord<TValue> where TValue : class, IQueryableModel
     {
-        public T? Value { get; set; }
+        public TValue? Value { get; set; }
         public TimeSpan Lifetime { get; set; }
         public DateTime LastUsedAt { get; set; }
         public string? RecordId => Value?.GetId();
 
-        public CacheRecord(T? value, TimeSpan lifetime)
+        public CacheRecord(TValue? value, TimeSpan lifetime)
         {
             Value = value;
             Lifetime = lifetime;
@@ -124,10 +146,10 @@ public class EntityCache<T> : IDisposable where T : class, IQueryableModel
 
         public bool IsExpired()
         {
-            return LastUsedAt + Lifetime < TimeProvider.Now();
+            return LastUsedAt + Lifetime < TimeProvider.UtcNow();
         }
 
-        public void SetValue(T? value)
+        public void SetValue(TValue? value)
         {
             Value = value;
         }
@@ -140,14 +162,14 @@ public class EntityCache<T> : IDisposable where T : class, IQueryableModel
 
     internal class DeletionTaskRoutine : TaskRoutine
     {
-        private EntityCache<T> Cache { get; }
+        private QueryableModelCache<T> Cache { get; }
 
-        public DeletionTaskRoutine(EntityCache<T> cache, TimeSpan delay) : base(delay)
+        public DeletionTaskRoutine(QueryableModelCache<T> cache, TimeSpan delay) : base(delay)
         {
             Cache = cache;
         }
 
-        protected override Task OnExecuteAsync()
+        protected override Task OnExecuteAsync(CancellationToken cancellationToken)
         {
             if (Cache.DeletionRoutineLastRanAt + Cache.DeletionRoutineDelay > TimeProvider.UtcNow())
             {
@@ -158,9 +180,13 @@ public class EntityCache<T> : IDisposable where T : class, IQueryableModel
             {
                 var record = item.Value;
 
-                if (record.IsExpired() && record.Value == null)
+                if (record.IsExpired())
                 {
-                    Cache.Records.Remove(item.Key);
+                    Cache.Remove(item.Key);
+                }
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    break;
                 }
             }
 

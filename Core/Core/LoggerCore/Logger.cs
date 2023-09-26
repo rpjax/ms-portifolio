@@ -100,8 +100,9 @@ public abstract class Logger<T> where T : ILogEntry
 
 class LoggerInitializer : Initializer
 {
-    public override void OnInit(Options options)
+    public override Task InternalInitAsync(Options options)
     {
         Logger.InitDefaultDirectory();
+        return Task.CompletedTask;
     }
 }

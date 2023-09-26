@@ -5,11 +5,17 @@ namespace ModularSystem.Core;
 
 /// <summary>
 /// Represents a base class for custom initialization logic. <br/>
-/// The <see cref="Initializer"/> class and its subclasses can be used to perform certain initialization tasks at the start of an application.
+/// The sequence of the initialization pipeline is: BeforeInit -> InternalInit -> Init -> AfterInit.<br/>
+/// Initializers are grouped by their priority and executed concurrently within their respective priority group.<br/>
+/// To ensure a specific order of initialization, prioritize one initializer over another or override a subsequent hook method in the pipeline.
 /// </summary>
 public abstract class Initializer
 {
-    public int Priority { get; init; } = (int)Core.Priority.Normal;
+    /// <summary>
+    /// Gets the priority level for the current initializer. <br/>
+    /// Higher priority values indicate that the initializer will be executed earlier in the sequence.
+    /// </summary>
+    public int Priority { get; protected set; } = (int)PriorityLevel.Normal;
 
     /// <summary>
     /// Invokes all <see cref="Initializer"/> within the current AppDomain.
@@ -32,7 +38,7 @@ public abstract class Initializer
 
     /// <summary>
     /// Invokes all <see cref="Initializer"/> within the given assembly array. <br/>
-    /// Custom initializer classes override the <see cref="OnInit"/> method to define their initialization logic.
+    /// Custom initializer classes override the <see cref="OnInitAsync"/> method to define their initialization logic.
     /// </summary>
     /// <param name="assemblies">The assemblies to search in.</param>
     /// <param name="options">Custom options for the initialization process.</param>
@@ -51,6 +57,7 @@ public abstract class Initializer
         }
 
         InvokeBeforeInit(initializers, options);
+        InvokeInternalInit(initializers, options);
         InvokeOnInit(initializers, options);
         InvokeAfterInit(initializers, options);
 
@@ -60,36 +67,43 @@ public abstract class Initializer
         }
     }
 
-    public virtual void BeforeInit(Options options)
+    /// <summary>
+    /// Contains logic that runs before the main initialization process. 
+    /// This method runs first in the initialization pipeline.
+    /// </summary>
+    /// <param name="options">Configuration options for the initialization process.</param>
+    public virtual Task BeforeInitAsync(Options options)
     {
-        //...
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Used by the library to initialize it's internal components. A hook to for before this can be created by overriding <see cref="BeforeInitAsync(Options)"/>.
+    /// </summary>
+    /// <param name="options"></param>
+    /// <returns></returns>
+    public virtual Task InternalInitAsync(Options options)
+    {
+        return Task.CompletedTask;
     }
 
     /// <summary>
     /// Contains the logic that needs to be executed during initialization. <br/>
     /// Derived classes must override this method to define their custom initialization behavior.
     /// </summary>
-    public virtual void OnInit(Options options)
+    public virtual Task OnInitAsync(Options options)
     {
-        //...
-    }
-
-    public virtual void AfterInit(Options options)
-    {
-        //...
+        return Task.CompletedTask;
     }
 
     /// <summary>
-    /// Retrieves initializers from the current AppDomain.
+    /// Contains logic that runs after the main initialization process. 
+    /// This method runs last in the initialization pipeline.
     /// </summary>
-    /// <returns>A list of initializers.</returns>
-    static List<Initializer?> GetInitializersFromAppDomain()
+    /// <param name="options">Configuration options for the initialization process.</param>
+    public virtual Task AfterInitAsync(Options options)
     {
-        return AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(assembly => assembly.GetTypes())
-            .Where(type => type.IsSubclassOf(typeof(Initializer)))
-            .Select(type => Activator.CreateInstance(type) as Initializer)
-            .ToList();
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -97,67 +111,107 @@ public abstract class Initializer
     /// </summary>
     /// <param name="assemblies">Assemblies to search for initializers.</param>
     /// <returns>A list of initializers.</returns>
-    static List<Initializer?> GetInitializersFrom(Assembly[] assemblies)
+    static List<Initializer> GetInitializersFrom(Assembly[] assemblies)
     {
         return assemblies
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type => type.IsSubclassOf(typeof(Initializer)))
             .Select(type => Activator.CreateInstance(type) as Initializer)
+            .Where(x => x != null)
+            .Select(x => x!)
             .ToList();
     }
 
     /// <summary>
-    /// Invokes the <see cref="BeforeInit(Options)"/> method on all provided initializers.
+    /// Invokes the <see cref="BeforeInitAsync(Options)"/> method on all provided initializers.
     /// </summary>
     /// <param name="initializers">A list of initializers to invoke.</param>
     /// <param name="options"></param>
-    static void InvokeBeforeInit(List<Initializer?>? initializers, Options options)
+    static void InvokeBeforeInit(List<Initializer>? initializers, Options options)
     {
         if (initializers == null) return;
 
-        foreach (Initializer? initializer in initializers)
+        foreach(var group in initializers.GroupBy(x => x.Priority))
         {
-            if (initializer != null)
+            var tasks = new List<Task>();
+
+            foreach (var initializer in group)
             {
-                initializer.BeforeInit(options);
+                tasks.Add(initializer.BeforeInitAsync(options));
             }
+
+            Task.WaitAll(tasks.ToArray());
+        }
+    }
+
+    static void InvokeInternalInit(List<Initializer>? initializers, Options options)
+    {
+        if (initializers == null) return;
+
+        foreach (var group in initializers.GroupBy(x => x.Priority))
+        {
+            var tasks = new List<Task>();
+
+            foreach (var initializer in group)
+            {
+                tasks.Add(initializer.InternalInitAsync(options));
+            }
+
+            Task.WaitAll(tasks.ToArray());
         }
     }
 
     /// <summary>
-    /// Invokes the <see cref="OnInit(Options)"/> method on all provided initializers.
+    /// Invokes the <see cref="OnInitAsync(Options)"/> method on all provided initializers.
     /// </summary>
     /// <param name="initializers">A list of initializers to invoke.</param>
     /// <param name="options"></param>
-    static void InvokeOnInit(List<Initializer?>? initializers, Options options)
+    static void InvokeOnInit(List<Initializer>? initializers, Options options)
     {
         if (initializers == null) return;
 
-        foreach (Initializer? initializer in initializers)
+        foreach (var group in initializers.GroupBy(x => x.Priority))
         {
-            if (initializer != null)
+            var tasks = new List<Task>();
+
+            foreach (var initializer in group)
             {
-                initializer.OnInit(options);
+                tasks.Add(initializer.OnInitAsync(options));
             }
+
+            Task.WaitAll(tasks.ToArray());
         }
     }
 
     /// <summary>
-    /// Invokes the <see cref="AfterInit(Options)"/> method on all provided initializers.
+    /// Invokes the <see cref="AfterInitAsync(Options)"/> method on all provided initializers.
     /// </summary>
     /// <param name="initializers">A list of initializers to invoke.</param>
     /// <param name="options"></param>
-    static void InvokeAfterInit(List<Initializer?>? initializers, Options options)
+    static void InvokeAfterInit(List<Initializer>? initializers, Options options)
     {
         if (initializers == null) return;
 
-        foreach (Initializer? initializer in initializers)
+        foreach (var group in initializers.GroupBy(x => x.Priority))
         {
-            if (initializer != null)
+            var tasks = new List<Task>();
+
+            foreach (var initializer in group)
             {
-                initializer.AfterInit(options);
+                tasks.Add(initializer.AfterInitAsync(options));
             }
+
+            Task.WaitAll(tasks.ToArray());
         }
+    }
+
+    /// <summary>
+    /// Sets the priority of the current initializer.
+    /// </summary>
+    /// <param name="priorityLevel">The desired priority level.</param>
+    protected void SetPriority(PriorityLevel priorityLevel)
+    {
+        Priority = (int)priorityLevel;
     }
 
     /// <summary>

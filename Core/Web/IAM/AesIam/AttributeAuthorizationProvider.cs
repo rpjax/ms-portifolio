@@ -50,7 +50,9 @@ public class AttributeAuthorizationProvider : IAuthorizationProvider
         {
             if (!AllowActionlessAttributes)
             {
-                throw new AppException($"The strategy failed to resolve an IdentityAction for the provided IdentityActionAttribute: {attribute.GetType().Name}.");
+                var endpoint = httpContext.GetEndpoint();
+
+                throw new AppException($"The strategy failed to resolve the associated IdentityAction for the IdentityActionAttribute \"{attribute.ToString()}\". This occurred while processing the endpoint \"{endpoint?.DisplayName}\".");
             }
 
             return null;

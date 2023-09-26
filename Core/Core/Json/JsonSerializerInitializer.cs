@@ -7,10 +7,10 @@ internal class JsonSerializerInitializer : Initializer
 {
     public JsonSerializerInitializer()
     {
-        Priority = (int)Core.Priority.Normal;
+        Priority = (int)Core.PriorityLevel.Normal;
     }
 
-    public override void OnInit(Options options)
+    public override Task InternalInitAsync(Options options)
     {
         if (options.JsonSerialization.UseEntityConverters)
         {
@@ -26,6 +26,8 @@ internal class JsonSerializerInitializer : Initializer
         {
             RegisterUtcDateTimeJsonConverter();
         }
+
+        return Task.CompletedTask;
     }
 
     void RegisterEntityJsonConverters(Options options)

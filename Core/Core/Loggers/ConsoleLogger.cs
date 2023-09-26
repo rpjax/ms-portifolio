@@ -9,18 +9,18 @@ public class ConsoleLoggerInitializer : Initializer
 {
     public ConsoleLoggerInitializer()
     {
-        Priority = (int)Core.Priority.Low;
+        Priority = (int)PriorityLevel.High;
     }
 
     /// <summary>
     /// Initializes the console logger based on the provided options.
     /// </summary>
     /// <param name="options">Custom options for initializing the console logger.</param>
-    public override void BeforeInit(Options options)
+    public override Task InternalInitAsync(Options options)
     {
         if (!options.InitConsoleLogger || !ConsoleLogger.ConsoleIsAvailable())
         {
-            return;
+            return Task.CompletedTask;
         }
 
         ConsoleLogger.SetAsCurrentStdIo();
@@ -29,6 +29,8 @@ public class ConsoleLoggerInitializer : Initializer
         {
             ConsoleLogger.Info("Console logger has been initialized.");
         }
+
+        return Task.CompletedTask;
     }
 }
 

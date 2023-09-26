@@ -10,11 +10,26 @@
 /// to a variable of a derived type as long as it inherits or implements <typeparamref name="T"/>. 
 /// Covariance allows for more flexibility when working with derived types.
 /// </remarks>
-internal interface IFactory<out T>
+public interface IFactory<out T>
 {
     /// <summary>
     /// Creates and returns an instance of type <typeparamref name="T"/>.
     /// </summary>
     /// <returns>An instance of type <typeparamref name="T"/>.</returns>
     T Create();
+}
+
+public class LambdaFactory<T> : IFactory<T>
+{
+    Func<T> _lambda;
+
+    public LambdaFactory(Func<T> lambda)
+    {
+        _lambda = lambda;
+    }
+
+    public T Create()
+    {
+        return _lambda.Invoke();
+    }
 }

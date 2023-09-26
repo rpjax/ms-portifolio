@@ -17,6 +17,7 @@ public static class Program
         Initializer.Run(config);
         CLI.StartInstance();
         //WebApplicationServer.StartSingleton();
+
     }
 }
 

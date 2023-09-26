@@ -7,10 +7,11 @@ namespace ModularSystem.Mongo;
 
 internal class MongoInitializer : Initializer
 {
-    public override void OnInit(Options options)
-    {
+    public override Task InternalInitAsync(Options options)
+    { 
         JsonSerializerSingleton.TryAddConverter(typeof(ObjectId), new ObjectIdConverter());
         SearchEngine.ExpressionSerializer.AddJsonConverter(new NewtonsoftObjectIdConverter());
-        ConsoleLogger.Info("Mongo module successfully initialized.");
+        ConsoleLogger.Info("Mongo module initialized.");
+        return Task.CompletedTask;
     }
 }

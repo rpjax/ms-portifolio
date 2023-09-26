@@ -41,7 +41,7 @@ public enum Ordering
     Descending
 }
 
-public enum Priority : int
+public enum PriorityLevel : int
 {
     Low = 1,
     BelowNormal = 2,

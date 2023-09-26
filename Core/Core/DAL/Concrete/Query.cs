@@ -158,6 +158,10 @@ public class Query<T> : IQuery<T>
         return this;
     }
 
+    /// <summary>
+    /// Consolidates and unifies parameter expressions in the filter for seamless combination of multiple filters.
+    /// </summary>
+    /// <returns>The consolidated filter expression.</returns>
     protected Expression<Func<T, bool>>? VisitFilter()
     {
         return new ParameterExpressionConsolidationVisitor()
@@ -165,15 +169,18 @@ public class Query<T> : IQuery<T>
             ?.TypeCast<Expression<Func<T, bool>>>();
     }
 
+    /// <summary>
+    /// Internal helper class to visit and consolidate parameter expressions within filter expressions.
+    /// </summary>
     internal class ParameterExpressionConsolidationVisitor : ExpressionVisitor
     {
         ParameterExpression? RootParameterExpression { get; set; } = null;
 
-        protected override Expression VisitLambda<T>(Expression<T> node)
+        protected override Expression VisitLambda<TDelegate>(Expression<TDelegate> node)
         {
             if (node.NodeType != ExpressionType.Lambda)
             {
-                return base.VisitLambda<T>(node);
+                return base.VisitLambda(node);
             }
 
             var lambdaExpression = node.TypeCast<LambdaExpression>();
@@ -185,7 +192,7 @@ public class Query<T> : IQuery<T>
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            if (node.Expression.Type == RootParameterExpression?.Type)
+            if (node.Expression?.Type == RootParameterExpression?.Type)
             {
                 return Expression.MakeMemberAccess(RootParameterExpression, node.Member);
             }

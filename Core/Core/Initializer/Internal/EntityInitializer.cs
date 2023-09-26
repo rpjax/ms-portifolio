@@ -9,14 +9,14 @@ public class EntityInitializer : Initializer
         //*
         // Low priority because this initializer is super expensive.
         //*
-        Priority = (int)Core.Priority.High;
+        Priority = (int)Core.PriorityLevel.High;
     }
 
     /// <summary>
     /// Registers entity-specific JSON serializers for concrete implementations of the generic <see cref="Entity{T}"/> type.
     /// </summary>
     /// <param name="options">Configuration options.</param>
-    public override void OnInit(Options options)
+    public override async Task InternalInitAsync(Options options)
     {
         if (!options.InitializeEntityConfigurations)
         {
