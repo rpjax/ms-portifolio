@@ -93,8 +93,10 @@ public abstract class ExecutionContext
 
         if (Context.GetFlag("show_stack"))
         {
-            CliReference.Print($"\tStack-trace: '{e.StackTrace}'.\n");
+            strBuilder.Append($"\tStack-trace: '{e.StackTrace}'.\n");
         }        
+
+        CliReference.Print(strBuilder.ToString());  
     }
 
     /// <summary>

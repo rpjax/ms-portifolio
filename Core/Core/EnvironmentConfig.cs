@@ -69,6 +69,7 @@ public class EnvironmentConfig
     {
         var filePath = FileSystemHelper.NormalizeAbsolutePath($"{AppDomain.CurrentDomain.BaseDirectory}{Path.DirectorySeparatorChar}{fileName}");
         var fileInfo = new FileInfo(filePath);
+        var validator = new EnvironmentConfigValidator(typeof(T), fileInfo);
 
         fileInfo.Refresh();
 
@@ -81,7 +82,7 @@ public class EnvironmentConfig
             throw new Exception("The environment file exeeds the maximum allowed size set.");
         }
 
-        new EnvironmentConfigValidator(typeof(T), fileInfo).Run();
+        validator.Run();
 
         var text = File.ReadAllText(fileInfo.FullName);
         var obj = JsonConvert.DeserializeObject<T>(text);

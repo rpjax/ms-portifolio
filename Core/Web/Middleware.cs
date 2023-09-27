@@ -37,14 +37,20 @@ public abstract class Middleware
     {
         try
         {
-            if (await BeforeNextAsync(context))
+            Exception? beforeNextException = await RunBeforeNextAsync(context);
+
+            if (beforeNextException != null)
             {
-                await Next(context);
+                throw beforeNextException;
             }
 
-            if (await AfterNextAsync(context))
+            await Next.Invoke(context);
+
+            Exception? afterNextException = await RunAfterNextAsync(context);
+
+            if (afterNextException != null)
             {
-                // reserved for future additions...
+                throw afterNextException;
             }
         }
         catch (Exception e)
@@ -53,14 +59,40 @@ public abstract class Middleware
         }
     }
 
+    private async Task<Exception?> RunBeforeNextAsync(HttpContext context)
+    {
+        try
+        {
+            await BeforeNextAsync(context);
+            return null;
+        }
+        catch (Exception e)
+        {
+            return e;
+        }
+    }
+
+    private async Task<Exception?> RunAfterNextAsync(HttpContext context)
+    {
+        try
+        {
+            await AfterNextAsync(context);
+            return null;
+        }
+        catch (Exception e)
+        {
+            return e;
+        }
+    }
+
     /// <summary>
     /// Method to be executed before the next middleware in the pipeline.
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
     /// <returns>A task that, when executed, will return true if the next middleware should be executed, otherwise false.</returns>
-    protected virtual Task<bool> BeforeNextAsync(HttpContext context)
+    protected virtual Task BeforeNextAsync(HttpContext context)
     {
-        return Task.FromResult(true);
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -68,9 +100,9 @@ public abstract class Middleware
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
     /// <returns>A task that, when executed, will return true if reserved future additions should be executed, otherwise false.</returns>
-    protected virtual Task<bool> AfterNextAsync(HttpContext context)
+    protected virtual Task AfterNextAsync(HttpContext context)
     {
-        return Task.FromResult(true);
+        return Task.CompletedTask;
     }
 
     /// <summary>

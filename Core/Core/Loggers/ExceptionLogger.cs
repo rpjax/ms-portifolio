@@ -146,7 +146,9 @@ public static class ExceptionLogger
     /// <summary>
     /// The default filename used to save the log entries to disk.
     /// </summary>
-    public const string DEFAULT_FILE_NAME = "e_debug.db";
+    const string DefaultFileName = "e_debug.db";
+
+    const string CritialErrorFileName = "critial_e_debug.db";
 
     /// <summary>
     /// Gets or sets a value indicating whether to enable logging of exceptions to disk.
@@ -180,12 +182,40 @@ public static class ExceptionLogger
     }
 
     /// <summary>
+    /// Logs a critical exception.
+    /// This method provides the capability to log the exception both to the console and to disk, 
+    /// depending on the logging configurations set (EnableConsoleLogging and EnableDiskLogging).
+    /// </summary>
+    /// <param name="e">The exception to be logged.</param>
+    /// <remarks>
+    /// If EnableConsoleLogging is set to true, the exception will be written to the console using the ConsoleLogger.
+    /// If EnableDiskLogging is set to true, the exception will be saved to a Sqlite database, with the filename 
+    /// specified by CritialErrorFileName. The logging to disk is queued in a job pool for asynchronous processing.
+    /// </remarks>
+    public static void Critial(Exception e)
+    {
+        if (EnableConsoleLogging)
+        {
+            ConsoleLogger.Error(e.ToString());
+        }
+
+        if (EnableDiskLogging)
+        {
+            var logger = new SqliteLogger<ExceptionEntry>(Logger.DefaultPathFile(CritialErrorFileName));
+            var entry = ExceptionEntry.From(e, TimeProvider.UtcNow());
+            var job = new LoggerJob<ExceptionEntry>(logger, entry);
+
+            JobPool.Queue(job);
+        }
+    }
+
+    /// <summary>
     /// Retrieves an instance of the logger configured for SQLite-based persistence.
     /// </summary>
     /// <returns>A logger instance.</returns>
     public static Logger<ExceptionEntry> GetLogger()
     {
-        return new SqliteLogger<ExceptionEntry>(Logger.DefaultPathFile(DEFAULT_FILE_NAME));
+        return new SqliteLogger<ExceptionEntry>(Logger.DefaultPathFile(DefaultFileName));
     }
 
     /// <summary>

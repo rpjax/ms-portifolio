@@ -3,26 +3,28 @@ using System.Collections.Concurrent;
 
 namespace ModularSystem.Core.Caching;
 
-/// <summary>
-/// Do not forget to call the dispose method before the object goes out of scope, or on references are to be found.
-/// </summary>
-/// <typeparam name="T"></typeparam>
-public class QueryableModelCache<T> : IDisposable where T : class, IQueryableModel
+public class EntityCache<T> : IDisposable where T : class
 {
-    public static readonly TimeSpan DefaultRecordLifetime = TimeSpan.FromMinutes(60);
+    public enum InvalidationStrategyType
+    {
+        LastUsageLifetime,
+        CreationLifetime
+    }
+
+    public static readonly TimeSpan DefaultRecordLifetime = TimeSpan.FromMinutes(5);
     public static readonly TimeSpan DefaultDeletionRoutineDelay = TimeSpan.FromMinutes(1);
 
     public long Size { get => Records.Count; }
-    public long SizeLimit { get; private set; }
+    public long SizeLimit { get; set; }
+    public TimeSpan RecordLifetime { get; set; }
+    public TimeSpan DeletionRoutineDelay { get; set; }
+    public InvalidationStrategyType InvalidationStrategy { get; set; }
 
     private ConcurrentDictionary<string, CacheRecord<T>> Records { get; set; }
-
-    private TimeSpan RecordLifetime { get; set; }
-    private TimeSpan DeletionRoutineDelay { get; set; }
     private DateTime DeletionRoutineLastRanAt { get; set; }
     private TaskRoutine DeletionRoutine { get; }
 
-    public QueryableModelCache(long sizeLimit)
+    public EntityCache(long sizeLimit)
     {
         SizeLimit = sizeLimit;
         Records = new();
@@ -42,13 +44,13 @@ public class QueryableModelCache<T> : IDisposable where T : class, IQueryableMod
         DeletionRoutine.Dispose();
     }
 
-    public QueryableModelCache<T> SetRecordLifetime(TimeSpan recordLifetime)
+    public EntityCache<T> SetRecordLifetime(TimeSpan recordLifetime)
     {
         RecordLifetime = recordLifetime;
         return this;
     }
 
-    public QueryableModelCache<T> SetDeletionRoutineDelay(TimeSpan deletionRoutineDelay)
+    public EntityCache<T> SetDeletionRoutineDelay(TimeSpan deletionRoutineDelay)
     {
         DeletionRoutineDelay = deletionRoutineDelay;
         return this;
@@ -72,14 +74,14 @@ public class QueryableModelCache<T> : IDisposable where T : class, IQueryableMod
         return TryGetRecord(key)?.Value;
     }
 
-    public bool TrySet(T data, TimeSpan? lifetime = null)
+    public bool TrySet(string key, T data, TimeSpan? lifetime = null)
     {
-        var id = data.GetId();
-        var record = TryGetRecord(id);
+        var record = TryGetRecord(key);
 
         if (record != null)
         {
             record.SetValue(data);
+            record.UpdateLastUsedAt();
         }
         else
         {
@@ -91,17 +93,9 @@ public class QueryableModelCache<T> : IDisposable where T : class, IQueryableMod
             return false;
         }
 
-        Records[id] = record;
+        Records[key] = record;
 
         return true;
-    }
-
-    public void Set(T data, TimeSpan? lifetime = null)
-    {
-        if(!TrySet(data, lifetime))
-        {
-            throw new Exception("Failed to add the record to the cache because it would surpass the maximum allowed size.");
-        }
     }
 
     public T? Remove(string key)
@@ -131,27 +125,39 @@ public class QueryableModelCache<T> : IDisposable where T : class, IQueryableMod
         return null;
     }
 
-    internal class CacheRecord<TValue> where TValue : class, IQueryableModel
+    internal class CacheRecord<TValue> 
     {
         public TValue? Value { get; set; }
         public TimeSpan Lifetime { get; set; }
+        public DateTime CreatedAt { get; set; }
         public DateTime LastUsedAt { get; set; }
-        public string? RecordId => Value?.GetId();
 
         public CacheRecord(TValue? value, TimeSpan lifetime)
         {
             Value = value;
             Lifetime = lifetime;
+            CreatedAt = TimeProvider.UtcNow();
+            LastUsedAt = TimeProvider.UtcNow();
         }
 
-        public bool IsExpired()
+        public bool IsExpiredByLastUsage()
         {
             return LastUsedAt + Lifetime < TimeProvider.UtcNow();
+        }
+
+        public bool IsExpiredByCreationDate()
+        {
+            return CreatedAt + Lifetime < TimeProvider.UtcNow();
         }
 
         public void SetValue(TValue? value)
         {
             Value = value;
+        }
+
+        public void SetLifetime(TimeSpan lifetime)
+        {
+            Lifetime = lifetime;
         }
 
         public void UpdateLastUsedAt()
@@ -162,9 +168,9 @@ public class QueryableModelCache<T> : IDisposable where T : class, IQueryableMod
 
     internal class DeletionTaskRoutine : TaskRoutine
     {
-        private QueryableModelCache<T> Cache { get; }
+        private EntityCache<T> Cache { get; }
 
-        public DeletionTaskRoutine(QueryableModelCache<T> cache, TimeSpan delay) : base(delay)
+        public DeletionTaskRoutine(EntityCache<T> cache, TimeSpan delay) : base(delay)
         {
             Cache = cache;
         }
@@ -180,10 +186,21 @@ public class QueryableModelCache<T> : IDisposable where T : class, IQueryableMod
             {
                 var record = item.Value;
 
-                if (record.IsExpired())
+                if(Cache.InvalidationStrategy == InvalidationStrategyType.LastUsageLifetime)
                 {
-                    Cache.Remove(item.Key);
+                    if (record.IsExpiredByLastUsage())
+                    {
+                        Cache.Remove(item.Key);
+                    }
                 }
+                if (Cache.InvalidationStrategy == InvalidationStrategyType.CreationLifetime)
+                {
+                    if (record.IsExpiredByCreationDate())
+                    {
+                        Cache.Remove(item.Key);
+                    }
+                }
+
                 if (cancellationToken.IsCancellationRequested)
                 {
                     break;
