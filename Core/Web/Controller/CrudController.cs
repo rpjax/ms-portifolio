@@ -12,11 +12,18 @@ namespace ModularSystem.Web;
 /// <typeparam name="T"></typeparam>
 public abstract class CrudController<T> : WebController, IPingController, IDisposable where T : class, IQueryableModel
 {
-    protected abstract IEntity<T> Entity { get; }
+    /// <summary>
+    /// Gets the associated entity instance for CRUD operations.
+    /// </summary>
+    protected abstract Entity<T> Entity { get; }
 
-    public void Dispose()
+    /// <summary>
+    /// Disposes the associated entity.
+    /// </summary>
+    public virtual void Dispose()
     {
         Entity.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     // CREATE
@@ -182,9 +189,19 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
 /// <typeparam name="TPresented"></typeparam>
 public abstract class CrudController<TEntity, TPresented> : WebController, IPingController, IDisposable where TEntity : class, IQueryableModel where TPresented : class
 {
-    protected abstract IEntity<TEntity> Entity { get; }
+    /// <summary>
+    /// Gets the associated entity instance for CRUD operations.
+    /// </summary>
+    protected abstract Entity<TEntity> Entity { get; }
+
+    /// <summary>
+    /// Gets the associated adapter for converting between entity and presentation layers.
+    /// </summary>
     protected abstract ILayerAdapter<TEntity, TPresented> Adapter { get; }
 
+    /// <summary>
+    /// Disposes the associated entity.
+    /// </summary>
     public void Dispose()
     {
         Entity.Dispose();
@@ -346,13 +363,8 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
         }
     }
 
-    protected virtual LayerAdapter<TEntity, TPresented> CreateAdapter()
+    private LayerAdapter<TEntity, TPresented> CreateAdapter()
     {
         return new LayerAdapter<TEntity, TPresented>(Adapter);
-    }
-
-    protected virtual IQuery<TEntity> CreateSearch(SerializedQuery input)
-    {
-        return input.ToQuery<TEntity>();
     }
 }

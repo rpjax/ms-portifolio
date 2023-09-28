@@ -115,7 +115,7 @@ public class HttpRequest
 
     public HttpRequest SetBody(HttpRequestBody? body)
     {
-        Header.ContentType = body.ContentType();
+        Header.ContentType = body?.ContentType();
         _body = body;
         return this;
     }

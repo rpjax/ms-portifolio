@@ -9,6 +9,12 @@ namespace ModularSystem.Core;
 public interface IDataAccessObject<T> : IDisposable
 {
     /// <summary>
+    /// Returns the data as a queryable object.
+    /// </summary>
+    /// <returns>The queryable object.</returns>
+    IQueryable<T> AsQueryable();
+
+    /// <summary>
     /// Inserts a record and returns its ID.
     /// </summary>
     /// <param name="data">The record to insert.</param>
@@ -58,12 +64,6 @@ public interface IDataAccessObject<T> : IDisposable
     /// </summary>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
     Task DeleteAllAsync();
-
-    /// <summary>
-    /// Returns the data as a queryable object.
-    /// </summary>
-    /// <returns>The queryable object.</returns>
-    IQueryable<T> AsQueryable();
 
     /// <summary>
     /// Counts the number of records that match the given selector.

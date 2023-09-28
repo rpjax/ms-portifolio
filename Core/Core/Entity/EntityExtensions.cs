@@ -24,6 +24,114 @@ public static class EntityExtensions
     }
 
     /// <summary>
+    /// Asynchronously creates a collection of entities.
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <param name="entries">The entities to create.</param>
+    /// <returns>A task that represents the asynchronous create operation.</returns>
+    public static async Task CreateAsync<T>(this Entity<T> entity, IEnumerable<T> entries) where T : IQueryableModel
+    {
+        var valdiationTasks = new List<Task<Exception?>>(entries.Count());
+
+        if (entity.Validator != null)
+        {
+            foreach (var entry in entries)
+            {
+                valdiationTasks.Add(entity.Validator.ValidateAsync(entry));
+            }
+
+            await Task.WhenAll(valdiationTasks);
+        }
+
+        var validationExceptions = valdiationTasks
+            .Where(x => x.Result != null)
+            .Select(x => x.Result)
+            .ToArray();
+
+        if (validationExceptions != null && validationExceptions.IsNotEmpty())
+        {
+            var e = validationExceptions.First();
+
+            if (e != null)
+            {
+                throw e;
+            }
+        }
+
+        //*
+        // Bulk BeforeCreate calls.
+        //*
+
+        var beforeCreateTasks = new List<Task>(entries.Count());
+
+        foreach (var entry in entries)
+        {
+            beforeCreateTasks.Add(entity.Hooks.BeforeCreateAsync(entry));
+        }
+
+        await Task.WhenAll(beforeCreateTasks);
+
+        //*
+        //  DataAccessObject create call. 
+        //*
+
+        await entity.DataAccessObject.InsertAsync(entries);
+
+        //*
+        // Bulk AfterCreate calls.
+        //*
+
+        var afterCreateTasks = new List<Task>(entries.Count());
+
+        foreach (var entry in entries)
+        {
+            afterCreateTasks.Add(entity.Hooks.AfterCreateAsync(entry));
+        }
+
+        await Task.WhenAll(afterCreateTasks);
+    }
+
+    /// <summary>
+    /// Tries to asynchronously retrieve an entity by its ID.
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <param name="id">The ID of the entity.</param>
+    /// <returns>The retrieved entity or default if not found.</returns>
+    public static async Task<T?> TryGetAsync<T>(this Entity<T> entity, string id) where T : IQueryableModel
+    {
+        RunIdFormatValidation(entity,id);
+
+        var query = CreateQueryWhereIdEquals(entity,id);
+        var queryResult = await entity.QueryAsync(query);
+
+        if(queryResult == null)
+        {
+            return default;
+        }
+
+        return queryResult.First;
+    }
+
+    /// <summary>
+    /// Asynchronously retrieves an entity by its ID.
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <param name="id">The ID of the entity.</param>
+    /// <returns>The retrieved entity.</returns>
+    /// <exception cref="AppException">Thrown when no entity matches the provided ID.</exception>
+    public static async Task<T> GetAsync<T>(this Entity<T> entity, string id) where T : IQueryableModel
+    {
+        var data = await TryGetAsync(entity, id);
+
+        if (data == null)
+        {
+            throw new AppException($"No entity found with the given ID: \"{id}\".", ExceptionCode.InvalidInput);
+        }
+
+        return data;
+    }
+
+    /// <summary>
     /// Performs a query with the default pagination value and no filter.
     /// </summary>
     /// <typeparam name="T"></typeparam>
@@ -32,6 +140,22 @@ public static class EntityExtensions
     public static Task<IQueryResult<T>> QueryAsync<T>(this Entity<T> entity) where T : IQueryableModel
     {
         return entity.QueryAsync(new Query<T>());
+    }
+
+    /// <summary>
+    /// Asynchronously deletes an entity by its ID.
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <param name="id">The ID of the entity to delete.</param>
+    /// <returns>A task that represents the asynchronous delete operation.</returns>
+    public static async Task DeleteAsync<T>(this Entity<T> entity, string id) where T : IQueryableModel
+    {
+        if (entity.ValidateIdBeforeDeletion)
+        {
+            await RunIdValidationAsync(entity, id);
+        }
+
+        await entity.DeleteAsync(WhereIdEquals(entity, id));
     }
 
     /// <summary>
@@ -238,7 +362,7 @@ public static class EntityExtensions
     /// <param name="entity"></param>
     /// <param name="id"></param>
     /// <returns></returns>
-    public static IQuery<T> WhereIdEqualsQuery<T>(this Entity<T> entity, string id) where T : IQueryableModel
+    public static IQuery<T> CreateQueryWhereIdEquals<T>(this Entity<T> entity, string id) where T : IQueryableModel
     {
         var pagination = new PaginationIn(1, 0);
         return new Query<T>(pagination, entity.WhereIdEquals(id));

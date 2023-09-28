@@ -1,4 +1,5 @@
 using ModularSystem.Core.Expressions;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
@@ -23,24 +24,36 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// <summary>
     /// Gets the validator used for the entity. If no validator is provided, the entity won't be validated.
     /// </summary>
-    public abstract IValidator<T>? Validator { get; init; }
+    public IValidator<T>? Validator { get; init; }
 
     /// <summary>
     /// Gets the validator used for updating the entity. If no validator is provided, updates to the entity won't be validated.
     /// </summary>
-    public abstract IValidator<T>? UpdateValidator { get; init; }
+    public IValidator<T>? UpdateValidator { get; init; }
 
     /// <summary>
     /// Gets the validator used for querying the entity. If no validator is provided, queries won't be validated.
     /// </summary>
-    public abstract IValidator<IQuery<T>>? QueryValidator { get; init; }
+    public IValidator<IQuery<T>>? QueryValidator { get; init; }
+
+    /// <summary>
+    /// Retrieves an instance of a middleware wrapper that encapsulates the hooks of the current entity.
+    /// </summary>
+    /// <returns>An instance representing the hooks of the entity.</returns>
+    public EntityMiddleware<T> Hooks => new HooksWrapper(this);
+
+    private ConcurrentBag<EntityMiddleware<T>> Middlewares { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Entity{T}"/> class.
     /// </summary>
     protected Entity()
     {
-
+        Validator = null;
+        UpdateValidator = null;
+        QueryValidator = null;
+        Middlewares = new();
+        AddInternalMiddlewares();
     }
 
     /// <summary>
@@ -49,6 +62,32 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     public virtual void Dispose()
     {
         DataAccessObject?.Dispose();
+    }
+
+    /// <summary>
+    /// Adds a middleware to the list of middlewares for this entity.
+    /// </summary>
+    /// <param name="middleware">The middleware to add.</param>
+    public void AddMiddleware(EntityMiddleware<T> middleware)
+    {
+        Middlewares.Add(middleware);
+    }
+
+    /// <summary>
+    /// Adds a middleware of the specified type to the list of middlewares for this entity.
+    /// </summary>
+    /// <typeparam name="TMiddleware">The type of middleware to add.</typeparam>
+    public void AddMiddleware<TMiddleware>() where TMiddleware : EntityMiddleware<T>, new()
+    {
+        Middlewares.Add(new TMiddleware());
+    }
+
+    /// <summary>
+    /// Clears all middlewares from the list.
+    /// </summary>
+    public void ClearMiddlewares()
+    {
+        Middlewares.Clear();
     }
 
     /// <summary>
@@ -75,130 +114,16 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// <returns>The ID of the created entity.</returns>
     public virtual async Task<string> CreateAsync(T entry)
     {
-        if (Validator != null)
-        {
-            var error = await Validator.ValidateAsync(entry);
-
-            if (error != null)
-            {
-                throw error;
-            }
-        }
-
         await BeforeCreateAsync(entry);
         await DataAccessObject.InsertAsync(entry);
         await AfterCreateAsync(entry);
+
         return entry.GetId();
-    }
-
-    /// <summary>
-    /// Asynchronously creates multiple new entities.
-    /// </summary>
-    /// <param name="entries">The entities to be created.</param>
-    /// <returns>A task that represents the asynchronous create operation.</returns>
-    public virtual async Task CreateAsync(IEnumerable<T> entries)
-    {
-        var valdiationTasks = new List<Task<Exception?>>(entries.Count());
-
-        if (Validator != null)
-        {
-            foreach (var entry in entries)
-            {
-                valdiationTasks.Add(Validator.ValidateAsync(entry));
-            }
-
-            await Task.WhenAll(valdiationTasks);
-        }
-
-        var validationExceptions = valdiationTasks
-            .Where(x => x.Result != null)
-            .Select(x => x.Result)
-            .ToArray();
-
-        if (validationExceptions != null && validationExceptions.IsNotEmpty())
-        {
-            var e = validationExceptions.First();
-
-            if (e != null)
-            {
-                throw e;
-            }
-        }
-
-        //*
-        // Bulk BeforeCreate calls.
-        //*
-
-        var beforeCreateTasks = new List<Task>(entries.Count());
-
-        foreach (var entry in entries)
-        {
-            beforeCreateTasks.Add(BeforeCreateAsync(entry));
-        }
-
-        await Task.WhenAll(beforeCreateTasks);
-
-        //*
-        //  DataAccessObject create call. 
-        //*
-
-        await DataAccessObject.InsertAsync(entries);
-
-        //*
-        // Bulk AfterCreate calls.
-        //*
-
-        var afterCreateTasks = new List<Task>(entries.Count());
-
-        foreach (var entry in entries)
-        {
-            afterCreateTasks.Add(AfterCreateAsync(entry));
-        }
-
-        await Task.WhenAll(afterCreateTasks);
     }
 
     //*
     // READ.
     //*
-
-    /// <summary>
-    /// Tries to asynchronously retrieve an entity by its ID.
-    /// </summary>
-    /// <param name="id">The ID of the entity.</param>
-    /// <returns>The retrieved entity or default if not found.</returns>
-    public virtual async Task<T?> TryGetAsync(string id)
-    {
-        this.RunIdFormatValidation(id);
-
-        var query = this.WhereIdEqualsQuery(id);
-        var queryResult = await QueryAsync(query);
-
-        if (queryResult.First == null)
-        {
-            return default;
-        }
-
-        return queryResult.First;
-    }
-
-    /// <summary>
-    /// Asynchronously retrieves an entity by its ID.
-    /// </summary>
-    /// <param name="id">The ID of the entity.</param>
-    /// <returns>The retrieved entity.</returns>
-    /// <exception cref="AppException">Thrown when no entity matches the provided ID.</exception>
-    public virtual async Task<T> GetAsync(string id)
-    {
-        var data = await TryGetAsync(id);
-
-        if (data == null)
-        {
-            throw new AppException($"No entity found with the given ID: \"{id}\".", ExceptionCode.InvalidInput);
-        }
-
-        return data;
-    }
 
     /// <summary>
     /// Asynchronously queries entities based on the provided query parameters.
@@ -207,17 +132,11 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// <returns>The results of the query.</returns>
     public virtual async Task<IQueryResult<T>> QueryAsync(IQuery<T> query)
     {
-        if (QueryValidator != null)
-        {
-            var error = await QueryValidator.ValidateAsync(query);
+        await BeforeQueryAsync(query);
+        var queryResult = await DataAccessObject.QueryAsync(this.Visit(query));
+        await AfterQueryAsync(queryResult);
 
-            if (error != null)
-            {
-                throw error;
-            }
-        }
-
-        return await DataAccessObject.QueryAsync(this.Visit(query));
+        return queryResult;
     }
 
     //*
@@ -227,25 +146,15 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// <summary>
     /// Asynchronously updates an entity.
     /// </summary>
-    /// <param name="overrider">The entity with updated values.</param>
+    /// <param name="instance">The entity with updated values.</param>
     /// <returns>A task that represents the asynchronous update operation.</returns>
-    public virtual async Task UpdateAsync(T overrider)
+    public virtual async Task UpdateAsync(T instance)
     {
-        var original = await GetAsync(overrider.GetId());
+        var original = await this.GetAsync(instance.GetId());
 
-        if (UpdateValidator != null)
-        {
-            var error = await UpdateValidator.ValidateAsync(overrider);
-
-            if (error != null)
-            {
-                throw error;
-            }
-        }
-
-        await BeforeUpdateAsync(original, overrider);
-        await DataAccessObject.UpdateAsync(overrider);
-        await AfterUpdateAsync(original, overrider);
+        await BeforeUpdateAsync(original, instance);
+        await DataAccessObject.UpdateAsync(instance);
+        await AfterUpdateAsync(original, instance);
     }
 
     //*
@@ -257,9 +166,11 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// </summary>
     /// <param name="predicate">The predicate to determine which entities to delete.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
-    public virtual Task DeleteAsync(Expression<Func<T, bool>> predicate)
+    public virtual async Task DeleteAsync(Expression<Func<T, bool>> predicate)
     {
-        return DataAccessObject.DeleteAsync(this.Visit<T, Func<T, bool>>(predicate));
+        await BeforeDeleteAsync(predicate);
+        await DataAccessObject.DeleteAsync(this.Visit<T, Func<T, bool>>(predicate));
+        await AfterDeleteAsync(predicate);
     }
 
     /// <summary>
@@ -267,29 +178,16 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// </summary>
     /// <param name="confirm">If set to <c>true</c>, all entities will be deleted.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
-    public virtual Task DeleteAllAsync(bool confirm = false)
+    public virtual async Task DeleteAllAsync(bool confirm = false)
     {
-        if (confirm)
+        if (!confirm)
         {
-            return DataAccessObject.DeleteAllAsync();
+            return;
         }
 
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Asynchronously deletes an entity by its ID.
-    /// </summary>
-    /// <param name="id">The ID of the entity.</param>
-    /// <returns>A task that represents the asynchronous delete operation.</returns>
-    public virtual async Task DeleteAsync(string id)
-    {
-        if (ValidateIdBeforeDeletion)
-        {
-            await this.RunIdValidationAsync(id);
-        }
-
-        await DataAccessObject.DeleteAsync(this.WhereIdEquals(id));
+        await BeforeDeleteAllAsync();
+        await DataAccessObject.DeleteAllAsync();
+        await AfterDeleteAllAsync();
     }
 
     //*
@@ -331,18 +229,26 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// </summary>
     /// <param name="predicate">The predicate to determine which entities to count.</param>
     /// <returns>The number of entities that match the predicate.</returns>
-    public Task<long> CountAsync(Expression<Func<T, bool>> predicate)
+    public async Task<long> CountAsync(Expression<Func<T, bool>> predicate)
     {
-        return DataAccessObject.CountAsync(this.Visit<T, Func<T, bool>>(predicate));
+        await BeforeCountAsync(predicate);
+        var count = await DataAccessObject.CountAsync(this.Visit<T, Func<T, bool>>(predicate));
+        await AfterCountAsync(predicate);
+
+        return count;
     }
 
     /// <summary>
     /// Asynchronously counts all entities.
     /// </summary>
     /// <returns>The total number of entities.</returns>
-    public virtual Task<long> CountAllAsync()
+    public virtual async Task<long> CountAllAsync()
     {
-        return DataAccessObject.CountAllAsync();
+        await BeforeCountAllAsync();
+        var count = await DataAccessObject.CountAllAsync();
+        await AfterCountAllAsync();
+
+        return count;
     }
 
     //*
@@ -359,6 +265,11 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     public virtual Expression? Visit(Expression? expression)
     {
         return CreateExpressionVisitor().Visit(expression);
+    }
+
+    private void AddInternalMiddlewares()
+    {
+        AddMiddleware(new ValidationMiddleware<T>(this));
     }
 
     //*
@@ -399,61 +310,304 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     }
 
     //*
-    // ON CREATE CALLBACKS.
+    // HOOKS
+    //*
+
+    //*
+    // before validation hook
     //*
 
     /// <summary>
-    /// Executes operations before the entity instance is created.
-    /// By default, it sets the `CreatedAt` and `LastModifiedAt` properties.
+    /// Called before the validation of the entity.
     /// </summary>
-    /// <param name="instance">The entity instance to be processed.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    protected virtual Task BeforeCreateAsync(T instance)
+    /// <param name="entity">The entity to be validated.</param>
+    protected virtual async Task BeforeValidateAsync(T entity)
     {
-        instance.CreatedAt = TimeProvider.UtcNow();
-        instance.LastModifiedAt = TimeProvider.UtcNow();
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Executes operations after the entity instance has been created.
-    /// </summary>
-    /// <param name="instance">The created entity instance.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    protected virtual Task AfterCreateAsync(T instance)
-    {
-        return Task.CompletedTask;
+        foreach (var middleware in Middlewares)
+        {
+            await middleware.BeforeValidateAsync(entity);
+        }
     }
 
     //*
-    // ON UPDATE CALLBACKS.
+    // creation hooks
     //*
 
     /// <summary>
-    /// Executes operations before the entity instance is updated.
-    /// By default, it updates the `LastModifiedAt` property and maintains the values of `IsSoftDeleted` and `CreatedAt`.
+    /// Called before creating the entity.
     /// </summary>
-    /// <param name="original">The original entity instance before the update.</param>
-    /// <param name="overrider">The entity instance that contains the updates.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    protected virtual Task BeforeUpdateAsync(T original, T overrider)
+    /// <param name="entity">The entity to be created.</param>
+    protected virtual async Task BeforeCreateAsync(T entity)
     {
-        overrider.IsSoftDeleted = overrider.IsSoftDeleted;
-        overrider.CreatedAt = original.CreatedAt;
-        overrider.LastModifiedAt = TimeProvider.UtcNow();
-        return Task.CompletedTask;
+        foreach (var middleware in Middlewares)
+        {
+            await middleware.BeforeCreateAsync(entity);
+        }
     }
 
     /// <summary>
-    /// Executes operations after the entity instance has been updated.
+    /// Called after creating the entity.
     /// </summary>
-    /// <param name="original">The original entity instance before the update.</param>
-    /// <param name="overrider">The updated entity instance.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    protected virtual Task AfterUpdateAsync(T original, T overrider)
+    /// <param name="entity">The recently created entity.</param>
+    protected virtual async Task AfterCreateAsync(T entity)
     {
-        return Task.CompletedTask;
+        foreach (var middleware in Middlewares)
+        {
+            await middleware.AfterCreateAsync(entity);
+        }
     }
+
+    //*
+    // query hooks
+    //*
+
+    /// <summary>
+    /// Called before querying the entity.
+    /// </summary>
+    /// <param name="query">The query to be executed.</param>
+    protected virtual async Task BeforeQueryAsync(IQuery<T> query)
+    {
+        foreach (var middleware in Middlewares)
+        {
+            await middleware.BeforeQueryAsync(query);
+        }
+    }
+
+    /// <summary>
+    /// Called after querying the entity.
+    /// </summary>
+    /// <param name="queryResult">The result of the query.</param>
+    protected virtual async Task AfterQueryAsync(IQueryResult<T> queryResult)
+    {
+        foreach (var middleware in Middlewares)
+        {
+            await middleware.AfterQueryAsync(queryResult);
+        }
+    }
+
+    //*
+    // update hooks
+    //*
+
+    /// <summary>
+    /// Called before updating the entity.
+    /// </summary>
+    /// <param name="old">The current state of the entity.</param>
+    /// <param name="new">The new state of the entity.</param>
+    protected virtual async Task BeforeUpdateAsync(T old, T @new)
+    {
+        foreach (var middleware in Middlewares)
+        {
+            await middleware.BeforeUpdateAsync(old, @new);
+        }
+    }
+
+    /// <summary>
+    /// Called after updating the entity.
+    /// </summary>
+    /// <param name="old">The state of the entity before the update.</param>
+    /// <param name="new">The updated state of the entity.</param>
+    protected virtual async Task AfterUpdateAsync(T old, T @new)
+    {
+        foreach (var middleware in Middlewares)
+        {
+            await middleware.AfterUpdateAsync(old, @new);
+        }
+    }
+
+    //*
+    // deletion hooks
+    //*
+
+    /// <summary>
+    /// Called before deleting the entity based on a predicate.
+    /// </summary>
+    /// <param name="predicate">The predicate used for the delete operation.</param>
+    protected virtual async Task BeforeDeleteAsync(Expression<Func<T, bool>> predicate)
+    {
+        foreach (var middleware in Middlewares)
+        {
+            await middleware.BeforeDeleteAsync(predicate);
+        }
+    }
+
+    /// <summary>
+    /// Called after deleting the entity based on a predicate.
+    /// </summary>
+    /// <param name="predicate">The predicate used for the delete operation.</param>
+    protected virtual async Task AfterDeleteAsync(Expression<Func<T, bool>> predicate)
+    {
+        foreach (var middleware in Middlewares)
+        {
+            await middleware.AfterDeleteAsync(predicate);
+        }
+    }
+
+    //*
+    // delete all hooks
+    //*
+
+    /// <summary>
+    /// Called before deleting all entities.
+    /// </summary>
+    protected virtual async Task BeforeDeleteAllAsync()
+    {
+        foreach (var middleware in Middlewares)
+        {
+            await middleware.BeforeDeleteAllAsync();
+        }
+    }
+
+    /// <summary>
+    /// Called after deleting all entities.
+    /// </summary>
+    protected virtual async Task AfterDeleteAllAsync()
+    {
+        foreach (var middleware in Middlewares)
+        {
+            await middleware.AfterDeleteAllAsync();
+        }
+    }
+
+    //*
+    // count hooks
+    //*
+
+    /// <summary>
+    /// Called before counting the entities based on a predicate.
+    /// </summary>
+    /// <param name="predicate">The predicate used for the count operation.</param>
+    protected virtual async Task BeforeCountAsync(Expression<Func<T, bool>> predicate)
+    {
+        foreach (var middleware in Middlewares)
+        {
+            await middleware.BeforeCountAsync(predicate);
+        }
+    }
+
+    /// <summary>
+    /// Called after counting the entities based on a predicate.
+    /// </summary>
+    /// <param name="predicate">The predicate used for the count operation.</param>
+    protected virtual async Task AfterCountAsync(Expression<Func<T, bool>> predicate)
+    {
+        foreach (var middleware in Middlewares)
+        {
+            await middleware.AfterCountAsync(predicate);
+        }
+    }
+
+    //*
+    // count all hooks
+    //*
+
+    /// <summary>
+    /// Called before counting all entities.
+    /// </summary>
+    protected virtual async Task BeforeCountAllAsync()
+    {
+        foreach (var middleware in Middlewares)
+        {
+            await middleware.BeforeCountAllAsync();
+        }
+    }
+
+    /// <summary>
+    /// Called after counting all entities.
+    /// </summary>
+    protected virtual async Task AfterCountAllAsync()
+    {
+        foreach (var middleware in Middlewares)
+        {
+            await middleware.AfterCountAllAsync();
+        }
+    }
+
+    internal class HooksWrapper : EntityMiddleware<T>
+    {
+        private Entity<T> Entity { get; }
+
+        public HooksWrapper(Entity<T> entity)
+        {
+            Entity = entity;
+        }
+
+        public override Task BeforeValidateAsync(T entity)
+        {
+            return Entity.BeforeValidateAsync(entity);
+        }
+
+        public override Task BeforeCreateAsync(T entity)
+        {
+            return Entity.BeforeCreateAsync(entity);
+        }
+
+        public override Task AfterCreateAsync(T entity)
+        {
+            return Entity.AfterCreateAsync(entity);
+        }
+
+        public override Task BeforeQueryAsync(IQuery<T> query)
+        {
+            return Entity.BeforeQueryAsync(query);
+        }
+
+        public override Task AfterQueryAsync(IQueryResult<T> queryResult)
+        {
+            return Entity.AfterQueryAsync(queryResult);
+        }
+
+        public override Task BeforeUpdateAsync(T old, T @new)
+        {
+            return Entity.BeforeUpdateAsync(old, @new);
+        }
+
+        public override Task AfterUpdateAsync(T old, T @new)
+        {
+            return Entity.AfterUpdateAsync(old, @new);
+        }
+
+        public override Task BeforeDeleteAsync(Expression<Func<T, bool>> predicate)
+        {
+            return Entity.BeforeDeleteAsync(predicate);
+        }
+
+        public override Task AfterDeleteAsync(Expression<Func<T, bool>> predicate)
+        {
+            return Entity.AfterDeleteAsync(predicate);
+        }
+
+        public override Task BeforeDeleteAllAsync()
+        {
+            return Entity.BeforeDeleteAllAsync();
+        }
+
+        public override Task AfterDeleteAllAsync()
+        {
+            return Entity.AfterDeleteAllAsync();
+        }
+
+        public override Task BeforeCountAsync(Expression<Func<T, bool>> predicate)
+        {
+            return Entity.BeforeCountAsync(predicate);
+        }
+
+        public override Task AfterCountAsync(Expression<Func<T, bool>> predicate)
+        {
+            return Entity.AfterCountAsync(predicate);
+        }
+
+        public override Task BeforeCountAllAsync()
+        {
+            return Entity.BeforeCountAllAsync();
+        }
+
+        public override Task AfterCountAllAsync()
+        {
+            return Entity.AfterCountAllAsync();
+        }
+    }
+
 }
 
 //*

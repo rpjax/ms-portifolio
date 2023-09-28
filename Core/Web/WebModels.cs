@@ -94,7 +94,7 @@ public class SerializedQuery
 /// </summary>
 /// <typeparam name="T">The type of entity for which the serialized query is being constructed.</typeparam>
 /// <remarks>
-/// This factory facilitates the construction of serialized queries by allowing you to set pagination, filtering, sorting, and ordering parameters. 
+/// This factory facilitates the construction of serialized queries by allowing you to set pagination, filtering, sorting, and ordering parameters.<br/> 
 /// It provides a fluent API to configure these parameters and build the serialized query object.
 /// </remarks>
 public class SerializedQueryFactory<T>

@@ -17,6 +17,22 @@ public interface IValidator<T>
     Task<Exception?> ValidateAsync(T instance);
 }
 
+/// <summary>
+/// Defines a contract for asynchronous validation of objects of type <typeparamref name="T"/>.
+/// </summary>
+/// <typeparam name="T">The type of the object to be validated.</typeparam>
+public interface IAsyncValidator<T>
+{
+    /// <summary>
+    /// Validates the specified instance asynchronously.
+    /// </summary>
+    /// <param name="instance">The instance of type <typeparamref name="T"/> to validate.</param>
+    /// <returns>
+    /// A task that represents the asynchronous validation operation.
+    /// </returns>
+    Task ValidateAsync(T instance);
+}
+
 
 /// <summary>
 /// Represents a validator for type <typeparamref name="T"/> that always considers the instance as valid.

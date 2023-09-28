@@ -30,7 +30,7 @@ public class Query<T> : IQuery<T>
     public Ordering Order { get; set; } = Ordering.Ascending;
 
     /// <summary>
-    /// Default constructor.
+    /// Initializes an empty query.
     /// </summary>
     public Query()
     {
@@ -109,9 +109,10 @@ public class Query<T> : IQuery<T>
     }
 
     /// <summary>
-    /// Adds additional filter conditions using logical AND and returns the updated query object.
+    /// Adds additional filter conditions using logical AND based on the provided expression and 
+    /// returns the updated query object.
     /// </summary>
-    /// <param name="filter">The additional filter to add.</param>
+    /// <param name="filter">The expression to be added as an additional filter.</param>
     /// <returns>The updated query object.</returns>
     public Query<T> AndFilter(Expression<Func<T, bool>>? filter)
     {
@@ -127,16 +128,47 @@ public class Query<T> : IQuery<T>
         else
         {
             Filter = Expression.Lambda<Func<T, bool>>(Expression.AndAlso(Filter.Body, filter.Body), Filter.Parameters);
-            Filter = VisitFilter();
         }
 
+        VisitFilter();
         return this;
     }
 
     /// <summary>
-    /// Adds additional filter conditions using logical OR and returns the updated query object.
+    /// Adds additional filter conditions using logical AND based on the provided expression and 
+    /// returns the updated query object.
     /// </summary>
-    /// <param name="filter">The additional filter to add.</param>
+    /// <param name="filter">The expression to be added as an additional filter.</param>
+    /// <returns>The updated query object.</returns>
+    public Query<T> AndFilter(Expression? filter)
+    {
+        if (filter == null)
+        {
+            return this;
+        }
+        if (filter.NodeType == ExpressionType.Lambda)
+        {
+            throw new ArgumentException(nameof(filter));
+        }
+
+        if (Filter == null)
+        {
+            Filter = Expression.Lambda<Func<T, bool>>(filter, Expression.Parameter(typeof(T)));
+        }
+        else
+        {
+            Filter = Expression.Lambda<Func<T, bool>>(Expression.AndAlso(Filter.Body, filter), Filter.Parameters);
+        }
+
+        VisitFilter();
+        return this;
+    }
+
+    /// <summary>
+    /// Adds additional filter conditions using logical OR based on the provided expression and 
+    /// returns the updated query object.
+    /// </summary>
+    /// <param name="filter">The expression to be added as an additional filter.</param>
     /// <returns>The updated query object.</returns>
     public Query<T> OrFilter(Expression<Func<T, bool>>? filter)
     {
@@ -151,10 +183,40 @@ public class Query<T> : IQuery<T>
         }
         else
         {
-            Filter = Expression.Lambda<Func<T, bool>>(Expression.OrElse(Filter.Body, filter.Body), Filter.Parameters);
-            Filter = VisitFilter();
+            Filter = Expression.Lambda<Func<T, bool>>(Expression.OrElse(Filter.Body, filter.Body), Filter.Parameters);            
         }
 
+        VisitFilter();
+        return this;
+    }
+
+    /// <summary>
+    /// Adds additional filter conditions using logical OR based on the provided expression and 
+    /// returns the updated query object.
+    /// </summary>
+    /// <param name="filter">The expression to be added as an additional filter.</param>
+    /// <returns>The updated query object.</returns>
+    public Query<T> OrFilter(Expression? filter)
+    {
+        if (filter == null)
+        {
+            return this;
+        }
+        if (filter.NodeType == ExpressionType.Lambda)
+        {
+            throw new ArgumentException(nameof(filter));
+        }
+
+        if (Filter == null)
+        {
+            Filter = Expression.Lambda<Func<T, bool>>(filter, Expression.Parameter(typeof(T)));
+        }
+        else
+        {
+            Filter = Expression.Lambda<Func<T, bool>>(Expression.OrElse(Filter.Body, filter), Filter.Parameters);
+        }
+
+        VisitFilter();
         return this;
     }
 
@@ -162,20 +224,31 @@ public class Query<T> : IQuery<T>
     /// Consolidates and unifies parameter expressions in the filter for seamless combination of multiple filters.
     /// </summary>
     /// <returns>The consolidated filter expression.</returns>
-    protected Expression<Func<T, bool>>? VisitFilter()
+    protected void VisitFilter()
     {
-        return new ParameterExpressionConsolidationVisitor()
+        Filter = new ParameterExpressionConsolidationVisitor()
             .Visit(Filter)
             ?.TypeCast<Expression<Func<T, bool>>>();
     }
 
     /// <summary>
-    /// Internal helper class to visit and consolidate parameter expressions within filter expressions.
+    /// Internal helper class that visits and consolidates parameter expressions within filter expressions. <br/>
+    /// This is used to ensure that the filter expressions 
+    /// can be combined seamlessly without conflicting parameter expressions.
     /// </summary>
     internal class ParameterExpressionConsolidationVisitor : ExpressionVisitor
     {
+        /// <summary>
+        /// Gets the root parameter expression identified during the visitation process.
+        /// </summary>
         ParameterExpression? RootParameterExpression { get; set; } = null;
 
+        /// <summary>
+        /// Visits and potentially modifies a lambda expression.
+        /// </summary>
+        /// <typeparam name="TDelegate">The type of delegate of the lambda expression.</typeparam>
+        /// <param name="node">The lambda expression to visit.</param>
+        /// <returns>The modified lambda expression.</returns>
         protected override Expression VisitLambda<TDelegate>(Expression<TDelegate> node)
         {
             if (node.NodeType != ExpressionType.Lambda)
@@ -190,6 +263,11 @@ public class Query<T> : IQuery<T>
             return base.VisitLambda(node);
         }
 
+        /// <summary>
+        /// Visits and potentially modifies a member access expression.
+        /// </summary>
+        /// <param name="node">The member access expression to visit.</param>
+        /// <returns>The modified member access expression.</returns>
         protected override Expression VisitMember(MemberExpression node)
         {
             if (node.Expression?.Type == RootParameterExpression?.Type)

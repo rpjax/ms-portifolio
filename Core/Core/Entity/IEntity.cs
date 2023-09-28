@@ -3,113 +3,71 @@
 namespace ModularSystem.Core;
 
 /// <summary>
-/// Defines enterprise-level business rules for an entity, including CRUD operations, data access, validation, and querying.
+/// Represents a contract for managing business operations for entities of type <typeparamref name="T"/>. 
+/// This includes CRUD (Create, Read, Update, Delete) operations, data access, validation, and querying.
 /// </summary>
 /// <typeparam name="T">The type of the entity being operated on.</typeparam>
 public interface IEntity<T> : IDisposable
 {
     /// <summary>
-    /// Gets the data access object associated with the entity.
+    /// Asynchronously creates a new entity of type <typeparamref name="T"/>.
     /// </summary>
-    IDataAccessObject<T> DataAccessObject { get; }
-
-    /// <summary>
-    /// Gets the validator used for validating the entity before its creation or update.
-    /// </summary>
-    IValidator<T>? Validator { get; }
-
-    /// <summary>
-    /// Gets the validator specifically for update operations on the entity.
-    /// </summary>
-    IValidator<T>? UpdateValidator { get; }
-
-    /// <summary>
-    /// Asynchronously creates a new entity.
-    /// </summary>
-    /// <param name="entry">The entity to create.</param>
+    /// <param name="entry">The entity instance to create.</param>
     /// <returns>A task that represents the asynchronous create operation. The task result contains the ID of the created entity.</returns>
     Task<string> CreateAsync(T entry);
 
     /// <summary>
-    /// Asynchronously creates a collection of entities.
+    /// Asynchronously retrieves entities based on the specified criteria.
     /// </summary>
-    /// <param name="entries">The entities to create.</param>
-    /// <returns>A task that represents the asynchronous create operation.</returns>
-    Task CreateAsync(IEnumerable<T> entries);
-
-    /// <summary>
-    /// Asynchronously retrieves an entity by its ID, if it exists.
-    /// </summary>
-    /// <param name="id">The ID of the entity to retrieve.</param>
-    /// <returns>A task that returns the retrieved entity, or null if not found.</returns>
-    Task<T?> TryGetAsync(string id);
-
-    /// <summary>
-    /// Asynchronously retrieves an entity by its ID.
-    /// </summary>
-    /// <param name="id">The ID of the entity to retrieve.</param>
-    /// <returns>A task that represents the asynchronous retrieve operation. The task result contains the retrieved entity of type <typeparamref name="T"/>.</returns>
-    Task<T> GetAsync(string id);
-
-    /// <summary>
-    /// Asynchronously queries entities based on specified criteria.
-    /// </summary>
-    /// <param name="query">The criteria for querying entities.</param>
-    /// <returns>A task that returns a collection of queried entities.</returns>
+    /// <param name="query">An instance of <see cref="IQuery{T}"/> that defines the filtering, sorting, and pagination criteria.</param>
+    /// <returns>A task resulting in <see cref="IQueryResult{T}"/> which contains the collection of queried entities.</returns>
     Task<IQueryResult<T>> QueryAsync(IQuery<T> query);
 
     /// <summary>
-    /// Asynchronously updates an existing entity.
+    /// Asynchronously updates the details of an existing entity.
     /// </summary>
-    /// <param name="data">The updated data of the entity.</param>
-    /// <returns>A task that represents the asynchronous update operation.</returns>
+    /// <param name="data">The updated entity data.</param>
+    /// <returns>A task representing the asynchronous update operation.</returns>
     Task UpdateAsync(T data);
 
     /// <summary>
-    /// Asynchronously deletes an entity by its ID.
+    /// Asynchronously removes entities based on a specified condition.
     /// </summary>
-    /// <param name="id">The ID of the entity to delete.</param>
-    /// <returns>A task that represents the asynchronous delete operation.</returns>
-    Task DeleteAsync(string id);
-
-    /// <summary>
-    /// Asynchronously deletes entities based on a given predicate.
-    /// </summary>
-    /// <param name="predicate">The condition to determine which entities to delete.</param>
-    /// <returns>A task that represents the asynchronous delete operation.</returns>
+    /// <param name="predicate">An expression to determine which entities to delete.</param>
+    /// <returns>A task representing the asynchronous delete operation.</returns>
     Task DeleteAsync(Expression<Func<T, bool>> predicate);
 
     /// <summary>
-    /// Asynchronously deletes all entities of the given type.
+    /// Asynchronously deletes all entities of type <typeparamref name="T"/>.
     /// </summary>
-    /// <param name="confirm">A boolean that must be set to true to proceed with the deletion, ensuring safety against accidental deletions.</param>
+    /// <param name="confirm">A flag to confirm the operation, providing a safeguard against unintended deletions.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
     Task DeleteAllAsync(bool confirm = false);
 
     /// <summary>
-    /// Asynchronously counts entities based on a given predicate.
+    /// Asynchronously counts the number of entities that match a given condition.
     /// </summary>
-    /// <param name="predicate">The condition to determine which entities to count.</param>
-    /// <returns>A task that returns the count of entities that match the predicate.</returns>
+    /// <param name="predicate">An expression that determines which entities to include in the count.</param>
+    /// <returns>A task that results in the count of entities satisfying the specified condition.</returns>
     Task<long> CountAsync(Expression<Func<T, bool>> predicate);
 
     /// <summary>
-    /// Asynchronously counts all entities of the given type.
+    /// Asynchronously counts all entities of type <typeparamref name="T"/>.
     /// </summary>
-    /// <returns>A task that returns the total count of entities.</returns>
+    /// <returns>A task that, when completed, returns the total count of entities.</returns>
     Task<long> CountAllAsync();
 
     /// <summary>
-    /// Validates the format of the given entity ID.
+    /// Validates the format of the provided entity ID.
     /// </summary>
-    /// <param name="id">The ID to validate.</param>
-    /// <returns>True if the ID format is valid, otherwise false.</returns>
+    /// <param name="id">The identifier to validate.</param>
+    /// <returns>True if the ID format is valid; otherwise, false.</returns>
     bool ValidateIdFormat(string id);
 
     /// <summary>
-    /// Asynchronously validates if the given entity ID exists.
+    /// Asynchronously checks if an entity with the given ID exists.
     /// </summary>
-    /// <param name="id">The ID to validate.</param>
-    /// <returns>A task that returns true if the ID exists, otherwise false.</returns>
+    /// <param name="id">The identifier to validate.</param>
+    /// <returns>A task that, when completed, returns true if an entity with the ID exists; otherwise, false.</returns>
     Task<bool> ValidateIdAsync(string id);
 }
