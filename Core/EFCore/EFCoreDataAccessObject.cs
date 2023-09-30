@@ -166,15 +166,15 @@ public class EFCoreQueryOperation<T> where T : class, IEFModel
             queryable = queryable.Where(query.Filter);
         }
 
-        if (query.Sort != null)
+        if (query.Order != null)
         {
-            if (query.Order == Ordering.Descending)
+            if (query.OrderDirection == OrderDirection.Descending)
             {
-                queryable = queryable.OrderByDescending(query.Sort);
+                queryable = queryable.OrderByDescending(query.Order);
             }
             else
             {
-                queryable = queryable.OrderBy(query.Sort);
+                queryable = queryable.OrderBy(query.Order);
             }
         }
         else

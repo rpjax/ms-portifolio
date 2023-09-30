@@ -177,7 +177,7 @@ public static class ExceptionLogger
             var entry = ExceptionEntry.From(e, TimeProvider.UtcNow());
             var job = new LoggerJob<ExceptionEntry>(logger, entry);
 
-            JobPool.Queue(job);
+            JobQueue.Enqueue(job);
         }
     }
 
@@ -205,7 +205,7 @@ public static class ExceptionLogger
             var entry = ExceptionEntry.From(e, TimeProvider.UtcNow());
             var job = new LoggerJob<ExceptionEntry>(logger, entry);
 
-            JobPool.Queue(job);
+            JobQueue.Enqueue(job);
         }
     }
 

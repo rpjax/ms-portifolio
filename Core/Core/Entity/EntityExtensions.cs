@@ -308,7 +308,7 @@ public static class EntityExtensions
         }
 
         query.Filter = Visit(entity, query.Filter);
-        query.Sort = Visit(entity, query.Sort);
+        query.Order = Visit(entity, query.Order);
 
         return query;
     }
@@ -366,39 +366,6 @@ public static class EntityExtensions
     {
         var pagination = new PaginationIn(1, 0);
         return new Query<T>(pagination, entity.WhereIdEquals(id));
-    }
-
-    /// <summary>
-    /// Retrieves the <see cref="ISerializer{T}"/> associated with the provided entity of type <typeparamref name="T"/>.
-    /// This method depends on the prior invocation of <see cref="EntityInitializer"/>.
-    /// </summary>
-    /// <typeparam name="T">The type of the entity for which the serializer is being retrieved.</typeparam>
-    /// <param name="entity">The instance of the entity.</param>
-    /// <returns>An instance of <see cref="ISerializer{T}"/> if found; otherwise, null.</returns>
-    public static ISerializer<T>? TryGetSerializer<T>(this Entity<T> entity) where T : class, IQueryableModel
-    {
-        var configuration = EntityConfiguration.TryGetConfiguration(entity.GetType());
-        var typedConfiguration = configuration?.TryTypeCast<EntityConfiguration<T>>();
-        var serializer = typedConfiguration?.GetSerializer();
-
-        return serializer;
-    }
-
-    /// <summary>
-    /// Retrieves the <see cref="ISerializer{T}"/> associated with the specified entity type from the <see cref="EntityConfiguration"/> container.
-    /// This method depends on the prior invocation of <see cref="EntityInitializer"/> and is optimized to be slightly faster than its counterpart <see cref="TryGetSerializer{T}(Entity{T})"/> by avoiding some runtime reflection operations.
-    /// </summary>
-    /// <typeparam name="T">The type of the entity for which the serializer is being retrieved.</typeparam>
-    /// <param name="entity">The instance of the entity (can be null).</param>
-    /// <param name="entityType">The concrete type of the entity.</param>
-    /// <returns>An instance of <see cref="ISerializer{T}"/> if found; otherwise, null.</returns>
-    public static ISerializer<T>? TryGetSerializer<T>(this Entity<T>? entity, Type entityType) where T : class, IQueryableModel
-    {
-        var configuration = EntityConfiguration.TryGetConfiguration(entityType);
-        var typedConfiguration = configuration?.TryTypeCast<EntityConfiguration<T>>();
-        var serializer = typedConfiguration?.GetSerializer();
-
-        return serializer;
     }
 
 }

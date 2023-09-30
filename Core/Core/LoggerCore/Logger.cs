@@ -30,13 +30,13 @@ public interface ILogWriter<T> : IDisposable
     /// Writes a single log entry.
     /// </summary>
     /// <param name="entry">The log entry to be written.</param>
-    void Write(T entry);
+    Task WriteAsync(T entry);
 
     /// <summary>
     /// Writes multiple log entries.
     /// </summary>
     /// <param name="entries">The log entries to be written.</param>
-    void Write(IEnumerable<T> entries);
+    Task WriteAsync(IEnumerable<T> entries);
 }
 
 /// <summary>

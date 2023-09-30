@@ -51,7 +51,7 @@ public abstract class TaskRoutine : IDisposable
     /// <summary>
     /// Initiates the task routine.
     /// </summary>
-    public void Start()
+    public TaskRoutine Start()
     {   
         lock(LockObject)
         {            
@@ -65,6 +65,8 @@ public abstract class TaskRoutine : IDisposable
             CancellationTokenSource = new();
 
             Task.Run(InternalExecuteAsync);
+
+            return this;
         }
     }
 

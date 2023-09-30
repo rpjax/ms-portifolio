@@ -1,43 +1,53 @@
 ﻿namespace ModularSystem.Core;
 
-internal class ValidationMiddleware<TModel> : EntityMiddleware<TModel> where TModel : IQueryableModel
+internal class ValidationMiddleware<T> : EntityMiddleware<T> where T : IQueryableModel
 {
-    private Entity<TModel> Entity { get; }
+    private Entity<T> Entity { get; }
 
-    public ValidationMiddleware(Entity<TModel> entity)
+    public ValidationMiddleware(Entity<T> entity)
     {
         Entity = entity;
     }
 
-    public override async Task BeforeCreateAsync(TModel entity)
+    public override Task<T> BeforeCreateAsync(T entity)
     {
-        if (Entity.Validator == null)
-        {
-            return;
-        }
-
-        await Entity.Hooks.BeforeValidateAsync(entity);
-        await Entity.Validator.ValidateAsync(entity);
+        return base.BeforeCreateAsync(entity);
     }
 
-    public override async Task BeforeUpdateAsync(TModel old, TModel @new)
+    public override Task<(T, T)> BeforeUpdateAsync(T old, T @new)
     {
-        if (Entity.UpdateValidator == null)
-        {
-            return;
-        }
-
-        await Entity.Hooks.BeforeValidateAsync(@new);
-        await Entity.UpdateValidator.ValidateAsync(@new);
+        return base.BeforeUpdateAsync(old, @new);
     }
 
-    public override Task BeforeQueryAsync(IQuery<TModel> query)
-    {
-        if (Entity.QueryValidator == null)
-        {
-            return Task.CompletedTask;
-        }
+    //public override async Task BeforeCreateAsync(TModel entity)
+    //{
+    //    if (Entity.Validator == null)
+    //    {
+    //        return;
+    //    }
 
-        return Entity.QueryValidator.ValidateAsync(query);
-    }
+    //    await Entity.Hooks.BeforeValidateAsync(entity);
+    //    await Entity.Validator.ValidateAsync(entity);
+    //}
+
+    //public override async Task BeforeUpdateAsync(TModel old, TModel @new)
+    //{
+    //    if (Entity.UpdateValidator == null)
+    //    {
+    //        return;
+    //    }
+
+    //    await Entity.Hooks.BeforeValidateAsync(@new);
+    //    await Entity.UpdateValidator.ValidateAsync(@new);
+    //}
+
+    //public override Task BeforeQueryAsync(IQuery<TModel> query)
+    //{
+    //    if (Entity.QueryValidator == null)
+    //    {
+    //        return Task.CompletedTask;
+    //    }
+
+    //    return Entity.QueryValidator.ValidateAsync(query);
+    //}
 }

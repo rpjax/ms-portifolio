@@ -1,6 +1,7 @@
 ﻿using ModularSystem.Core;
 using ModularSystem.Core.Cli;
 using ModularSystem.Core.Logging;
+using ModularSystem.Core.Threading;
 using ModularSystem.EntityFramework;
 
 namespace ModularSystem.Tester;
@@ -16,8 +17,8 @@ public static class Program
 
         Initializer.Run(config);
         CLI.StartInstance();
+        Entity
         //WebApplicationServer.StartSingleton();
-
     }
 }
 

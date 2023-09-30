@@ -247,12 +247,7 @@ namespace MyApp;
 [Route("api/user")]
 public class UserController : CrudController<User>
 {
-    protected override IEntity<User> Entity { get; }
-
-    public UserController() : base()
-    {
-        Entity = new UserEntity();
-    }
+    protected override Entity<User> Entity => new UserEntity();
 }
 ```
 

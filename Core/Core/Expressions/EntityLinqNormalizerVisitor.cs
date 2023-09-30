@@ -2,15 +2,16 @@
 
 namespace ModularSystem.Core.Expressions;
 
-public class EntityExpressionVisitor<T> : ExpressionVisitor, IVisitor<Expression> where T : IQueryableModel
+internal class EntityLinqNormalizerVisitor<T> : ExpressionVisitor, IVisitor<Expression> where T : IQueryableModel
 {
-    public Func<ParameterExpression, Expression>? CreateIdSelectorFunction { get; set; }
-    public Func<string, object>? ParseIdFunction { get; set; }
-
+    private Func<ParameterExpression, Expression> CreateIdSelectorFunction { get; }
+    private Func<string, object> ParseIdFunction { get; }
     private ParameterExpression? RootParameter { get; set; }
 
-    public void Reset()
+    public EntityLinqNormalizerVisitor(Func<ParameterExpression, Expression> createIdSelectorFunction, Func<string, object> parseIdFunction)
     {
+        CreateIdSelectorFunction = createIdSelectorFunction;
+        ParseIdFunction = parseIdFunction;
         RootParameter = null;
     }
 
@@ -36,9 +37,7 @@ public class EntityExpressionVisitor<T> : ExpressionVisitor, IVisitor<Expression
     {
         var translateIdEquals =
             node.Method.DeclaringType == typeof(EntityLinq) &&
-            node.Method.Name == nameof(EntityLinq.IdEqualsFlag) &&
-            CreateIdSelectorFunction != null &&
-            ParseIdFunction != null;
+            node.Method.Name == nameof(EntityLinq.IdEqualsFlag);
 
         if (translateIdEquals)
         {
@@ -82,6 +81,12 @@ public class EntityExpressionVisitor<T> : ExpressionVisitor, IVisitor<Expression
 
                 var constExp = memberExp.Expression.TypeCast<ConstantExpression>();
                 var field = memberExp.Expression.Type.GetField(memberExp.Member.Name);
+
+                if (field == null)
+                {
+                    throw new InvalidOperationException();
+                }
+
                 var value = field.GetValue(constExp.Value);
 
                 if (value is not string)

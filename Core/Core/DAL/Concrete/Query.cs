@@ -17,17 +17,21 @@ public class Query<T> : IQuery<T>
     /// <summary>
     /// Gets or sets the filter expression for the query.
     /// </summary>
-    public Expression<Func<T, bool>>? Filter { get; set; }
+    public Expression? Filter { get; set; }
 
     /// <summary>
     /// Gets or sets the sort expression for the query.
     /// </summary>
-    public Expression<Func<T, object>>? Sort { get; set; }
+    public Expression? Order { get; set; }
+
+    public Expression? Projection { get; set; }
+
+    public Expression? Aggreration { get; set; }
 
     /// <summary>
     /// Gets or sets the ordering (ascending or descending) for the query.
     /// </summary>
-    public Ordering Order { get; set; } = Ordering.Ascending;
+    public OrderDirection OrderDirection { get; set; } = OrderDirection.Ascending;
 
     /// <summary>
     /// Initializes an empty query.
@@ -93,7 +97,7 @@ public class Query<T> : IQuery<T>
     /// <returns>The updated query object.</returns>
     public Query<T> SetSort(Expression<Func<T, object>> sort)
     {
-        Sort = sort;
+        Order = sort;
         return this;
     }
 
@@ -102,9 +106,9 @@ public class Query<T> : IQuery<T>
     /// </summary>
     /// <param name="order">The new order setting.</param>
     /// <returns>The updated query object.</returns>
-    public Query<T> SetOrder(Ordering order)
+    public Query<T> SetOrder(OrderDirection order)
     {
-        Order = order;
+        OrderDirection = order;
         return this;
     }
 

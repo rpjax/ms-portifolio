@@ -2,6 +2,7 @@ using ModularSystem.Core.Expressions;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace ModularSystem.Core;
 
@@ -42,7 +43,7 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// <returns>An instance representing the hooks of the entity.</returns>
     public EntityMiddleware<T> Hooks => new HooksWrapper(this);
 
-    private ConcurrentBag<EntityMiddleware<T>> Middlewares { get; set; }
+    private ConcurrentQueue<EntityMiddleware<T>> Middlewares { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Entity{T}"/> class.
@@ -53,7 +54,6 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
         UpdateValidator = null;
         QueryValidator = null;
         Middlewares = new();
-        AddInternalMiddlewares();
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// <param name="middleware">The middleware to add.</param>
     public void AddMiddleware(EntityMiddleware<T> middleware)
     {
-        Middlewares.Add(middleware);
+        Middlewares.Enqueue(middleware);
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// <typeparam name="TMiddleware">The type of middleware to add.</typeparam>
     public void AddMiddleware<TMiddleware>() where TMiddleware : EntityMiddleware<T>, new()
     {
-        Middlewares.Add(new TMiddleware());
+        Middlewares.Enqueue(new TMiddleware());
     }
 
     /// <summary>
@@ -90,13 +90,41 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
         Middlewares.Clear();
     }
 
+    public void AddVisitor(EntityVisitor<T> visitor)
+    {
+        AddMiddleware(new VisitorMiddlewareConverter<T>(visitor));  
+    }
+
+    public void AddVisitor<TVisitor>() where TVisitor : EntityVisitor<T>, new()
+    {
+        AddVisitor(new TVisitor());
+    }
+
+    public virtual IEnumerable<EntityMiddleware<T>> CreatePipeline()
+    {
+        foreach (var middleware in CreatePreUserPipeline())
+        {
+            yield return middleware;
+        }
+
+        foreach (var middleware in Middlewares)
+        { 
+            yield return middleware;
+        }
+
+        foreach (var middleware in CreatePostUserPipeline())
+        {
+            yield return middleware;
+        }
+    }
+
     /// <summary>
     /// Factory method to create an expression visitor for the entity.
     /// </summary>
     /// <returns>A new instance of <see cref="IVisitor{Expression}"/> tailored for this entity.</returns>
     public virtual IVisitor<Expression> CreateExpressionVisitor()
     {
-        return new EntityExpressionVisitor<T>()
+        return new EntityLinqNormalizerVisitor<T>()
         {
             CreateIdSelectorFunction = CreateIdSelectorExpression,
             ParseIdFunction = ParseId
@@ -267,9 +295,18 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
         return CreateExpressionVisitor().Visit(expression);
     }
 
-    private void AddInternalMiddlewares()
+    //*
+    // private section
+    //*
+
+    private IEnumerable<EntityMiddleware<T>> CreatePreUserPipeline()
     {
-        AddMiddleware(new ValidationMiddleware<T>(this));
+        yield return new ValidationMiddleware<T>(this);
+    }
+
+    private IEnumerable<EntityMiddleware<T>> CreatePostUserPipeline()
+    {
+        yield return new VisitorMiddlewareConverter<T>(new ExpressionNormalizer<T>(CreateIdSelectorExpression, ParseId));
     }
 
     //*
@@ -321,12 +358,14 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// Called before the validation of the entity.
     /// </summary>
     /// <param name="entity">The entity to be validated.</param>
-    protected virtual async Task BeforeValidateAsync(T entity)
+    protected virtual async Task<T> BeforeValidateAsync(T entity)
     {
-        foreach (var middleware in Middlewares)
+        foreach (var middleware in CreatePipeline())
         {
-            await middleware.BeforeValidateAsync(entity);
+            entity = await middleware.BeforeValidateAsync(entity);
         }
+
+        return entity;
     }
 
     //*
@@ -337,24 +376,28 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// Called before creating the entity.
     /// </summary>
     /// <param name="entity">The entity to be created.</param>
-    protected virtual async Task BeforeCreateAsync(T entity)
+    protected virtual async Task<T> BeforeCreateAsync(T entity)
     {
-        foreach (var middleware in Middlewares)
+        foreach (var middleware in CreatePipeline())
         {
-            await middleware.BeforeCreateAsync(entity);
+            entity = await middleware.BeforeCreateAsync(entity);
         }
+
+        return entity;
     }
 
     /// <summary>
     /// Called after creating the entity.
     /// </summary>
     /// <param name="entity">The recently created entity.</param>
-    protected virtual async Task AfterCreateAsync(T entity)
+    protected virtual async Task<T> AfterCreateAsync(T entity)
     {
-        foreach (var middleware in Middlewares)
+        foreach (var middleware in CreatePipeline())
         {
             await middleware.AfterCreateAsync(entity);
         }
+
+        return entity;
     }
 
     //*
@@ -365,24 +408,28 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// Called before querying the entity.
     /// </summary>
     /// <param name="query">The query to be executed.</param>
-    protected virtual async Task BeforeQueryAsync(IQuery<T> query)
+    protected virtual async Task<IQuery<T>> BeforeQueryAsync(IQuery<T> query)
     {
-        foreach (var middleware in Middlewares)
+        foreach (var middleware in CreatePipeline())
         {
-            await middleware.BeforeQueryAsync(query);
+            query = await middleware.BeforeQueryAsync(query);
         }
+
+        return query;
     }
 
     /// <summary>
     /// Called after querying the entity.
     /// </summary>
     /// <param name="queryResult">The result of the query.</param>
-    protected virtual async Task AfterQueryAsync(IQueryResult<T> queryResult)
+    protected virtual async Task<IQueryResult<T>> AfterQueryAsync(IQueryResult<T> queryResult)
     {
-        foreach (var middleware in Middlewares)
+        foreach (var middleware in CreatePipeline())
         {
-            await middleware.AfterQueryAsync(queryResult);
+            queryResult = await middleware.AfterQueryAsync(queryResult);
         }
+
+        return queryResult;
     }
 
     //*
@@ -392,27 +439,31 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// <summary>
     /// Called before updating the entity.
     /// </summary>
-    /// <param name="old">The current state of the entity.</param>
-    /// <param name="new">The new state of the entity.</param>
-    protected virtual async Task BeforeUpdateAsync(T old, T @new)
+    /// <param name="currentValue">The current state of the entity.</param>
+    /// <param name="updatedValue">The new state of the entity.</param>
+    protected virtual async Task<(T, T)> BeforeUpdateAsync(T currentValue, T updatedValue)
     {
-        foreach (var middleware in Middlewares)
+        foreach (var middleware in CreatePipeline())
         {
-            await middleware.BeforeUpdateAsync(old, @new);
+            (currentValue, updatedValue) = await middleware.BeforeUpdateAsync(currentValue, updatedValue);
         }
+
+        return (currentValue, updatedValue);
     }
 
     /// <summary>
     /// Called after updating the entity.
     /// </summary>
-    /// <param name="old">The state of the entity before the update.</param>
-    /// <param name="new">The updated state of the entity.</param>
-    protected virtual async Task AfterUpdateAsync(T old, T @new)
+    /// <param name="currentValue">The state of the entity before the update.</param>
+    /// <param name="updatedValue">The updated state of the entity.</param>
+    protected virtual async Task<(T, T)> AfterUpdateAsync(T currentValue, T updatedValue)
     {
-        foreach (var middleware in Middlewares)
+        foreach (var middleware in CreatePipeline())
         {
-            await middleware.AfterUpdateAsync(old, @new);
+            (currentValue, updatedValue) = await middleware.AfterUpdateAsync(currentValue, updatedValue);
         }
+
+        return (currentValue, updatedValue);
     }
 
     //*
@@ -423,24 +474,28 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// Called before deleting the entity based on a predicate.
     /// </summary>
     /// <param name="predicate">The predicate used for the delete operation.</param>
-    protected virtual async Task BeforeDeleteAsync(Expression<Func<T, bool>> predicate)
+    protected virtual async Task<Expression<Func<T, bool>>> BeforeDeleteAsync(Expression<Func<T, bool>> predicate)
     {
-        foreach (var middleware in Middlewares)
+        foreach (var middleware in CreatePipeline())
         {
-            await middleware.BeforeDeleteAsync(predicate);
+            predicate = await middleware.BeforeDeleteAsync(predicate);
         }
+
+        return predicate;
     }
 
     /// <summary>
     /// Called after deleting the entity based on a predicate.
     /// </summary>
     /// <param name="predicate">The predicate used for the delete operation.</param>
-    protected virtual async Task AfterDeleteAsync(Expression<Func<T, bool>> predicate)
+    protected virtual async Task<Expression<Func<T, bool>>> AfterDeleteAsync(Expression<Func<T, bool>> predicate)
     {
-        foreach (var middleware in Middlewares)
+        foreach (var middleware in CreatePipeline())
         {
-            await middleware.AfterDeleteAsync(predicate);
+            predicate = await middleware.AfterDeleteAsync(predicate);
         }
+
+        return predicate;
     }
 
     //*
@@ -452,7 +507,7 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// </summary>
     protected virtual async Task BeforeDeleteAllAsync()
     {
-        foreach (var middleware in Middlewares)
+        foreach (var middleware in CreatePipeline())
         {
             await middleware.BeforeDeleteAllAsync();
         }
@@ -463,7 +518,7 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// </summary>
     protected virtual async Task AfterDeleteAllAsync()
     {
-        foreach (var middleware in Middlewares)
+        foreach (var middleware in CreatePipeline())
         {
             await middleware.AfterDeleteAllAsync();
         }
@@ -477,24 +532,28 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// Called before counting the entities based on a predicate.
     /// </summary>
     /// <param name="predicate">The predicate used for the count operation.</param>
-    protected virtual async Task BeforeCountAsync(Expression<Func<T, bool>> predicate)
+    protected virtual async Task<Expression<Func<T, bool>>> BeforeCountAsync(Expression<Func<T, bool>> predicate)
     {
-        foreach (var middleware in Middlewares)
+        foreach (var middleware in CreatePipeline())
         {
-            await middleware.BeforeCountAsync(predicate);
+            predicate = await middleware.BeforeCountAsync(predicate);
         }
+
+        return predicate;
     }
 
     /// <summary>
     /// Called after counting the entities based on a predicate.
     /// </summary>
     /// <param name="predicate">The predicate used for the count operation.</param>
-    protected virtual async Task AfterCountAsync(Expression<Func<T, bool>> predicate)
+    protected virtual async Task<Expression<Func<T, bool>>> AfterCountAsync(Expression<Func<T, bool>> predicate)
     {
-        foreach (var middleware in Middlewares)
+        foreach (var middleware in CreatePipeline())
         {
-            await middleware.AfterCountAsync(predicate);
+            predicate = await middleware.AfterCountAsync(predicate);
         }
+
+        return predicate;
     }
 
     //*
@@ -506,7 +565,7 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// </summary>
     protected virtual async Task BeforeCountAllAsync()
     {
-        foreach (var middleware in Middlewares)
+        foreach (var middleware in CreatePipeline())
         {
             await middleware.BeforeCountAllAsync();
         }
@@ -517,7 +576,7 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// </summary>
     protected virtual async Task AfterCountAllAsync()
     {
-        foreach (var middleware in Middlewares)
+        foreach (var middleware in CreatePipeline())
         {
             await middleware.AfterCountAllAsync();
         }
@@ -532,27 +591,27 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
             Entity = entity;
         }
 
-        public override Task BeforeValidateAsync(T entity)
+        public override Task<T> BeforeValidateAsync(T entity)
         {
             return Entity.BeforeValidateAsync(entity);
         }
 
-        public override Task BeforeCreateAsync(T entity)
+        public override Task<T> BeforeCreateAsync(T entity)
         {
             return Entity.BeforeCreateAsync(entity);
         }
 
-        public override Task AfterCreateAsync(T entity)
+        public override Task<T> AfterCreateAsync(T entity)
         {
             return Entity.AfterCreateAsync(entity);
         }
 
-        public override Task BeforeQueryAsync(IQuery<T> query)
+        public override Task<IQuery<T>> BeforeQueryAsync(IQuery<T> query)
         {
             return Entity.BeforeQueryAsync(query);
         }
 
-        public override Task AfterQueryAsync(IQueryResult<T> queryResult)
+        public override Task<IQueryResult<T>> AfterQueryAsync(IQueryResult<T> queryResult)
         {
             return Entity.AfterQueryAsync(queryResult);
         }
@@ -606,6 +665,7 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
         {
             return Entity.AfterCountAllAsync();
         }
+
     }
 
 }

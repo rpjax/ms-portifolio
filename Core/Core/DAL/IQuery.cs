@@ -19,7 +19,7 @@ public interface IQuery<T>
     /// <remarks>
     /// This is an expression that defines the condition each element of type <typeparamref name="T"/> must satisfy to be included in the result.
     /// </remarks>
-    Expression<Func<T, bool>>? Filter { get; set; }
+    Expression? Filter { get; set; }
 
     /// <summary>
     /// Gets or sets the sorting expression that should be applied to the data.
@@ -27,13 +27,17 @@ public interface IQuery<T>
     /// <remarks>
     /// This is an expression that defines how the elements should be ordered in the result set.
     /// </remarks>
-    Expression<Func<T, object>>? Sort { get; set; }
+    Expression? Order { get; set; }
+
+    Expression? Projection { get; set; }
+
+    Expression? Aggreration { get; set; }
 
     /// <summary>
     /// Gets or sets the order in which the data should be sorted.
     /// </summary>
     /// <remarks>
-    /// Use <see cref="Ordering.Ascending"/> for ascending order and <see cref="Ordering.Descending"/> for descending order.
+    /// Use <see cref="OrderDirection.Ascending"/> for ascending order and <see cref="OrderDirection.Descending"/> for descending order.
     /// </remarks>
-    Ordering Order { get; set; }
+    OrderDirection OrderDirection { get; set; }
 }

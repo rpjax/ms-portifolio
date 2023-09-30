@@ -13,14 +13,15 @@ public class LoggerJob<T> : Job where T : ILogEntry
         this.entry = entry;
     }
 
-    protected override void Work()
+    protected override Task ExecuteAsync(CancellationToken cancellationToken)
     {
         using var writer = logger.GetWriter();
-        writer.Write(entry);
+        return writer.WriteAsync(entry);
     }
 
-    protected override void OnException(Exception e)
+    protected override Task OnExceptionAsync(Exception e, CancellationToken cancellationToken)
     {
         Console.WriteLine(e.ToString());
+        return Task.CompletedTask;
     }
 }

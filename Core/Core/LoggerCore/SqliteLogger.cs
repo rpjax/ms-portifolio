@@ -61,18 +61,16 @@ public class SqliteLogWriter<T> : ILogWriter<T> where T : EFLogEntry
         context.Dispose();
     }
 
-    public void Write(T entry)
+    public async Task WriteAsync(T entry)
     {
-        context.Entries.Add(entry);
-        context.SaveChanges();
-        DeleteWalFile();
+        await context.Entries.AddAsync(entry);
+        await context.SaveChangesAsync();
     }
 
-    public void Write(IEnumerable<T> entries)
+    public async Task WriteAsync(IEnumerable<T> entries)
     {
-        context.Entries.AddRange(entries);
-        context.SaveChanges();
-        DeleteWalFile();
+        await context.Entries.AddRangeAsync(entries);
+        await context.SaveChangesAsync();
     }
 
     void DeleteWalFile()
