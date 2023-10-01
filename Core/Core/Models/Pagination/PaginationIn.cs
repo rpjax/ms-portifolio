@@ -45,7 +45,7 @@ public class PaginationIn
     /// This field is reserved for mechanisms of pagination that rely on a state preservation to optimize operations.<br/>
     /// It can be used for strategies like token/cursor-based pagination to keep track of the state.
     /// </summary>
-    public string? EncodedState { get; set; }
+    public object? State { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PaginationIn"/> class with default limit and offset.

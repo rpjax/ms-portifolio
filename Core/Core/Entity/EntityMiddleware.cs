@@ -63,14 +63,14 @@ public abstract class EntityMiddleware<T> where T : IQueryableModel
     /// Intercepting hook executed before the deletion of an entity.
     /// </summary>
     /// <param name="predicate">The condition used to identify the entity to be deleted.</param>
-    public virtual Task<Expression<Func<T, bool>>> BeforeDeleteAsync(Expression<Func<T, bool>> predicate) => Task.FromResult(predicate);
+    public virtual Task<Expression> BeforeDeleteAsync(Expression predicate) => Task.FromResult(predicate);
 
     /// <summary>
     /// Post-process hook executed after the deletion of an entity.
     /// </summary>
     /// <param name="predicate">The condition used to identify the entity that was deleted.</param>
     /// <returns>Potentially post-processed condition after the deletion.</returns>
-    public virtual Task<Expression<Func<T, bool>>> AfterDeleteAsync(Expression<Func<T, bool>> predicate) => Task.FromResult(predicate);
+    public virtual Task<Expression> AfterDeleteAsync(Expression predicate) => Task.FromResult(predicate);
 
     /// <summary>
     /// Intercepting hook executed before the deletion of all entities of type <typeparamref name="T"/>.
@@ -86,14 +86,14 @@ public abstract class EntityMiddleware<T> where T : IQueryableModel
     /// Intercepting hook executed before counting entities matching a specified condition.
     /// </summary>
     /// <param name="predicate">The condition to use for counting.</param>
-    public virtual Task<Expression<Func<T, bool>>> BeforeCountAsync(Expression<Func<T, bool>> predicate) => Task.FromResult(predicate);
+    public virtual Task<Expression> BeforeCountAsync(Expression predicate) => Task.FromResult(predicate);
 
     /// <summary>
     /// Post-process hook executed after counting entities matching a specified condition.
     /// </summary>
     /// <param name="predicate">The condition that was used for counting.</param>
     /// <returns>Potentially post-processed condition after counting.</returns>
-    public virtual Task<Expression<Func<T, bool>>> AfterCountAsync(Expression<Func<T, bool>> predicate) => Task.FromResult(predicate);
+    public virtual Task<Expression> AfterCountAsync(Expression predicate) => Task.FromResult(predicate);
 
     /// <summary>
     /// Intercepting hook executed before counting all entities of type <typeparamref name="T"/>.

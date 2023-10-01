@@ -474,7 +474,7 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
     /// Called before deleting the entity based on a predicate.
     /// </summary>
     /// <param name="predicate">The predicate used for the delete operation.</param>
-    protected virtual async Task<Expression<Func<T, bool>>> BeforeDeleteAsync(Expression<Func<T, bool>> predicate)
+    protected virtual async Task<Expression> BeforeDeleteAsync(Expression predicate)
     {
         foreach (var middleware in CreatePipeline())
         {
@@ -616,22 +616,22 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
             return Entity.AfterQueryAsync(queryResult);
         }
 
-        public override Task BeforeUpdateAsync(T old, T @new)
+        public override Task<(T, T)> BeforeUpdateAsync(T old, T @new)
         {
             return Entity.BeforeUpdateAsync(old, @new);
         }
 
-        public override Task AfterUpdateAsync(T old, T @new)
+        public override Task<(T, T)> AfterUpdateAsync(T old, T @new)
         {
             return Entity.AfterUpdateAsync(old, @new);
         }
 
-        public override Task BeforeDeleteAsync(Expression<Func<T, bool>> predicate)
+        public override Task BeforeDeleteAsync(Expression predicate)
         {
             return Entity.BeforeDeleteAsync(predicate);
         }
 
-        public override Task AfterDeleteAsync(Expression<Func<T, bool>> predicate)
+        public override Task AfterDeleteAsync(Expression predicate)
         {
             return Entity.AfterDeleteAsync(predicate);
         }
@@ -646,12 +646,12 @@ public abstract class Entity<T> : IEntity<T> where T : IQueryableModel
             return Entity.AfterDeleteAllAsync();
         }
 
-        public override Task BeforeCountAsync(Expression<Func<T, bool>> predicate)
+        public override Task BeforeCountAsync(Expression predicate)
         {
             return Entity.BeforeCountAsync(predicate);
         }
 
-        public override Task AfterCountAsync(Expression<Func<T, bool>> predicate)
+        public override Task AfterCountAsync(Expression predicate)
         {
             return Entity.AfterCountAsync(predicate);
         }

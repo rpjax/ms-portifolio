@@ -30,12 +30,14 @@ public interface IEntity<T> : IDisposable
     /// <returns>A task representing the asynchronous update operation.</returns>
     Task UpdateAsync(T data);
 
+    Task UpdateAsync(Expression expression);
+
     /// <summary>
     /// Asynchronously removes entities based on a specified condition.
     /// </summary>
-    /// <param name="predicate">An expression to determine which entities to delete.</param>
+    /// <param name="expression">An expression to determine which entities to delete.</param>
     /// <returns>A task representing the asynchronous delete operation.</returns>
-    Task DeleteAsync(Expression<Func<T, bool>> predicate);
+    Task DeleteAsync(Expression expression);
 
     /// <summary>
     /// Asynchronously deletes all entities of type <typeparamref name="T"/>.
@@ -47,9 +49,9 @@ public interface IEntity<T> : IDisposable
     /// <summary>
     /// Asynchronously counts the number of entities that match a given condition.
     /// </summary>
-    /// <param name="predicate">An expression that determines which entities to include in the count.</param>
+    /// <param name="expression">An expression that determines which entities to include in the count.</param>
     /// <returns>A task that results in the count of entities satisfying the specified condition.</returns>
-    Task<long> CountAsync(Expression<Func<T, bool>> predicate);
+    Task<long> CountAsync(Expression expression);
 
     /// <summary>
     /// Asynchronously counts all entities of type <typeparamref name="T"/>.

@@ -31,7 +31,10 @@ public interface IQuery<T>
 
     Expression? Projection { get; set; }
 
-    Expression? Aggreration { get; set; }
+    /// <summary>
+    /// Defines how data is grouped and selected.
+    /// </summary>
+    Expression? Aggregation { get; set; }
 
     /// <summary>
     /// Gets or sets the order in which the data should be sorted.
