@@ -22,7 +22,7 @@ public class RootController : WebController
 [Route("api/exception-logs")]
 public class ExceptionLogsController : CrudController<ExceptionEntry>
 {
-    protected override IEntity<ExceptionEntry> Entity { get; }
+    protected override IEntityService<ExceptionEntry> Entity { get; }
 
     public ExceptionLogsController()
     {
@@ -33,7 +33,7 @@ public class ExceptionLogsController : CrudController<ExceptionEntry>
 [Route("api/mongo-ant")]
 public class TestModelController : CrudController<MongoAnt>
 {
-    protected override IEntity<MongoAnt> Entity { get; }
+    protected override IEntityService<MongoAnt> Entity { get; }
 
     public TestModelController()
     {

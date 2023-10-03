@@ -3,85 +3,85 @@ using System.Linq.Expressions;
 namespace ModularSystem.Core;
 
 /// <summary>
-/// Defines a data access object for <typeparamref name="T"/>.
+/// Defines a contract for performing data operations on entities of type <typeparamref name="T"/>. <br/>
+/// This interface abstracts CRUD operations using LINQ expressions, <br/>
+/// offering flexibility to adapt to various data storage mechanisms.
 /// </summary>
-/// <typeparam name="T">The type of object this data access object handles.</typeparam>
+/// <typeparam name="T">The type of the entity this DAO handles.</typeparam>
 public interface IDataAccessObject<T> : IDisposable
 {
     /// <summary>
-    /// Returns the data as a queryable object.
+    /// Provides a queryable interface to the data, enabling the construction of LINQ queries. <br/>
+    /// The actual data fetch operation is deferred until the query is enumerated.
     /// </summary>
-    /// <returns>The queryable object.</returns>
+    /// <returns>A queryable interface to the data.</returns>
     IQueryable<T> AsQueryable();
 
     /// <summary>
-    /// Inserts a record and returns its ID.
+    /// Inserts a single entity into the data storage asynchronously, returning its generated identifier.
     /// </summary>
-    /// <param name="data">The record to insert.</param>
-    /// <returns>The ID of the inserted record.</returns>
+    /// <param name="data">The entity to insert.</param>
+    /// <returns>The identifier of the inserted entity as a string.</returns>
     Task<string> InsertAsync(T data);
 
     /// <summary>
-    /// Inserts multiple records.
+    /// Inserts a collection of entities into the data storage asynchronously.
     /// </summary>
-    /// <param name="entries">The records to insert.</param>
-    /// <returns>A task that represents the asynchronous insert operation.</returns>
+    /// <param name="entries">Entities to insert.</param>
+    /// <returns>A task representing the insertion process.</returns>
     Task InsertAsync(IEnumerable<T> entries);
 
     /// <summary>
-    /// Queries the data and returns the results.
+    /// Fetches entities based on the criteria encapsulated in the provided query asynchronously.
     /// </summary>
-    /// <param name="query">The query parameters.</param>
-    /// <returns>The query results.</returns>
+    /// <param name="query">Criteria to filter, sort, and paginate data.</param>
+    /// <returns>A task yielding the results encapsulated in an <see cref="IQueryResult{T}"/>.</returns>
     Task<IQueryResult<T>> QueryAsync(IQuery<T> query);
 
     /// <summary>
-    /// Updates a record.
+    /// Asynchronously updates the provided entity.
     /// </summary>
-    /// <param name="data">The record to update.</param>
-    /// <returns>A task that represents the asynchronous update operation.</returns>
+    /// <param name="data">Entity with updated values.</param>
+    /// <returns>Task representing the update operation.</returns>
     Task UpdateAsync(T data);
 
     /// <summary>
-    /// Updates a specific field in records that match the given selector.
+    /// Updates entities matching the conditions encapsulated in the provided update expression asynchronously.
     /// </summary>
-    /// <typeparam name="TField">The type of the field to update.</typeparam>
-    /// <param name="selector">The selection criteria.</param>
-    /// <param name="fieldSelector">The field to update.</param>
-    /// <param name="value">The new value.</param>
-    /// <returns>A task that represents the asynchronous update operation.</returns>
-    Task UpdateAsync<TField>(Expression<Func<T, bool>> selector, Expression<Func<T, TField?>> fieldSelector, TField? value);
+    /// <param name="update">Update criteria and values.</param>
+    /// <returns>A task representing the update process.</returns>
+    Task UpdateAsync(IUpdate<T> update);
 
     /// <summary>
-    /// Deletes records that match the given selector.
+    /// Deletes entities matching the provided criteria asynchronously.
     /// </summary>
-    /// <param name="selector">The selection criteria for deletion.</param>
-    /// <returns>A task that represents the asynchronous delete operation.</returns>
-    Task DeleteAsync(Expression<Func<T, bool>> selector);
+    /// <param name="expression">Criteria to identify entities to delete.</param>
+    /// <returns>A task representing the deletion process.</returns>
+    Task DeleteAsync(Expression<Func<T, bool>> expression);
 
     /// <summary>
-    /// Deletes all records.
+    /// Purges all entities from the data storage asynchronously.
     /// </summary>
-    /// <returns>A task that represents the asynchronous delete operation.</returns>
+    /// <returns>A task representing the deletion process.</returns>
     Task DeleteAllAsync();
 
     /// <summary>
-    /// Counts the number of records that match the given selector.
+    /// Counts the number of entities matching the provided criteria asynchronously.
     /// </summary>
-    /// <param name="selector">The selection criteria.</param>
-    /// <returns>The number of matching records.</returns>
-    Task<long> CountAsync(Expression<Func<T, bool>> selector);
+    /// <param name="expression">Criteria to match entities against.</param>
+    /// <returns>The count of matching entities.</returns>
+    Task<long> CountAsync(Expression<Func<T, bool>> expression);
 
     /// <summary>
-    /// Counts all records.
+    /// Determines the total number of entities in the data storage asynchronously.
     /// </summary>
-    /// <returns>The total number of records.</returns>
+    /// <returns>The total entity count.</returns>
     Task<long> CountAllAsync();
 
     /// <summary>
-    /// Validates if the string is in a valid format to the implementation's stringified version of the ID.
+    /// Validates the format of a given string-based identifier.
     /// </summary>
-    /// <param name="id">The ID to validate.</param>
-    /// <returns><c>true</c> if the ID format is valid, otherwise <c>false</c>.</returns>
+    /// <param name="id">String representation of the identifier.</param>
+    /// <returns>Whether the provided identifier conforms to the expected format.</returns>
     bool ValidateIdFormat(string id);
 }

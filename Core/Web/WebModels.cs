@@ -83,7 +83,7 @@ public class SerializedQuery
         {
             Pagination = Pagination,
             Filter = GetFilterExpression<T>(),
-            Order = GetSortExpression<T>(),
+            Ordering = GetSortExpression<T>(),
             OrderDirection = Order,
         };
     }

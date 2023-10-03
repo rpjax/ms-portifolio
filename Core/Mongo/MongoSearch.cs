@@ -33,15 +33,15 @@ public class MongoSearch<T> where T : IMongoModel
             filter = MongoModule.GetFilterBuilder<T>().Empty;
         }
 
-        if (query.Order != null)
+        if (query.Ordering != null)
         {
             if (query.OrderDirection == OrderDirection.Ascending)
             {
-                sort = Builders<T>.Sort.Ascending(query.Order);
+                sort = Builders<T>.Sort.Ascending(query.Ordering);
             }
             else
             {
-                sort = Builders<T>.Sort.Descending(query.Order);
+                sort = Builders<T>.Sort.Descending(query.Ordering);
             }
         }
         else

@@ -3,44 +3,48 @@
 namespace ModularSystem.Core;
 
 /// <summary>
-/// Defines the structure for a query that can be used to filter, sort, and paginate data of type <typeparamref name="T"/>.
+/// Defines the structure for a query to filter, group, project (select), sort, and paginate data of type <typeparamref name="T"/>.
 /// </summary>
 /// <typeparam name="T">The type of data the query is designed for.</typeparam>
 public interface IQuery<T>
 {
     /// <summary>
-    /// Gets or sets the pagination information for the query, used to limit the number of records returned.
-    /// </summary>
-    PaginationIn Pagination { get; set; }
-
-    /// <summary>
     /// Gets or sets the filter expression that should be applied to the data.
     /// </summary>
     /// <remarks>
-    /// This is an expression that defines the condition each element of type <typeparamref name="T"/> must satisfy to be included in the result.
+    /// Filter the data. This expression defines the conditions each element of type <typeparamref name="T"/> must satisfy to be included in the result.
     /// </remarks>
     Expression? Filter { get; set; }
+
+    /// <summary>
+    /// Defines how data is grouped.
+    /// </summary>
+    /// <remarks>
+    /// Group the data based on certain criteria.
+    /// </remarks>
+    Expression? Grouping { get; set; }
+
+    /// <summary>
+    /// Gets or sets the projection (or selection) expression to transform or select certain fields of the data.
+    /// </summary>
+    /// <remarks>
+    /// Project or transform the data after filtering and grouping. Determines which fields or transformed values are included in the result set.
+    /// </remarks>
+    Expression? Projection { get; set; }
 
     /// <summary>
     /// Gets or sets the sorting expression that should be applied to the data.
     /// </summary>
     /// <remarks>
-    /// This is an expression that defines how the elements should be ordered in the result set.
+    /// Sort the data. This expression defines how the elements are ordered in the result set after they've been filtered, grouped, and projected.
     /// </remarks>
-    Expression? Order { get; set; }
-
-    Expression? Projection { get; set; }
+    Expression? Ordering { get; set; }
 
     /// <summary>
-    /// Defines how data is grouped and selected.
-    /// </summary>
-    Expression? Aggregation { get; set; }
-
-    /// <summary>
-    /// Gets or sets the order in which the data should be sorted.
+    /// Gets or sets the pagination information for the query, used to limit the number of records returned.
     /// </summary>
     /// <remarks>
-    /// Use <see cref="OrderDirection.Ascending"/> for ascending order and <see cref="OrderDirection.Descending"/> for descending order.
+    /// Paginate the results. Determines which subset of the result set is returned based on the defined start point and page size.
     /// </remarks>
-    OrderDirection OrderDirection { get; set; }
+    PaginationIn Pagination { get; set; }
 }

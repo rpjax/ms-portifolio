@@ -8,13 +8,13 @@ namespace ModularSystem.Core;
 public static class EntityReflection
 {
     /// <summary>
-    /// Retrieves all non-abstract entity types that derive from the generic <see cref="Entity{T}"/> from the specified assemblies.
+    /// Retrieves all non-abstract entity types that derive from the generic <see cref="EntityService{T}"/> from the specified assemblies.
     /// </summary>
     /// <param name="assemblies">A collection of assemblies to search for entity types.</param>
     /// <returns>An enumeration of found entity types.</returns>
     public static IEnumerable<Type> GetAllEntitesFrom(IEnumerable<Assembly> assemblies)
     {
-        var abstractEntityType = typeof(Entity<>);
+        var abstractEntityType = typeof(EntityService<>);
 
         return assemblies
             .SelectMany(assembly => assembly.GetTypes())
@@ -39,7 +39,7 @@ public static class EntityReflection
 
     /// <summary>
     /// Extracts and returns the model type argument from the provided entity type,<br/>
-    /// assuming the entity type inherits from <see cref="Entity{T}"/>.
+    /// assuming the entity type inherits from <see cref="EntityService{T}"/>.
     /// </summary>
     /// <param name="entityType">The entity type to extract the model type argument from.</param>
     /// <returns>The model type argument.</returns>

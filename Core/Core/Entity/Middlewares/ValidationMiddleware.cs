@@ -2,9 +2,9 @@
 
 internal class ValidationMiddleware<T> : EntityMiddleware<T> where T : IQueryableModel
 {
-    private Entity<T> Entity { get; }
+    private EntityService<T> Entity { get; }
 
-    public ValidationMiddleware(Entity<T> entity)
+    public ValidationMiddleware(EntityService<T> entity)
     {
         Entity = entity;
     }

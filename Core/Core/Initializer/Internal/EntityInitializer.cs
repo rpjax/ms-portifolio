@@ -13,7 +13,7 @@ public class EntityInitializer : Initializer
     }
 
     /// <summary>
-    /// Registers entity-specific JSON serializers for concrete implementations of the generic <see cref="Entity{T}"/> type.
+    /// Registers entity-specific JSON serializers for concrete implementations of the generic <see cref="EntityService{T}"/> type.
     /// </summary>
     /// <param name="options">Configuration options.</param>
     public override async Task InternalInitAsync(Options options)
@@ -30,7 +30,7 @@ public class EntityInitializer : Initializer
         ConsoleLogger.Warn("EntityConfiguration initialization has been disabled duo to development issues.");
         return;
 
-        var abstractEntityType = typeof(Entity<>);
+        var abstractEntityType = typeof(EntityService<>);
         var abstractEntityConfigType = typeof(EntityConfiguration<>);
 
         var entityTypes = EntityReflection.GetAllEntitesFrom(options.Assemblies).ToArray();

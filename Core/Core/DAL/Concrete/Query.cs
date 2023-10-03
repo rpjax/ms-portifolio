@@ -22,7 +22,7 @@ public class Query<T> : IQuery<T>
     /// <summary>
     /// Gets or sets the sort expression for the query.
     /// </summary>
-    public Expression? Order { get; set; }
+    public Expression? Ordering { get; set; }
 
     public Expression? Projection { get; set; }
 
@@ -97,7 +97,7 @@ public class Query<T> : IQuery<T>
     /// <returns>The updated query object.</returns>
     public Query<T> SetSort(Expression<Func<T, object>> sort)
     {
-        Order = sort;
+        Ordering = sort;
         return this;
     }
 

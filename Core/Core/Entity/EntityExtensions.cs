@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 namespace ModularSystem.Core;
 
 /// <summary>
-/// Provides extension methods for <see cref="Entity{T}"/>.
+/// Provides extension methods for <see cref="EntityService{T}"/>.
 /// </summary>
 public static class EntityExtensions
 {
@@ -18,7 +18,7 @@ public static class EntityExtensions
     /// <typeparam name="T"></typeparam>
     /// <param name="entity"></param>
     /// <returns></returns>
-    public static IQueryable<T> AsQueryable<T>(this Entity<T> entity) where T : IQueryableModel
+    public static IQueryable<T> AsQueryable<T>(this EntityService<T> entity) where T : IQueryableModel
     {
         return entity.DataAccessObject.AsQueryable();
     }
@@ -29,7 +29,7 @@ public static class EntityExtensions
     /// <param name="entity"></param>
     /// <param name="entries">The entities to create.</param>
     /// <returns>A task that represents the asynchronous create operation.</returns>
-    public static async Task CreateAsync<T>(this Entity<T> entity, IEnumerable<T> entries) where T : IQueryableModel
+    public static async Task CreateAsync<T>(this EntityService<T> entity, IEnumerable<T> entries) where T : IQueryableModel
     {
         var valdiationTasks = new List<Task<Exception?>>(entries.Count());
 
@@ -97,7 +97,7 @@ public static class EntityExtensions
     /// <param name="entity"></param>
     /// <param name="id">The ID of the entity.</param>
     /// <returns>The retrieved entity or default if not found.</returns>
-    public static async Task<T?> TryGetAsync<T>(this Entity<T> entity, string id) where T : IQueryableModel
+    public static async Task<T?> TryGetAsync<T>(this EntityService<T> entity, string id) where T : IQueryableModel
     {
         RunIdFormatValidation(entity,id);
 
@@ -119,7 +119,7 @@ public static class EntityExtensions
     /// <param name="id">The ID of the entity.</param>
     /// <returns>The retrieved entity.</returns>
     /// <exception cref="AppException">Thrown when no entity matches the provided ID.</exception>
-    public static async Task<T> GetAsync<T>(this Entity<T> entity, string id) where T : IQueryableModel
+    public static async Task<T> GetAsync<T>(this EntityService<T> entity, string id) where T : IQueryableModel
     {
         var data = await TryGetAsync(entity, id);
 
@@ -137,7 +137,7 @@ public static class EntityExtensions
     /// <typeparam name="T"></typeparam>
     /// <param name="entity"></param>
     /// <returns></returns>
-    public static Task<IQueryResult<T>> QueryAsync<T>(this Entity<T> entity) where T : IQueryableModel
+    public static Task<IQueryResult<T>> QueryAsync<T>(this EntityService<T> entity) where T : IQueryableModel
     {
         return entity.QueryAsync(new Query<T>());
     }
@@ -148,7 +148,7 @@ public static class EntityExtensions
     /// <param name="entity"></param>
     /// <param name="id">The ID of the entity to delete.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
-    public static async Task DeleteAsync<T>(this Entity<T> entity, string id) where T : IQueryableModel
+    public static async Task DeleteAsync<T>(this EntityService<T> entity, string id) where T : IQueryableModel
     {
         if (entity.ValidateIdBeforeDeletion)
         {
@@ -168,7 +168,7 @@ public static class EntityExtensions
     /// <remarks>
     /// This method leverages the <see cref="IQueryableModel.GetId"/> method to retrieve the identifier of the instance and subsequently deletes it from the entity.
     /// </remarks>
-    public static Task DeleteAsync<T>(this Entity<T> entity, T instance) where T : IQueryableModel
+    public static Task DeleteAsync<T>(this EntityService<T> entity, T instance) where T : IQueryableModel
     {
         return entity.DeleteAsync(instance.GetId());
     }
@@ -183,7 +183,7 @@ public static class EntityExtensions
     /// <remarks>
     /// If the entity's <c>ValidateIdBeforeDeletion</c> property is set to true, this method will validate the IDs asynchronously before deletion.
     /// </remarks>
-    public static async Task DeleteAsync<T>(this Entity<T> entity, IEnumerable<string> ids) where T : IQueryableModel
+    public static async Task DeleteAsync<T>(this EntityService<T> entity, IEnumerable<string> ids) where T : IQueryableModel
     {
         if (ids.IsEmpty())
         {
@@ -229,7 +229,7 @@ public static class EntityExtensions
     /// <param name="entity">The entity representing the data set of type <typeparamref name="T"/>.</param>
     /// <param name="id">The identifier to be validated.</param>
     /// <exception cref="AppException">Thrown when the provided ID is malformed.</exception>
-    public static void RunIdFormatValidation<T>(this Entity<T> entity, string id) where T : IQueryableModel
+    public static void RunIdFormatValidation<T>(this EntityService<T> entity, string id) where T : IQueryableModel
     {
         var isValid = entity.DataAccessObject.ValidateIdFormat(id);
 
@@ -247,7 +247,7 @@ public static class EntityExtensions
     /// <param name="id">The identifier to be validated.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous validation operation.</returns>
     /// <exception cref="AppException">Thrown when the provided ID is invalid or malformed.</exception>
-    public static async Task RunIdValidationAsync<T>(this Entity<T> entity, string id) where T : IQueryableModel
+    public static async Task RunIdValidationAsync<T>(this EntityService<T> entity, string id) where T : IQueryableModel
     {
         var isValid = await entity.ValidateIdAsync(id);
 
@@ -264,7 +264,7 @@ public static class EntityExtensions
     /// <param name="entity">The entity representing the data set of type <typeparamref name="T"/>.</param>
     /// <param name="id">The identifier used for filtering and counting the instances.</param>
     /// <returns>A <see cref="Task"/> that results in the count of instances that match the provided ID.</returns>
-    public static async Task<long> CountAsync<T>(this Entity<T> entity, string id) where T : IQueryableModel
+    public static async Task<long> CountAsync<T>(this EntityService<T> entity, string id) where T : IQueryableModel
     {
         await entity.RunIdValidationAsync(id);
         return await entity.DataAccessObject.CountAsync(entity.WhereIdEquals(id));
@@ -281,7 +281,7 @@ public static class EntityExtensions
     /// <param name="expression"></param>
     /// <returns></returns>
     [return: NotNullIfNotNull("expression")]
-    public static Expression<TDelegate>? Visit<T, TDelegate>(this Entity<T> entity, Expression<TDelegate>? expression) where T : IQueryableModel
+    public static Expression<TDelegate>? Visit<T, TDelegate>(this EntityService<T> entity, Expression<TDelegate>? expression) where T : IQueryableModel
     {
         var visited = entity.Visit(expression);
 
@@ -300,7 +300,7 @@ public static class EntityExtensions
     /// <param name="query"></param>
     /// <returns></returns>
     [return: NotNullIfNotNull("query")]
-    public static IQuery<T>? Visit<T>(this Entity<T> entity, IQuery<T>? query) where T : IQueryableModel
+    public static IQuery<T>? Visit<T>(this EntityService<T> entity, IQuery<T>? query) where T : IQueryableModel
     {
         if (query == null)
         {
@@ -308,7 +308,7 @@ public static class EntityExtensions
         }
 
         query.Filter = Visit(entity, query.Filter);
-        query.Order = Visit(entity, query.Order);
+        query.Ordering = Visit(entity, query.Ordering);
 
         return query;
     }
@@ -325,7 +325,7 @@ public static class EntityExtensions
     /// <param name="id"></param>
     /// <param name="visit"></param>
     /// <returns></returns>
-    public static Expression IdEquals<T>(this Entity<T> entity, string id, bool visit = false) where T : IQueryableModel
+    public static Expression IdEquals<T>(this EntityService<T> entity, string id, bool visit = false) where T : IQueryableModel
     {
         Expression<Func<T, bool>> expression = (T x) => EntityLinq.IdEqualsFlag(id);
 
@@ -344,7 +344,7 @@ public static class EntityExtensions
     /// <param name="id"></param>
     /// <param name="visit"></param>
     /// <returns></returns>
-    public static Expression<Func<T, bool>> WhereIdEquals<T>(this Entity<T> entity, string id, bool visit = true) where T : IQueryableModel
+    public static Expression<Func<T, bool>> WhereIdEquals<T>(this EntityService<T> entity, string id, bool visit = true) where T : IQueryableModel
     {
         Expression<Func<T, bool>> expression = (T x) => EntityLinq.IdEqualsFlag(id);
 
@@ -362,7 +362,7 @@ public static class EntityExtensions
     /// <param name="entity"></param>
     /// <param name="id"></param>
     /// <returns></returns>
-    public static IQuery<T> CreateQueryWhereIdEquals<T>(this Entity<T> entity, string id) where T : IQueryableModel
+    public static IQuery<T> CreateQueryWhereIdEquals<T>(this EntityService<T> entity, string id) where T : IQueryableModel
     {
         var pagination = new PaginationIn(1, 0);
         return new Query<T>(pagination, entity.WhereIdEquals(id));

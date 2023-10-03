@@ -7,7 +7,7 @@ namespace ModularSystem.Web;
 
 /// <summary>
 /// Generates a basic crud based on the modular system RESTful CRUD API specification. <br></br>
-/// It uses the <see cref="IEntity{T}"/> interface.
+/// It uses the <see cref="IEntityService{T}"/> interface.
 /// </summary>
 /// <typeparam name="T"></typeparam>
 public abstract class CrudController<T> : WebController, IPingController, IDisposable where T : class, IQueryableModel
@@ -15,7 +15,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
     /// <summary>
     /// Gets the associated entity instance for CRUD operations.
     /// </summary>
-    protected abstract Entity<T> Entity { get; }
+    protected abstract EntityService<T> Entity { get; }
 
     /// <summary>
     /// Disposes the associated entity.
@@ -183,7 +183,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
 
 /// <summary>
 /// Generates a basic crud based on the modular system RESTful CRUD API specification with an adapter layer.<br></br>
-/// It uses the <see cref="IEntity{T}"/> interface.
+/// It uses the <see cref="IEntityService{T}"/> interface.
 /// </summary>
 /// <typeparam name="TEntity"></typeparam>
 /// <typeparam name="TPresented"></typeparam>
@@ -192,7 +192,7 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
     /// <summary>
     /// Gets the associated entity instance for CRUD operations.
     /// </summary>
-    protected abstract Entity<TEntity> Entity { get; }
+    protected abstract EntityService<TEntity> Entity { get; }
 
     /// <summary>
     /// Gets the associated adapter for converting between entity and presentation layers.

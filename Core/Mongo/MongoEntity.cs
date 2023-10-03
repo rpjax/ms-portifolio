@@ -8,7 +8,7 @@ namespace ModularSystem.Mongo;
 /// Provides a base for entities in a MongoDB context.
 /// </summary>
 /// <typeparam name="T">The type of the entity, which should implement the <see cref="IMongoModel"/> interface.</typeparam>
-public abstract class MongoEntity<T> : Entity<T> where T : class, IMongoModel
+public abstract class MongoEntity<T> : EntityService<T> where T : class, IMongoModel
 {
     /// <summary>
     /// Creates an expression to select the ID of an entity in the MongoDB context.

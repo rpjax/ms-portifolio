@@ -17,7 +17,7 @@ public static class Program
 
         Initializer.Run(config);
         CLI.StartInstance();
-        Entity
+        EntityService
         //WebApplicationServer.StartSingleton();
     }
 }

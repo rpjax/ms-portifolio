@@ -1,11 +1,12 @@
 ﻿using ModularSystem.Core.Expressions;
+using System;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Core;
 
 /// <summary>
 /// Provides a set of hooks for intercepting and extending the behavior of CRUD operations on entities of type <typeparamref name="T"/>. <br/>
-/// This abstract class serves as a base for concrete middlewares that may need to implement custom logic around entity operations.
+/// Acts as a foundational layer for concrete middlewares, facilitating the incorporation of custom logic during entity operations.
 /// </summary>
 /// <typeparam name="T">The type of the entity extending <see cref="IQueryableModel"/>.</typeparam>
 public abstract class EntityMiddleware<T> where T : IQueryableModel
@@ -30,6 +31,20 @@ public abstract class EntityMiddleware<T> where T : IQueryableModel
     /// <param name="entity">The entity that was created.</param>
     /// <returns>Potentially post-processed entity after creation.</returns>
     public virtual Task<T> AfterCreateAsync(T entity) => Task.FromResult(entity);
+
+    /// <summary>
+    /// Intercepting hook executed before creating multiple entities.
+    /// </summary>
+    /// <param name="entities">The entities about to be created.</param>
+    /// <returns>The potentially modified list of entities to proceed with creation.</returns>
+    public virtual Task<IEnumerable<T>> BeforeCreateAsync(IEnumerable<T> entities) => Task.FromResult(entities);
+
+    /// <summary>
+    /// Post-process hook executed after creating multiple entities.
+    /// </summary>
+    /// <param name="entities">The entities that were created.</param>
+    /// <returns>Potentially post-processed list of entities after creation.</returns>
+    public virtual Task<IEnumerable<T>> AfterCreateAsync(IEnumerable<T> entities) => Task.FromResult(entities);
 
     /// <summary>
     /// Intercepting hook executed before a query operation.
@@ -60,17 +75,31 @@ public abstract class EntityMiddleware<T> where T : IQueryableModel
     public virtual Task<(T, T)> AfterUpdateAsync(T currentEntity, T updatedEntity) => Task.FromResult((currentEntity, updatedEntity));
 
     /// <summary>
+    /// Intercepting hook executed before an update operation.
+    /// </summary>
+    /// <param name="update">The update parameters being executed.</param>
+    /// <returns>The potentially modified update parameters to proceed with the update operation.</returns>
+    public virtual Task<IUpdate<T>> BeforeUpdateAsync(IUpdate<T> update) => Task.FromResult(update);
+
+    /// <summary>
+    /// Post-process hook executed after an update operation.
+    /// </summary>
+    /// <param name="update">The update parameters that were executed.</param>
+    /// <returns>Potentially post-processed update parameters after the update operation.</returns>
+    public virtual Task<IUpdate<T>> AfterUpdateAsync(IUpdate<T> update) => Task.FromResult(update);
+
+    /// <summary>
     /// Intercepting hook executed before the deletion of an entity.
     /// </summary>
     /// <param name="predicate">The condition used to identify the entity to be deleted.</param>
-    public virtual Task<Expression> BeforeDeleteAsync(Expression predicate) => Task.FromResult(predicate);
+    public virtual Task<Expression<Func<T, bool>>> BeforeDeleteAsync(Expression<Func<T, bool>> predicate) => Task.FromResult(predicate);
 
     /// <summary>
     /// Post-process hook executed after the deletion of an entity.
     /// </summary>
     /// <param name="predicate">The condition used to identify the entity that was deleted.</param>
     /// <returns>Potentially post-processed condition after the deletion.</returns>
-    public virtual Task<Expression> AfterDeleteAsync(Expression predicate) => Task.FromResult(predicate);
+    public virtual Task<Expression<Func<T, bool>>> AfterDeleteAsync(Expression<Func<T, bool>> predicate) => Task.FromResult(predicate);
 
     /// <summary>
     /// Intercepting hook executed before the deletion of all entities of type <typeparamref name="T"/>.
@@ -86,14 +115,14 @@ public abstract class EntityMiddleware<T> where T : IQueryableModel
     /// Intercepting hook executed before counting entities matching a specified condition.
     /// </summary>
     /// <param name="predicate">The condition to use for counting.</param>
-    public virtual Task<Expression> BeforeCountAsync(Expression predicate) => Task.FromResult(predicate);
+    public virtual Task<Expression<Func<T, bool>>> BeforeCountAsync(Expression<Func<T, bool>> predicate) => Task.FromResult(predicate);
 
     /// <summary>
     /// Post-process hook executed after counting entities matching a specified condition.
     /// </summary>
     /// <param name="predicate">The condition that was used for counting.</param>
     /// <returns>Potentially post-processed condition after counting.</returns>
-    public virtual Task<Expression> AfterCountAsync(Expression predicate) => Task.FromResult(predicate);
+    public virtual Task<Expression<Func<T, bool>>> AfterCountAsync(Expression<Func<T, bool>> predicate) => Task.FromResult(predicate);
 
     /// <summary>
     /// Intercepting hook executed before counting all entities of type <typeparamref name="T"/>.
@@ -107,12 +136,17 @@ public abstract class EntityMiddleware<T> where T : IQueryableModel
 }
 
 /// <summary>
-/// Provides a foundation for inspecting and optionally transforming
-/// various query-related expressions and constructs for entities of type T.
+/// Serves as a foundational visitor for query-related expressions and constructs for entities of type <typeparamref name="T"/>. It facilitates inspecting and potentially transforming these elements, offering a blueprint for customization in derived classes.
 /// </summary>
-/// <typeparam name="T">The type of entity being queried.</typeparam>
-public class EntityVisitor<T> where T : IQueryableModel
+/// <typeparam name="T">The type of entity under query operations.</typeparam>
+public class EntityExpressionVisitor<T> where T : IQueryableModel
 {
+    /// <summary>
+    /// Offers a foundational way to inspect an expression without making alterations. <br/>
+    /// Concrete implementations should implement their logic here.
+    /// </summary>
+    /// <param name="expression">Expression to inspect.</param>
+    /// <returns>The original expression.</returns>
     public virtual Task<Expression> VisitExpressionAsync(Expression expression)
     {
         return Task.FromResult(expression);
@@ -132,9 +166,9 @@ public class EntityVisitor<T> where T : IQueryableModel
             tasks.Add(Task.Run(async () => query.Filter = await VisitQueryFilter(query.Filter)));
         }
 
-        if (query.Aggreration != null)
+        if (query.Grouping != null)
         {
-            tasks.Add(Task.Run(async () => query.Aggreration = await VisitQueryOrder(query.Aggreration)));
+            tasks.Add(Task.Run(async () => query.Grouping = await VisitQueryGrouping(query.Grouping)));
         }
 
         if (query.Projection != null)
@@ -142,9 +176,9 @@ public class EntityVisitor<T> where T : IQueryableModel
             tasks.Add(Task.Run(async () => query.Projection = await VisitQueryProjection(query.Projection)));
         }
 
-        if (query.Order != null)
+        if (query.Ordering != null)
         {
-            tasks.Add(Task.Run(async () => query.Order = await VisitQueryOrder(query.Order)));
+            tasks.Add(Task.Run(async () => query.Ordering = await VisitQueryOrdering(query.Ordering)));
         }
 
         tasks.Add(Task.Run(async () => query.Pagination = await VisitQueryPaginationAsync(query.Pagination)));
@@ -165,11 +199,11 @@ public class EntityVisitor<T> where T : IQueryableModel
     }
 
     /// <summary>
-    /// Visits a query's aggregation expression.
+    /// Visits a query's groupping expression.
     /// </summary>
     /// <param name="expression">The aggregation expression to be visited.</param>
     /// <returns>The original or a potentially modified expression.</returns>
-    public virtual Task<Expression> VisitQueryAggregation(Expression expression)
+    public virtual Task<Expression> VisitQueryGrouping(Expression expression)
     {
         return VisitExpressionAsync(expression);
     }
@@ -189,7 +223,7 @@ public class EntityVisitor<T> where T : IQueryableModel
     /// </summary>
     /// <param name="expression">The order expression to be visited.</param>
     /// <returns>The original or a potentially modified expression.</returns>
-    public virtual Task<Expression> VisitQueryOrder(Expression expression)
+    public virtual Task<Expression> VisitQueryOrdering(Expression expression)
     {
         return VisitExpressionAsync(expression);
     }
@@ -205,22 +239,29 @@ public class EntityVisitor<T> where T : IQueryableModel
     }
 
     /// <summary>
-    /// Visits both the selector and update expressions for an update operation.
+    /// Inspects the provided update operation's filter and modification expressions. Offers a foundational way to analyze without alterations. <br/>
+    /// Concrete implementations can provide their transformation logic if needed.
     /// </summary>
-    /// <param name="selectorExpression">The expression that selects which entities to update.</param>
-    /// <param name="updateExpressions">The expressions defining how to update the entities.</param>
-    /// <returns>A tuple containing the potentially modified selector and update expressions.</returns>
-    public virtual async Task<(Expression, IEnumerable<Expression> updateExpressions)> VisitUpdateAsync(Expression selectorExpression, IEnumerable<Expression> updateExpressions)
+    /// <param name="update">The update operation containing selector and modification expressions.</param>
+    /// <returns>Potentially transformed update operation.</returns>
+    public virtual async Task<IUpdate<T>> VisitUpdateAsync(IUpdate<T> update)
     {
-        var visitedSelector = await VisitExpressionAsync(selectorExpression);
-        var visitedUpdates = new List<Expression>();
-
-        foreach (var updateExpression in updateExpressions)
+        if (update.Filter != null)
         {
-            visitedUpdates.Add(await VisitExpressionAsync(updateExpression));
+            update.Filter = (await VisitExpressionAsync(update.Filter)).TypeCast<Expression<Func<T, bool>>>();
         }
 
-        return (visitedSelector, visitedUpdates);
+        if (update.Modifications == null)
+        {
+            return update;
+        }
+
+        for (int i = 0; i < update.Modifications.Count; i++)
+        {
+            update.Modifications[i] = await VisitExpressionAsync(update.Modifications[i]);
+        }
+
+        return update;
     }
 }
 
@@ -234,13 +275,13 @@ internal class VisitorMiddlewareConverter<T> : EntityMiddleware<T> where T : IQu
     /// <summary>
     /// The EntityVisitor used for inspecting and transforming query-related constructs.
     /// </summary>
-    private EntityVisitor<T> Visitor { get; }
+    private EntityExpressionVisitor<T> Visitor { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="VisitorMiddlewareConverter{T}"/> class.
     /// </summary>
     /// <param name="visitor">The EntityVisitor to be used.</param>
-    public VisitorMiddlewareConverter(EntityVisitor<T> visitor)
+    public VisitorMiddlewareConverter(EntityExpressionVisitor<T> visitor)
     {
         Visitor = visitor;
     }
@@ -250,9 +291,14 @@ internal class VisitorMiddlewareConverter<T> : EntityMiddleware<T> where T : IQu
         return Visitor.VisitQueryAsync(query);
     }
 
+    public override Task<IUpdate<T>> BeforeUpdateAsync(IUpdate<T> update)
+    {
+        return Visitor.VisitUpdateAsync(update);
+    }
+
     public override async Task<Expression<Func<T, bool>>> BeforeDeleteAsync(Expression<Func<T, bool>> predicate)
     {
-        return (await Visitor.VisitExpressionAsync(predicate)).TypeCast< Expression<Func<T, bool>>>();
+        return (await Visitor.VisitExpressionAsync(predicate)).TypeCast<Expression<Func<T, bool>>>();
     }
 
     public override async Task<Expression<Func<T, bool>>> BeforeCountAsync(Expression<Func<T, bool>> predicate)
@@ -266,7 +312,7 @@ internal class VisitorMiddlewareConverter<T> : EntityMiddleware<T> where T : IQu
 /// Especially useful for ensuring that query expressions are in a standard form before processing.
 /// </summary>
 /// <typeparam name="T">The type of entity being queried.</typeparam>
-internal class ExpressionNormalizer<T> : EntityVisitor<T> where T : IQueryableModel
+internal class ExpressionNormalizer<T> : EntityExpressionVisitor<T> where T : IQueryableModel
 {
     /// <summary>
     /// A function to create an ID selector from a parameter expression.
@@ -297,10 +343,4 @@ internal class ExpressionNormalizer<T> : EntityVisitor<T> where T : IQueryableMo
         return base.VisitExpressionAsync(expression);
     }
 
-    public override Task<PaginationIn> VisitQueryPaginationAsync(PaginationIn pagination)
-    {
-        return base.VisitQueryPaginationAsync(pagination);  
-    }
-
 }
-
