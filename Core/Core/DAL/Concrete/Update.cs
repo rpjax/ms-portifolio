@@ -19,7 +19,7 @@ public class Update<T> : IUpdate<T>
         return Modifications.ConvertAll(x => x.TypeCast<T>());  
     }
 
-    public List<UpdateSetExpression<T>>? ModificationsAsUpdateSets()
+    public List<UpdateSetExpression>? ModificationsAsUpdateSets()
     {
         throw new NotImplementedException();
         //return Modifications?.ConvertAll(x =>
@@ -28,27 +28,6 @@ public class Update<T> : IUpdate<T>
         //});
     }
 
-}
-
-public class UpdateSetExpression<T> : Expression
-{
-    public string FieldName { get; }
-    public Type Type { get; }
-    public dynamic? Value { get; }
-    public override ExpressionType NodeType { get; }
-
-    public UpdateSetExpression(string fieldName, Type type, dynamic? value)
-    {
-        NodeType = ExpressionType.Assign;
-        FieldName = fieldName;
-        Type = type;
-        Value = value;
-    }
-
-    public override string ToString()
-    {
-        return $"{FieldName} = {Value?.ToString()}";
-    }
 }
 
 public class UpdateWriter<T> : IFactory<IUpdate<T>>
@@ -79,7 +58,7 @@ public class UpdateWriter<T> : IFactory<IUpdate<T>>
         var analyser = new ModificationAnalyser<T, TField>(selector)
             .Execute();
         var modification = 
-            new UpdateSetExpression<T>(analyser.GetFieldName(), analyser.GetFieldType(), value);
+            new UpdateSetExpression(analyser.GetFieldName(), analyser.GetFieldType(), value);
 
         Update.Modifications.Add(modification);
         return this;
@@ -187,11 +166,11 @@ public class UpdateReader<T>
         return VisitExpression(Update.Filter as Expression<Func<T, bool>>);
     }
 
-    public IEnumerable<UpdateSetExpression<T>> GetUpdateSetExpressions()
+    public IEnumerable<UpdateSetExpression> GetUpdateSetExpressions()
     {
         foreach (var expression in Update.Modifications)
         {
-            var cast = expression as UpdateSetExpression<T>;
+            var cast = expression as UpdateSetExpression;
 
             if(cast == null)
             {

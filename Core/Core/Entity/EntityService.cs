@@ -401,11 +401,12 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
 
     private IEnumerable<EntityMiddleware<T>> CreatePreUserPipeline()
     {
-        yield return new ValidationMiddleware<T>(this);
+        return Enumerable.Empty<EntityMiddleware<T>>();
     }
 
     private IEnumerable<EntityMiddleware<T>> CreatePostUserPipeline()
     {
+        yield return new ValidationMiddleware<T>(this);
         yield return new VisitorMiddlewareConverter<T>(new ExpressionNormalizer<T>(CreateIdSelectorExpression, ParseId));
     }
 

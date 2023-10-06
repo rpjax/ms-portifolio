@@ -16,6 +16,32 @@ public partial class QueryReader<T>
     {
         Query = new(query);
     }
+
+    /// <summary>
+    /// Constructs an expression visitor to ensure uniformity in parameter references across combined expressions.
+    /// </summary>
+    /// <returns>A newly created expression visitor.</returns>
+    protected ExpressionVisitor CreateExpressionVisitor()
+    {
+        return new ParameterExpressionUniformityVisitor();
+    }
+
+    /// <summary>
+    /// Visits and potentially modifies an expression.
+    /// </summary>
+    /// <typeparam name="TResult">Type of expression to be visited.</typeparam>
+    /// <param name="expression">Expression to visit.</param>
+    /// <returns>Modified expression, if any; otherwise the original expression.</returns>
+    protected TResult? VisitExpression<TResult>(TResult? expression) where TResult : Expression
+    {
+        if (expression == null)
+        {
+            return null;
+        }
+
+        return CreateExpressionVisitor().Visit(expression).TypeCast<TResult>();
+    }
+
 }
 
 // partial dedicated to filter reading.
@@ -23,7 +49,7 @@ public partial class QueryReader<T>
 {
     public Expression<Func<T, bool>>? GetFilterExpression()
     {
-        return Query.Filter as Expression<Func<T, bool>>;
+        return VisitExpression(Query.Filter as Expression<Func<T, bool>>);
     }
 }
 
@@ -42,9 +68,9 @@ public partial class QueryReader<T>
 // partial dedicated to ordering reading.
 public partial class QueryReader<T>
 {
-    public OrderingExpression<T>? GetOrderingExpression()
+    public OrderingExpression? GetOrderingExpression()
     {
-        return Query.Ordering as OrderingExpression<T>;
+        return Query.Ordering as OrderingExpression;
     }
 
     public Expression<Func<T, TField>>? GetOrderingSelectorExpression<TField>()

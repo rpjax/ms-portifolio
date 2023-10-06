@@ -269,11 +269,6 @@ public class EntityExpressionVisitor<T> where T : IQueryableModel
 
         for (int i = 0; i < update.Modifications.Count; i++)
         {
-            if (update.Modifications[i] is not LambdaExpression)
-            {
-                continue;
-            }
-
             update.Modifications[i] = await VisitExpressionAsync(update.Modifications[i]);
         }
 

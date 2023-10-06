@@ -346,7 +346,7 @@ internal class EFCoreUpdateOperation<T> where T : class, IEFModel
         {
             var setMethodInfo = typeof(SetPropertyCalls<T>)
                 .GetMethod("SetProperty")
-                ?.MakeGenericMethod(updateSet.Type);
+                ?.MakeGenericMethod(updateSet.FieldType);
 
             if (setMethodInfo == null)
             {
@@ -356,7 +356,7 @@ internal class EFCoreUpdateOperation<T> where T : class, IEFModel
             var setMethodArgs = new Expression[]
             {
                 Expression.Constant(reader.GetFilterExpression(), typeof(Expression<Func<T, bool>>)),
-                Expression.Constant(updateSet.Value, updateSet.Type)
+                Expression.Constant(updateSet.Value, updateSet.FieldType)
             };
 
             var setExpression = Expression.Call(fluentParameter, setMethodInfo, setMethodArgs);
