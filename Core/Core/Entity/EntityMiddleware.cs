@@ -1,5 +1,4 @@
 ﻿using ModularSystem.Core.Expressions;
-using System;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Core;
@@ -255,9 +254,12 @@ public class EntityExpressionVisitor<T> where T : IQueryableModel
     /// <returns>Potentially transformed update operation.</returns>
     public virtual async Task<IUpdate<T>> VisitUpdateAsync(IUpdate<T> update)
     {
-        if (update.Filter != null)
+        var reader = new UpdateReader<T>(update);
+        var filter = reader.GetFilterExpression();
+
+        if (filter != null)
         {
-            update.Filter = (await VisitExpressionAsync(update.Filter)).TypeCast<Expression<Func<T, bool>>>();
+            update.Filter = await VisitExpressionAsync(filter);
         }
 
         if (update.Modifications == null)
@@ -267,6 +269,11 @@ public class EntityExpressionVisitor<T> where T : IQueryableModel
 
         for (int i = 0; i < update.Modifications.Count; i++)
         {
+            if (update.Modifications[i] is not LambdaExpression)
+            {
+                continue;
+            }
+
             update.Modifications[i] = await VisitExpressionAsync(update.Modifications[i]);
         }
 

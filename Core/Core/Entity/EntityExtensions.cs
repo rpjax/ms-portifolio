@@ -20,7 +20,7 @@ public static class EntityExtensions
     /// <returns></returns>
     public static IQueryable<T> AsQueryable<T>(this EntityService<T> entity) where T : IQueryableModel
     {
-        return entity.DataAccessObject.AsQueryable();
+        return entity.CreateQueryAsync().Result;
     }
 
     /// <summary>

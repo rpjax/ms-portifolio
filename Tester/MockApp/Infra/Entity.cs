@@ -24,14 +24,6 @@ public class MongoAntEntity : MongoEntity<MongoAnt>
     }
 }
 
-public class MongoAntConfig : MongoEntityConfiguration<MongoAnt>
-{
-    public override ISerializer<MongoAnt>? GetSerializer()
-    {
-        return new MongoModelJsonSerializer<MongoAnt>();
-    }
-}
-
 public class EFAntEntity : EFEntity<EFAnt>
 {
     public override IDataAccessObject<EFAnt> DataAccessObject { get; }

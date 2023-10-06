@@ -12,10 +12,10 @@ public interface IUpdate<T>
     /// <summary>
     /// Specifies which entities should be targeted for the update operation.
     /// </summary>
-    Expression<Func<T, bool>>? Filter { get; set; }
+    Expression? Filter { get; set; }
 
     /// <summary>
     /// Contains expressions detailing the modifications to be made on the target entities.
     /// </summary>
-    List<Expression>? Modifications { get; set; }
+    List<Expression> Modifications { get; set; }
 }

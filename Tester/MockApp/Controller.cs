@@ -5,7 +5,6 @@ using ModularSystem.Core.Helpers;
 using ModularSystem.Core.Logging;
 using ModularSystem.Core.Security;
 using ModularSystem.Web;
-using ModularSystem.Web.Authentication;
 
 namespace ModularSystem.Tester;
 
@@ -22,7 +21,7 @@ public class RootController : WebController
 [Route("api/exception-logs")]
 public class ExceptionLogsController : CrudController<ExceptionEntry>
 {
-    protected override IEntityService<ExceptionEntry> Entity { get; }
+    protected override EntityService<ExceptionEntry> Entity { get; }
 
     public ExceptionLogsController()
     {
@@ -33,7 +32,7 @@ public class ExceptionLogsController : CrudController<ExceptionEntry>
 [Route("api/mongo-ant")]
 public class TestModelController : CrudController<MongoAnt>
 {
-    protected override IEntityService<MongoAnt> Entity { get; }
+    protected override EntityService<MongoAnt> Entity { get; }
 
     public TestModelController()
     {
@@ -49,7 +48,7 @@ public class Testercontroller : WebController
     {
         try
         {
-            var iam = DependencyContainer.Get<IIamSystem>();
+            var iam = DependencyContainer.Get<AesIamSystem>();
             var userDomain = "users";
             var identityResource = "identities";
             var roles = new IdentityRole[]
@@ -61,7 +60,7 @@ public class Testercontroller : WebController
                 .AddRoles(roles);
 
             var token = iam.AuthenticationProvider.GetToken(identity);
-            var stringToken = iam.AuthenticationProvider.GetTokenEncrypter().Encrypt(token);
+            var stringToken = iam.GetAuthenticationProvider().GetTokenEncrypter().Encrypt(token);
 
             return Ok(new { token = stringToken });
         }

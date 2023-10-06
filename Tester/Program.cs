@@ -17,7 +17,6 @@ public static class Program
 
         Initializer.Run(config);
         CLI.StartInstance();
-        EntityService
         //WebApplicationServer.StartSingleton();
     }
 }
@@ -31,7 +30,7 @@ public class ExceptionEntryEntity : EFEntity<ExceptionEntry>
 
     public ExceptionEntryEntity()
     {
-        var file = Logger.DefaultPathFile(ExceptionLogger.DEFAULT_FILE_NAME);
+        var file = Logger.DefaultPathFile(ExceptionLogger.DefaultFileName);
         var context = new EFCoreContext<ExceptionEntry>(file);
 
         DataAccessObject = new EFCoreDataAccessObject<ExceptionEntry>(context);

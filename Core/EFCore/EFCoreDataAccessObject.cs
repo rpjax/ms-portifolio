@@ -323,6 +323,7 @@ internal class EFCoreUpdateOperation<T> where T : class, IEFModel
             return;
         }
 
+        var reader = new UpdateReader<T>(update);
         var queryable = DbSet.AsQueryable();
 
         //*
@@ -354,7 +355,7 @@ internal class EFCoreUpdateOperation<T> where T : class, IEFModel
 
             var setMethodArgs = new Expression[]
             {
-                Expression.Constant(update.FilterAsPredicate(), typeof(Expression<Func<T, bool>>)),
+                Expression.Constant(reader.GetFilterExpression(), typeof(Expression<Func<T, bool>>)),
                 Expression.Constant(updateSet.Value, updateSet.Type)
             };
 

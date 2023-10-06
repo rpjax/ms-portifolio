@@ -146,9 +146,12 @@ public static class ExceptionLogger
     /// <summary>
     /// The default filename used to save the log entries to disk.
     /// </summary>
-    const string DefaultFileName = "e_debug.db";
+    public const string DefaultFileName = "e_debug.db";
 
-    const string CritialErrorFileName = "critial_e_debug.db";
+    /// <summary>
+    /// Default filename for persisting log entries related to critical errors needing urgent attention.
+    /// </summary>
+    public const string CriticalErrorFileName = "critical_e_debug.db";
 
     /// <summary>
     /// Gets or sets a value indicating whether to enable logging of exceptions to disk.
@@ -201,7 +204,7 @@ public static class ExceptionLogger
 
         if (EnableDiskLogging)
         {
-            var logger = new SqliteLogger<ExceptionEntry>(Logger.DefaultPathFile(CritialErrorFileName));
+            var logger = new SqliteLogger<ExceptionEntry>(Logger.DefaultPathFile(CriticalErrorFileName));
             var entry = ExceptionEntry.From(e, TimeProvider.UtcNow());
             var job = new LoggerJob<ExceptionEntry>(logger, entry);
 
