@@ -308,22 +308,16 @@ internal class EFCoreUpdateOperation<T> where T : class, IEFModel
         DbSet = dbSet;
     }
 
-    public async Task ExecuteAsync(IUpdate<T> updateObject)
+    public async Task ExecuteAsync(IUpdate<T> update)
     {
-        if (updateObject is not Update<T>)
-        {
-            throw new ArgumentNullException();
-        }
-
-        var update = updateObject.TypeCast<Update<T>>();
-        var modifications = update.ModificationsAsUpdateSets();
+        var reader = new UpdateReader<T>(update);
+        var modifications = reader.GetUpdateSetExpressions();
 
         if (modifications == null || modifications.IsEmpty())
         {
             return;
         }
 
-        var reader = new UpdateReader<T>(update);
         var queryable = DbSet.AsQueryable();
 
         //*

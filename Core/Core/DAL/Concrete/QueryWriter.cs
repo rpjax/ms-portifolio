@@ -7,7 +7,8 @@ namespace ModularSystem.Core;
 /// Provides a factory for building and refining <see cref="IQuery{T}"/> objects for entities of type <typeparamref name="T"/>.
 /// </summary>
 /// <remarks>
-/// This factory is designed to be used in a fluent manner. The query creation and refinement methods return the factory itself, allowing for chaining of modifications.
+/// This factory is designed to be used in a fluent manner. <br/>
+/// The query creation and refinement methods return the factory itself, allowing for chaining of modifications.
 /// </remarks>
 public partial class QueryWriter<T> : IFactory<IQuery<T>>
 {
@@ -42,78 +43,28 @@ public partial class QueryWriter<T> : IFactory<IQuery<T>>
     {
         return Query;
     }
-
-    /// <summary>
-    /// Constructs an expression visitor to ensure uniformity in parameter references across combined expressions.
-    /// </summary>
-    /// <returns>A newly created expression visitor.</returns>
-    protected ExpressionVisitor CreateExpressionVisitor()
-    {
-        return new ParameterExpressionUniformityVisitor();
-    }
-
-    /// <summary>
-    /// Visits and potentially modifies an expression.
-    /// </summary>
-    /// <typeparam name="TResult">Type of expression to be visited.</typeparam>
-    /// <param name="expression">Expression to visit.</param>
-    /// <returns>Modified expression, if any; otherwise the original expression.</returns>
-    protected TResult? VisitExpression<TResult>(TResult? expression) where TResult : Expression
-    {
-        if (expression == null)
-        {
-            return null;
-        }
-
-        return CreateExpressionVisitor().Visit(expression).TypeCast<TResult>();
-    }
-
-    //*
-    // visiting shortcuts to normalize expressions when a modification is performed
-    //*
-
-    /// <summary>
-    /// Visits and potentially modifies the filter expression of the current query.
-    /// </summary>
-    protected void VisitFilter()
-    {
-        Query.Filter = VisitExpression(Query.Filter);
-    }
-
-    /// <summary>
-    /// Visits and potentially modifies the grouping expression of the current query.
-    /// </summary>
-    protected void VisitGrouping()
-    {
-        Query.Grouping = VisitExpression(Query.Grouping);
-    }
-
-    /// <summary>
-    /// Visits and potentially modifies the projection expression of the current query.
-    /// </summary>
-    protected void VisitProjcetion()
-    {
-        Query.Projection = VisitExpression(Query.Projection);
-    }
-
-    /// <summary>
-    /// Visits and potentially modifies the ordering expression of the current query.
-    /// </summary>
-    protected void VisitOrdering()
-    {
-        Query.Ordering = VisitExpression(Query.Ordering);
-    }
 }
 
-// partial dedicated to filter modification
+// partial dedicated to filter 
 public partial class QueryWriter<T>
 {
+    /// <summary>
+    /// Sets the filter expression for the query.
+    /// If a filter expression already exists, it will be replaced by the provided one.
+    /// </summary>
+    /// <param name="filter">The filter expression to set or override.</param>
+    /// <returns>The current instance of the writer.</returns>
     public QueryWriter<T> SetFilter(Expression<Func<T, bool>>? filter)
     {
         Query.Filter = filter;
         return this;
     }
 
+    /// <summary>
+    /// Appends an additional filter to the existing filter using logical AND.
+    /// </summary>
+    /// <param name="filter">The filter expression to append.</param>
+    /// <returns>The current instance of the writer.</returns>
     public QueryWriter<T> AndFilter(Expression<Func<T, bool>>? filter)
     {
         if (filter == null)
@@ -133,10 +84,14 @@ public partial class QueryWriter<T>
             Query.Filter = Expression.Lambda<Func<T, bool>>(Expression.AndAlso(predicate.Body, filter.Body), predicate.Parameters);
         }
 
-        VisitFilter();
         return this;
     }
 
+    /// <summary>
+    /// Appends an additional filter to the existing filter using logical AND.
+    /// </summary>
+    /// <param name="filter">The filter expression to append.</param>
+    /// <returns>The current instance of the writer.</returns>
     public QueryWriter<T> AndFilter(Expression? filter)
     {
         if (filter == null)
@@ -160,10 +115,14 @@ public partial class QueryWriter<T>
             Query.Filter = Expression.Lambda<Func<T, bool>>(Expression.AndAlso(predicate.Body, filter), predicate.Parameters);
         }
 
-        VisitFilter();
         return this;
     }
 
+    /// <summary>
+    /// Appends an additional filter to the existing filter using logical OR.
+    /// </summary>
+    /// <param name="filter">The filter expression to append.</param>
+    /// <returns>The current instance of the writer.</returns>
     public QueryWriter<T> OrFilter(Expression<Func<T, bool>>? filter)
     {
         if (filter == null)
@@ -183,10 +142,14 @@ public partial class QueryWriter<T>
             Query.Filter = Expression.Lambda<Func<T, bool>>(Expression.OrElse(predicate.Body, filter.Body), predicate.Parameters);
         }
 
-        VisitFilter();
         return this;
     }
 
+    /// <summary>
+    /// Appends an additional filter to the existing filter using logical OR.
+    /// </summary>
+    /// <param name="filter">The filter expression to append.</param>
+    /// <returns>The current instance of the writer.</returns>
     public QueryWriter<T> OrFilter(Expression? filter)
     {
         if (filter == null)
@@ -210,38 +173,53 @@ public partial class QueryWriter<T>
             Query.Filter = Expression.Lambda<Func<T, bool>>(Expression.OrElse(predicate.Body, filter), predicate.Parameters);
         }
 
-        VisitFilter();
         return this;
     }
 
 }
 
-// partial dedicated to grouping modification
+// partial dedicated to grouping 
 public partial class QueryWriter<T>
 {
     // TODO...
 }
 
-// partial dedicated to projection modification
+// partial dedicated to projection 
 public partial class QueryWriter<T>
 {
+    /// <summary>
+    /// Sets the projection expression for the query, determining which fields or properties of the entity should be included in the result set.
+    /// </summary>
+    /// <typeparam name="TProjection">The type of the projection result.</typeparam>
+    /// <param name="expression">The projection expression to set.</param>
+    /// <returns>The current instance of the writer.</returns>
     public QueryWriter<T> SetProjection<TProjection>(Expression<Func<T, TProjection>> expression)
     {
         Query.Projection = expression;
-        VisitProjcetion();
         return this;
     }
 }
 
-// partial dedicated to ordering modification
+// partial dedicated to ordering 
 public partial class QueryWriter<T>
 {
+    /// <summary>
+    /// Sets the ordering expression for the query, determining the field or property by which the results should be sorted.
+    /// </summary>
+    /// <typeparam name="TField">The type of the field or property by which to sort.</typeparam>
+    /// <param name="sort">The ordering expression to set.</param>
+    /// <returns>The current instance of the writer.</returns>
     public QueryWriter<T> SetOrdering<TField>(Expression<Func<T, TField>> sort)
     {
         Query.Ordering = sort;
         return this;
     }
 
+    /// <summary>
+    /// Sets the direction in which the results should be ordered, either ascending or descending.
+    /// </summary>
+    /// <param name="order">The ordering direction to set.</param>
+    /// <returns>The current instance of the writer.</returns>
     public QueryWriter<T> SetOrderDirection(OrderingDirection order)
     {
         Query.OrderingDirection = order;
@@ -249,27 +227,48 @@ public partial class QueryWriter<T>
     }
 }
 
-// partial dedicated to pagination modification
+// partial dedicated to pagination 
 public partial class QueryWriter<T>
 {
+    /// <summary>
+    /// Sets the pagination details for the query, determining how results should be paginated.
+    /// </summary>
+    /// <param name="pagination">The pagination details to set.</param>
+    /// <returns>The current instance of the writer.</returns>
     public QueryWriter<T> SetPagination(PaginationIn pagination)
     {
         Query.Pagination = pagination;
         return this;
     }
 
+    /// <summary>
+    /// Sets the maximum number of results to return for the query.
+    /// </summary>
+    /// <param name="limit">The maximum number of results to return.</param>
+    /// <returns>The current instance of the writer.</returns>
     public QueryWriter<T> SetLimit(long limit)
     {
         Query.Pagination.Limit = limit;
         return this;
     }
 
-    public QueryWriter<T> SetOffset(long limit)
+    /// <summary>
+    /// Sets the starting point from which to return results for the query.
+    /// </summary>
+    /// <param name="offset">The starting point for results.</param>
+    /// <returns>The current instance of the writer.</returns>
+    public QueryWriter<T> SetOffset(long offset)
     {
-        Query.Pagination.Limit = limit;
+        Query.Pagination.Offset = offset;
         return this;
     }
 
+    /// <summary>
+    /// Sets the state information for pagination. This is particularly useful for mechanisms of pagination <br/>
+    /// that rely on state preservation to optimize operations, such as token or cursor-based pagination.
+    /// </summary>
+    /// <param name="state">The state information to be used for optimized pagination strategies.</param>
+    /// <returns>The current instance of the writer.</returns>
     public QueryWriter<T> SetPaginationState(object? state)
     {
         Query.Pagination.State = state;

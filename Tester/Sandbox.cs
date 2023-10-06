@@ -46,11 +46,11 @@ public partial class Sandbox : CliCommand
             var id = new ObjectId("64dcf50977052318c964670e");
             var update = new UpdateWriter<MongoTestModel>()
                 //.SetFilter(x => x.Id == id)
-                .AddModification(x => x.FirstName, "Amanda")
+                .SetModification(x => x.FirstName, "Amanda")
                 .Create();
 
             await service.UpdateAsync(update);
-
+            QueryReader
             await Console.Out.WriteLineAsync("entity updated.");
         }
         else
