@@ -1,6 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using ModularSystem.Core;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace ModularSystem.EntityFramework;
 
@@ -9,32 +12,32 @@ namespace ModularSystem.EntityFramework;
 /// </summary>
 public class EFCoreDataAccessObject<T> : IDataAccessObject<T> where T : class, IEFModel
 {
-    protected readonly DbContext dbContext;
-    protected readonly DbSet<T> dbSet;
+    protected DbContext DbContext { get; }
+    protected DbSet<T> DbSet { get; }
 
     public EFCoreDataAccessObject(DbContext dbContext)
     {
         dbContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-        this.dbContext = dbContext;
-        dbSet = dbContext.Set<T>();
+        DbContext = dbContext;
+        DbSet = dbContext.Set<T>();
     }
 
     public virtual void Dispose()
     {
-        dbContext.Dispose();
+        DbContext.Dispose();
     }
 
     public async Task<string> InsertAsync(T data)
     {
-        dbSet.Add(data);
-        await dbContext.SaveChangesAsync();
+        DbSet.Add(data);
+        await DbContext.SaveChangesAsync();
         return data.Id.ToString();
     }
 
     public Task InsertAsync(IEnumerable<T> entries)
     {
-        dbSet.AddRange(entries);
-        return dbContext.SaveChangesAsync();
+        DbSet.AddRange(entries);
+        return DbContext.SaveChangesAsync();
     }
 
     public Task<T> GetAsync(string id)
@@ -45,14 +48,19 @@ public class EFCoreDataAccessObject<T> : IDataAccessObject<T> where T : class, I
 
     public Task<IQueryResult<T>> QueryAsync(IQuery<T> query)
     {
-        return new EFCoreQueryOperation<T>(dbSet).ExecuteAsync(query);
+        return new EFCoreQueryOperation<T>(DbSet).ExecuteAsync(query);
     }
 
     public async Task UpdateAsync(T data)
     {
-        dbSet.Attach(data);
-        dbContext.Entry(data).State = EntityState.Modified;
-        await dbContext.SaveChangesAsync();
+        DbSet.Attach(data);
+        DbContext.Entry(data).State = EntityState.Modified;
+        await DbContext.SaveChangesAsync();
+    }
+
+    public virtual Task UpdateAsync(IUpdate<T> update)
+    {
+        return new EFCoreUpdateOperation<T>(DbSet).ExecuteAsync(update);
     }
 
     public Task UpdateAsync<TField>(Expression<Func<T, bool>> selector, Expression<Func<T, TField?>> fieldSelector, TField? value)
@@ -63,22 +71,22 @@ public class EFCoreDataAccessObject<T> : IDataAccessObject<T> where T : class, I
     public Task DeleteAsync(string id)
     {
         var _id = ParseId(id);
-        return dbSet.Where(x => x.Id == _id).ExecuteDeleteAsync();
+        return DbSet.Where(x => x.Id == _id).ExecuteDeleteAsync();
     }
 
     public Task DeleteAsync(Expression<Func<T, bool>> predicate)
     {
-        return dbSet.Where(predicate).ExecuteDeleteAsync();
+        return DbSet.Where(predicate).ExecuteDeleteAsync();
     }
 
     public Task DeleteAllAsync()
     {
-        return dbSet.ExecuteDeleteAsync();
+        return DbSet.ExecuteDeleteAsync();
     }
 
     public IQueryable<T> AsQueryable()
     {
-        return dbSet.AsQueryable();
+        return DbSet.AsQueryable();
     }
 
     public Task<long> CountAsync(string id)
@@ -114,7 +122,7 @@ public class EFCoreDataAccessObject<T> : IDataAccessObject<T> where T : class, I
         if (ValidateIdFormat(id))
         {
             var _id = ParseId(id);
-            return await dbSet.Where(x => x.Id == _id).AnyAsync();
+            return await DbSet.Where(x => x.Id == _id).AnyAsync();
         }
 
         return false;
@@ -140,86 +148,40 @@ public class EFCoreDataAccessObject<T> : IDataAccessObject<T> where T : class, I
     }
 }
 
-public class EFCoreQueryOperation<T> where T : class, IEFModel
+internal class EFCoreQueryOperation<T> where T : class, IEFModel
 {
-    readonly DbSet<T> dbSet;
+    private DbSet<T> DbSet { get; }
 
     public EFCoreQueryOperation(DbSet<T> dbSet)
     {
-        this.dbSet = dbSet;
+        DbSet = dbSet;
     }
 
     public async Task<IQueryResult<T>> ExecuteAsync(IQuery<T> query)
     {
-        var data = await GetData(query);
-        var pagination = await GetPagination(query);
+        var data = await GetDataAsync(query);
+        var pagination = await GetPaginationAsync(query);
 
         return new QueryResult<T>(data, pagination);
     }
 
-    Task<T[]> GetData(IQuery<T> query)
+    Task<T[]> GetDataAsync(IQuery<T> query)
     {
-        var queryable = dbSet.AsQueryable();
-
-        if (query.Filter != null)
-        {
-            queryable = queryable.Where(query.Filter);
-        }
-
-        if (query.Ordering != null)
-        {
-            if (query.OrderDirection == OrderDirection.Descending)
-            {
-                queryable = queryable.OrderByDescending(query.Ordering);
-            }
-            else
-            {
-                queryable = queryable.OrderBy(query.Ordering);
-            }
-        }
-        else
-        {
-            queryable = queryable.OrderBy(x => x);
-        }
-
-        //*
-        // NOTE: This code is commented because when the last code review was made, projection was not developed because of a problem in the Expression parser.
-        //*
-
-        //if (query.Projection != null)
-        //{
-        //    //var type = typeof(T);
-
-        //    //if (type.IsAssignableFrom(typeof(ProductJoin)))
-        //    //{
-        //    //    Console.WriteLine();
-        //    //}
-
-        //    queryable = queryable.Select(query.Projection);
-        //}
-
-        queryable = queryable
-            .Skip(query.Pagination.Offset)
-            .Take(query.Pagination.Limit);
+        var builder = new QueryableBuilder(DbSet.AsQueryable(), query);
+        var queryable = builder
+            .UseFilter()
+            .UseOrdering()
+            .UsePagination()
+            .Create();
 
         return queryable.ToArrayAsync();
     }
 
-    Task<long> GetTotal(IQuery<T> query)
+    async Task<PaginationOut> GetPaginationAsync(IQuery<T> query)
     {
-        var queryable = dbSet.AsQueryable();
-
-        if (query.Filter != null)
-        {
-            queryable = queryable.Where(query.Filter);
-        }
-
-        return queryable.LongCountAsync();
-    }
-
-    async Task<PaginationOut> GetPagination(IQuery<T> query)
-    {
-        var total = await GetTotal(query);
+        var builder = new QueryableBuilder(DbSet.AsQueryable(), query);
+        var queryable = builder.UseFilter().Create();
+        var total = await queryable.LongCountAsync();
 
         return new PaginationOut()
         {
@@ -227,5 +189,201 @@ public class EFCoreQueryOperation<T> where T : class, IEFModel
             Offset = query.Pagination.Offset,
             Total = total
         };
+    }
+
+    internal class QueryableBuilder
+    {
+        IQueryable<T> Queryable { get; set; }
+        QueryReader<T> QueryReader { get; init; }
+
+        public QueryableBuilder(IQueryable<T> queryable, IQuery<T> query)
+        {
+            Queryable = queryable;
+            QueryReader = new(query);
+        }
+
+        public IQueryable<T> Create()
+        {
+            return Queryable;
+        }
+
+        public QueryableBuilder UseFilter()
+        {
+            var predicate = QueryReader.GetFilterExpression();
+
+            if (predicate != null)
+            {
+                Queryable = Queryable.Where(predicate);
+            }
+
+            return this;
+        }
+
+        public QueryableBuilder UseGrouping()
+        {
+            // todo...
+            return this;
+        }
+
+        public QueryableBuilder UseProjection()
+        {
+            // todo...
+
+            //*
+            // NOTE: This code is commented because when the last code review was made, projection was not developed because of a problem in the Expression parser.
+            //*
+
+            //if (query.Projection != null)
+            //{
+            //    //var type = typeof(T);
+
+            //    //if (type.IsAssignableFrom(typeof(ProductJoin)))
+            //    //{
+            //    //    Console.WriteLine();
+            //    //}
+
+            //    queryable = queryable.Select(query.Projection);
+            //}
+            return this;
+        }
+
+        public QueryableBuilder UseOrdering()
+        {
+            var ordering = QueryReader.GetOrderingExpression();
+
+            if (ordering != null)
+            {
+                MethodInfo? methodInfo;
+
+                var methodName =
+                    QueryReader.GetOrderingDirection() == OrderingDirection.Descending
+                    ? "OrderByDescending"
+                    : "OrderBy";
+
+                methodInfo = typeof(IOrderedEnumerable<T>)
+                        .GetMethod(methodName)?
+                        .MakeGenericMethod(ordering.FieldType);
+
+                if (methodInfo == null)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                var modifiedQueryable = methodInfo
+                    .Invoke(Queryable, new object[] { ordering.FieldSelector })
+                    ?.TryTypeCast<IQueryable<T>>();
+
+                if (modifiedQueryable == null)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                Queryable = modifiedQueryable;
+            }
+            else
+            {
+                Queryable = Queryable.OrderBy(x => x);
+            }
+
+            return this;
+        }
+
+        public QueryableBuilder UsePagination()
+        {
+            Queryable = Queryable
+                .Skip(QueryReader.GetIntOffset())
+                .Take(QueryReader.GetIntLimit());
+            return this;
+        }
+    }
+
+}
+
+internal class EFCoreUpdateOperation<T> where T : class, IEFModel
+{
+    private DbSet<T> DbSet { get; }
+
+    public EFCoreUpdateOperation(DbSet<T> dbSet)
+    {
+        DbSet = dbSet;
+    }
+
+    public async Task ExecuteAsync(IUpdate<T> updateObject)
+    {
+        if (updateObject is not Update<T>)
+        {
+            throw new ArgumentNullException();
+        }
+
+        var update = updateObject.TypeCast<Update<T>>();
+        var modifications = update.ModificationsAsUpdateSets();
+
+        if (modifications == null || modifications.IsEmpty())
+        {
+            return;
+        }
+
+        var queryable = DbSet.AsQueryable();
+
+        //*
+        // Developer Notes:
+        // The update function takes an expression argument of type:
+        // Expression<Func<SetPropertyCalls<TSource>, SetPropertyCalls<TSource>>>
+        // 
+        // Where the updates are defined as:
+        // (set) => set.SetProperty<T>(Func<T, TField> selector, T value)
+        //
+        // The 'set' object is primarily a LINQ placeholder and shouldn't be used directly.
+        // This class is utilized internally by the Entity Framework to interpret updates.
+        // This allows for flexible manipulation of the expression.
+        //*
+        var parameterExpression = Expression.Parameter(typeof(SetPropertyCalls<T>), "s");
+        var fluentParameter = parameterExpression as Expression;
+        var setCalls = new List<MethodCallExpression>();
+        //new SetPropertyCalls<T>().SetProperty()
+        foreach (var updateSet in modifications)
+        {
+            var setMethodInfo = typeof(SetPropertyCalls<T>)
+                .GetMethod("SetProperty")
+                ?.MakeGenericMethod(updateSet.Type);
+
+            if (setMethodInfo == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            var setMethodArgs = new Expression[]
+            {
+                Expression.Constant(update.FilterAsPredicate(), typeof(Expression<Func<T, bool>>)),
+                Expression.Constant(updateSet.Value, updateSet.Type)
+            };
+
+            var setExpression = Expression.Call(fluentParameter, setMethodInfo, setMethodArgs);
+
+            setCalls.Add(setExpression);
+            fluentParameter = setExpression;
+        }
+
+        var lambdaExpression = Expression.Lambda<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>>(parameterExpression, parameterExpression);
+
+        var visitor = new ParameterExpressionUniformityVisitor();
+
+        lambdaExpression = visitor.VisitAndConvert(lambdaExpression, "VisitLambda");
+
+        await queryable.ExecuteUpdateAsync(lambdaExpression);
+    }
+
+    private Expression<Func<TEntity, TEntity>> CreateUpdateExpression<TEntity>(string propertyName, object newValue)
+    {
+        var entityParameter = Expression.Parameter(typeof(TEntity), "x");
+
+        var property = Expression.Property(entityParameter, propertyName);
+        var value = Expression.Constant(newValue);
+
+        var assign = Expression.Assign(property, value);
+
+        var updateExpression = Expression.Lambda<Func<TEntity, TEntity>>(assign, entityParameter);
+
+        return updateExpression;
     }
 }

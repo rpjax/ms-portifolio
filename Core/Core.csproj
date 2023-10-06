@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="CLI\" />
+    <Folder Include="Core\Initializer\Internal\" />
     <Folder Include="Entity\" />
   </ItemGroup>
 

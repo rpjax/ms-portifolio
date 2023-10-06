@@ -24,7 +24,7 @@ public enum EnvironmentType
 /// <summary>
 /// Indicates the direction of sorting or ordering operations.
 /// </summary>
-public enum OrderDirection
+public enum OrderingDirection
 {
     /// <summary>
     /// Represents an ascending order, typically from smallest to largest or A to Z.

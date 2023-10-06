@@ -24,6 +24,16 @@ public interface IEntityService<T> : IDisposable
     Task<string[]> CreateAsync(IEnumerable<T> entities);
 
     /// <summary>
+    /// Provides an asynchronous mechanism to generate an initial query for entities of type <typeparamref name="T"/>.
+    /// This returned query is flexible and can be further refined or filtered using LINQ before triggering its execution with methods like ToArray() or ToList(), leveraging the deferred execution nature of LINQ.
+    /// </summary>
+    /// <remarks>
+    /// This method offers an entry point to construct dynamic queries for entities. The execution is deferred, meaning that the data store won't be hit until the query is materialized (e.g., by invoking ToList() or ToArray()).
+    /// </remarks>
+    /// <returns>An IQueryable of type <typeparamref name="T"/> which can be further shaped using LINQ.</returns>
+    Task<IQueryable<T>> CreateQueryAsync();
+
+    /// <summary>
     /// Queries the data store asynchronously based on the provided query criteria.
     /// </summary>
     /// <param name="query">Criteria for filtering, sorting, and pagination.</param>

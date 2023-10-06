@@ -76,7 +76,9 @@ public class DefaultSessionManager : EFEntity<EFSession>, ISessionManager
             throw new AppException("Invalid credentials provided. The bearer token is not valid.", ExceptionCode.CredentialsInvalid);
         }
 
-        var query = new Query<EFSession>(x => x.Id == id);
+        var query = new QueryWriter<EFSession>()
+            .SetFilter(x => x.Id == id)
+            .Create();
         var queryResult = await entity.QueryAsync(query);
 
         if (queryResult.IsEmpty)

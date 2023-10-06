@@ -19,6 +19,24 @@ public interface IFactory<out T>
     T Create();
 }
 
+/// <summary>
+/// Defines an asynchronous factory interface responsible for creating instances of type <typeparamref name="T"/>.
+/// </summary>
+/// <typeparam name="T">The type of object that the factory creates asynchronously.</typeparam>
+/// <remarks>
+/// This interface is tailored for scenarios where object creation might involve asynchronous operations, 
+/// such as fetching initial data from a remote source, asynchronous computations, or any other asynchronous 
+/// initializations that should be done during the object's instantiation process.
+/// </remarks>
+public interface IAsyncFactory<T>
+{
+    /// <summary>
+    /// Asynchronously creates and returns an instance of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation, containing an instance of type <typeparamref name="T"/> upon completion.</returns>
+    Task<T> CreateAsync();
+}
+
 public class LambdaFactory<T> : IFactory<T>
 {
     Func<T> _lambda;

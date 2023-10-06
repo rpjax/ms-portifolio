@@ -197,6 +197,18 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
     //*
 
     /// <summary>
+    /// Provides an asynchronous mechanism to generate an initial query for entities of type <typeparamref name="T"/>. The returned query is flexible and can be further refined or filtered using LINQ. Execution is deferred until the query is materialized, e.g., by invoking ToList() or ToArray().
+    /// </summary>
+    /// <remarks>
+    /// This method serves as an entry point to construct dynamic queries for entities. It internally calls <see cref="OnCreateQueryAsync"/> to allow middleware components to potentially alter the query before it's returned.
+    /// </remarks>
+    /// <returns>An IQueryable of type <typeparamref name="T"/> which can be further shaped using LINQ.</returns>
+    public Task<IQueryable<T>> CreateQueryAsync()
+    {
+        return OnCreateQueryAsync(DataAccessObject.AsQueryable());
+    }
+
+    /// <summary>
     /// Asynchronously retrieves entities based on the provided query criteria, invoking associated middlewares before and after the query process.<br/>
     /// </summary>
     /// <remarks>
@@ -210,12 +222,11 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
     public virtual async Task<IQueryResult<T>> QueryAsync(IQuery<T> query)
     {
         query = await BeforeQueryAsync(query);
-        var queryResult = await DataAccessObject.QueryAsync(this.Visit(query));
+        var queryResult = await DataAccessObject.QueryAsync(query);
         queryResult = await AfterQueryAsync(queryResult);
 
         return queryResult;
     }
-
 
     //*
     // UPDATE.
@@ -438,6 +449,28 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
     //*
     // HOOKS
     //*
+
+    //*
+    // query creation hooks
+    //*
+
+    /// <summary>
+    /// Called when constructing a new queryable object for entities of type <typeparamref name="T"/>. This method allows middleware components to potentially alter the query before it is returned.
+    /// </summary>
+    /// <remarks>
+    /// The method iterates through each middleware defined by the <see cref="CreateMiddlewarePipeline"/> and invokes their <c>OnCreateQueryAsync</c> methods, allowing for modifications to the initial query.
+    /// </remarks>
+    /// <param name="queryable">The initial queryable object representing the entities.</param>
+    /// <returns>An altered or unaltered IQueryable, depending on middleware operations.</returns>
+    protected virtual async Task<IQueryable<T>> OnCreateQueryAsync(IQueryable<T> queryable)
+    {
+        foreach (var middleware in CreateMiddlewarePipeline())
+        {
+            queryable = await middleware.OnCreateQueryAsync(queryable);
+        }
+
+        return queryable;
+    }
 
     //*
     // before validation hook

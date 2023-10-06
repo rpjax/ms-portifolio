@@ -12,36 +12,42 @@ public delegate Task<IQueryResult<T>> SearchDelegate<T>(
 
 public class MongoSearch<T> where T : IMongoModel
 {
-    protected SearchDelegate<T> SearchAsync { get; }
+    private SearchDelegate<T> SearchAsync { get; }
+    private QueryReader<T> Reader { get; }
 
-    public MongoSearch(SearchDelegate<T> searchDelegate)
+    public MongoSearch(SearchDelegate<T> searchDelegate, IQuery<T> query)
     {
         SearchAsync = searchDelegate;
+        Reader = new(query);
     }
 
-    public Task<IQueryResult<T>> RunAsync(IQuery<T> query)
+    public Task<IQueryResult<T>> RunAsync()
     {
         FilterDefinition<T>? filter = null;
         SortDefinition<T>? sort = null;
 
-        if (query.Filter != null)
+        var predicate = Reader.GetFilterExpression();
+
+        if (predicate != null)
         {
-            filter = MongoModule.GetFilterBuilder<T>().Where(query.Filter);
+            filter = MongoModule.GetFilterBuilder<T>().Where(predicate);
         }
         else
         {
             filter = MongoModule.GetFilterBuilder<T>().Empty;
         }
 
-        if (query.Ordering != null)
+        var ordering = Reader.GetOrderingExpression();
+
+        if (ordering != null)
         {
-            if (query.OrderDirection == OrderDirection.Ascending)
+            if (Reader.GetOrderingDirection() == OrderingDirection.Ascending)
             {
-                sort = Builders<T>.Sort.Ascending(query.Ordering);
+                sort = Builders<T>.Sort.Ascending(ordering.FieldName);
             }
             else
             {
-                sort = Builders<T>.Sort.Descending(query.Ordering);
+                sort = Builders<T>.Sort.Descending(ordering.FieldName);
             }
         }
         else
@@ -49,7 +55,7 @@ public class MongoSearch<T> where T : IMongoModel
             sort = Builders<T>.Sort.Ascending(x => x.CreatedAt);
         }
 
-        return SearchAsync(filter, query.Pagination, sort, null);
+        return SearchAsync(filter, Reader.Pagination, sort, null);
     }
 
 }

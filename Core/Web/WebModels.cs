@@ -34,7 +34,7 @@ public class SerializedQuery
     /// <summary>
     /// Gets or sets the order direction (ascending or descending) for the query.
     /// </summary>
-    public OrderDirection Order { get; set; } = OrderDirection.Ascending;
+    public OrderingDirection Order { get; set; } = OrderingDirection.Ascending;
 
     /// <summary>
     /// Converts the serialized filter string back to its corresponding expression.
@@ -84,7 +84,7 @@ public class SerializedQuery
             Pagination = Pagination,
             Filter = GetFilterExpression<T>(),
             Ordering = GetSortExpression<T>(),
-            OrderDirection = Order,
+            OrderingDirection = Order,
         };
     }
 }
@@ -117,7 +117,7 @@ public class SerializedQueryFactory<T>
     /// <summary>
     /// Gets or sets the ordering direction (ascending or descending) for the query.
     /// </summary>
-    public OrderDirection Ordering { get; set; } = OrderDirection.Ascending;
+    public OrderingDirection Ordering { get; set; } = OrderingDirection.Ascending;
 
     /// <summary>
     /// Constructs a <see cref="SerializedQuery"/> instance based on the current factory settings.
@@ -167,7 +167,7 @@ public class SerializedQueryFactory<T>
         return this;
     }
 
-    public SerializedQueryFactory<T> SetOrder(OrderDirection order)
+    public SerializedQueryFactory<T> SetOrder(OrderingDirection order)
     {
         Ordering = order;
         return this;

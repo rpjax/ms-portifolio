@@ -1,3 +1,0 @@
-﻿namespace ModularSystem.Core;
-
-// there is nothing here...

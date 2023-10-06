@@ -12,6 +12,15 @@ namespace ModularSystem.Core;
 public abstract class EntityMiddleware<T> where T : IQueryableModel
 {
     /// <summary>
+    /// Provides a middleware interception point for custom processing or modification of the provided <paramref name="queryable"/> during the creation of a new queryable instance in the `CreateQueryAsync` method of the `EntityService`.
+    /// In this default implementation, the <paramref name="queryable"/> is returned unchanged.
+    /// Subclasses or implementations can override this method to incorporate specific middleware behaviors or transformations on the <paramref name="queryable"/>.
+    /// </summary>
+    /// <param name="queryable">The initial queryable derived from the data layer implementation.</param>
+    /// <returns>The modified or original <see cref="IQueryable{T}"/> ready for returning to the caller.</returns>
+    public virtual Task<IQueryable<T>> OnCreateQueryAsync(IQueryable<T> queryable) => Task.FromResult(queryable);
+
+    /// <summary>
     /// Intercepting hook executed before the validation of an entity.
     /// </summary>
     /// <param name="entity">The entity about to be validated.</param>

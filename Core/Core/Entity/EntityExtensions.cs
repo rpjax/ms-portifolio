@@ -293,26 +293,6 @@ public static class EntityExtensions
         return null;
     }
 
-    /// <summary>
-    /// Helper method to visit the expressions inside <see cref="IQuery{T}"/>.
-    /// </summary>
-    /// <param name="entity"></param>
-    /// <param name="query"></param>
-    /// <returns></returns>
-    [return: NotNullIfNotNull("query")]
-    public static IQuery<T>? Visit<T>(this EntityService<T> entity, IQuery<T>? query) where T : IQueryableModel
-    {
-        if (query == null)
-        {
-            return null;
-        }
-
-        query.Filter = Visit(entity, query.Filter);
-        query.Ordering = Visit(entity, query.Ordering);
-
-        return query;
-    }
-
     //*
     // EXPRESSION GENERATORS
     //*
@@ -365,7 +345,12 @@ public static class EntityExtensions
     public static IQuery<T> CreateQueryWhereIdEquals<T>(this EntityService<T> entity, string id) where T : IQueryableModel
     {
         var pagination = new PaginationIn(1, 0);
-        return new Query<T>(pagination, entity.WhereIdEquals(id));
+        var writer = new QueryWriter<T>();
+
+        return writer
+            .SetPagination(pagination)
+            .SetFilter(entity.WhereIdEquals(id))
+            .Create();
     }
 
 }

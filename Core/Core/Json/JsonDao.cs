@@ -1,4 +1,5 @@
-﻿using ModularSystem.Core.Helpers;
+﻿using Amazon.Runtime.Internal;
+using ModularSystem.Core.Helpers;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Core;
@@ -19,13 +20,13 @@ public class DatabaseFile<T>
 
 public class JsonDao<T> : IDataAccessObject<T> where T : class, IQueryableModel
 {
-    JsonStorage<DatabaseFile<T>> storage;
-    DatabaseFile<T> file;
+    JsonStorage<DatabaseFile<T>> Storage { get; }
+    DatabaseFile<T> File { get; }
 
     public JsonDao(string fileName)
     {
-        storage = new JsonStorage<DatabaseFile<T>>(LocalStorage.GetFileInfo(fileName), true);
-        file = storage.Read()!;
+        Storage = new JsonStorage<DatabaseFile<T>>(LocalStorage.GetFileInfo(fileName), true);
+        File = Storage.Read()!;
     }
 
     public void Dispose()
@@ -35,15 +36,15 @@ public class JsonDao<T> : IDataAccessObject<T> where T : class, IQueryableModel
 
     public void Save()
     {
-        storage.Write(file);
+        Storage.Write(File);
     }
 
     public Task<string> InsertAsync(T data)
     {
-        var id = file.CreateId().ToString();
+        var id = File.CreateId().ToString();
 
         data.SetId(id);
-        file.Data.Add(data);
+        File.Data.Add(data);
         return Task.FromResult(id);
     }
 
@@ -51,7 +52,7 @@ public class JsonDao<T> : IDataAccessObject<T> where T : class, IQueryableModel
     {
         foreach (var entry in entries)
         {
-            file.Data.Add(entry);
+            File.Data.Add(entry);
         }
 
         return Task.CompletedTask;
@@ -63,56 +64,63 @@ public class JsonDao<T> : IDataAccessObject<T> where T : class, IQueryableModel
         return Task.FromResult(record);
     }
 
-    public async Task<IQueryResult<T>> QueryAsync(IQuery<T> request)
+    public async Task<IQueryResult<T>> QueryAsync(IQuery<T> query)
     {
-        var query = AsQueryable();
+        var queryable = AsQueryable();
+        var reader = new QueryReader<T>(query);
+        var predicate = reader.GetFilterExpression();
 
-        if (request.Filter != null)
+        if (predicate != null)
         {
-            query = query.Where(request.Filter);
+            queryable = queryable.Where(predicate);
         }
 
-        var data = new QueryResult<T>()
+        var data = queryable
+            .Skip(reader.IntOffset)
+            .Take(reader.IntLimit)
+            .ToList();
+
+        var result = new QueryResult<T>()
         {
-            Data = query.Skip(request.Pagination.Offset).Take(request.Pagination.Limit).ToList(),
+            Data = data,
             Pagination = new PaginationOut()
             {
-                Limit = request.Pagination.Limit,
-                Offset = request.Pagination.Offset,
-                Total = query.LongCount()
+                Limit = reader.Limit,
+                Offset = reader.Offset,
+                Total = queryable.LongCount()
             }
         };
 
-        return data;
+        return result;
     }
 
     public async Task UpdateAsync(T data)
     {
         T record = await GetAsync(data.GetId());
-        int index = file.Data.IndexOf(record);
+        int index = File.Data.IndexOf(record);
 
         record = data;
-        file.Data.RemoveAt(index);
-        file.Data.Insert(index, record);
+        File.Data.RemoveAt(index);
+        File.Data.Insert(index, record);
     }
 
     public async Task DeleteAsync(string id)
     {
         var record = await GetAsync(id);
-        var index = file.Data.IndexOf(record);
-        file.Data.RemoveAt(index);
+        var index = File.Data.IndexOf(record);
+        File.Data.RemoveAt(index);
     }
 
     public Task DeleteAsync(Expression<Func<T, bool>> predicate)
     {
-        file.Data = file.Data.RemoveWhere(predicate.Compile());
-        storage.Write(file);
+        File.Data = File.Data.RemoveWhere(predicate.Compile());
+        Storage.Write(File);
         return Task.CompletedTask;
     }
 
     public Task DeleteAllAsync()
     {
-        file.Data.Clear();
+        File.Data.Clear();
         return Task.CompletedTask;
     }
 
@@ -125,7 +133,7 @@ public class JsonDao<T> : IDataAccessObject<T> where T : class, IQueryableModel
 
     public IQueryable<T> AsQueryable()
     {
-        return file.Data.AsQueryable();
+        return File.Data.AsQueryable();
     }
 
     public Task<long> CountAsync(string id)
@@ -142,7 +150,7 @@ public class JsonDao<T> : IDataAccessObject<T> where T : class, IQueryableModel
 
     public Task<long> CountAllAsync()
     {
-        long count = file.Data.Count;
+        long count = File.Data.Count;
         return Task.FromResult(count);
     }
 
@@ -150,7 +158,7 @@ public class JsonDao<T> : IDataAccessObject<T> where T : class, IQueryableModel
     {
         if (int.TryParse(id, out int num))
         {
-            return num <= file.IdCounter;
+            return num <= File.IdCounter;
         }
 
         return false;
@@ -168,6 +176,11 @@ public class JsonDao<T> : IDataAccessObject<T> where T : class, IQueryableModel
     }
 
     public Task UpdateAsync<TField>(Expression<Func<T, bool>> selector, Expression<Func<T, TField?>> fieldSelector, TField? value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task UpdateAsync(IUpdate<T> update)
     {
         throw new NotImplementedException();
     }

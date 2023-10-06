@@ -2,13 +2,20 @@
 
 public static class IEnumerableExtensions
 {
-    public static void Update<T>(this IEnumerable<T> enumerable, Func<T, bool> selector, Action<T> action)
+    /// <summary>
+    /// Iterates over elements in the source enumerable that match the specified condition and performs the given action on them.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in the enumerable.</typeparam>
+    /// <param name="enumerable">The source enumerable.</param>
+    /// <param name="selector">A predicate function to select which elements the action should be applied to.</param>
+    /// <param name="action">The action to execute on the matched elements.</param>
+    /// <remarks>This method operates in-memory and does not modify the original enumerable. It is also not intended to produce a modified result for further LINQ queries.</remarks>
+    public static void ForEachWhere<T>(this IEnumerable<T> enumerable, Func<T, bool> selector, Action<T> action)
     {
-        enumerable.Where(selector).Select(x =>
+        foreach (var item in enumerable.Where(selector))
         {
-            action.Invoke(x);
-            return x;
-        });
+            action(item);
+        }
     }
 
     public static IEnumerable<T> RemoveWhere<T>(this IEnumerable<T> list, Func<T, bool> selector)

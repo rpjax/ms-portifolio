@@ -18,25 +18,30 @@ public static partial class ObjectExtentions
         }
     }
 
+    /// <summary>
+    /// Attempts to safely cast the given object to the specified type <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">The target type to which the object should be casted. Must be a reference type.</typeparam>
+    /// <param name="value">The object to be casted.</param>
+    /// <returns>
+    /// The casted object if the cast is successful; otherwise, null. <br/>
+    /// Note that if the provided object is not of the type <typeparamref name="T"/>, this method will return null 
+    /// rather than throwing an exception.
+    /// </returns>
     public static T? TryTypeCast<T>(this object value) where T : class
     {
-        try
-        {
-            var cast = value as T;
-
-            if (cast != null)
-            {
-                return cast;
-            }
-
-            return null;
-        }
-        catch (Exception)
-        {
-            return null;
-        }
+        return value as T;
     }
 
+    /// <summary>
+    /// Casts the given object to the specified type <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">The target type to which the object should be casted.</typeparam>
+    /// <param name="value">The object to be casted.</param>
+    /// <returns>The casted object of type <typeparamref name="T"/>.</returns>
+    /// <exception cref="Exception">
+    /// Throws an exception if the cast fails, providing details about the type of the original object.
+    /// </exception>
     public static T TypeCast<T>(this object value)
     {
         try
