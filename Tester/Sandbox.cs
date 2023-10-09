@@ -1,10 +1,9 @@
 ﻿using ModularSystem.Core;
 using ModularSystem.Core.Cli;
-using ModularSystem.Core.Initialization;
-using ModularSystem.Core.Security;
 using ModularSystem.Mailing;
 using ModularSystem.Mongo;
 using MongoDB.Bson;
+using static ModularSystem.Tester.Sandbox;
 
 namespace ModularSystem.Tester;
 
@@ -23,7 +22,13 @@ public partial class Sandbox : CliCommand
     protected override async void Execute()
     {
         using var service = new MongoTestEntity();
-        service.AddMiddleware<MyMiddleware>();
+
+        var serializedUpdate = new UpdateWriter<MongoTestModel>()
+            .SetFilter(x => x.Surnames.Contains("Richthofen"))
+            .SetModification(x => x.HasKilledChild, true)
+            .CreateSerialized();
+
+        await Console.Out.WriteLineAsync();
 
         if (Context.GetFlag("list"))
         {
@@ -45,31 +50,17 @@ public partial class Sandbox : CliCommand
         {
             var id = new ObjectId("64dcf50977052318c964670e");
             var update = new UpdateWriter<MongoTestModel>()
-                //.SetFilter(x => x.Id == id)
-                .SetModification(x => x.FirstName, "Amanda")
+                .SetFilter(x => x.Surnames.Contains("Richthofen"))
+                .SetModification(x => x.HasKilledChild, true)
                 .Create();
 
             await service.UpdateAsync(update);
-            QueryReader
+
             await Console.Out.WriteLineAsync("entity updated.");
         }
         else
         {
             await Console.Out.WriteLineAsync("No valid flags were provided.");
-        }
-    }
-
-    class MyMiddleware : EntityMiddleware<MongoTestModel>
-    {
-        public override Task<IQuery<MongoTestModel>> BeforeQueryAsync(IQuery<MongoTestModel> query)
-        {
-            Console.WriteLine("before query!");
-            return base.BeforeQueryAsync(query);
-        }
-        public override Task<IUpdate<MongoTestModel>> BeforeUpdateAsync(IUpdate<MongoTestModel> update)
-        {
-            Console.WriteLine("before update!");
-            return base.BeforeUpdateAsync(update);
         }
     }
 
@@ -82,42 +73,40 @@ public partial class Sandbox : CliCommand
     {
         public DateTime Time { get; set; }
     }
+}
 
-    public class MongoTestModel : MongoModel
+class MyMiddleware : EntityMiddleware<MongoTestModel>
+{
+    public override Task<IQuery<MongoTestModel>> BeforeQueryAsync(IQuery<MongoTestModel> query)
     {
-        public string FirstName { get; set; }
-        public string[] Surnames { get; set; }
-        public string? Nickname { get; set; }
-        public Email Email { get; set; }
-
-        private MongoTestModel()
-        {
-            //*
-            // this constructor exists so that LINQ providers can instantiate this object with no params.
-            //*
-
-            FirstName = string.Empty;
-            Surnames = new string[0];
-            Email = Email.Empty();
-        }
-
-        public MongoTestModel(string firstName, string[] surnames, Email email)
-        {
-            FirstName = firstName;
-            Surnames = surnames;
-            Email = email;
-        }
+        Console.WriteLine("before query!");
+        return base.BeforeQueryAsync(query);
     }
 
-    public class MongoTestEntity : MongoEntity<MongoTestModel>
+    public override Task<IUpdate<MongoTestModel>> BeforeUpdateAsync(IUpdate<MongoTestModel> update)
     {
-        public override IDataAccessObject<MongoTestModel> DataAccessObject { get; }
+        Console.WriteLine("before update!");
+        return base.BeforeUpdateAsync(update);
+    }
+}
 
-        public MongoTestEntity()
-        {
-            DataAccessObject = new MongoDataAccessObject<MongoTestModel>(DatabaseSource.TestModel);
-            Validator = new EmptyValidator<MongoTestModel>();
-            UpdateValidator = new EmptyValidator<MongoTestModel>();
-        }
+public class MongoTestModel : MongoModel
+{
+    public bool HasKilledChild { get; set; }
+    public string FirstName { get; set; } = string.Empty;
+    public string[] Surnames { get; set; } = Array.Empty<string>();
+    public string? Nickname { get; set; }
+    public Email Email { get; set; } = Email.Empty();
+}
+
+public class MongoTestEntity : MongoEntity<MongoTestModel>
+{
+    public override IDataAccessObject<MongoTestModel> DataAccessObject { get; }
+
+    public MongoTestEntity()
+    {
+        DataAccessObject = new MongoDataAccessObject<MongoTestModel>(DatabaseSource.TestModel);
+        Validator = new EmptyValidator<MongoTestModel>();
+        UpdateValidator = new EmptyValidator<MongoTestModel>();
     }
 }

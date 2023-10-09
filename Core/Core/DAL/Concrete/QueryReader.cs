@@ -6,9 +6,10 @@ namespace ModularSystem.Core;
 // partial dedicated to commom components.
 
 /// <summary>
-/// Represents a reader pattern for extracting details from a given query.
+/// Serves as an interpretative tool for extracting and analyzing the expressions and components within a <see cref="Query{T}"/> data structure. <br/>
+/// This class provides a specific way to interpret the query, its design allows for potential alternative interpretations in future implementations or extensions.
 /// </summary>
-/// <typeparam name="T">The type of the entity being queried.</typeparam>
+/// <typeparam name="T">The type of the entity being targeted by the query.</typeparam>
 public partial class QueryReader<T>
 {
     private Query<T> Query { get; }

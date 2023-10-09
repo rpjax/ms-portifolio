@@ -1,5 +1,6 @@
 using ModularSystem.Core;
 using ModularSystem.Web.Expressions;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Web;
@@ -17,60 +18,34 @@ namespace ModularSystem.Web;
 public class SerializedQuery
 {
     /// <summary>
-    /// Gets or sets the pagination information for the query.
-    /// </summary>
-    public PaginationIn Pagination { get; set; } = new PaginationIn();
-
-    /// <summary>
     /// Gets or sets the serialized filter expression for the query.
     /// </summary>
     public string? Filter { get; set; }
 
     /// <summary>
-    /// Gets or sets the serialized sort expression for the query.
+    /// Gets or sets the serialized grouping expression for the query.
     /// </summary>
-    public string? Sort { get; set; }
+    public string? Grouping { get; set; }
+
+    /// <summary>
+    /// Gets or sets the serialized projection expression for the query.
+    /// </summary>
+    public string? Projection { get; set; }
+
+    /// <summary>
+    /// Gets or sets the serialized ordering expression for the query.
+    /// </summary>
+    public string? Ordering { get; set; }
+
+    /// <summary>
+    /// Gets or sets the pagination information for the query.
+    /// </summary>
+    public PaginationIn Pagination { get; set; } = new PaginationIn();
 
     /// <summary>
     /// Gets or sets the order direction (ascending or descending) for the query.
     /// </summary>
-    public OrderingDirection Order { get; set; } = OrderingDirection.Ascending;
-
-    /// <summary>
-    /// Converts the serialized filter string back to its corresponding expression.
-    /// </summary>
-    /// <typeparam name="T">The type of the entity the filter applies to.</typeparam>
-    /// <returns>The filter expression or null if no filter string is set.</returns>
-    public Expression<Func<T, bool>>? GetFilterExpression<T>()
-    {
-        if (Filter == null)
-        {
-            return null;
-        }
-
-        var node = SearchEngine.ExpressionSerializer.FromJson(Filter);
-        var expression = SearchEngine.ExpressionSerializer.Deserialize(node);
-
-        return SearchEngine.ExpressionSerializer.ToLambdaExpression<Func<T, bool>>(expression);
-    }
-
-    /// <summary>
-    /// Converts the serialized sort string back to its corresponding expression.
-    /// </summary>
-    /// <typeparam name="T">The type of the entity the sort applies to, which must be a class.</typeparam>
-    /// <returns>The sort expression or null if no sort string is set.</returns>
-    public Expression<Func<T, object>>? GetSortExpression<T>() where T : class
-    {
-        if (Sort == null)
-        {
-            return null;
-        }
-
-        var node = SearchEngine.ExpressionSerializer.FromJson(Sort);
-        var expression = SearchEngine.ExpressionSerializer.Deserialize(node);
-
-        return SearchEngine.ExpressionSerializer.ToLambdaExpression<Func<T, object>>(expression);
-    }
+    public OrderingDirection OrderingDirection { get; set; } = OrderingDirection.Ascending;
 
     /// <summary>
     /// Converts the <see cref="SerializedQuery"/> instance into a <see cref="Query{T}"/> instance.
@@ -82,142 +57,80 @@ public class SerializedQuery
         return new Query<T>()
         {
             Pagination = Pagination,
-            Filter = GetFilterExpression<T>(),
-            Ordering = GetSortExpression<T>(),
-            OrderingDirection = Order,
+            Filter = Deserialize(Filter),
+            Grouping = Deserialize(Grouping),
+            Projection = Deserialize(Projection),
+            Ordering = Deserialize(Ordering),
+            OrderingDirection = OrderingDirection,
         };
+    }
+
+    static Expression? Deserialize(string? serializedExpression)
+    {
+        if(serializedExpression == null)
+        {
+            return null;
+        }
+
+        var node = QueryProtocol.ExpressionSerializer.FromJson(serializedExpression);
+        var expression = QueryProtocol.ExpressionSerializer.FromNode(node);
+
+        return expression;
     }
 }
 
 /// <summary>
-/// A factory class responsible for creating and managing instances of <see cref="SerializedQuery"/> for a given entity type.
+/// Represents a serializable and web encodable version of the <see cref="Update{T}"/> class.
+/// This class provides mechanisms to convert web-friendly serialized update data into actual expressions and vice versa.
 /// </summary>
-/// <typeparam name="T">The type of entity for which the serialized query is being constructed.</typeparam>
 /// <remarks>
-/// This factory facilitates the construction of serialized queries by allowing you to set pagination, filtering, sorting, and ordering parameters.<br/> 
-/// It provides a fluent API to configure these parameters and build the serialized query object.
+/// The purpose of this class is to facilitate the transfer of complex update data (like filtering and modification expressions) over the web by serializing the update data into strings.
+/// This serialized form can then be deserialized back to actual update expressions when needed.
+/// The <see cref="QueryProtocol.ExpressionSerializer"/> is used to handle the serialization and deserialization of expressions.
 /// </remarks>
-public class SerializedQueryFactory<T>
+[Serializable]
+public class SerializedUpdate
 {
     /// <summary>
-    /// Gets or sets the pagination settings for the query.
+    /// Gets or sets the serialized representation of the filter expression.
     /// </summary>
-    public PaginationIn? Pagination { get; set; }
+    public string? Filter { get; set; } = null;
 
     /// <summary>
-    /// Gets or sets the filtering expression for the query.
+    /// Gets or sets the serialized representations of the modification expressions.
     /// </summary>
-    public Expression<Func<T, bool>>? Filter { get; set; }
+    public string[]? Modifications { get; set; }
 
     /// <summary>
-    /// Gets or sets the sorting expression for the query.
+    /// Converts the serialized update into its corresponding <see cref="Update{T}"/> object.
     /// </summary>
-    public Expression<Func<T, object>>? Sort { get; set; }
-
-    /// <summary>
-    /// Gets or sets the ordering direction (ascending or descending) for the query.
-    /// </summary>
-    public OrderingDirection Ordering { get; set; } = OrderingDirection.Ascending;
-
-    /// <summary>
-    /// Constructs a <see cref="SerializedQuery"/> instance based on the current factory settings.
-    /// </summary>
-    /// <returns>A new <see cref="SerializedQuery"/> object configured with the provided settings.</returns>
-    public SerializedQuery Create()
+    /// <typeparam name="T">The type of the entity being updated.</typeparam>
+    /// <returns>An <see cref="Update{T}"/> object that represents the deserialized update.</returns>
+    public Update<T> ToUpdate<T>() where T : class
     {
-        return new SerializedQuery()
+        return new Update<T>()
         {
-            Pagination = Pagination ?? new(),
-            Filter = Filter != null ? SearchEngine.ExpressionSerializer.ToJson(Filter) : null,
-            Sort = Sort != null ? SearchEngine.ExpressionSerializer.ToJson(Sort) : null,
-            Order = Ordering,
+            Filter = Deserialize(Filter),
+            Modifications = Modifications == null ? new() : Modifications.Transform(x => Deserialize(x)).ToList(),
         };
     }
 
-    public SerializedQueryFactory<T> SetPagination(PaginationIn? pagination)
-    {
-        if (pagination == null)
-        {
-            return this;
-        }
-
-        Pagination = pagination;
-        return this;
-    }
-
-    public SerializedQueryFactory<T> SetFilter(Expression<Func<T, bool>>? filter)
-    {
-        if (filter == null)
-        {
-            return this;
-        }
-
-        Filter = filter;
-        return this;
-    }
-
-    public SerializedQueryFactory<T> SetSort(Expression<Func<T, object>>? sort)
-    {
-        if (sort == null)
-        {
-            return this;
-        }
-
-        Sort = sort;
-        return this;
-    }
-
-    public SerializedQueryFactory<T> SetOrder(OrderingDirection order)
-    {
-        Ordering = order;
-        return this;
-    }
-
     /// <summary>
-    /// Adds an additional filter to the existing filter expression using the logical AND operation.
+    /// Deserializes a serialized expression string into its corresponding <see cref="Expression"/> object.
     /// </summary>
-    /// <param name="filter">The filtering expression to be added.</param>
-    /// <returns>The current factory instance for continued configuration.</returns>
-    public SerializedQueryFactory<T> AndFilter(Expression<Func<T, bool>>? filter)
+    /// <param name="serializedExpression">The serialized expression string.</param>
+    /// <returns>The deserialized <see cref="Expression"/> object, or null if the input is null.</returns>
+    [return: NotNullIfNotNull("serializedExpression")]
+    static Expression? Deserialize(string? serializedExpression)
     {
-        if (filter == null)
+        if (serializedExpression == null)
         {
-            return this;
+            return null;
         }
 
-        if (Filter == null)
-        {
-            Filter = filter;
-        }
-        else
-        {
-            Filter = Expression.Lambda<Func<T, bool>>(Expression.AndAlso(Filter.Body, filter.Body), Filter.Parameters);
-        }
+        var node = QueryProtocol.ExpressionSerializer.FromJson(serializedExpression);
+        var expression = QueryProtocol.ExpressionSerializer.FromNode(node);
 
-        return this;
-    }
-
-    /// <summary>
-    /// Adds an additional filter to the existing filter expression using the logical OR operation.
-    /// </summary>
-    /// <param name="filter">The filtering expression to be added.</param>
-    /// <returns>The current factory instance for continued configuration.</returns>
-    public SerializedQueryFactory<T> OrFilter(Expression<Func<T, bool>>? filter)
-    {
-        if (filter == null)
-        {
-            return this;
-        }
-
-        if (Filter == null)
-        {
-            Filter = filter;
-        }
-        else
-        {
-            Filter = Expression.Lambda<Func<T, bool>>(Expression.OrElse(Filter.Body, filter.Body), Filter.Parameters);
-        }
-
-        return this;
+        return expression;
     }
 }

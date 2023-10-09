@@ -38,4 +38,21 @@ public static class IEnumerableExtensions
         var query = enumerable.Where(predicate);
         return query.IsEmpty() ? default(T) : query.First();
     }
+
+    /// <summary>
+    /// Transforms each element in the source <see cref="IEnumerable{TOriginal}"/> using the provided converter function.
+    /// </summary>
+    /// <typeparam name="TOriginal">The type of the elements in the source collection.</typeparam>
+    /// <typeparam name="TTransformed">The type of the elements in the resulting collection.</typeparam>
+    /// <param name="source">The source collection to be transformed.</param>
+    /// <param name="converter">A function that converts each element of type <typeparamref name="TOriginal"/> to type <typeparamref name="TTransformed"/>.</param>
+    /// <returns>An <see cref="IEnumerable{TTransformed}"/> that contains each element of the source collection, transformed using the provided converter function.</returns>
+    public static IEnumerable<TTransformed> Transform<TOriginal, TTransformed>(this IEnumerable<TOriginal> source, Func<TOriginal, TTransformed> converter)
+    {
+        foreach (var item in source)
+        {
+            yield return converter.Invoke(item);
+        }
+    }
+
 }

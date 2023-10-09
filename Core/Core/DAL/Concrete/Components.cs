@@ -7,15 +7,19 @@ namespace ModularSystem.Core;
 //*
 
 /// <summary>
-/// Represents an ordering expression for querying data. <br/>
-/// This class encapsulates the details of a field by which data should be ordered.
+/// Represents an expression that defines the ordering criteria for querying data. <br/>
+/// This class encapsulates the field details and the direction in which data should be ordered.
 /// </summary>
 public class OrderingExpression : CustomExpression
 {
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets the type of the value used in the ordering.
+    /// </summary>
     public override Type Type { get; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets the node type of this expression. Always returns <see cref="ExpressionType.MemberAccess"/>.
+    /// </summary>
     public override ExpressionType NodeType { get; }
 
     /// <summary>
@@ -24,13 +28,13 @@ public class OrderingExpression : CustomExpression
     public Type FieldType { get; }
 
     /// <summary>
-    /// Gets the expression used to select the field from the data source.
+    /// Gets the expression that selects the field from the data source for ordering.
     /// </summary>
     public Expression FieldSelector { get; }
 
     /// <summary>
     /// Gets the name of the field used for ordering. 
-    /// If the field type has a full name, it will be used; otherwise, the type name will be used.
+    /// If the field type has a fully qualified name, it will be used; otherwise, the simple type name will be used.
     /// </summary>
     public string FieldName { get; }
 
@@ -38,7 +42,7 @@ public class OrderingExpression : CustomExpression
     /// Initializes a new instance of the <see cref="OrderingExpression"/> class.
     /// </summary>
     /// <param name="fieldType">The type of the field used for ordering.</param>
-    /// <param name="fieldSelector">The expression used to select the field from the data source.</param>
+    /// <param name="fieldSelector">The expression that selects the field from the data source for ordering.</param>
     public OrderingExpression(Type fieldType, Expression fieldSelector)
     {
         Type = fieldType;
@@ -48,10 +52,15 @@ public class OrderingExpression : CustomExpression
         FieldName = FieldType.FullName ?? FieldType.Name;
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Dispatches to the specific visit method for this node type. 
+    /// For <see cref="OrderingExpression"/>, this dispatches to <see cref="CustomExpressionVisitor.VisitOrdering"/>.
+    /// </summary>
+    /// <param name="visitor">The visitor to visit this node with.</param>
+    /// <returns>The result of visiting this node.</returns>
     protected override Expression Accept(ExpressionVisitor visitor)
     {
-        if(visitor is CustomExpressionVisitor custom)
+        if (visitor is CustomExpressionVisitor custom)
         {
             return custom.VisitOrdering(this);
         }
@@ -60,19 +69,43 @@ public class OrderingExpression : CustomExpression
     }
 }
 
+/// <summary>
+/// Represents an expression that defines a field update operation. <br/>
+/// This expression is not intended to be visited by standard expression visitors.
+/// </summary>
 public class UpdateSetExpression : NotVisitableExpression
 {
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets the type of the value being set.
+    /// </summary>
     public override Type Type { get; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets the node type of this expression. Always returns <see cref="ExpressionType.Assign"/>.
+    /// </summary>
     public override ExpressionType NodeType { get; }
 
+    /// <summary>
+    /// Gets the name of the field being updated.
+    /// </summary>
     public string FieldName { get; }
+
+    /// <summary>
+    /// Gets the type of the field being updated.
+    /// </summary>
     public Type FieldType { get; }
+
+    /// <summary>
+    /// Gets the value to set for the field.
+    /// </summary>
     public dynamic? Value { get; }
 
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UpdateSetExpression"/> class.
+    /// </summary>
+    /// <param name="fieldName">The name of the field being updated.</param>
+    /// <param name="type">The type of the value being set.</param>
+    /// <param name="value">The value to set for the field.</param>
     public UpdateSetExpression(string fieldName, Type type, dynamic? value)
     {
         NodeType = ExpressionType.Assign;
@@ -82,12 +115,21 @@ public class UpdateSetExpression : NotVisitableExpression
         Value = value;
     }
 
+    /// <summary>
+    /// Returns a string representation of the update set expression.
+    /// </summary>
+    /// <returns>A string in the format "FieldName = Value".</returns>
     public override string ToString()
     {
         return $"{FieldName} = {Value?.ToString()}";
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Dispatches to the specific visit method for this node type. 
+    /// For <see cref="UpdateSetExpression"/>, this dispatches to <see cref="CustomExpressionVisitor.VisitUpdateSet"/>.
+    /// </summary>
+    /// <param name="visitor">The visitor to visit this node with.</param>
+    /// <returns>The result of visiting this node.</returns>
     protected override Expression Accept(ExpressionVisitor visitor)
     {
         if (visitor is CustomExpressionVisitor customVisitor)

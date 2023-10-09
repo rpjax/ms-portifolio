@@ -106,7 +106,6 @@ public class SelectorExpressionAnalyzer<TEntity, TField> : ExpressionVisitor
         }
 
         RootParameter = lambda.Parameters[0];
-        FluentParameter = lambda.Parameters[0];
 
         return base.VisitLambda(node);
     }
@@ -114,7 +113,7 @@ public class SelectorExpressionAnalyzer<TEntity, TField> : ExpressionVisitor
     /// <inheritdoc/>
     protected override Expression VisitMember(MemberExpression node)
     {
-        if (FluentParameter == node)
+        if (FluentParameter == null)
         {
             FluentParameter = node;
         }

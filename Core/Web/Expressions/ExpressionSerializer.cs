@@ -73,7 +73,7 @@ public class SerializationContext
 /// Handles the serialization and deserialization of <see cref="Expression"/> nodes.
 /// This class provides methods to convert <see cref="Expression"/> objects to and from <see cref="ExpressionNode"/> objects.
 /// </summary>
-public class ExpressionSerializer
+public partial class ExpressionSerializer
 {
     /// <summary>
     /// Serializer for dealing with type information.
@@ -184,7 +184,7 @@ public class ExpressionSerializer
     /// </summary>
     /// <param name="expression">The expression to serialize.</param>
     /// <returns>The serialized <see cref="ExpressionNode"/> representation of the provided expression.</returns>
-    public ExpressionNode Serialize(Expression expression)
+    public ExpressionNode ToNode(Expression expression)
     {
         if (IsAnnonymousClassMemberAccess(expression))
         {
@@ -376,7 +376,7 @@ public class ExpressionSerializer
     /// <param name="node">The serialized node to deserialize.</param>
     /// <param name="context">An optional context to use during deserialization. If not provided, a new context will be created.</param>
     /// <returns>The original <see cref="Expression"/> that the node represents.</returns>
-    public Expression Deserialize(ExpressionNode node, SerializationContext? context = null)
+    public Expression FromNode(ExpressionNode node, SerializationContext? context = null)
     {
         context ??= new SerializationContext();
 
@@ -579,7 +579,7 @@ public class ExpressionSerializer
 
     public string ToJson(Expression expression)
     {
-        return ToJson(Serialize(expression));
+        return ToJson(ToNode(expression));
     }
 
     public ExpressionNode FromJson(string json)
@@ -618,7 +618,7 @@ public class ExpressionSerializer
     {
         try
         {
-            expression = Deserialize(node);
+            expression = FromNode(node);
 
             if (expression.NodeType == ExpressionType.Lambda)
             {
@@ -648,7 +648,7 @@ public class ExpressionSerializer
                 return e;
             }
 
-            var expression = Deserialize(node);
+            var expression = FromNode(node);
             lambdaExpression = ToLambdaExpression<T>(expression);
             _ = lambdaExpression.Compile();
 
@@ -687,6 +687,17 @@ public class ExpressionSerializer
 
     // > NODE SERIALIZATION / DESERIALIZATION < //
 
+    public class Configs
+    {
+        public TypeSerializer.Options? TypeSerializerOptions { get; set; }
+        public MethodInfoSerializer.Options? MethodInfoSerializerOptions { get; set; }
+        public JsonSerializer? JsonSerializer { get; set; }
+    }
+}
+
+// node convertion
+public partial class ExpressionSerializer
+{
     ConstantNode ToConstantNode(Expression expression)
     {
         var cast = CastExpression<ConstantExpression>(expression);
@@ -735,7 +746,6 @@ public class ExpressionSerializer
             Type = type,
         };
     }
-
     // This method is really important, a ParameterExpression is differed by the compiler by comparing the actual pointer value.
     // So if the ParameterExpression is used by nested expressions down the tree, the parameters must be the same object, meaning that 
     // a reference to every ParameterExpression created in the tree must be kept and then reused whenever an expression uses
@@ -789,7 +799,7 @@ public class ExpressionSerializer
             NodeType = ExpressionType.MemberAccess,
             Type = TypeSerializer.Serialize(cast.Type),
             MemberInfo = MemberInfoSerializer.Serialize(cast.Member),
-            Expression = Serialize(cast.Expression),
+            Expression = ToNode(cast.Expression),
         };
     }
 
@@ -814,7 +824,7 @@ public class ExpressionSerializer
         }
 
         var memberInfo = MemberInfoSerializer.Deserialize(node.MemberInfo);
-        var expression = Deserialize(node.Expression, context);
+        var expression = FromNode(node.Expression, context);
 
         return Expression.MakeMemberAccess(expression, memberInfo);
     }
@@ -829,7 +839,7 @@ public class ExpressionSerializer
             Type = TypeSerializer.Serialize(cast.Type),
             ReturnType = TypeSerializer.Serialize(cast.ReturnType),
             Parameters = cast.Parameters.ToList().ConvertAll(x => ToParameterNode(x)),
-            Body = Serialize(cast.Body)
+            Body = ToNode(cast.Body)
         };
     }
 
@@ -845,7 +855,7 @@ public class ExpressionSerializer
         }
 
         var type = TypeSerializer.Deserialize(node.Type);
-        var body = Deserialize(node.Body, context);
+        var body = FromNode(node.Body, context);
         var parameters = node.Parameters.ConvertAll(x => (FromParameterNode(x, context) as ParameterExpression)!);
 
         return Expression.Lambda(type, body, parameters);
@@ -860,8 +870,8 @@ public class ExpressionSerializer
             IsLiftedToNull = cast.IsLiftedToNull,
             NodeType = cast.NodeType,
             Type = TypeSerializer.Serialize(cast.Type),
-            Left = Serialize(cast.Left),
-            Right = Serialize(cast.Right),
+            Left = ToNode(cast.Left),
+            Right = ToNode(cast.Right),
         };
     }
 
@@ -876,7 +886,7 @@ public class ExpressionSerializer
             throw new InvalidOperationException();
         }
 
-        return Expression.MakeBinary(node.NodeType, Deserialize(node.Left, context), Deserialize(node.Right, context), node.IsLiftedToNull, null);
+        return Expression.MakeBinary(node.NodeType, FromNode(node.Left, context), FromNode(node.Right, context), node.IsLiftedToNull, null);
     }
 
     UnaryNode ToUnaryNode(Expression expression)
@@ -888,7 +898,7 @@ public class ExpressionSerializer
             IsLiftedToNull = cast.IsLiftedToNull,
             NodeType = cast.NodeType,
             Type = TypeSerializer.Serialize(cast.Type),
-            Operand = Serialize(cast.Operand),
+            Operand = ToNode(cast.Operand),
         };
     }
 
@@ -903,7 +913,7 @@ public class ExpressionSerializer
             throw new InvalidOperationException();
         }
 
-        return Expression.MakeUnary(node.NodeType, Deserialize(node.Operand, context), TypeSerializer.Deserialize(node.Type));
+        return Expression.MakeUnary(node.NodeType, FromNode(node.Operand, context), TypeSerializer.Deserialize(node.Type));
     }
 
     MethodCallNode ToMethodCallNode(Expression expression)
@@ -915,8 +925,8 @@ public class ExpressionSerializer
             IsStatic = cast.Method.IsStatic,
             NodeType = ExpressionType.Call,
             MethodInfo = MethodInfoSerializer.Serialize(cast.Method),
-            Target = cast.Object != null ? Serialize(cast.Object) : null,
-            Arguments = cast.Arguments.ToList().ConvertAll(x => Serialize(x))
+            Target = cast.Object != null ? ToNode(cast.Object) : null,
+            Arguments = cast.Arguments.ToList().ConvertAll(x => ToNode(x))
         };
     }
 
@@ -927,11 +937,11 @@ public class ExpressionSerializer
             throw new InvalidOperationException();
         }
 
-        var arguments = node.Arguments.ConvertAll(x => Deserialize(x, context)).ToArray();
+        var arguments = node.Arguments.ConvertAll(x => FromNode(x, context)).ToArray();
 
         if (node.Target != null)
         {
-            return Expression.Call(Deserialize(node.Target, context), MethodInfoSerializer.Deserialize(node.MethodInfo), arguments);
+            return Expression.Call(FromNode(node.Target, context), MethodInfoSerializer.Deserialize(node.MethodInfo), arguments);
         }
 
         if (node.MethodInfo.DeclaringType == null)
@@ -957,7 +967,7 @@ public class ExpressionSerializer
             throw new InvalidOperationException();
         }
 
-        return Expression.Call(Deserialize(node.Target, context), MethodInfoSerializer.Deserialize(node.MethodInfo), arguments);
+        return Expression.Call(FromNode(node.Target, context), MethodInfoSerializer.Deserialize(node.MethodInfo), arguments);
     }
 
     //
@@ -1006,12 +1016,5 @@ public class ExpressionSerializer
         var value = jtoken.ToObject(type, JsonSerializer);
 
         return Expression.Constant(value, type);
-    }
-
-    public class Configs
-    {
-        public TypeSerializer.Options? TypeSerializerOptions { get; set; }
-        public MethodInfoSerializer.Options? MethodInfoSerializerOptions { get; set; }
-        public JsonSerializer? JsonSerializer { get; set; }
     }
 }

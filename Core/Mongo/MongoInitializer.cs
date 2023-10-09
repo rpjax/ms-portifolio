@@ -10,7 +10,7 @@ internal class MongoInitializer : Initializer
     public override Task InternalInitAsync(Options options)
     { 
         JsonSerializerSingleton.TryAddConverter(typeof(ObjectId), new ObjectIdConverter());
-        SearchEngine.ExpressionSerializer.AddJsonConverter(new NewtonsoftObjectIdConverter());
+        QueryProtocol.ExpressionSerializer.AddJsonConverter(new NewtonsoftObjectIdConverter());
         ConsoleLogger.Info("Mongo module initialized.");
         return Task.CompletedTask;
     }

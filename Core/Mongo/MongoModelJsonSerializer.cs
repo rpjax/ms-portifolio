@@ -17,7 +17,7 @@ public class MongoModelJsonSerializer<T> : ISerializer<T> where T : class, IMong
     /// <typeparam name="TObject">The type of the object to be serialized.</typeparam>
     /// <param name="input">The object to serialize.</param>
     /// <returns>A JSON string representation of the object.</returns>
-    public string Serialize<TObject>(TObject input)
+    public string Serialize(T input)
     {
         var options = new JsonSerializerOptions()
             .AddConverter(new ObjectIdConverter());

@@ -1,4 +1,9 @@
-﻿using System.Linq.Expressions;
+﻿using ModularSystem.Web;
+using ModularSystem.Web.Expressions;
+using MongoDB.Bson;
+using System.Linq;
+using System.Linq.Expressions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ModularSystem.Core;
 
@@ -29,13 +34,31 @@ public class Update<T> : IUpdate<T>
         Filter = update.Filter;
         Modifications = update.Modifications;
     }
+
+    /// <summary>
+    /// Serializes the update into a <see cref="SerializedUpdate"/> format.
+    /// </summary>
+    /// <param name="serializer">An optional serializer to use for the serialization. If not provided, the default serializer will be used.</param>
+    /// <returns>A serialized representation of the update.</returns>
+    public SerializedUpdate Serialize(ExpressionSerializer? serializer = null)
+    {
+        return new()
+        {
+            Filter = QueryProtocol.ToJson(Filter, serializer),
+            Modifications = Modifications
+                .Transform(x => QueryProtocol.ToJson(x, serializer)).ToArray()
+        };
+    }
 }
 
 /// <summary>
-/// Provides a builder pattern for constructing update operations for a given type.
+/// Provides a factory for building and refining <see cref="Update{T}"/> objects for entities of type <typeparamref name="T"/>.
 /// </summary>
-/// <typeparam name="T">The type of the entity being updated.</typeparam>
-public class UpdateWriter<T> : IFactory<IUpdate<T>>
+/// <remarks>
+/// This factory is designed to be used in a fluent manner. <br/>
+/// The update creation and refinement methods return the factory itself, allowing for chaining of modifications.
+/// </remarks>
+public class UpdateWriter<T> : IFactory<Update<T>>
 {
     /// <summary>
     /// Defines strategies for handling conflicts when setting modifications.
@@ -76,18 +99,30 @@ public class UpdateWriter<T> : IFactory<IUpdate<T>>
     public UpdateWriter(IUpdate<T>? update = null, ConflictStrategyType conflictStrategy = ConflictStrategyType.Throw)
     {
         Update = new();
-        if (update == null) return;
-        Update.Filter = update.Filter;
-        Update.Modifications = update.Modifications;
+
+        if (update != null)
+        {
+            Update.Filter = update.Filter;
+            Update.Modifications = update.Modifications;
+        }
     }
 
     /// <summary>
     /// Creates and returns the constructed update.
     /// </summary>
     /// <returns>The constructed update.</returns>
-    public IUpdate<T> Create()
+    public Update<T> Create()
     {
         return Update;
+    }
+
+    /// <summary>
+    /// Produces a serialized representation of the <see cref="Update{T}"/> object as constructed by this factory.
+    /// </summary>
+    /// <returns>The serialized representation of the constructed query object.</returns>
+    public SerializedUpdate CreateSerialized()
+    {
+        return Update.Serialize();
     }
 
     /// <summary>
@@ -129,9 +164,9 @@ public class UpdateWriter<T> : IFactory<IUpdate<T>>
         
         if(ConflictStrategy == ConflictStrategyType.Throw)
         {
-            throw new InvalidOperationException("");
+            throw new InvalidOperationException($"A modification for the field '{modification.FieldName}' already exists. To override or skip this conflict, adjust the ConflictStrategy.");
         }
-        if(ConflictStrategy == ConflictStrategyType.Skip)
+        if (ConflictStrategy == ConflictStrategyType.Skip)
         {
             return this;
         }
@@ -145,53 +180,80 @@ public class UpdateWriter<T> : IFactory<IUpdate<T>>
     
 }
 
+/// <summary>
+/// Serves as an interpretative tool for extracting and analyzing the expressions contained within an <see cref="Update{T}"/> data structure. <br/>
+/// This class provides a specific way to interpret the encapsulated expressions of the update, but its architecture allows for potential <br/>
+/// alternative interpretations in future implementations.
+/// </summary>
+/// <typeparam name="T">The type of the entity being targeted by the update.</typeparam>
 public class UpdateReader<T>
 {
-    private Update<T> Update { get; }
-    private Configs Config { get; }
+    private readonly Update<T> Update;
+    private readonly Configs Config;
 
-    public UpdateReader(Update<T> update)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UpdateReader{T}"/> class, offering an interpretative perspective over the provided update data structure.
+    /// </summary>
+    /// <param name="update">The update data structure containing the raw expressions to be interpreted.</param>
+    /// <param name="configs">Optional configuration settings influencing the interpretation process.</param>
+    public UpdateReader(Update<T> update, Configs? configs = null)
     {
-        Update = update;
+        Update = update ?? throw new ArgumentNullException(nameof(update));
+        Config = configs ?? new Configs();
     }
 
-    public UpdateReader(IUpdate<T> update)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UpdateReader{T}"/> class using an interface representation of an update.
+    /// </summary>
+    /// <param name="update">The update data structure containing the raw expressions to be interpreted.</param>
+    /// <param name="configs">Optional configuration settings influencing the interpretation process.</param>
+    public UpdateReader(IUpdate<T> update, Configs? configs = null)
+        : this(new Update<T>(update), configs)
     {
-        Update = new(update);
     }
 
+    /// <summary>
+    /// Interprets and retrieves the filter expression encapsulated within the update.
+    /// </summary>
+    /// <returns>The interpreted filter expression, if present; otherwise, null.</returns>
     public Expression<Func<T, bool>>? GetFilterExpression()
     {
-        return VisitExpression(Update.Filter as Expression<Func<T, bool>>);
+        return Config.UseParameterUniformityVisitor
+            ? VisitExpression(Update.Filter as Expression<Func<T, bool>>)
+            : Update.Filter as Expression<Func<T, bool>>;
     }
 
+    /// <summary>
+    /// Attempts to extract all update set expressions from the update without throwing exceptions for non-matching types.
+    /// </summary>
+    /// <returns>An enumerable of update set expressions.</returns>
     public IEnumerable<UpdateSetExpression> TryGetUpdateSetExpressions()
     {
         foreach (var expression in Update.Modifications)
         {
-            var cast = expression as UpdateSetExpression;
-
-            if (cast == null)
+            if (expression is UpdateSetExpression cast)
             {
-                continue;
+                yield return cast;
             }
-
-            yield return cast;
         }
     }
 
+    /// <summary>
+    /// Extracts all update set expressions from the update, throwing an exception if any non-matching type is encountered.
+    /// </summary>
+    /// <returns>An enumerable of update set expressions.</returns>
     public IEnumerable<UpdateSetExpression> GetUpdateSetExpressions()
     {
         foreach (var expression in Update.Modifications)
         {
-            var cast = expression as UpdateSetExpression;
-
-            if(cast == null)
+            if (expression is UpdateSetExpression cast)
             {
-                throw new InvalidOperationException();
+                yield return cast;
             }
-
-            yield return cast;
+            else
+            {
+                throw new InvalidOperationException("Encountered a non-matching type during extraction.");
+            }
         }
     }
 
@@ -221,12 +283,12 @@ public class UpdateReader<T>
     }
 
     /// <summary>
-    /// Configuration settings for the <see cref="UpdateReader{T}"/>.
+    /// Configuration settings influencing the interpretation process of the <see cref="UpdateReader{T}"/>.
     /// </summary>
     public class Configs
     {
         /// <summary>
-        /// Gets or sets a value indicating whether to use the ParameterUniformityVisitor for ensuring consistent parameter references.
+        /// Gets or sets a value indicating whether the ParameterUniformityVisitor should be used during the interpretation process to ensure consistent parameter references.
         /// </summary>
         public bool UseParameterUniformityVisitor { get; set; } = true;
     }

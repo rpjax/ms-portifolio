@@ -1,4 +1,6 @@
-﻿using System.Linq.Expressions;
+﻿using ModularSystem.Web;
+using ModularSystem.Web.Expressions;
+using System.Linq.Expressions;
 
 namespace ModularSystem.Core;
 
@@ -36,6 +38,10 @@ public class Query<T> : IQuery<T>
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Query{T}"/> class using another query.
+    /// </summary>
+    /// <param name="query">The query to initialize from.</param>
     public Query(IQuery<T> query)
     {
         Filter = query.Filter;
@@ -47,32 +53,20 @@ public class Query<T> : IQuery<T>
     }
 
     /// <summary>
-    /// Constructor that initializes the pagination for the query.
+    /// Serializes the query into a <see cref="SerializedQuery"/> format.
     /// </summary>
-    /// <param name="pagination">The pagination settings.</param>
-    public Query(PaginationIn pagination)
+    /// <param name="serializer">An optional serializer to use for the serialization. If not provided, the default serializer will be used.</param>
+    /// <returns>A serialized representation of the query.</returns>
+    public SerializedQuery Serialize(ExpressionSerializer? serializer = null)
     {
-        Pagination = pagination;
+        return new()
+        {
+            Filter = QueryProtocol.ToJson(Filter, serializer),
+            Grouping = QueryProtocol.ToJson(Grouping, serializer),
+            Projection = QueryProtocol.ToJson(Projection, serializer),
+            Ordering = QueryProtocol.ToJson(Ordering, serializer),
+            OrderingDirection = OrderingDirection
+        };
     }
 
-    ///// <summary>
-    ///// Constructor that initializes the filter for the query.
-    ///// </summary>
-    ///// <param name="lambda">The lambda expression for filtering.</param>
-    //public Query(Expression<Func<T, bool>> lambda)
-    //{
-    //    Filter = lambda;
-    //}
-
-    ///// <summary>
-    ///// Constructor that initializes both the pagination and filter for the query.
-    ///// </summary>
-    ///// <param name="pagination">The pagination settings.</param>
-    ///// <param name="lambda">The lambda expression for filtering.</param>
-    //public Query(PaginationIn pagination, Expression<Func<T, bool>> lambda) : this(pagination)
-    //{
-    //    Filter = lambda;
-    //}
-
 }
-

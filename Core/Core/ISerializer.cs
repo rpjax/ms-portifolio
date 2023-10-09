@@ -29,19 +29,18 @@ public interface ISerializer
     object Deserialize(string serialized);
 }
 
-
 /// <summary>
 /// Defines a serialization and deserialization contract for objects of type <typeparamref name="T"/>.
 /// </summary>
 /// <typeparam name="T">The type of object to be serialized or deserialized.</typeparam>
-public interface ISerializer<out T>
+public interface ISerializer<T>
 {
     /// <summary>
     /// Serializes the specified object of type <typeparamref name="T"/> into a string representation.
     /// </summary>
     /// <param name="obj">The object of type <typeparamref name="T"/> to serialize.</param>
     /// <returns>A string representation of the serialized object.</returns>
-    string Serialize<TObject>(TObject obj);
+    string Serialize(T obj);
 
     /// <summary>
     /// Attempts to deserialize the given string representation into an object of type <typeparamref name="T"/>.

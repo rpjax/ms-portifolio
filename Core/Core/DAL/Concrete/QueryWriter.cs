@@ -1,16 +1,17 @@
-﻿using System.Linq.Expressions;
+﻿using ModularSystem.Web;
+using System.Linq.Expressions;
 
 namespace ModularSystem.Core;
 
 // partial dedicated to commom components.
 /// <summary>
-/// Provides a factory for building and refining <see cref="IQuery{T}"/> objects for entities of type <typeparamref name="T"/>.
+/// Provides a factory for building and refining <see cref="Query{T}"/> objects for entities of type <typeparamref name="T"/>.
 /// </summary>
 /// <remarks>
 /// This factory is designed to be used in a fluent manner. <br/>
 /// The query creation and refinement methods return the factory itself, allowing for chaining of modifications.
 /// </remarks>
-public partial class QueryWriter<T> : IFactory<IQuery<T>>
+public partial class QueryWriter<T> : IFactory<Query<T>>
 {
     /// <summary>
     /// Gets the current state of the query being built by this factory.
@@ -36,13 +37,23 @@ public partial class QueryWriter<T> : IFactory<IQuery<T>>
     }
 
     /// <summary>
-    /// Produces the final <see cref="IQuery{T}"/> object as constructed by this factory.
+    /// Produces the final <see cref="Query{T}"/> object as constructed by this factory.
     /// </summary>
     /// <returns>The constructed query object.</returns>
-    public IQuery<T> Create()
+    public Query<T> Create()
     {
         return Query;
     }
+
+    /// <summary>
+    /// Produces a serialized representation of the <see cref="Query{T}"/> object as constructed by this factory.
+    /// </summary>
+    /// <returns>The serialized representation of the constructed query object.</returns>
+    public SerializedQuery CreateSerialized()
+    {
+        return Query.Serialize();
+    }
+
 }
 
 // partial dedicated to filter 

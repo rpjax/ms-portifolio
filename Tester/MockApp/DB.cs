@@ -11,7 +11,7 @@ public static class DatabaseSource
     public static IMongoCollection<Coin> Coins { get; }
     public static IMongoCollection<Paper> Papers { get; }
     public static IMongoCollection<MongoAnt> Ants { get; }
-    public static IMongoCollection<Sandbox.MongoTestModel> TestModel { get; }
+    public static IMongoCollection<MongoTestModel> TestModel { get; }
 
     /// <summary>
     /// db pass: 8PLnrex8k2w8ZLPZ
@@ -25,7 +25,7 @@ public static class DatabaseSource
         Coins = MongoDatabase.GetCollection<Coin>("Coins");
         Papers = MongoDatabase.GetCollection<Paper>("Papers");
         Ants = MongoDatabase.GetCollection<MongoAnt>("Ants");
-        TestModel = MongoDatabase.GetCollection<Sandbox.MongoTestModel>("TestModel");
+        TestModel = MongoDatabase.GetCollection<MongoTestModel>("TestModel");
     }
 }
 

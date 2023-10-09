@@ -3,23 +3,37 @@
 namespace ModularSystem.Core;
 
 /// <summary>
-/// Represents a custom expression, distinct from system-defined expressions.<br/>
-/// This differentiation allows for specific handling of custom expressions in conditional checks and logic.<br/>
-/// For example, one can use this differentiation to exclude custom expressions in certain operations:
+/// Represents a custom expression that is distinct from the standard system-defined expressions.
+/// This abstraction facilitates specialized handling of custom expressions in various scenarios.
+/// For instance, it can be used to differentiate and exclude custom expressions from certain operations:
 /// <code>
 /// if(expr is not CustomExpression) 
 /// {
 ///     // Handle system-defined expressions
 /// }
 /// </code>
+/// This class is designed to work seamlessly with the <see cref="CustomExpressionVisitor"/>, 
+/// allowing custom expressions to be visited and processed in a specialized manner.
 /// </summary>
 public abstract class CustomExpression : Expression
 {
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets the static type of the expression that this <see cref="CustomExpression"/> represents.
+    /// </summary>
     public abstract override Type Type { get; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets the node type of this expression. This provides a way to quickly check the type of the expression without using reflection.
+    /// </summary>
     public abstract override ExpressionType NodeType { get; }
+
+    /// <summary>
+    /// Accepts a visitor for this custom expression. This method is intended to be overridden by derived classes 
+    /// to provide custom handling for specific visitors, especially the <see cref="CustomExpressionVisitor"/>.
+    /// </summary>
+    /// <param name="visitor">The visitor to accept.</param>
+    /// <returns>The result of visiting this expression.</returns>
+    protected abstract override Expression Accept(ExpressionVisitor visitor);
 }
 
 /// <summary>

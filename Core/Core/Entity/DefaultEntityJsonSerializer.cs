@@ -8,7 +8,7 @@ namespace ModularSystem.Core;
 /// <typeparam name="T">The type of the entity to be serialized, which must be a class.</typeparam>
 public class DefaultEntityJsonSerializer<T> : ISerializer<T> where T : class
 {
-    public string Serialize<TObject>(TObject input)
+    public string Serialize(T input)
     {
         return JsonSerializer.Serialize(input);
     }
