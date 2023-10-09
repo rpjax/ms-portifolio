@@ -223,7 +223,7 @@ public class ConstantNode : ExpressionNode
     /// <summary>
     /// Gets or sets the type of the constant.
     /// </summary>
-    public SerializedType? Type { get; set; }
+    public SerializableType? Type { get; set; }
 
     /// <summary>
     /// Gets or sets the value of the constant as a string.
@@ -250,7 +250,7 @@ public class ParameterNode : ExpressionNode
     /// <summary>
     /// Gets or sets the type of the parameter.
     /// </summary>
-    public SerializedType? Type { get; set; }
+    public SerializableType? Type { get; set; }
 }
 
 /// <summary>
@@ -266,7 +266,7 @@ public class UnaryNode : ExpressionNode
     /// <summary>
     /// Gets or sets the type of the unary operation.
     /// </summary>
-    public SerializedType? Type { get; set; }
+    public SerializableType? Type { get; set; }
 
     /// <summary>
     /// Gets or sets the operand for this unary operation.
@@ -281,39 +281,9 @@ public class UnaryNode : ExpressionNode
 public class BinaryNode : ExpressionNode
 {
     public bool IsLiftedToNull { get; set; }
-    public SerializedType? Type { get; set; }
+    public SerializableType? Type { get; set; }
     public ExpressionNode? Left { get; set; }
     public ExpressionNode? Right { get; set; }
-
-    /// <summary>
-    /// Retrieves the left operand of the binary expression. 
-    /// Throws an exception if it's null.
-    /// </summary>
-    /// <returns>The left operand.</returns>
-    public ExpressionNode GetLeft()
-    {
-        if (Left == null)
-        {
-            throw new NullReferenceException("Invalid expression node getter, the left node pointer is null. 'ExpressionNode.Left'");
-        }
-
-        return Left;
-    }
-
-    /// <summary>
-    /// Retrieves the right operand of the binary expression.
-    /// Throws an exception if it's null.
-    /// </summary>
-    /// <returns>The right operand.</returns>
-    public ExpressionNode GetRight()
-    {
-        if (Right == null)
-        {
-            throw new NullReferenceException("Invalid expression node getter, the right node pointer is null. 'ExpressionNode.Right'");
-        }
-
-        return Right;
-    }
 }
 
 /// <summary>
@@ -322,8 +292,8 @@ public class BinaryNode : ExpressionNode
 /// </summary>
 public class MemberAccessNode : ExpressionNode
 {
-    public SerializedType? Type { get; set; }
-    public SerializedMemberInfo? MemberInfo { get; set; }
+    public SerializableType? Type { get; set; }
+    public SerializableMemberInfo? MemberInfo { get; set; }
     public ExpressionNode? Expression { get; set; }
 }
 
@@ -334,7 +304,7 @@ public class MemberAccessNode : ExpressionNode
 public class MethodCallNode : ExpressionNode
 {
     public bool IsStatic { get; set; }
-    public SerializedMethodInfo? MethodInfo { get; set; }
+    public SerializableMethodInfo? MethodInfo { get; set; }
     public ExpressionNode? Target { get; set; }
     public List<ExpressionNode> Arguments { get; set; } = new();
 }
@@ -345,8 +315,8 @@ public class MethodCallNode : ExpressionNode
 /// </summary>
 public class LambdaNode : ExpressionNode
 {
-    public SerializedType? Type { get; set; }
-    public SerializedType? ReturnType { get; set; }
+    public SerializableType? Type { get; set; }
+    public SerializableType? ReturnType { get; set; }
     public List<ParameterNode> Parameters { get; set; } = new();
     public ExpressionNode? Body { get; set; }
 }

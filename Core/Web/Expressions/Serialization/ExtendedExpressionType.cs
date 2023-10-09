@@ -6,7 +6,7 @@ namespace ModularSystem.Web.Expressions;
 /// Represents an extended set of expression types, augmenting the standard set to encompass custom expression types derived from <see cref="CustomExpression"/>.<br/>
 /// This enumeration is designed to be fully compatible with the original expression type enumeration, allowing for straightforward casting between the two.
 /// </summary>
-public enum ExtendedExpressionType
+public enum ExtendedExpressionType : int
 {
     /// <summary>
     /// An addition operation, such as a + b, without overflow checking, for numeric operands.

@@ -7,7 +7,6 @@ namespace ModularSystem.Web.Expressions;
 
 public class ExpressionJsonConverter : JsonConverter
 {
-
     public override bool CanConvert(Type type)
     {
         return type.IsAssignableFrom(typeof(ExpressionNode));

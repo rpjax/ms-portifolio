@@ -6,10 +6,10 @@ namespace ModularSystem.Web.Expressions;
 /// <summary>
 /// Serialized version of <see cref="MemberInfo"/>
 /// </summary>
-public class SerializedMemberInfo
+public class SerializableMemberInfo
 {
     public string? Name { get; set; }
-    public SerializedType? DeclaringType { get; set; }
+    public SerializableType? DeclaringType { get; set; }
 }
 
 public class MemberInfoSerializer
@@ -21,21 +21,21 @@ public class MemberInfoSerializer
         this.typeSerializer = typeSerializer;
     }
 
-    public virtual SerializedMemberInfo Serialize(MemberInfo memberInfo)
+    public virtual SerializableMemberInfo Serialize(MemberInfo memberInfo)
     {
         if (memberInfo.DeclaringType == null)
         {
             throw new InvalidOperationException();
         }
 
-        return new SerializedMemberInfo()
+        return new SerializableMemberInfo()
         {
             Name = memberInfo.Name,
             DeclaringType = typeSerializer.Serialize(memberInfo.DeclaringType)
         };
     }
 
-    public virtual MemberInfo Deserialize(SerializedMemberInfo serializedMemberInfo)
+    public virtual MemberInfo Deserialize(SerializableMemberInfo serializedMemberInfo)
     {
         if (serializedMemberInfo.Name == null)
         {

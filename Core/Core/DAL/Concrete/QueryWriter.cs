@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Web;
+using ModularSystem.Web.Expressions;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Core;
@@ -46,14 +47,23 @@ public partial class QueryWriter<T> : IFactory<Query<T>>
     }
 
     /// <summary>
-    /// Produces a serialized representation of the <see cref="Query{T}"/> object as constructed by this factory.
+    /// Produces a serializable representation of the <see cref="Query{T}"/> object as constructed by this factory.
     /// </summary>
     /// <returns>The serialized representation of the constructed query object.</returns>
-    public SerializedQuery CreateSerialized()
+    public SerializableQuery CreateSerializable()
     {
         return Query.Serialize();
     }
 
+    /// <summary>
+    /// Produces a <see cref="string"/> representation of the <see cref="Query{T}"/> object as constructed by this factory.
+    /// </summary>
+    /// <returns>The serialized string representation of the constructed query object.</returns>
+    public string CreateSerialized(ISerializer? serializer = null)
+    {
+        serializer ??= new NodeSerializer();
+        return serializer.Serialize(CreateSerializable());
+    }
 }
 
 // partial dedicated to filter 

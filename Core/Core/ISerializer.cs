@@ -1,32 +1,34 @@
 ﻿namespace ModularSystem.Core;
 
 /// <summary>
-/// Defines the contract for serialization and deserialization operations.
+/// Represents a contract for serializing and deserializing objects.
 /// </summary>
 public interface ISerializer
 {
     /// <summary>
-    /// Serializes the provided object into a string representation.
+    /// Serializes the specified object into its string representation.
     /// </summary>
-    /// <param name="obj">The object to be serialized.</param>
-    /// <returns>The string representation of the serialized object.</returns>
-    string Serialize(object obj);
+    /// <typeparam name="T">The type of the object to serialize.</typeparam>
+    /// <param name="obj">The object to serialize.</param>
+    /// <returns>A string representation of the serialized object.</returns>
+    string Serialize<T>(T obj);
 
     /// <summary>
-    /// Attempts to deserialize a string into an object. If the deserialization fails, 
-    /// it returns <c>null</c> instead of throwing an exception.
+    /// Attempts to deserialize the provided string back into an object of type <typeparamref name="T"/>.
     /// </summary>
-    /// <param name="serialized">The string representation of the object to be deserialized.</param>
-    /// <returns>The deserialized object if the operation is successful; otherwise, <c>null</c>.</returns>
-    object? TryDeserialize(string serialized);
+    /// <typeparam name="T">The type of the object to deserialize to.</typeparam>
+    /// <param name="serialized">The string representation of the object.</param>
+    /// <returns>An instance of type <typeparamref name="T"/> if successful, otherwise <c>null</c>.</returns>
+    T? TryDeserialize<T>(string serialized);
 
     /// <summary>
-    /// Deserializes a string into an object. If the deserialization fails, an exception is thrown.
+    /// Deserializes the provided string back into an object of type <typeparamref name="T"/>.
     /// </summary>
-    /// <param name="serialized">The string representation of the object to be deserialized.</param>
-    /// <returns>The deserialized object.</returns>
-    /// <exception cref="System.Exception">Thrown when the deserialization process encounters an error.</exception>
-    object Deserialize(string serialized);
+    /// <typeparam name="T">The type of the object to deserialize to.</typeparam>
+    /// <param name="serialized">The string representation of the object.</param>
+    /// <returns>An instance of type <typeparamref name="T"/>.</returns>
+    /// <exception cref="System.Exception">Thrown if the deserialization process encounters an error.</exception>
+    T Deserialize<T>(string serialized);
 }
 
 /// <summary>

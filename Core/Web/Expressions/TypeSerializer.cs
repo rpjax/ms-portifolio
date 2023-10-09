@@ -3,9 +3,9 @@ using System.Reflection;
 
 namespace ModularSystem.Web.Expressions;
 
-public class TypeMapper : IMapper<SerializedType, Type> // pre serialization mapping
+public class TypeMapper : IMapper<SerializableType, Type> // pre serialization mapping
 {
-    Dictionary<string, Func<SerializedType, Type>> map = new();
+    Dictionary<string, Func<SerializableType, Type>> map = new();
     protected TypeSerializer? typeSerializer;
 
     public TypeMapper(TypeSerializer? serializer = null)
@@ -16,7 +16,7 @@ public class TypeMapper : IMapper<SerializedType, Type> // pre serialization map
         Init();
     }
 
-    public Type? Get(SerializedType serializedType)
+    public Type? Get(SerializableType serializedType)
     {
         var lambda = map.Get(serializedType.FullName());
 
@@ -28,7 +28,7 @@ public class TypeMapper : IMapper<SerializedType, Type> // pre serialization map
         return null;
     }
 
-    public void Map(SerializedType source, Type target)
+    public void Map(SerializableType source, Type target)
     {
         if (!source.FullNameIsAvailable())
         {
@@ -38,7 +38,7 @@ public class TypeMapper : IMapper<SerializedType, Type> // pre serialization map
         map[source.FullName()] = x => target;
     }
 
-    public void Map(SerializedType source, Func<SerializedType, Type> lambda)
+    public void Map(SerializableType source, Func<SerializableType, Type> lambda)
     {
         if (!source.FullNameIsAvailable())
         {
@@ -58,7 +58,7 @@ public class TypeMapper : IMapper<SerializedType, Type> // pre serialization map
         map[source.FullName] = x => target;
     }
 
-    public void Map(Type source, Func<SerializedType, Type> lambda)
+    public void Map(Type source, Func<SerializableType, Type> lambda)
     {
         if (source.FullName == null)
         {
@@ -77,7 +77,7 @@ public class TypeMapper : IMapper<SerializedType, Type> // pre serialization map
     {
         Map(typeof(Func<,>), x =>
         {
-            var arguments = x.GenericTypeArguments.ConvertAll(x => typeSerializer.Deserialize(x)).ToArray();
+            var arguments = x.GenericTypeArguments.Transform(x => typeSerializer.Deserialize(x)).ToArray();
 
             if (arguments.Length != 2)
             {
@@ -98,13 +98,13 @@ public class TypeMapper : IMapper<SerializedType, Type> // pre serialization map
 /// <summary>
 /// Serialized version of <see cref="Type"/>
 /// </summary>
-public class SerializedType
+public class SerializableType
 {
     public bool IsGeneric { get; set; }
     public string? AssemblyQualifiedName { get; set; }
     public string? Namespace { get; set; }
     public string? Name { get; set; }
-    public List<SerializedType> GenericTypeArguments { get; set; } = new List<SerializedType>();
+    public SerializableType[] GenericTypeArguments { get; set; } = Array.Empty<SerializableType>();
 
     public string FullName()
     {
@@ -159,19 +159,19 @@ public class TypeSerializer
         mapper.SetTypeSerializer(this);
     }
 
-    public virtual SerializedType Serialize(Type type)
+    public virtual SerializableType Serialize(Type type)
     {
-        return new SerializedType()
+        return new SerializableType()
         {
             IsGeneric = type.IsGenericTypeDefinition,
             Name = type.Name,
             Namespace = type.Namespace,
             AssemblyQualifiedName = type.AssemblyQualifiedName,
-            GenericTypeArguments = type.GenericTypeArguments.ToList().ConvertAll(x => Serialize(x)),
+            GenericTypeArguments = type.GenericTypeArguments.Transform(x => Serialize(x)).ToArray(),
         };
     }
 
-    public virtual Type Deserialize(SerializedType serializedType)
+    public virtual Type Deserialize(SerializableType serializedType)
     {
         AppDomain domain = AppDomain.CurrentDomain;
         Assembly[] assemblies = domain.GetAssemblies();
@@ -213,7 +213,7 @@ public class TypeSerializer
 
         if (serializedType.IsGeneric && serializedType.ContainsGenericArguments())
         {
-            deserializedType = deserializedType.MakeGenericType(serializedType.GenericTypeArguments.ConvertAll(x => Deserialize(x)).ToArray());
+            deserializedType = deserializedType.MakeGenericType(serializedType.GenericTypeArguments.Transform(x => Deserialize(x)).ToArray());
         }
 
         return deserializedType;

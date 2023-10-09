@@ -49,14 +49,14 @@ internal class GetByIdEndpoint<T> : EndpointBase<string, T>
     }
 }
 
-internal class QueryEndpoint<T> : EndpointBase<SerializedQuery, QueryResult<T>>
+internal class QueryEndpoint<T> : EndpointBase<SerializableQuery, QueryResult<T>>
 {
     public QueryEndpoint(Http.Uri uri) : base(uri)
     {
 
     }
 
-    protected override HttpRequest CreateRequest(SerializedQuery input)
+    protected override HttpRequest CreateRequest(SerializableQuery input)
     {
         return new HttpRequest(RequestUri.AppendPath("query"), HttpMethod.Post)
             .SetJsonBody(input);

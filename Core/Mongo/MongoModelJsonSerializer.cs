@@ -20,7 +20,7 @@ public class MongoModelJsonSerializer<T> : ISerializer<T> where T : class, IMong
     public string Serialize(T input)
     {
         var options = new JsonSerializerOptions()
-            .AddConverter(new ObjectIdConverter());
+            .AddConverter(new ObjectIdJsonConverter());
 
         return JsonSerializerSingleton.Serialize(input, options);
     }
@@ -33,7 +33,7 @@ public class MongoModelJsonSerializer<T> : ISerializer<T> where T : class, IMong
     public T? TryDeserialize(string input)
     {
         var options = new JsonSerializerOptions()
-            .AddConverter(new ObjectIdConverter());
+            .AddConverter(new ObjectIdJsonConverter());
 
         var obj = JsonSerializerSingleton.Deserialize<T>(input, options);
 
@@ -61,7 +61,7 @@ public class MongoModelJsonSerializer<T> : ISerializer<T> where T : class, IMong
 /// <summary>
 /// A custom JSON converter for MongoDB's <see cref="ObjectId"/> type.
 /// </summary>
-public class ObjectIdConverter : JsonConverter<ObjectId>
+public class ObjectIdJsonConverter : JsonConverter<ObjectId>
 {
     /// <summary>
     /// Reads a JSON string and converts it to an ObjectId instance.

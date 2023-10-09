@@ -69,7 +69,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
     }
 
     [HttpPost("query")]
-    public virtual async Task<IActionResult> QueryAsync([FromBody] SerializedQuery serializedQuery, [BindNever] IResourcePolicy? resourcePolicy = null)
+    public virtual async Task<IActionResult> QueryAsync([FromBody] SerializableQuery serializedQuery, [BindNever] IResourcePolicy? resourcePolicy = null)
     {
         try
         {
@@ -175,7 +175,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
         }
     }
 
-    protected virtual IQuery<T> CreateSearch(SerializedQuery input)
+    protected virtual IQuery<T> CreateSearch(SerializableQuery input)
     {
         return input.ToQuery<T>();
     }
@@ -255,7 +255,7 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
     }
 
     [HttpPost("query")]
-    public virtual async Task<IActionResult> QueryAsync([FromBody] SerializedQuery serializedQuery, [BindNever] IResourcePolicy? resourcePolicy = null)
+    public virtual async Task<IActionResult> QueryAsync([FromBody] SerializableQuery serializedQuery, [BindNever] IResourcePolicy? resourcePolicy = null)
     {
         try
         {

@@ -2,7 +2,9 @@
 using ModularSystem.Core.Cli;
 using ModularSystem.Mailing;
 using ModularSystem.Mongo;
+using ModularSystem.Web.Expressions;
 using MongoDB.Bson;
+using System.Linq.Expressions;
 using static ModularSystem.Tester.Sandbox;
 
 namespace ModularSystem.Tester;
@@ -22,13 +24,6 @@ public partial class Sandbox : CliCommand
     protected override async void Execute()
     {
         using var service = new MongoTestEntity();
-
-        var serializedUpdate = new UpdateWriter<MongoTestModel>()
-            .SetFilter(x => x.Surnames.Contains("Richthofen"))
-            .SetModification(x => x.HasKilledChild, true)
-            .CreateSerialized();
-
-        await Console.Out.WriteLineAsync();
 
         if (Context.GetFlag("list"))
         {
@@ -62,6 +57,12 @@ public partial class Sandbox : CliCommand
         {
             await Console.Out.WriteLineAsync("No valid flags were provided.");
         }
+
+        var json = new QueryWriter<MongoTestModel>()
+                .SetLimit(50)
+                .SetFilter(x => 50 == 50)
+                .CreateSerialized();
+        Console.WriteLine(json);
     }
 
     public override string Instruction()

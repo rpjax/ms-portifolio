@@ -3,13 +3,13 @@ using System.Reflection;
 
 namespace ModularSystem.Web.Expressions;
 
-public class SerializedMethodInfo
+public class SerializableMethodInfo
 {
     public bool IsGeneric { get; set; }
     public string? Name { get; set; }
-    public SerializedType? DeclaringType { get; set; }
-    public SerializedType? ReturnType { get; set; }
-    public List<SerializedType> GenericArguments { get; set; } = new();
+    public SerializableType? DeclaringType { get; set; }
+    public SerializableType? ReturnType { get; set; }
+    public List<SerializableType> GenericArguments { get; set; } = new();
 
     /// <summary>
     /// Type.Fullname + Name
@@ -31,7 +31,7 @@ public class SerializedMethodInfo
     }
 }
 
-public class MethodInfoMapper : IMapper<SerializedMethodInfo, MethodInfo>
+public class MethodInfoMapper : IMapper<SerializableMethodInfo, MethodInfo>
 {
     TypeSerializer typeSerializer;
     Dictionary<string, MethodInfo> map { get; } = new();
@@ -43,7 +43,7 @@ public class MethodInfoMapper : IMapper<SerializedMethodInfo, MethodInfo>
         Init();
     }
 
-    public MethodInfo? Get(SerializedMethodInfo serializedMethodInfo)
+    public MethodInfo? Get(SerializableMethodInfo serializedMethodInfo)
     {
         if (serializedMethodInfo.Name == null)
         {
@@ -59,7 +59,7 @@ public class MethodInfoMapper : IMapper<SerializedMethodInfo, MethodInfo>
         return map.Get(fullname);
     }
 
-    public void Map(SerializedMethodInfo source, MethodInfo target)
+    public void Map(SerializableMethodInfo source, MethodInfo target)
     {
         map[source.GetFullName()] = target;
     }
@@ -93,11 +93,11 @@ public class MethodInfoSerializer
 {
     public class Options
     {
-        public IMapper<SerializedMethodInfo, MethodInfo>? Mapper { get; set; }
+        public IMapper<SerializableMethodInfo, MethodInfo>? Mapper { get; set; }
     }
 
     TypeSerializer typeSerializer;
-    IMapper<SerializedMethodInfo, MethodInfo> mapper;
+    IMapper<SerializableMethodInfo, MethodInfo> mapper;
 
     public MethodInfoSerializer(TypeSerializer serializer, Options? options = null)
     {
@@ -106,14 +106,14 @@ public class MethodInfoSerializer
         mapper = options.Mapper ?? new MethodInfoMapper(typeSerializer);
     }
 
-    public SerializedMethodInfo Serialize(MethodInfo methodInfo)
+    public SerializableMethodInfo Serialize(MethodInfo methodInfo)
     {
         if (methodInfo.DeclaringType == null)
         {
             throw new InvalidOperationException("Could not serialize MethodInfo because its declaring type is null.");
         }
 
-        return new SerializedMethodInfo()
+        return new SerializableMethodInfo()
         {
             IsGeneric = methodInfo.IsGenericMethod,
             Name = methodInfo.Name,
@@ -123,7 +123,7 @@ public class MethodInfoSerializer
         };
     }
 
-    public MethodInfo Deserialize(SerializedMethodInfo serializedMethodInfo)
+    public MethodInfo Deserialize(SerializableMethodInfo serializedMethodInfo)
     {
         if (serializedMethodInfo.Name == null)
         {

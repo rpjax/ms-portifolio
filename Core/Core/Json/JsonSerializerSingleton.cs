@@ -1,4 +1,6 @@
 ﻿using System.Collections.Concurrent;
+using System.IO;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -52,6 +54,11 @@ public static class JsonSerializerSingleton
     public static string Serialize<T>(T value, JsonSerializerOptions? options = null)
     {
         return JsonSerializer.Serialize(value, GetOptions(options));
+    }
+
+    public static void Serialize<T>(Utf8JsonWriter writer, T value, JsonSerializerOptions? options = null)
+    {
+        JsonSerializer.Serialize(writer, value, GetOptions(options));
     }
 
     /// <summary>

@@ -2,6 +2,7 @@ using ModularSystem.Core;
 using ModularSystem.Web.Expressions;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using System.Text.Json;
 
 namespace ModularSystem.Web;
 
@@ -15,7 +16,7 @@ namespace ModularSystem.Web;
 /// The <see cref="ExpressionSerializer"/> is used to handle the serialization and deserialization of expressions.
 /// </remarks>
 [Serializable]
-public class SerializedQuery
+public class SerializableQuery
 {
     /// <summary>
     /// Gets or sets the serialized filter expression for the query.
@@ -48,7 +49,16 @@ public class SerializedQuery
     public OrderingDirection OrderingDirection { get; set; } = OrderingDirection.Ascending;
 
     /// <summary>
-    /// Converts the <see cref="SerializedQuery"/> instance into a <see cref="Query{T}"/> instance.
+    /// Converts this object to it's JSON representation.
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString()
+    {
+        return JsonSerializerSingleton.Serialize(this);
+    }
+
+    /// <summary>
+    /// Converts the <see cref="SerializableQuery"/> instance into a <see cref="Query{T}"/> instance.
     /// </summary>
     /// <typeparam name="T">The type of the entity the query applies to, which must be a class.</typeparam>
     /// <returns>A <see cref="Query{T}"/> instance with the properties set according to this serialized query.</returns>
@@ -89,7 +99,7 @@ public class SerializedQuery
 /// The <see cref="QueryProtocol.ExpressionSerializer"/> is used to handle the serialization and deserialization of expressions.
 /// </remarks>
 [Serializable]
-public class SerializedUpdate
+public class SerializableUpdate
 {
     /// <summary>
     /// Gets or sets the serialized representation of the filter expression.

@@ -34,13 +34,13 @@ public class Update<T> : IUpdate<T>
         Filter = update.Filter;
         Modifications = update.Modifications;
     }
-
+    
     /// <summary>
-    /// Serializes the update into a <see cref="SerializedUpdate"/> format.
+    /// Converts the update into a <see cref="SerializableUpdate"/> format.
     /// </summary>
     /// <param name="serializer">An optional serializer to use for the serialization. If not provided, the default serializer will be used.</param>
     /// <returns>A serialized representation of the update.</returns>
-    public SerializedUpdate Serialize(ExpressionSerializer? serializer = null)
+    public SerializableUpdate ToSerializable(ExpressionSerializer? serializer = null)
     {
         return new()
         {
@@ -117,12 +117,22 @@ public class UpdateWriter<T> : IFactory<Update<T>>
     }
 
     /// <summary>
-    /// Produces a serialized representation of the <see cref="Update{T}"/> object as constructed by this factory.
+    /// Produces a serializable representation of the <see cref="Update{T}"/> object as constructed by this factory.
     /// </summary>
     /// <returns>The serialized representation of the constructed query object.</returns>
-    public SerializedUpdate CreateSerialized()
+    public SerializableUpdate CreateSerializable()
     {
-        return Update.Serialize();
+        return Update.ToSerializable();
+    }
+
+    /// <summary>
+    /// Produces a <see cref="string"/> representation of the <see cref="Update{T}"/> object as constructed by this factory.
+    /// </summary>
+    /// <returns>The serialized string representation of the constructed query object.</returns>
+    public string CreateSerialized(ISerializer? serializer = null)
+    {
+        serializer ??= new NodeSerializer();
+        return serializer.Serialize(CreateSerializable());
     }
 
     /// <summary>

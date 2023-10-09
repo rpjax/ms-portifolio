@@ -104,7 +104,7 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="serializedSearch">The serialized query for the search.</param>
     /// <returns>A task representing the asynchronous operation, with a result of the query.</returns>
-    public Task<QueryResult<T>> QueryAsync(SerializedQuery serializedSearch)
+    public Task<QueryResult<T>> QueryAsync(SerializableQuery serializedSearch)
     {
         var endpoint = new QueryEndpoint<T>(CopyUri());
         return endpoint.RunAsync(serializedSearch);
