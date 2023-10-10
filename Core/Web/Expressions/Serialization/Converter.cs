@@ -52,4 +52,64 @@ public abstract class Converter
         return ParsingException($"The property '{propertyInfo.Name}' could not be found in the type '{propertyInfo.DeclaringType?.FullName}'. Ensure that the property exists and is accessible.");
     }
 
+    /// <summary>
+    /// Creates a parsing exception indicating that a specific member was not located within the provided type.
+    /// </summary>
+    /// <param name="memberInfo">The serializable representation of the member that was not found.</param>
+    /// <returns>A <see cref="ParsingException"/> with a detailed error message.</returns>
+    protected Exception MemberNotFoundException(SerializableMemberInfo memberInfo)
+    {
+        return ParsingException($"Failed to locate the member '{memberInfo.Name}' within the type '{memberInfo.DeclaringType?.FullName}'. Please verify the member's existence and its accessibility.");
+    }
+
+    /// <summary>
+    /// Creates a parsing exception indicating that multiple members with the same name were detected within the provided type, leading to ambiguity.
+    /// </summary>
+    /// <param name="memberInfo">The serializable representation of the ambiguous member.</param>
+    /// <returns>A <see cref="ParsingException"/> with a detailed error message.</returns>
+    protected Exception AmbiguousMemberException(SerializableMemberInfo memberInfo)
+    {
+        return ParsingException($"Detected multiple members named '{memberInfo.Name}' within the type '{memberInfo.DeclaringType?.FullName}'. Please ensure the member's uniqueness to avoid ambiguity.");
+    }
+
+    /// <summary>
+    /// Generates an exception when a specific method cannot be found.
+    /// </summary>
+    /// <param name="methodInfo">The serializable information about the method.</param>
+    /// <returns>An exception indicating the method was not found.</returns>
+    protected Exception MethodNotFoundException(SerializableMethodInfo methodInfo)
+    {
+        return ParsingException($"Failed to locate the method '{methodInfo.Name}' within the type '{methodInfo.DeclaringType?.FullName}'. Please verify the method's existence and its accessibility.");
+    }
+
+    /// <summary>
+    /// Generates an exception when there are multiple methods with the same name, causing ambiguity.
+    /// </summary>
+    /// <param name="methodInfo">The serializable information about the method.</param>
+    /// <returns>An exception indicating the method is ambiguous.</returns>
+    protected Exception AmbiguousMethodException(SerializableMethodInfo methodInfo)
+    {
+        return ParsingException($"Detected multiple methods named '{methodInfo.Name}' within the type '{methodInfo.DeclaringType?.FullName}'. Please ensure the method's uniqueness to avoid ambiguity.");
+    }
+
+    /// <summary>
+    /// Generates an exception when a specific parameter cannot be found.
+    /// </summary>
+    /// <param name="parameterInfo">The serializable information about the parameter.</param>
+    /// <returns>An exception indicating the parameter was not found.</returns>
+    protected Exception ParameterNotFoundException(SerializableParameterInfo parameterInfo)
+    {
+        return ParsingException($"Failed to locate the parameter '{parameterInfo.ParameterName}' within the type '{parameterInfo.DeclaringType?.FullName}'. Please verify the parameter's existence and its accessibility.");
+    }
+
+    /// <summary>
+    /// Generates an exception when there are multiple parameters with the same name, causing ambiguity.
+    /// </summary>
+    /// <param name="parameterInfo">The serializable information about the parameter.</param>
+    /// <returns>An exception indicating the parameter is ambiguous.</returns>
+    protected Exception AmbiguousParameterException(SerializableParameterInfo parameterInfo)
+    {
+        return ParsingException($"Detected multiple parameters named '{parameterInfo.ParameterName}' within the type '{parameterInfo.DeclaringType?.FullName}'. Please ensure the parameter's uniqueness to avoid ambiguity.");
+    }
+
 }

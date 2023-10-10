@@ -24,7 +24,7 @@ public class TypeConverter : ITypeConverter
     {
         return new SerializableType()
         {
-            IsGeneric = type.IsGenericTypeDefinition,
+            IsGenericTypeDefinition = type.IsGenericTypeDefinition,
             Name = type.Name,
             Namespace = type.Namespace,
             AssemblyQualifiedName = type.AssemblyQualifiedName,
@@ -67,7 +67,7 @@ public class TypeConverter : ITypeConverter
             throw new InvalidOperationException($"Could not find the serialized type in the current assembly '{serializableType.GetFullName()}'.");
         }
 
-        if (serializableType.IsGeneric && serializableType.ContainsGenericArguments())
+        if (serializableType.IsGenericTypeDefinition && serializableType.ContainsGenericArguments())
         {
             deserializedType = deserializedType.MakeGenericType(serializableType.GenericTypeArguments.Transform(x => Convert(x)).ToArray());
         }

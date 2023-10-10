@@ -87,7 +87,7 @@ public class MethodInfoSerializer
 
         return new SerializableMethodInfo()
         {
-            IsGeneric = methodInfo.IsGenericMethod,
+            IsGenericMethod = methodInfo.IsGenericMethod,
             Name = methodInfo.Name,
             DeclaringType = typeSerializer.Serialize(methodInfo.DeclaringType),
             ReturnType = typeSerializer.Serialize(methodInfo.ReturnType),
@@ -125,7 +125,7 @@ public class MethodInfoSerializer
 
         var methodInfo = methods.First();
 
-        if (serializedMethodInfo.IsGeneric)
+        if (serializedMethodInfo.IsGenericMethod)
         {
             var args = serializedMethodInfo.GenericArguments.ConvertAll(x => typeSerializer.Deserialize(x)).ToArray();
             methodInfo.MakeGenericMethod(args);

@@ -3,13 +3,16 @@ using System.Reflection;
 
 namespace ModularSystem.Web.Expressions;
 
-/// <inheritdoc/>
+/// <summary>
+/// Defines a contract for converting between <see cref="MethodInfo"/> and its serializable counterpart, <see cref="SerializableMethodInfo"/>.
+/// </summary>
 public interface IMethodInfoConverter : IConverter<MethodInfo, SerializableMethodInfo>
 {
-
 }
 
-/// <inheritdoc/>
+/// <summary>
+/// Provides an implementation for converting between <see cref="MethodInfo"/> and <see cref="SerializableMethodInfo"/>.
+/// </summary>
 public class MethodInfoConverter : Converter, IMethodInfoConverter
 {
     /// <summary>
@@ -22,38 +25,102 @@ public class MethodInfoConverter : Converter, IMethodInfoConverter
     /// </summary>
     private Configs Config { get; }
 
+    /// <summary>
+    /// Gets the type converter used for type conversions.
+    /// </summary>
+    private ITypeConverter TypeConverter => Config.TypeConverter;
+
+    /// <summary>
+    /// Gets the parameter info converter used for parameter info conversions.
+    /// </summary>
+    private IParameterInfoConverter ParameterInfoConverter => Config.ParameterInfoConverter;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MethodInfoConverter"/> class.
+    /// </summary>
+    /// <param name="context">The parsing context.</param>
+    /// <param name="config">The configuration settings for the converter.</param>
     public MethodInfoConverter(ParsingContext context, Configs config)
     {
         Context = context;
         Config = config;
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Converts a <see cref="MethodInfo"/> to its serializable counterpart.
+    /// </summary>
+    /// <param name="instance">The method information to convert.</param>
+    /// <returns>The serializable representation of the method.</returns>
     public SerializableMethodInfo Convert(MethodInfo instance)
     {
-        throw new NotImplementedException();
-    }
-
-    /// <inheritdoc/>
-    public MethodInfo Convert(SerializableMethodInfo instance)
-    {
-        throw new NotImplementedException();
+        return new()
+        {
+            IsGenericMethod = instance.IsGenericMethod,
+            Name = instance.Name,
+            DeclaringType = TypeConverter.Convert(instance.DeclaringType!),
+            ReturnType = TypeConverter.Convert(instance.ReturnType!),
+            GenericArguments = instance
+                .GetGenericArguments()
+                .Transform(x => TypeConverter.Convert(x))
+                .ToArray()
+        };
     }
 
     /// <summary>
-    /// Represents configuration settings for the <see cref="ElementInitConverter"/>.
+    /// Converts a <see cref="SerializableMethodInfo"/> back to its original <see cref="MethodInfo"/> form.
+    /// </summary>
+    /// <param name="sMethodInfo">The serializable method information to convert.</param>
+    /// <returns>The original method information.</returns>
+    public MethodInfo Convert(SerializableMethodInfo sMethodInfo)
+    {
+        if (sMethodInfo.Name == null)
+        {
+            throw MissingArgumentException(nameof(sMethodInfo.Name));
+        }
+        if (sMethodInfo.DeclaringType == null)
+        {
+            throw MissingArgumentException(nameof(sMethodInfo.DeclaringType));
+        }
+        if (sMethodInfo.ReturnType == null)
+        {
+            throw MissingArgumentException(nameof(sMethodInfo.ReturnType));
+        }
+
+        var declaringType = TypeConverter.Convert(sMethodInfo.DeclaringType!);
+        var returnType = TypeConverter.Convert(sMethodInfo.ReturnType!);
+        var methodInfo = declaringType
+            .GetMethods(sMethodInfo.BindingFlags)
+            .Where(x => sMethodInfo.Parameters
+                .All(sP => x.GetParameters()
+                    .Any(p => ParameterInfoConverter.Convert(sP) == p)))
+            .ToArray();
+
+        if (methodInfo.IsEmpty())
+        {
+            throw MethodNotFoundException(sMethodInfo);
+        }
+        if (methodInfo.Length > 1)
+        {
+            throw AmbiguousMethodException(sMethodInfo);
+        }
+
+        return methodInfo.First();
+    }
+
+    /// <summary>
+    /// Represents configuration settings for the <see cref="MethodInfoConverter"/>.
     /// </summary>
     public class Configs
     {
         /// <summary>
-        /// Gets or sets the method info converter used for method info conversions.
+        /// Gets or sets the type converter used for type conversions.
         /// </summary>
-        public IMethodInfoConverter MethodInfoConverter { get; set; }
+        public ITypeConverter TypeConverter { get; set; }
 
         /// <summary>
-        /// Gets or sets the expression converter used for expression conversions.
+        /// Gets or sets the parameter info converter used for parameter info conversions.
         /// </summary>
-        public IExpressionConverter ExpressionConverter { get; set; }
+        public IParameterInfoConverter ParameterInfoConverter { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Configs"/> class using the provided dependency container.
@@ -61,8 +128,8 @@ public class MethodInfoConverter : Converter, IMethodInfoConverter
         /// <param name="dependencyContainer">The dependency container used to resolve required services.</param>
         public Configs(DependencyContainerObject dependencyContainer)
         {
-            MethodInfoConverter ??= dependencyContainer.GetInterface<IMethodInfoConverter>();
-            ExpressionConverter ??= dependencyContainer.GetInterface<IExpressionConverter>();
+            TypeConverter ??= dependencyContainer.GetInterface<ITypeConverter>();
+            ParameterInfoConverter ??= dependencyContainer.GetInterface<IParameterInfoConverter>();
         }
     }
 }

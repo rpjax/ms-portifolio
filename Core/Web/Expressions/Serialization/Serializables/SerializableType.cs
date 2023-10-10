@@ -7,7 +7,7 @@ namespace ModularSystem.Web.Expressions;
 /// </summary>
 public class SerializableType
 {
-    public bool IsGeneric { get; set; }
+    public bool IsGenericTypeDefinition { get; set; }
     public string? AssemblyQualifiedName { get; set; }
     public string? Namespace { get; set; }
     public string? Name { get; set; }

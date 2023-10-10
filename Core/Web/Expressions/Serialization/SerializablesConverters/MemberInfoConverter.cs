@@ -3,34 +3,48 @@ using System.Reflection;
 
 namespace ModularSystem.Web.Expressions;
 
-/// <inheritdoc/>
+/// <summary>
+/// Provides a mechanism to convert between <see cref="MemberInfo"/> objects and their serializable representations.
+/// </summary>
 public interface IMemberInfoConverter : IConverter<MemberInfo, SerializableMemberInfo>
 {
 
 }
 
-/// <inheritdoc/>
-public class MemberInfoConverter : Converter,  IMemberInfoConverter
+/// <summary>
+/// A converter that facilitates the transformation between <see cref="MemberInfo"/> and its serializable form, <see cref="SerializableMemberInfo"/>.
+/// </summary>
+public class MemberInfoConverter : Converter, IMemberInfoConverter
 {
-    /// <summary>
-    /// Gets the parsing context associated with the converter.
-    /// </summary>
+    /// <inheritdoc/>
     protected override ParsingContext Context { get; }
 
     /// <summary>
-    /// Gets the configuration settings for the converter.
+    /// Configuration settings that guide the conversion process.
     /// </summary>
     private Configs Config { get; }
 
+    /// <summary>
+    /// Provides capabilities to convert types during the conversion process.
+    /// </summary>
     private ITypeConverter TypeConverter => Config.TypeConverter;
 
+    /// <summary>
+    /// Constructs a new instance of <see cref="MemberInfoConverter"/>, initialized with the given context and configuration.
+    /// </summary>
+    /// <param name="context">The parsing context to be used during conversion.</param>
+    /// <param name="config">Configuration settings for the converter.</param>
     public MemberInfoConverter(ParsingContext context, Configs config)
     {
         Context = context;
         Config = config;
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Transforms a <see cref="MemberInfo"/> into its serializable counterpart.
+    /// </summary>
+    /// <param name="instance">The member information to be converted.</param>
+    /// <returns>The serialized form of the provided member information.</returns>
     public SerializableMemberInfo Convert(MemberInfo instance)
     {
         return new()
@@ -40,7 +54,11 @@ public class MemberInfoConverter : Converter,  IMemberInfoConverter
         };
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Reverts a <see cref="SerializableMemberInfo"/> back to its original <see cref="MemberInfo"/> form.
+    /// </summary>
+    /// <param name="sMemberInfo">The serialized member information to be reverted.</param>
+    /// <returns>The original member information derived from the serialized form.</returns>
     public MemberInfo Convert(SerializableMemberInfo sMemberInfo)
     {
         if (sMemberInfo.DeclaringType == null)
@@ -57,27 +75,30 @@ public class MemberInfoConverter : Converter,  IMemberInfoConverter
 
         if (memberInfo.IsEmpty())
         {
-
+            throw MemberNotFoundException(sMemberInfo);
         }
         if (memberInfo.Length > 1)
         {
-
+            throw AmbiguousMemberException(sMemberInfo);
         }
 
         return memberInfo.First();
     }
 
     /// <summary>
-    /// Represents configuration settings for the <see cref="ElementInitConverter"/>.
+    /// Configuration settings tailored for the <see cref="MemberInfoConverter"/>.
     /// </summary>
     public class Configs
     {
+        /// <summary>
+        /// The converter used to handle type-related conversions.
+        /// </summary>
         public ITypeConverter TypeConverter { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Configs"/> class using the provided dependency container.
+        /// Constructs a new instance of <see cref="Configs"/>, initialized with the provided dependency container.
         /// </summary>
-        /// <param name="dependencyContainer">The dependency container used to resolve required services.</param>
+        /// <param name="dependencyContainer">The container responsible for resolving dependencies.</param>
         public Configs(DependencyContainerObject dependencyContainer)
         {
             TypeConverter ??= dependencyContainer.GetInterface<ITypeConverter>();

@@ -120,7 +120,7 @@ public class TypeSerializer
     {
         return new SerializableType()
         {
-            IsGeneric = type.IsGenericTypeDefinition,
+            IsGenericTypeDefinition = type.IsGenericTypeDefinition,
             Name = type.Name,
             Namespace = type.Namespace,
             AssemblyQualifiedName = type.AssemblyQualifiedName,
@@ -168,7 +168,7 @@ public class TypeSerializer
             throw new InvalidOperationException($"Could not find the serialized type in the current assembly '{serializedType.GetFullName()}'.");
         }
 
-        if (serializedType.IsGeneric && serializedType.ContainsGenericArguments())
+        if (serializedType.IsGenericTypeDefinition && serializedType.ContainsGenericArguments())
         {
             deserializedType = deserializedType.MakeGenericType(serializedType.GenericTypeArguments.Transform(x => Deserialize(x)).ToArray());
         }
