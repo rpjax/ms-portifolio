@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using System.Text.Json;
 
 namespace ModularSystem.Core;
@@ -65,5 +66,29 @@ public static class StringExtensions
     public static MemoryStream ToMemoryStream(this string str, Encoding? encoding = null)
     {
         return new MemoryStream(str.ToBytes(encoding));
+    }
+
+    /// <summary>
+    /// Converts the provided string to the camel case pattern.
+    /// </summary>
+    /// <param name="value">The string to be converted to camel case.</param>
+    /// <returns>The camel-cased representation of the provided string.</returns>
+    public static string ToCamelCase(this string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return value;
+        }
+
+        // Se o valor já começa com um caractere minúsculo, retorne como está.
+        if (char.IsLower(value[0]))
+        {
+            return value;
+        }
+
+        // Converta o primeiro caractere para minúsculo.
+        string camelCase = char.ToLower(value[0], CultureInfo.CurrentCulture) + value.Substring(1);
+
+        return camelCase;
     }
 }

@@ -18,7 +18,7 @@ public class TypeMapper : IMapper<SerializableType, Type> // pre serialization m
 
     public Type? Get(SerializableType serializedType)
     {
-        var lambda = map.Get(serializedType.FullName());
+        var lambda = map.Get(serializedType.GetFullName());
 
         if (lambda != null)
         {
@@ -35,7 +35,7 @@ public class TypeMapper : IMapper<SerializableType, Type> // pre serialization m
             throw new InvalidOperationException();
         }
 
-        map[source.FullName()] = x => target;
+        map[source.GetFullName()] = x => target;
     }
 
     public void Map(SerializableType source, Func<SerializableType, Type> lambda)
@@ -45,7 +45,7 @@ public class TypeMapper : IMapper<SerializableType, Type> // pre serialization m
             throw new InvalidOperationException();
         }
 
-        map[source.FullName()] = lambda;
+        map[source.GetFullName()] = lambda;
     }
 
     public void Map(Type source, Type target)
@@ -92,49 +92,6 @@ public class TypeMapper : IMapper<SerializableType, Type> // pre serialization m
     protected virtual void Init()
     {
 
-    }
-}
-
-/// <summary>
-/// Serialized version of <see cref="Type"/>
-/// </summary>
-public class SerializableType
-{
-    public bool IsGeneric { get; set; }
-    public string? AssemblyQualifiedName { get; set; }
-    public string? Namespace { get; set; }
-    public string? Name { get; set; }
-    public SerializableType[] GenericTypeArguments { get; set; } = Array.Empty<SerializableType>();
-
-    public string FullName()
-    {
-        if (FullNameIsAvailable())
-        {
-            return $"{Namespace}.{Name}";
-        }
-        else if (string.IsNullOrEmpty(Namespace) && !string.IsNullOrEmpty(Name))
-        {
-            return Name;
-        }
-        else
-        {
-            return string.Empty;
-        }
-    }
-
-    public bool FullNameIsAvailable()
-    {
-        return !string.IsNullOrEmpty(Namespace) && !string.IsNullOrEmpty(Name);
-    }
-
-    public bool AssemblyNameIsAvailable()
-    {
-        return !string.IsNullOrEmpty(AssemblyQualifiedName);
-    }
-
-    public bool ContainsGenericArguments()
-    {
-        return GenericTypeArguments.IsNotEmpty();
     }
 }
 
@@ -193,7 +150,7 @@ public class TypeSerializer
 
         if (!isDeserializable)
         {
-            throw new InvalidOperationException($"The serialized type does not have enough information to be deserialized. '{serializedType.FullName()}'.");
+            throw new InvalidOperationException($"The serialized type does not have enough information to be deserialized. '{serializedType.GetFullName()}'.");
         }
 
         if (deserializedType == null && serializedType.AssemblyNameIsAvailable() && options.UseAssemblyName)
@@ -203,12 +160,12 @@ public class TypeSerializer
 
         if (deserializedType == null && serializedType.FullNameIsAvailable() && options.UseFullName)
         {
-            deserializedType = Type.GetType(serializedType.FullName());
+            deserializedType = Type.GetType(serializedType.GetFullName());
         }
 
         if (deserializedType == null)
         {
-            throw new InvalidOperationException($"Could not find the serialized type in the current assembly '{serializedType.FullName()}'.");
+            throw new InvalidOperationException($"Could not find the serialized type in the current assembly '{serializedType.GetFullName()}'.");
         }
 
         if (serializedType.IsGeneric && serializedType.ContainsGenericArguments())

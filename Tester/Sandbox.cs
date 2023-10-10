@@ -61,7 +61,7 @@ public partial class Sandbox : CliCommand
         var json = new QueryWriter<MongoTestModel>()
                 .SetLimit(50)
                 .SetFilter(x => 50 == 50)
-                .CreateSerialized();
+                .Create();
         Console.WriteLine(json);
     }
 

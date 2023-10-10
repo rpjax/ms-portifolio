@@ -6,13 +6,13 @@ namespace ModularSystem.Web.Expressions;
 
 /// <summary>
 /// A specialized JSON serializer designed for <see cref="ExprSerializer"/>, emphasizing the handling of 
-/// the abstract <see cref="SerializableNode"/>.
+/// the abstract <see cref="SerializableExpression"/>.
 /// </summary>
 /// <remarks>
-/// Given the abstract nature of <see cref="SerializableNode"/>, this serializer incorporates custom logic to discern
+/// Given the abstract nature of <see cref="SerializableExpression"/>, this serializer incorporates custom logic to discern
 /// <br/> the appropriate concrete type during deserialization from a serialized string.
 /// </remarks>
-public class NodeSerializer : ISerializer
+public class ExprToUtf8Serializer : ISerializer
 {
     /// <summary>
     /// Serializes the provided object into a JSON string representation.
@@ -56,7 +56,7 @@ public class NodeSerializer : ISerializer
     }
 
     /// <summary>
-    /// Retrieves the JSON serialization options, including the custom converter for <see cref="SerializableNode"/>.
+    /// Retrieves the JSON serialization options, including the custom converter for <see cref="SerializableExpression"/>.
     /// </summary>
     /// <returns>The configured <see cref="JsonSerializerOptions"/>.</returns>
     protected virtual JsonSerializerOptions Options()
@@ -68,27 +68,27 @@ public class NodeSerializer : ISerializer
     }
 }
 
-internal class NodeJsonConverter : JsonConverter<SerializableNode>
+internal class NodeJsonConverter : JsonConverter<SerializableExpression>
 {
     /// <summary>
     /// Reads a JSON string and converts it to an ObjectId instance.
     /// </summary>
-    public override SerializableNode Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override SerializableExpression Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         using var jsonDocument = JsonDocument.ParseValue(ref reader);
         var root = jsonDocument.RootElement;
         var json = root.ToString();
 
-        if (root.TryGetProperty(nameof(SerializableNode.NodeType), out var nodeTypeProperty))
+        if (root.TryGetProperty(nameof(SerializableExpression.NodeType), out var nodeTypeProperty))
         {
-            throw new Exception($"Could not deserialize the provided JSON string to an instance of SerializableNode. The provided JSON does not contain a '{nameof(SerializableNode.NodeType)}' property.");
+            throw new Exception($"Could not deserialize the provided JSON string to an instance of SerializableNode. The provided JSON does not contain a '{nameof(SerializableExpression.NodeType)}' property.");
         }
 
         var nodeTypeInt = nodeTypeProperty.GetInt32();
         var nodeType = (ExtendedExpressionType)nodeTypeInt;
-        var emptynode = new EmptySerializableNode() as SerializableNode;
-        var concreteType = SerializableNode.GetConcreteType(emptynode.NodeType);
-        var node = root.Deserialize(concreteType, options)?.TryTypeCast<SerializableNode>();
+        var emptynode = new EmptySerializableNode() as SerializableExpression;
+        var concreteType = SerializableExpression.GetConcreteType(emptynode.NodeType);
+        var node = root.Deserialize(concreteType, options)?.TryTypeCast<SerializableExpression>();
 
         if(node == null)
         {
@@ -98,8 +98,8 @@ internal class NodeJsonConverter : JsonConverter<SerializableNode>
         return node;  
     }
 
-    public override void Write(Utf8JsonWriter writer, SerializableNode value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, SerializableExpression value, JsonSerializerOptions options)
     {
-        JsonSerializer.Serialize(writer, value, SerializableNode.GetConcreteType(value.NodeType), JsonSerializerSingleton.GetOptions());
+        JsonSerializer.Serialize(writer, value, SerializableExpression.GetConcreteType(value.NodeType), JsonSerializerSingleton.GetOptions());
     }
 }

@@ -49,5 +49,7 @@ public enum ExceptionCode
     /// Indicates the request was attempting to access a resource or perform an action that it's not allowed to.<br/>
     /// This could be due to user-level permissions or application-level restrictions.
     /// </summary>
-    Forbidden
+    Forbidden,
+
+    NotSupported
 }

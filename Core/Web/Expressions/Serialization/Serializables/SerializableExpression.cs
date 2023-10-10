@@ -2,7 +2,7 @@
 
 namespace ModularSystem.Web.Expressions;
 
-public abstract class SerializableNode
+public abstract class SerializableExpression
 {
     /// <summary>
     /// Gets or sets the specific type of the node within the expression tree, like Add, Subtract, And, Or, etc.
@@ -176,7 +176,7 @@ public abstract class SerializableNode
             case ExtendedExpressionType.PostDecrementAssign:
                 return typeof(SerializableUnaryExpression);
             case ExtendedExpressionType.TypeEqual:
-               return typeof(SerializableTypeBinaryExpression);
+                return typeof(SerializableTypeBinaryExpression);
             case ExtendedExpressionType.OnesComplement:
                 return typeof(SerializableUnaryExpression);
             case ExtendedExpressionType.IsTrue:
@@ -195,22 +195,22 @@ public abstract class SerializableNode
 }
 
 /// <summary>
-/// Used internally by the library's default implementation to <see cref="QueryProtocol.ExpressionSerializer"/> to read the <see cref="SerializableNode.NodeType"/> from a JSON string.
+/// Used internally by the library's default implementation to <see cref="QueryProtocol.ExpressionSerializer"/> to read the <see cref="SerializableExpression.NodeType"/> from a JSON string.
 /// </summary>
-internal class EmptySerializableNode : SerializableNode
+internal class EmptySerializableNode : SerializableExpression
 {
 
 }
 
-public class SerializableBinaryExpression : SerializableNode
+public class SerializableBinaryExpression : SerializableExpression
 {
     public bool IsLiftedToNull { get; set; }
     public SerializableType? Type { get; set; }
-    public SerializableNode Left { get; set; }
-    public SerializableNode Right { get; set; }
+    public SerializableExpression Left { get; set; }
+    public SerializableExpression Right { get; set; }
 }
 
-public class SerializableUnaryExpression : SerializableNode
+public class SerializableUnaryExpression : SerializableExpression
 {
     /// <summary>
     /// Indicates whether the expression is lifted to a nullable type.
@@ -225,27 +225,27 @@ public class SerializableUnaryExpression : SerializableNode
     /// <summary>
     /// Gets or sets the operand for this unary operation.
     /// </summary>
-    public SerializableNode? Operand { get; set; }
+    public SerializableExpression? Operand { get; set; }
 }
 
-public class SerializableMethodCallExpression : SerializableNode
+public class SerializableMethodCallExpression : SerializableExpression
 {
     public SerializableMethodInfo? MethodInfo { get; set; }
-    public SerializableNode? Target { get; set; }
-    public SerializableNode[] Arguments { get; set; } = Array.Empty<SerializableNode>();
+    public SerializableExpression? Target { get; set; }
+    public SerializableExpression[] Arguments { get; set; } = Array.Empty<SerializableExpression>();
 }
 
-public class SerializableConditionalExpression : SerializableNode
+public class SerializableConditionalExpression : SerializableExpression
 {
-    public SerializableNode? Test { get; set; }
-    public SerializableNode? IfTrue { get; set; }
-    public SerializableNode? IfFalse { get; set; }
+    public SerializableExpression? Test { get; set; }
+    public SerializableExpression? IfTrue { get; set; }
+    public SerializableExpression? IfFalse { get; set; }
 }
 
 /// <summary>
 /// Represents a serializable version of <see cref="ConstantExpression"/>.
 /// </summary>
-public class SerializableConstantExpression : SerializableNode
+public class SerializableConstantExpression : SerializableExpression
 {
     /// <summary>
     /// Gets or sets the type of the constant.
@@ -258,47 +258,51 @@ public class SerializableConstantExpression : SerializableNode
     public string? Value { get; set; }
 }
 
-public class SerializableInvocationExpression : SerializableNode
+public class SerializableInvocationExpression : SerializableExpression
 {
-
+    public SerializableExpression? Expression { get; set; }
+    public SerializableExpression[] Arguments { get; set; } = Array.Empty<SerializableExpression>();
 }
 
-public class SerializableLambdaExpression : SerializableNode
+public class SerializableLambdaExpression : SerializableExpression
 {
     public SerializableType? Type { get; set; }
     public SerializableType? ReturnType { get; set; }
-    public List<SerializableNode> Parameters { get; set; } = new();
-    public SerializableNode? Body { get; set; }
+    public SerializableExpression[] Parameters { get; set; } = Array.Empty<SerializableExpression>();
+    public SerializableExpression? Body { get; set; }
 }
 
-public class SerializableListInitExpression : SerializableNode
+public class SerializableListInitExpression : SerializableExpression
 {
-
+    public SerializableExpression? NewExpression { get; set; }
+    public SerializableElementInit[] Initializers { get; set; } = Array.Empty<SerializableElementInit>();
 }
 
-public class SerializableMemberExpression : SerializableNode
+public class SerializableMemberExpression : SerializableExpression
 {
     public SerializableType? Type { get; set; }
     public SerializableMemberInfo? MemberInfo { get; set; }
-    public SerializableNode? Expression { get; set; }
+    public SerializableExpression? Expression { get; set; }
 }
 
-public class SerializableMemberInitExpression : SerializableNode
+public class SerializableMemberInitExpression : SerializableExpression
 {
-
+    public SerializableExpression? NewExpression { get; set; }
+    public SerializableMemberBinding[] Bindings { get; set; }
 }
 
-public class SerializableNewExpression : SerializableNode
+public class SerializableNewExpression : SerializableExpression
 {
-
+    public SerializableConstructorInfo? ConstructorInfo { get; set; }
 }
 
-public class SerializableNewArrayExpression : SerializableNode
+public class SerializableNewArrayExpression : SerializableExpression
 {
-
+    public SerializableType? Type { get; set; }
+    public SerializableExpression[] Initializers { get; set; } = Array.Empty<SerializableExpression>();
 }
 
-public class SerializableParameterExpression : SerializableNode
+public class SerializableParameterExpression : SerializableExpression
 {
     /// <summary>
     /// Indicates whether the parameter is passed by reference.
@@ -316,72 +320,79 @@ public class SerializableParameterExpression : SerializableNode
     public SerializableType? Type { get; set; }
 }
 
-public class SerializableTypeBinaryExpression : SerializableNode
+public class SerializableTypeBinaryExpression : SerializableExpression
+{
+    public SerializableExpression? Expression { get; set; }
+    public SerializableType? Type { get; set; }
+}
+
+public class SerializableBlockExpression : SerializableExpression
+{
+    public SerializableExpression[] Expressions { get; set; } = Array.Empty<SerializableExpression>();
+}
+
+public class SerializableDebugInfoExpression : SerializableExpression
+{
+    public SerializableSymbolDocumentInfo? SymbolDocumentInfo { get; set; }
+    public int StartLine { get; set; }
+    public int StartColumn { get; set; }
+    public int EndLine { get; set; }
+    public int EndColumn { get; set; }
+}
+
+public class SerializableDynamicExpression : SerializableExpression
+{
+  
+}
+
+public class SerializableDefaultExpression : SerializableExpression
+{
+    public SerializableType? Type { get; set; }
+}
+
+public class SerializableExtensionExpression : SerializableExpression
 {
 
 }
 
-public class SerializableBlockExpression : SerializableNode
+public class SerializableGotoExpression : SerializableExpression
 {
 
 }
 
-public class SerializableDebugInfoExpression : SerializableNode
+public class SerializableIndexExpression : SerializableExpression
+{
+    public SerializableExpression? Object { get; set; }
+    public SerializablePropertyInfo? Indexer { get; set; }
+    public SerializableExpression[] Arguments { get; set; } = Array.Empty<SerializableExpression>();
+}
+
+public class SerializableLabelExpression : SerializableExpression
 {
 
 }
 
-public class SerializableDynamicExpression : SerializableNode
+public class SerializableRuntimeVariablesExpression : SerializableExpression
 {
 
 }
 
-public class SerializableDefaultExpression : SerializableNode
+public class SerializableLoopExpression : SerializableExpression
 {
 
 }
 
-public class SerializableExtensionExpression : SerializableNode
+public class SerializableSwitchExpression : SerializableExpression
 {
 
 }
 
-public class SerializableGotoExpression : SerializableNode
+public class SerializableThrowExpression : SerializableExpression
 {
 
 }
 
-public class SerializableIndexExpression : SerializableNode
-{
-
-}
-
-public class SerializableLabelExpression : SerializableNode
-{
-
-}
-
-public class SerializableRuntimeVariablesExpression : SerializableNode
-{
-
-}
-
-public class SerializableLoopExpression : SerializableNode
-{
-
-}
-
-public class SerializableSwitchExpression : SerializableNode
-{
-
-}
-
-public class SerializableThrowExpression : SerializableNode
-{
-
-}
-
-public class SerializableTryExpression : SerializableNode
+public class SerializableTryExpression : SerializableExpression
 {
 
 }

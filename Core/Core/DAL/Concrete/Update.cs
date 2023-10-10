@@ -131,7 +131,7 @@ public class UpdateWriter<T> : IFactory<Update<T>>
     /// <returns>The serialized string representation of the constructed query object.</returns>
     public string CreateSerialized(ISerializer? serializer = null)
     {
-        serializer ??= new NodeSerializer();
+        serializer ??= new ExprToUtf8Serializer();
         return serializer.Serialize(CreateSerializable());
     }
 

@@ -3,15 +3,6 @@ using System.Reflection;
 
 namespace ModularSystem.Web.Expressions;
 
-/// <summary>
-/// Serialized version of <see cref="MemberInfo"/>
-/// </summary>
-public class SerializableMemberInfo
-{
-    public string? Name { get; set; }
-    public SerializableType? DeclaringType { get; set; }
-}
-
 public class MemberInfoSerializer
 {
     protected TypeSerializer typeSerializer;

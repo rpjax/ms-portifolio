@@ -20,7 +20,7 @@ public class ExprSerializer : ISerializer<Expression>
     /// <summary>
     /// Gets the converter used to transform between Expression and its serializable counterpart.
     /// </summary>
-    private INodeConverter Converter => Config.Converter;
+    private IExpressionConverter Converter => Config.Converter;
 
     /// <summary>
     /// Gets the underlying serializer used for string serialization.
@@ -41,7 +41,7 @@ public class ExprSerializer : ISerializer<Expression>
     /// </summary>
     /// <param name="expression">The LINQ Expression to convert.</param>
     /// <returns>The serializable representation of the expression.</returns>
-    public SerializableNode ToSerializable(Expression expression)
+    public SerializableExpression ToSerializable(Expression expression)
     {
         return Converter.Convert(expression);
     }
@@ -51,7 +51,7 @@ public class ExprSerializer : ISerializer<Expression>
     /// </summary>
     /// <param name="serializedExpression">The serializable representation of the expression.</param>
     /// <returns>The LINQ Expression.</returns>
-    public Expression FromSerializable(SerializableNode serializedExpression)
+    public Expression FromSerializable(SerializableExpression serializedExpression)
     {
         return Converter.Convert(serializedExpression);
     }
@@ -73,7 +73,7 @@ public class ExprSerializer : ISerializer<Expression>
     /// <returns>The LINQ Expression if deserialization is successful; otherwise, <c>null</c>.</returns>
     public Expression? TryDeserialize(string serializedExpression)
     {
-        var node = Serializer.TryDeserialize<SerializableNode>(serializedExpression);
+        var node = Serializer.TryDeserialize<SerializableExpression>(serializedExpression);
 
         if (node == null)
         {
@@ -88,7 +88,7 @@ public class ExprSerializer : ISerializer<Expression>
     /// </summary>
     /// <param name="serializedExpression">The string representation of the serialized expression.</param>
     /// <returns>The LINQ Expression.</returns>
-    /// <exception cref="System.Exception">Thrown when the deserialization process encounters an error.</exception>
+    /// <exception cref="Exception">Thrown when the deserialization process encounters an error.</exception>
     public Expression Deserialize(string serializedExpression)
     {
         var expression = TryDeserialize(serializedExpression);
@@ -109,11 +109,11 @@ public class ExprSerializer : ISerializer<Expression>
         /// <summary>
         /// Gets the converter used to transform between Expression and its serializable counterpart.
         /// </summary>
-        public INodeConverter Converter { get; } = new NodeConverter();
+        public IExpressionConverter Converter { get; } = new NodeConverter();
 
         /// <summary>
         /// Gets the underlying serializer used for string serialization.
         /// </summary>
-        public ISerializer Serializer { get; } = new NodeSerializer();
+        public ISerializer Serializer { get; } = new ExprToUtf8Serializer();
     }
 }
