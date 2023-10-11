@@ -6,7 +6,7 @@ namespace ModularSystem.Web.Expressions;
 /// <summary>
 /// Provides a mechanism to convert between <see cref="MemberInfo"/> objects and their serializable representations.
 /// </summary>
-public interface IMemberInfoConverter : IConverter<MemberInfo, SerializableMemberInfo>
+public interface IMemberInfoConverter : IBidirectionalConverter<MemberInfo, SerializableMemberInfo>
 {
 
 }
@@ -14,30 +14,24 @@ public interface IMemberInfoConverter : IConverter<MemberInfo, SerializableMembe
 /// <summary>
 /// A converter that facilitates the transformation between <see cref="MemberInfo"/> and its serializable form, <see cref="SerializableMemberInfo"/>.
 /// </summary>
-public class MemberInfoConverter : Converter, IMemberInfoConverter
+public class MemberInfoConverter : Parser, IMemberInfoConverter
 {
     /// <inheritdoc/>
     protected override ParsingContext Context { get; }
 
     /// <summary>
-    /// Configuration settings that guide the conversion process.
-    /// </summary>
-    private Configs Config { get; }
-
-    /// <summary>
     /// Provides capabilities to convert types during the conversion process.
     /// </summary>
-    private ITypeConverter TypeConverter => Config.TypeConverter;
+    private ITypeConverter TypeConverter { get; }
 
     /// <summary>
     /// Constructs a new instance of <see cref="MemberInfoConverter"/>, initialized with the given context and configuration.
     /// </summary>
-    /// <param name="context">The parsing context to be used during conversion.</param>
-    /// <param name="config">Configuration settings for the converter.</param>
-    public MemberInfoConverter(ParsingContext context, Configs config)
+    /// <param name="parentContext">The parsing context to be used during conversion.</param>
+    public MemberInfoConverter(ParsingContext parentContext)
     {
-        Context = context;
-        Config = config;
+        Context = parentContext.CreateChild("Member Info Conversion");
+        TypeConverter = Context.GetDependency<ITypeConverter>();
     }
 
     /// <summary>
@@ -85,23 +79,4 @@ public class MemberInfoConverter : Converter, IMemberInfoConverter
         return memberInfo.First();
     }
 
-    /// <summary>
-    /// Configuration settings tailored for the <see cref="MemberInfoConverter"/>.
-    /// </summary>
-    public class Configs
-    {
-        /// <summary>
-        /// The converter used to handle type-related conversions.
-        /// </summary>
-        public ITypeConverter TypeConverter { get; set; }
-
-        /// <summary>
-        /// Constructs a new instance of <see cref="Configs"/>, initialized with the provided dependency container.
-        /// </summary>
-        /// <param name="dependencyContainer">The container responsible for resolving dependencies.</param>
-        public Configs(DependencyContainerObject dependencyContainer)
-        {
-            TypeConverter ??= dependencyContainer.GetInterface<ITypeConverter>();
-        }
-    }
 }

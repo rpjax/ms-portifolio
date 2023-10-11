@@ -3,7 +3,7 @@
 /// <summary>
 /// Provides a base for converting between different representations of data.
 /// </summary>
-public abstract class Converter
+public abstract class Parser
 {
     /// <summary>
     /// Gets the parsing context associated with the converter.
@@ -83,6 +83,17 @@ public abstract class Converter
     }
 
     /// <summary>
+    /// Generates an exception when a specific method cannot be found.
+    /// </summary>
+    /// <param name="declaringType">The type in which the method is expected to be declared.</param>
+    /// <param name="methodName">The name of the method that could not be found.</param>
+    /// <returns>An exception indicating the method was not found.</returns>
+    protected Exception MethodNotFoundException(Type declaringType, string methodName)
+    {
+        return ParsingException($"Failed to locate the method '{methodName}' within the type '{declaringType?.FullName}'. Please verify the method's existence and its accessibility.");
+    }
+
+    /// <summary>
     /// Generates an exception when there are multiple methods with the same name, causing ambiguity.
     /// </summary>
     /// <param name="methodInfo">The serializable information about the method.</param>
@@ -99,7 +110,7 @@ public abstract class Converter
     /// <returns>An exception indicating the parameter was not found.</returns>
     protected Exception ParameterNotFoundException(SerializableParameterInfo parameterInfo)
     {
-        return ParsingException($"Failed to locate the parameter '{parameterInfo.ParameterName}' within the type '{parameterInfo.DeclaringType?.FullName}'. Please verify the parameter's existence and its accessibility.");
+        return ParsingException($"Failed to locate the parameter '{parameterInfo.ParameterName}' within the type '{parameterInfo.MethodDeclaringType?.FullName}'. Please verify the parameter's existence and its accessibility.");
     }
 
     /// <summary>
@@ -109,7 +120,27 @@ public abstract class Converter
     /// <returns>An exception indicating the parameter is ambiguous.</returns>
     protected Exception AmbiguousParameterException(SerializableParameterInfo parameterInfo)
     {
-        return ParsingException($"Detected multiple parameters named '{parameterInfo.ParameterName}' within the type '{parameterInfo.DeclaringType?.FullName}'. Please ensure the parameter's uniqueness to avoid ambiguity.");
+        return ParsingException($"Detected multiple parameters named '{parameterInfo.ParameterName}' within the type '{parameterInfo.MethodDeclaringType?.FullName}'. Please ensure the parameter's uniqueness to avoid ambiguity.");
+    }
+
+    /// <summary>
+    /// Generates an exception when a specific type cannot be found within the current running assembly.
+    /// </summary>
+    /// <param name="type">The serializable information about the type.</param>
+    /// <returns>An exception indicating the type was not found.</returns>
+    protected Exception TypeNotFoundException(SerializableType type)
+    {
+        return ParsingException($"Failed to locate the type '{type.GetFullName()}' within the current running assembly. Please verify the type's existence and its accessibility.");
+    }
+
+    /// <summary>
+    /// Generates an exception when multiple types with the same name are detected within the current running assembly.
+    /// </summary>
+    /// <param name="type">The serializable information about the type.</param>
+    /// <returns>An exception indicating the ambiguity in type resolution.</returns>
+    protected Exception AmbiguousTypeException(SerializableType type)
+    {
+        return ParsingException($"Multiple types named '{type.GetFullName()}' were detected within the current running assembly. Please ensure the type's uniqueness to avoid ambiguity.");
     }
 
 }

@@ -14,7 +14,7 @@ public class SerializableType
     public string? FullName => GetFullName();
     public SerializableType[] GenericTypeArguments { get; set; } = Array.Empty<SerializableType>();
 
-    public string GetFullName()
+    public string? GetFullName()
     {
         if (FullNameIsAvailable())
         {
@@ -26,7 +26,7 @@ public class SerializableType
         }
         else
         {
-            return string.Empty;
+            return null;
         }
     }
 

@@ -6,7 +6,7 @@ namespace ModularSystem.Web.Expressions;
 /// <summary>
 /// Defines a contract for converting between <see cref="ElementInit"/> and its serializable counterpart, <see cref="SerializableElementInit"/>.
 /// </summary>
-public interface IElementInitConverter : IConverter<ElementInit, SerializableElementInit>
+public interface IElementInitConverter : IBidirectionalConverter<ElementInit, SerializableElementInit>
 {
 
 }
@@ -14,7 +14,7 @@ public interface IElementInitConverter : IConverter<ElementInit, SerializableEle
 /// <summary>
 /// Provides an implementation for converting between <see cref="ElementInit"/> and <see cref="SerializableElementInit"/>.
 /// </summary>
-public class ElementInitConverter : Converter, IElementInitConverter
+public class ElementInitConverter : Parser, IElementInitConverter
 {
     /// <summary>
     /// Gets the parsing context associated with the converter.
@@ -22,29 +22,23 @@ public class ElementInitConverter : Converter, IElementInitConverter
     protected override ParsingContext Context { get; }
 
     /// <summary>
-    /// Gets the configuration settings for the converter.
-    /// </summary>
-    private Configs Config { get; }
-
-    /// <summary>
     /// Gets the method info converter used for method info conversions.
     /// </summary>
-    private IMethodInfoConverter MethodInfoConverter => Config.MethodInfoConverter;
+    private IMethodInfoConverter MethodInfoConverter { get; }
 
     /// <summary>
     /// Gets the expression converter used for expression conversions.
     /// </summary>
-    private IExpressionConverter ExpressionConverter => Config.ExpressionConverter;
+    private IExpressionConverter ExpressionConverter => Context.GetDependency<IExpressionConverter>();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ElementInitConverter"/> class.
     /// </summary>
-    /// <param name="context">The parsing context.</param>
-    /// <param name="config">The configuration settings for the converter.</param>
-    public ElementInitConverter(ParsingContext context, Configs config)
+    /// <param name="parentContext">The parsing context.</param>
+    public ElementInitConverter(ParsingContext parentContext)
     {
-        Context = context;
-        Config = config;
+        Context = parentContext.CreateChild("Element Init Conversion");
+        MethodInfoConverter = Context.GetDependency<IMethodInfoConverter>();
     }
 
     /// <summary>
@@ -87,29 +81,4 @@ public class ElementInitConverter : Converter, IElementInitConverter
         return Expression.ElementInit(methodInfo, arguments);
     }
 
-    /// <summary>
-    /// Represents configuration settings for the <see cref="ElementInitConverter"/>.
-    /// </summary>
-    public class Configs
-    {
-        /// <summary>
-        /// Gets or sets the method info converter used for method info conversions.
-        /// </summary>
-        public IMethodInfoConverter MethodInfoConverter { get; set; }
-
-        /// <summary>
-        /// Gets or sets the expression converter used for expression conversions.
-        /// </summary>
-        public IExpressionConverter ExpressionConverter { get; set; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Configs"/> class using the provided dependency container.
-        /// </summary>
-        /// <param name="dependencyContainer">The dependency container used to resolve required services.</param>
-        public Configs(DependencyContainerObject dependencyContainer)
-        {
-            MethodInfoConverter ??= dependencyContainer.GetInterface<IMethodInfoConverter>();
-            ExpressionConverter ??= dependencyContainer.GetInterface<IExpressionConverter>();
-        }
-    }
 }

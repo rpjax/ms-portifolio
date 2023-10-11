@@ -6,7 +6,7 @@ namespace ModularSystem.Web.Expressions;
 /// <summary>
 /// Defines a contract for converting between <see cref="ConstructorInfo"/> and its serializable counterpart, <see cref="SerializableConstructorInfo"/>.
 /// </summary>
-public interface IConstructorInfoConverter : IConverter<ConstructorInfo, SerializableConstructorInfo>
+public interface IConstructorInfoConverter : IBidirectionalConverter<ConstructorInfo, SerializableConstructorInfo>
 {
 
 }
@@ -14,7 +14,7 @@ public interface IConstructorInfoConverter : IConverter<ConstructorInfo, Seriali
 /// <summary>
 /// Provides an implementation for converting between <see cref="ConstructorInfo"/> and <see cref="SerializableConstructorInfo"/>.
 /// </summary>
-public class ConstructorInfoConverter : Converter, IConstructorInfoConverter
+public class ConstructorInfoConverter : Parser, IConstructorInfoConverter
 {
     /// <summary>
     /// Gets the parsing context associated with the converter.
@@ -22,24 +22,18 @@ public class ConstructorInfoConverter : Converter, IConstructorInfoConverter
     protected override ParsingContext Context { get; }
 
     /// <summary>
-    /// Gets the configuration settings for the converter.
-    /// </summary>
-    private Configs Config { get; }
-
-    /// <summary>
     /// Gets the type converter used for type conversions.
     /// </summary>
-    private ITypeConverter TypeConverter => Config.TypeConverter;
+    private ITypeConverter TypeConverter { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ConstructorInfoConverter"/> class.
     /// </summary>
-    /// <param name="context">The parsing context.</param>
-    /// <param name="configs">The configuration settings for the converter.</param>
-    public ConstructorInfoConverter(ParsingContext context, Configs configs)
+    /// <param name="parentContext">The parsing context.</param>
+    public ConstructorInfoConverter(ParsingContext parentContext)
     {
-        Context = context;
-        Config = configs;
+        Context = parentContext.CreateChild("Constructor Info Conversion");
+        TypeConverter = Context.GetDependency<ITypeConverter>();
     }
 
     /// <summary>
@@ -54,7 +48,7 @@ public class ConstructorInfoConverter : Converter, IConstructorInfoConverter
             DeclaringType = TypeConverter.Convert(constructorInfo.DeclaringType!),
             Parameters = constructorInfo
                 .GetParameters()
-                .Transform(x => Config.TypeConverter.Convert(x.ParameterType))
+                .Transform(x => TypeConverter.Convert(x.ParameterType))
                 .ToArray()
         };
     }
@@ -86,23 +80,4 @@ public class ConstructorInfoConverter : Converter, IConstructorInfoConverter
         return constructorInfo;
     }
 
-    /// <summary>
-    /// Represents configuration settings for the <see cref="ConstructorInfoConverter"/>.
-    /// </summary>
-    public class Configs
-    {
-        /// <summary>
-        /// Gets or sets the type converter used for type conversions.
-        /// </summary>
-        public ITypeConverter TypeConverter { get; set; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Configs"/> class using the provided dependency container.
-        /// </summary>
-        /// <param name="dependencyContainer">The dependency container used to resolve required services.</param>
-        public Configs(DependencyContainerObject dependencyContainer)
-        {
-            TypeConverter ??= dependencyContainer.GetInterface<ITypeConverter>();
-        }
-    }
 }

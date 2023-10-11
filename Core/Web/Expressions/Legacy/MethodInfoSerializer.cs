@@ -91,7 +91,10 @@ public class MethodInfoSerializer
             Name = methodInfo.Name,
             DeclaringType = typeSerializer.Serialize(methodInfo.DeclaringType),
             ReturnType = typeSerializer.Serialize(methodInfo.ReturnType),
-            GenericArguments = methodInfo.GetGenericArguments().ToList().ConvertAll(x => typeSerializer.Serialize(x))
+            GenericArguments = methodInfo
+                .GetGenericArguments()
+                .Transform(x => typeSerializer.Serialize(x))
+                .ToArray()
         };
     }
 
@@ -127,7 +130,9 @@ public class MethodInfoSerializer
 
         if (serializedMethodInfo.IsGenericMethod)
         {
-            var args = serializedMethodInfo.GenericArguments.ConvertAll(x => typeSerializer.Deserialize(x)).ToArray();
+            var args = serializedMethodInfo.GenericArguments
+                .Transform(x => typeSerializer.Deserialize(x))
+                .ToArray();
             methodInfo.MakeGenericMethod(args);
         }
 

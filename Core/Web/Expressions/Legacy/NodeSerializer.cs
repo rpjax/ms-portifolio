@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace ModularSystem.Web.Expressions;
 
-public class ExpressionJsonConverter : JsonConverter
+public class LegacyExpressionJsonConverter : JsonConverter
 {
     public override bool CanConvert(Type type)
     {

@@ -6,14 +6,14 @@ namespace ModularSystem.Web.Expressions;
 /// <summary>
 /// Defines a contract for converting between <see cref="MethodInfo"/> and its serializable counterpart, <see cref="SerializableMethodInfo"/>.
 /// </summary>
-public interface IMethodInfoConverter : IConverter<MethodInfo, SerializableMethodInfo>
+public interface IMethodInfoConverter : IBidirectionalConverter<MethodInfo, SerializableMethodInfo>
 {
 }
 
 /// <summary>
 /// Provides an implementation for converting between <see cref="MethodInfo"/> and <see cref="SerializableMethodInfo"/>.
 /// </summary>
-public class MethodInfoConverter : Converter, IMethodInfoConverter
+public class MethodInfoConverter : Parser, IMethodInfoConverter
 {
     /// <summary>
     /// Gets the parsing context associated with the converter.
@@ -21,29 +21,24 @@ public class MethodInfoConverter : Converter, IMethodInfoConverter
     protected override ParsingContext Context { get; }
 
     /// <summary>
-    /// Gets the configuration settings for the converter.
-    /// </summary>
-    private Configs Config { get; }
-
-    /// <summary>
     /// Gets the type converter used for type conversions.
     /// </summary>
-    private ITypeConverter TypeConverter => Config.TypeConverter;
+    private ITypeConverter TypeConverter { get; }
 
     /// <summary>
     /// Gets the parameter info converter used for parameter info conversions.
     /// </summary>
-    private IParameterInfoConverter ParameterInfoConverter => Config.ParameterInfoConverter;
+    private IParameterInfoConverter ParameterInfoConverter { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MethodInfoConverter"/> class.
     /// </summary>
-    /// <param name="context">The parsing context.</param>
-    /// <param name="config">The configuration settings for the converter.</param>
-    public MethodInfoConverter(ParsingContext context, Configs config)
+    /// <param name="parentContext">The parsing context.</param>
+    public MethodInfoConverter(ParsingContext parentContext)
     {
-        Context = context;
-        Config = config;
+        Context = parentContext.CreateChild("Method Info Conversion");
+        TypeConverter = Context.GetDependency<ITypeConverter>();
+        ParameterInfoConverter = Context.GetDependency<IParameterInfoConverter>();
     }
 
     /// <summary>
@@ -107,29 +102,4 @@ public class MethodInfoConverter : Converter, IMethodInfoConverter
         return methodInfo.First();
     }
 
-    /// <summary>
-    /// Represents configuration settings for the <see cref="MethodInfoConverter"/>.
-    /// </summary>
-    public class Configs
-    {
-        /// <summary>
-        /// Gets or sets the type converter used for type conversions.
-        /// </summary>
-        public ITypeConverter TypeConverter { get; set; }
-
-        /// <summary>
-        /// Gets or sets the parameter info converter used for parameter info conversions.
-        /// </summary>
-        public IParameterInfoConverter ParameterInfoConverter { get; set; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Configs"/> class using the provided dependency container.
-        /// </summary>
-        /// <param name="dependencyContainer">The dependency container used to resolve required services.</param>
-        public Configs(DependencyContainerObject dependencyContainer)
-        {
-            TypeConverter ??= dependencyContainer.GetInterface<ITypeConverter>();
-            ParameterInfoConverter ??= dependencyContainer.GetInterface<IParameterInfoConverter>();
-        }
-    }
 }

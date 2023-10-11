@@ -6,7 +6,7 @@ namespace ModularSystem.Web.Expressions;
 /// <summary>
 /// Defines a contract for converting between <see cref="MemberMemberBinding"/> and its serializable counterpart, <see cref="SerializableMemberBinding"/>.
 /// </summary>
-public interface IMemberBindingConverter : IConverter<MemberMemberBinding, SerializableMemberBinding>
+public interface IMemberBindingConverter : IBidirectionalConverter<MemberMemberBinding, SerializableMemberBinding>
 {
 
 }
@@ -14,7 +14,7 @@ public interface IMemberBindingConverter : IConverter<MemberMemberBinding, Seria
 /// <summary>
 /// Provides an implementation for converting between <see cref="MemberMemberBinding"/> and <see cref="SerializableMemberBinding"/>.
 /// </summary>
-public class MemberBindingConverter : Converter, IMemberBindingConverter
+public class MemberBindingConverter : Parser, IMemberBindingConverter
 {
     /// <summary>
     /// Gets the parsing context associated with the converter.
@@ -22,24 +22,18 @@ public class MemberBindingConverter : Converter, IMemberBindingConverter
     protected override ParsingContext Context { get; }
 
     /// <summary>
-    /// Gets the configuration settings for the converter.
-    /// </summary>
-    private Configs Config { get; }
-
-    /// <summary>
     /// Gets the member info converter used for member info conversions.
     /// </summary>
-    private IMemberInfoConverter MemberInfoConverter => Config.MemberInfoConverter;
+    private IMemberInfoConverter MemberInfoConverter { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MemberBindingConverter"/> class.
     /// </summary>
-    /// <param name="context">The parsing context.</param>
-    /// <param name="config">The configuration settings for the converter.</param>
-    public MemberBindingConverter(ParsingContext context, Configs config)
+    /// <param name="parentContext">The parsing context.</param>
+    public MemberBindingConverter(ParsingContext parentContext)
     {
-        Context = context;
-        Config = config;
+        Context = parentContext.CreateChild("Member Binding Conversion");
+        MemberInfoConverter = Context.GetDependency<IMemberInfoConverter>();
     }
 
     /// <summary>
@@ -83,23 +77,4 @@ public class MemberBindingConverter : Converter, IMemberBindingConverter
         return Expression.MemberBind(memberInfo, bindings);
     }
 
-    /// <summary>
-    /// Represents configuration settings for the <see cref="MemberBindingConverter"/>.
-    /// </summary>
-    public class Configs
-    {
-        /// <summary>
-        /// Gets or sets the member info converter used for member info conversions.
-        /// </summary>
-        public IMemberInfoConverter MemberInfoConverter { get; set; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Configs"/> class using the provided dependency container.
-        /// </summary>
-        /// <param name="dependencyContainer">The dependency container used to resolve required services.</param>
-        public Configs(DependencyContainerObject dependencyContainer)
-        {
-            MemberInfoConverter ??= dependencyContainer.GetInterface<IMemberInfoConverter>();
-        }
-    }
 }

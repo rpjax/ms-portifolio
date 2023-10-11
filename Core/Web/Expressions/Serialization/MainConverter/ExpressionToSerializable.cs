@@ -4,19 +4,26 @@ using System.Linq.Expressions;
 
 namespace ModularSystem.Web.Expressions;
 
-internal class ExpressionToSerializable : IConversion<Expression, SerializableExpression>
+internal class ExpressionToSerializable : Parser, IConversion<Expression, SerializableExpression>
 {
-    private Configs Config { get; }
-    private ITypeConverter TypeConverter => Config.TypeConverter;
-    private IMethodInfoConverter MethodInfoConverter => Config.MethodInfoConverter;
-    private IMemberInfoConverter MemberInfoConverter => Config.MemberInfoConverter;
-    private IElementInitConverter ElementInitConverter => Config.ElementInitConverter;
-    private IMemberBindingConverter MemberBindingConverter => Config.MemberBindingConverter;
-    private ISerializer Serializer => Config.Serializer;
+    private ITypeConverter TypeConverter { get; }
+    private IMethodInfoConverter MethodInfoConverter { get; }
+    private IMemberInfoConverter MemberInfoConverter { get; }
+    private IElementInitConverter ElementInitConverter { get; }
+    private IMemberBindingConverter MemberBindingConverter { get; }
+    private ISerializer Serializer { get; }
 
-    public ExpressionToSerializable(Configs config)
+    protected override ParsingContext Context { get; }
+
+    public ExpressionToSerializable(ParsingContext parentContext)
     {
-        Config = config;
+        Context = parentContext.CreateChild("Expression To Serializable Conversion");
+        TypeConverter = Context.GetDependency<ITypeConverter>();
+        MethodInfoConverter = Context.GetDependency<IMethodInfoConverter>();
+        MemberInfoConverter = Context.GetDependency<IMemberInfoConverter>();
+        ElementInitConverter = Context.GetDependency<IElementInitConverter>();
+        MemberBindingConverter = Context.GetDependency<IMemberBindingConverter>();
+        Serializer = Context.GetDependency<ISerializer>();
     }
 
     public SerializableExpression Convert(Expression expression)
@@ -175,6 +182,8 @@ internal class ExpressionToSerializable : IConversion<Expression, SerializableEx
             default:
                 throw new Exception();
         }
+
+        throw new Exception();
     }
 
     [return: NotNullIfNotNull("expression")]
@@ -296,33 +305,10 @@ internal class ExpressionToSerializable : IConversion<Expression, SerializableEx
         {
             NodeType = expression.NodeType,
             NewExpression = Convert(expression.NewExpression),
-            Bindings = expression.Bindings.Transform(x => MemberBindingConverter.Convert(x)).ToArray()
+            Bindings = expression.Bindings
+                .Where(x => x is MemberMemberBinding) 
+                .Select(x => (MemberMemberBinding)x)
+                .Transform(x => MemberBindingConverter.Convert(x)).ToArray()
         };
-    }
-
-    public class Configs
-    {
-        public ITypeConverter TypeConverter { get; set; }
-        public IMethodInfoConverter MethodInfoConverter { get; set; }
-        public IMemberInfoConverter MemberInfoConverter { get; set; }
-        public IElementInitConverter ElementInitConverter { get; set; }
-        public IMemberBindingConverter MemberBindingConverter { get; set; }
-        public IConstructorInfoConverter ConstructorInfoConverter { get; set; }
-        public ISerializer Serializer { get; set; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Configs"/> class using the provided dependency container.
-        /// </summary>
-        /// <param name="dependencyContainer">The dependency container used to resolve required services.</param>
-        public Configs(DependencyContainerObject dependencyContainer)
-        {
-            TypeConverter ??= dependencyContainer.GetInterface<ITypeConverter>();
-            MethodInfoConverter ??= dependencyContainer.GetInterface<IMethodInfoConverter>();
-            MemberInfoConverter ??= dependencyContainer.GetInterface<IMemberInfoConverter>();
-            ElementInitConverter ??= dependencyContainer.GetInterface<IElementInitConverter>();
-            MemberBindingConverter ??= dependencyContainer.GetInterface<IMemberBindingConverter>();
-            ConstructorInfoConverter ??= dependencyContainer.GetInterface<IConstructorInfoConverter>();
-            Serializer ??= dependencyContainer.GetInterface<ISerializer>();
-        }
     }
 }

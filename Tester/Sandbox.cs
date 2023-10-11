@@ -27,13 +27,13 @@ public partial class Sandbox : CliCommand
 
         if (Context.GetFlag("list"))
         {
-            var query = new QueryWriter<MongoTestModel>()
+            var _query = new QueryWriter<MongoTestModel>()
                 .SetLimit(50)
                 .SetFilter(x => x.FirstName != "Rodrigo")
                 .Create();
-            var queryResult = await service.QueryAsync(query);
+            var _queryResult = await service.QueryAsync(_query);
 
-            foreach (var item in queryResult.Data)
+            foreach (var item in _queryResult.Data)
             {
                 Console.WriteLine("record:");
                 Console.WriteLine($"  id: {item.Id}");
@@ -58,10 +58,14 @@ public partial class Sandbox : CliCommand
             await Console.Out.WriteLineAsync("No valid flags were provided.");
         }
 
-        var json = new QueryWriter<MongoTestModel>()
+        var query = new QueryWriter<MongoTestModel>()
                 .SetLimit(50)
                 .SetFilter(x => 50 == 50)
                 .Create();
+
+        var serializer = new ExprSerializer();
+        var json = serializer.Serialize(query.Filter);
+
         Console.WriteLine(json);
     }
 

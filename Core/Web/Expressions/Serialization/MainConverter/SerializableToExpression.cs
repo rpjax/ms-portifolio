@@ -3,14 +3,15 @@ using System.Linq.Expressions;
 
 namespace ModularSystem.Web.Expressions;
 
-internal class SerializableToExpression : IConversion<SerializableExpression, Expression>
+internal class SerializableToExpression : Parser, IConversion<SerializableExpression, Expression>
 {
-    private Configs Config { get; }
-    private ITypeConverter TypeConverter => Config.TypeConverter;
+    protected override ParsingContext Context { get; }
 
-    public SerializableToExpression(Configs? config = null)
+    private ITypeConverter TypeConverter => Context.GetDependency<ITypeConverter>();
+
+    public SerializableToExpression(ParsingContext parentContext)
     {
-        Config = config ?? new();  
+        Context = parentContext.CreateChild("Serializable To Expression Conversion");
     }
 
     public Expression Convert(SerializableExpression node)
@@ -24,11 +25,4 @@ internal class SerializableToExpression : IConversion<SerializableExpression, Ex
         }
     }
 
-    public class Configs
-    {
-        public ITypeConverter TypeConverter { get; set; }
-        public IMethodInfoConverter MethodInfoConverter { get; set; }
-        public IMemberInfoConverter MemberInfoConverter { get; set; }
-        public ISerializer Serializer { get; set; }
-    }
 }

@@ -1,10 +1,10 @@
 ﻿namespace ModularSystem.Core;
 
-public class Converter<T1, T2> : IConverter<T1, T2>
+public class Converter<T1, T2> : IBidirectionalConverter<T1, T2>
 {
-    protected IConverter<T1, T2> _converter { get; }
+    protected IBidirectionalConverter<T1, T2> _converter { get; }
 
-    public Converter(IConverter<T1, T2> converter)
+    public Converter(IBidirectionalConverter<T1, T2> converter)
     {
         _converter = converter;
     }

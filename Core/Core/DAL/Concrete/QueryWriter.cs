@@ -52,7 +52,7 @@ public partial class QueryWriter<T> : IFactory<Query<T>>
     /// <returns>The serialized representation of the constructed query object.</returns>
     public SerializableQuery CreateSerializable()
     {
-        return Query.Serialize();
+        return Query.ToSerializable();
     }
 
     /// <summary>

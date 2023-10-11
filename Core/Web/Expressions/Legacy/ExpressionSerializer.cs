@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 namespace ModularSystem.Web.Expressions;
 
 /// <summary>
-/// Provides context for serializing expressions, storing the unique parameters encountered during serialization.
+/// Provides context for serializing expressions, storing the unique parameters encountered during serialization.<br/> 
 /// </summary>
 public class SerializationContext
 {
@@ -73,6 +73,10 @@ public class SerializationContext
 /// Handles the serialization and deserialization of <see cref="Expression"/> nodes.
 /// This class provides methods to convert <see cref="Expression"/> objects to and from <see cref="ExpressionNode"/> objects.
 /// </summary>
+/// <remarks>
+/// This implementation has been deprecated, use <see cref="ExprSerializer"/> instead.
+/// </remarks>
+[Obsolete(message: "Use ExprSerializer instead")]
 public partial class ExpressionSerializer
 {
     /// <summary>
@@ -109,7 +113,7 @@ public partial class ExpressionSerializer
         JsonSerializer = options.JsonSerializer ?? new JsonSerializer();
 
         // Explanation provided in your initial description.
-        JsonSerializer.Converters.Add(new ExpressionJsonConverter());
+        JsonSerializer.Converters.Add(new LegacyExpressionJsonConverter());
     }
 
     //*
@@ -958,7 +962,7 @@ public partial class ExpressionSerializer
 
         if (node.IsStatic)
         {
-            var typeArgs = node.MethodInfo.GenericArguments.ConvertAll(x => TypeSerializer.Deserialize(x)).ToArray();
+            var typeArgs = node.MethodInfo.GenericArguments.Transform(x => TypeSerializer.Deserialize(x)).ToArray();
             return Expression.Call(methodInfo.DeclaringType, methodInfo.Name, typeArgs, arguments);
         }
 

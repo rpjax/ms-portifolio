@@ -13,19 +13,14 @@ namespace ModularSystem.Web.Expressions;
 public class ExprSerializer : ISerializer<Expression>
 {
     /// <summary>
-    /// Gets the configuration settings for the serializer.
-    /// </summary>
-    private Configs Config { get; }
-
-    /// <summary>
     /// Gets the converter used to transform between Expression and its serializable counterpart.
     /// </summary>
-    private IExpressionConverter Converter => Config.Converter;
+    private IExpressionConverter Converter { get; }
 
     /// <summary>
     /// Gets the underlying serializer used for string serialization.
     /// </summary>
-    private ISerializer Serializer => Config.Serializer;
+    private ISerializer Serializer { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ExprSerializer"/> class with optional configurations.
@@ -33,7 +28,9 @@ public class ExprSerializer : ISerializer<Expression>
     /// <param name="config">The configurations for the serializer. If not provided, defaults will be used.</param>
     public ExprSerializer(Configs? config = null)
     {
-        Config = config ?? new();
+        config ??= new();
+        Converter = config.ExpressionConverterFactory.Execute(null)!;
+        Serializer = config.Serializer;
     }
 
     /// <summary>
@@ -106,14 +103,44 @@ public class ExprSerializer : ISerializer<Expression>
     /// </summary>
     public class Configs
     {
-        /// <summary>
-        /// Gets the converter used to transform between Expression and its serializable counterpart.
-        /// </summary>
-        public IExpressionConverter Converter { get; } = new NodeConverter();
+        public IStrategy<ParsingContext, IExpressionConverter> ExpressionConverterFactory { get; set; } = new DefaultExpressionConverterStrategy();
 
         /// <summary>
         /// Gets the underlying serializer used for string serialization.
         /// </summary>
         public ISerializer Serializer { get; } = new ExprToUtf8Serializer();
+    }
+
+    internal class DefaultExpressionConverterStrategy : IStrategy<ParsingContext, IExpressionConverter>
+    {
+        public IExpressionConverter? Execute(ParsingContext? context)
+        {
+            var strategy = new LambdaStrategy<IExpressionConverter>(x => new ExpressionConverter(x));
+
+            context = new DefaultParsingContext("Root")
+                .SetDependency(strategy);
+
+            return new ExpressionConverter(context);
+        }
+
+    }
+}
+
+public interface IBidirectionalParser<T1, T2>
+{
+    T1 Parse(T2 instance);
+    T2 Parse(T1 instance);
+}
+
+public class ExprParser : IBidirectionalParser<Expression, SerializableExpression>
+{
+    public Expression Parse(SerializableExpression instance)
+    {
+        throw new NotImplementedException();
+    }
+
+    public SerializableExpression Parse(Expression instance)
+    {
+        throw new NotImplementedException();
     }
 }

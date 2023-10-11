@@ -36,7 +36,7 @@ public interface IConversion<TInput, TOutput>
 /// </summary>
 /// <typeparam name="T1">The first type involved in the conversion.</typeparam>
 /// <typeparam name="T2">The second type involved in the conversion.</typeparam>
-public interface IConverter<T1, T2>
+public interface IBidirectionalConverter<T1, T2>
 {
     /// <summary>
     /// Converts the provided input of type <typeparamref name="T1"/> into an instance of type <typeparamref name="T2"/>.

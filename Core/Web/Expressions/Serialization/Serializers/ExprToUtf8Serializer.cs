@@ -63,12 +63,12 @@ public class ExprToUtf8Serializer : ISerializer
     {
         return JsonSerializerSingleton.GetOptions(new()
         {
-            Converters = { new NodeJsonConverter() }
+            Converters = { new ExpressionJsonConverter() }
         });
     }
 }
 
-internal class NodeJsonConverter : JsonConverter<SerializableExpression>
+internal class ExpressionJsonConverter : JsonConverter<SerializableExpression>
 {
     /// <summary>
     /// Reads a JSON string and converts it to an ObjectId instance.

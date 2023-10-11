@@ -6,7 +6,7 @@ namespace ModularSystem.Web.Expressions;
 /// <summary>
 /// Defines a contract for converting between <see cref="PropertyInfo"/> and its serializable counterpart, <see cref="SerializablePropertyInfo"/>.
 /// </summary>
-public interface IPropertyInfoConverter : IConverter<PropertyInfo, SerializablePropertyInfo>
+public interface IPropertyInfoConverter : IBidirectionalConverter<PropertyInfo, SerializablePropertyInfo>
 {
 
 }
@@ -14,7 +14,7 @@ public interface IPropertyInfoConverter : IConverter<PropertyInfo, SerializableP
 /// <summary>
 /// Provides an implementation for converting between <see cref="PropertyInfo"/> and <see cref="SerializablePropertyInfo"/>.
 /// </summary>
-public class PropertyInfoConverter : Converter, IPropertyInfoConverter
+public class PropertyInfoConverter : Parser, IPropertyInfoConverter
 {
     /// <summary>
     /// Gets the parsing context associated with the converter.
@@ -22,24 +22,18 @@ public class PropertyInfoConverter : Converter, IPropertyInfoConverter
     protected override ParsingContext Context { get; }
 
     /// <summary>
-    /// Gets the configuration settings for the converter.
-    /// </summary>
-    private Configs Config { get; }
-
-    /// <summary>
     /// Gets the type converter used for type conversions.
     /// </summary>
-    private ITypeConverter TypeConverter => Config.TypeConverter;
+    private ITypeConverter TypeConverter { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PropertyInfoConverter"/> class.
     /// </summary>
-    /// <param name="context">The parsing context.</param>
-    /// <param name="configs">The configuration settings for the converter.</param>
-    public PropertyInfoConverter(ParsingContext context, Configs configs)
+    /// <param name="parentContext">The parsing context.</param>
+    public PropertyInfoConverter(ParsingContext parentContext)
     {
-        Context = context;
-        Config = configs;
+        Context = parentContext.CreateChild("Property Info Conversion");
+        TypeConverter = Context.GetDependency<ITypeConverter>();
     }
 
     /// <summary>
@@ -81,26 +75,6 @@ public class PropertyInfoConverter : Converter, IPropertyInfoConverter
         }
 
         return propertyInfo;
-    }
-
-    /// <summary>
-    /// Represents configuration settings for the <see cref="PropertyInfoConverter"/>.
-    /// </summary>
-    public class Configs
-    {
-        /// <summary>
-        /// Gets or sets the type converter used for type conversions.
-        /// </summary>
-        public ITypeConverter TypeConverter { get; set; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Configs"/> class using the provided dependency container.
-        /// </summary>
-        /// <param name="dependencyContainer">The dependency container used to resolve required services.</param>
-        public Configs(DependencyContainerObject dependencyContainer)
-        {
-            TypeConverter ??= dependencyContainer.GetInterface<ITypeConverter>();
-        }
     }
 
 }
