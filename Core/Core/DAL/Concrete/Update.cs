@@ -1,4 +1,5 @@
-﻿using ModularSystem.Web;
+﻿using ModularSystem.Core.Expressions;
+using ModularSystem.Web;
 using ModularSystem.Web.Expressions;
 using MongoDB.Bson;
 using System.Linq;
@@ -40,7 +41,7 @@ public class Update<T> : IUpdate<T>
     /// </summary>
     /// <param name="serializer">An optional serializer to use for the serialization. If not provided, the default serializer will be used.</param>
     /// <returns>A serialized representation of the update.</returns>
-    public SerializableUpdate ToSerializable(ExpressionSerializer? serializer = null)
+    public SerializableUpdate ToSerializable(ISerializer<Expression>? serializer = null)
     {
         return new()
         {

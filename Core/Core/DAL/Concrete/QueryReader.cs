@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using ModularSystem.Core.Expressions;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Core;

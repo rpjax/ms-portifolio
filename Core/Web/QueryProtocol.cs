@@ -1,4 +1,6 @@
-﻿using ModularSystem.Web.Expressions;
+﻿using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using ModularSystem.Core;
+using ModularSystem.Web.Expressions;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
@@ -14,7 +16,7 @@ public static class QueryProtocol
     /// <summary>
     /// Gets or sets the serializer responsible for converting expressions to and from their string representations.
     /// </summary>
-    public static ExpressionSerializer ExpressionSerializer { get; set; } = DefaultExpressionSerializer();
+    public static ISerializer<Expression> ExpressionSerializer { get; set; } = DefaultExpressionSerializer();
 
     /// <summary>
     /// Converts the provided expression into its JSON string representation.
@@ -23,7 +25,7 @@ public static class QueryProtocol
     /// <param name="serializer">An optional serializer to use for the conversion. If not provided, the default <see cref="ExpressionSerializer"/> will be used.</param>
     /// <returns>The JSON string representation of the expression, or null if the expression is null.</returns>
     [return: NotNullIfNotNull("expression")]
-    public static string? ToJson(Expression? expression, ExpressionSerializer? serializer = null)
+    public static string? ToJson(Expression? expression, ISerializer<Expression>? serializer = null)
     {
         serializer ??= ExpressionSerializer;
 
@@ -32,30 +34,29 @@ public static class QueryProtocol
             return null;
         }
 
-        return serializer.ToJson(expression);
+        return serializer.Serialize(expression);
+    }
+
+    [return: NotNullIfNotNull("json")]
+    public static Expression? FromJson(string? json, ISerializer<Expression>? serializer = null)
+    {
+        serializer ??= ExpressionSerializer;
+
+        if (json == null)
+        {
+            return null;
+        }
+
+        return serializer.Deserialize(json);
     }
 
     /// <summary>
     /// Provides the default configuration for the expression serializer.
     /// </summary>
     /// <returns>A new instance of <see cref="ExpressionSerializer"/> with default configurations.</returns>
-    static ExpressionSerializer DefaultExpressionSerializer()
+    static ISerializer<Expression> DefaultExpressionSerializer()
     {
-        return new ExpressionSerializer(DefaultExpressionSerializerConfigs());
+        return new ExprSerializer();
     }
 
-    /// <summary>
-    /// Specifies the default configurations for the expression serializer.
-    /// </summary>
-    /// <returns>A configuration object with default settings for the expression serializer.</returns>
-    static ExpressionSerializer.Configs DefaultExpressionSerializerConfigs()
-    {
-        return new()
-        {
-            TypeSerializerOptions = new()
-            {
-                UseAssemblyName = true,
-            }
-        };
-    }
 }

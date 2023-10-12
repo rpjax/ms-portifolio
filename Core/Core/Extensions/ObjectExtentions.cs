@@ -50,7 +50,7 @@ public static partial class ObjectExtentions
         }
         catch (Exception e)
         {
-            throw new Exception($"Could not cast object to type '{value.GetType().FullName}'.", e);
+            throw new Exception($"Could not cast object to type '{typeof(T).FullName}'.", e);
         }
     }
 

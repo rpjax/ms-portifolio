@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Core;
+namespace ModularSystem.Core.Expressions;
 
 /// <summary>
 /// A helper class designed to ensure that all parameter expressions within filter expressions refer to the same root parameter. <br/>

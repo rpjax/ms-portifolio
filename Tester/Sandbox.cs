@@ -43,13 +43,13 @@ public partial class Sandbox : CliCommand
         }
         else if (Context.GetFlag("update"))
         {
-            var id = new ObjectId("64dcf50977052318c964670e");
-            var update = new UpdateWriter<MongoTestModel>()
+            var _id = new ObjectId("64dcf50977052318c964670e");
+            var _update = new UpdateWriter<MongoTestModel>()
                 .SetFilter(x => x.Surnames.Contains("Richthofen"))
                 .SetModification(x => x.HasKilledChild, true)
                 .Create();
 
-            await service.UpdateAsync(update);
+            await service.UpdateAsync(_update);
 
             await Console.Out.WriteLineAsync("entity updated.");
         }
@@ -60,13 +60,15 @@ public partial class Sandbox : CliCommand
 
         var query = new QueryWriter<MongoTestModel>()
                 .SetLimit(50)
-                .SetFilter(x => 50 == 50)
+                .SetFilter(x => 50 == 50 && x.Nickname.Contains("becetinha apertada"))
                 .Create();
 
-        var serializer = new ExprSerializer();
-        var json = serializer.Serialize(query.Filter);
+        var update = new UpdateWriter<MongoTestModel>()
+                .SetFilter(x => x.Surnames.Contains("Richthofen"))
+                .SetModification(x => x.HasKilledChild, true)
+                .CreateSerialized();
 
-        Console.WriteLine(json);
+        Console.WriteLine(update);
     }
 
     public override string Instruction()

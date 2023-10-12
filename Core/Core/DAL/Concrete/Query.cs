@@ -57,7 +57,7 @@ public class Query<T> : IQuery<T>
     /// </summary>
     /// <param name="serializer">An optional serializer to use for the serialization. If not provided, the default serializer will be used.</param>
     /// <returns>A serialized representation of the query.</returns>
-    public SerializableQuery ToSerializable(ExpressionSerializer? serializer = null)
+    public SerializableQuery ToSerializable(ISerializer<Expression>? serializer = null)
     {
         return new()
         {

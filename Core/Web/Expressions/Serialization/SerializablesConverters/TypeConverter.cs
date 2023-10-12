@@ -92,9 +92,18 @@ public class TypeConverter : Parser, ITypeConverter
         return new SerializableType()
         {
             IsGenericTypeDefinition = type.IsGenericTypeDefinition,
-            Name = type.Name,
-            Namespace = type.Namespace,
-            AssemblyQualifiedName = type.AssemblyQualifiedName,
+            Name =
+                Strategy == TypeConversionStrategy.UseFullName
+                ? type.Name
+                : null,
+            Namespace =
+                Strategy == TypeConversionStrategy.UseFullName
+                ? type.Namespace
+                : null,
+            AssemblyQualifiedName = 
+                Strategy == TypeConversionStrategy.UseAssemblyName 
+                ? type.AssemblyQualifiedName 
+                : null,
             GenericTypeArguments = type.GenericTypeArguments.Transform(x => Convert(x)).ToArray(),
         };
     }

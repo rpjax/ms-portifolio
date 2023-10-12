@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Core;
+namespace ModularSystem.Core.Expressions;
 
 /// <summary>
 /// Provides a specialized visitor for traversing and potentially modifying expressions. <br/>

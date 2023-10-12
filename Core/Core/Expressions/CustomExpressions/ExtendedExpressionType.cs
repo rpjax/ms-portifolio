@@ -1,6 +1,4 @@
-﻿using ModularSystem.Core;
-
-namespace ModularSystem.Web.Expressions;
+﻿namespace ModularSystem.Core.Expressions;
 
 /// <summary>
 /// Represents an extended set of expression types, augmenting the standard set to encompass custom expression types derived from <see cref="CustomExpression"/>.<br/>
@@ -431,5 +429,16 @@ public enum ExtendedExpressionType : int
     /// <summary>
     /// A false condition value.
     /// </summary>
-    IsFalse = 84
+    IsFalse = 84,
+
+    /// <summary>
+    /// Represents an expression type for updating a set of values.
+    /// </summary>
+    UpdateSet = 85,
+
+    /// <summary>
+    /// Represents an expression type for specifying the ordering of a query result set.
+    /// </summary>
+    Ordering = 86
+
 }

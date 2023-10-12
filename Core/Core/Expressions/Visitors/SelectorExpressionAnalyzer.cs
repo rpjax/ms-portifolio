@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace ModularSystem.Core;
+namespace ModularSystem.Core.Expressions;
 
 /// <summary>
 /// Analyzes and extracts information from a selector expression.

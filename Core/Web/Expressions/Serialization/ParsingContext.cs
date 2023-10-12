@@ -1,5 +1,4 @@
-﻿using Amazon.Util.Internal;
-using ModularSystem.Core;
+﻿using ModularSystem.Core;
 
 namespace ModularSystem.Web.Expressions;
 
@@ -7,14 +6,11 @@ public abstract class ParsingContext
 {
     public string[] Stack { get; }
 
-    protected DependencyContainerObject DependencyContainer { get; init; }
-
     public ParsingContext(string label, string[]? stack = null)
     {
         Stack = stack != null 
             ? new List<string>(stack).FluentAdd(label).ToArray() 
             : new[] { label }; 
-        DependencyContainer = new DependencyContainerObject();
     }
 
     public override string ToString()
@@ -25,24 +21,17 @@ public abstract class ParsingContext
     public abstract ParsingContext CreateChild(string label);
 
     public abstract T GetDependency<T>();
-
-    public abstract ParsingContext SetDependency<T>(IStrategy<ParsingContext, T> factory);    
     
 }
 
 public class DefaultParsingContext : ParsingContext
 {
+    private DependencyContainerObject DependencyContainer { get; init; }
+
     public DefaultParsingContext(string label, string[]? stack = null) : base(label, stack)
     {
-        SetDependency(new LambdaStrategy<ITypeConverter>(x => CreateTypeConverter(x)));
-        SetDependency(new LambdaStrategy<IParameterInfoConverter>(x => CreateParameterInfoConverter(x)));
-        SetDependency(new LambdaStrategy<IMemberInfoConverter>(x => CreateMemberInfoConverter(x)));
-        SetDependency(new LambdaStrategy<IPropertyInfoConverter>(x => CreatePropertyInfoConverter(x)));
-        SetDependency(new LambdaStrategy<IMethodInfoConverter>(x => CreateMethodInfoConverter(x)));
-        SetDependency(new LambdaStrategy<IConstructorInfoConverter>(x => CreateConstructorInfoConverter(x)));
-        SetDependency(new LambdaStrategy<IMemberBindingConverter>(x => GetMemberBindingConverter(x)));
-        SetDependency(new LambdaStrategy<IElementInitConverter>(x => GetElementInitConverter(x)));
-        SetDependency(new LambdaStrategy<ISerializer>(x => GetSerializer(x)));
+        DependencyContainer = new();
+        SetFactories();
     }
 
     private DefaultParsingContext(DependencyContainerObject dependencyContainer,string label, string[]? stack = null) : this(label, stack)
@@ -74,10 +63,29 @@ public class DefaultParsingContext : ParsingContext
         return dependency;
     }
 
-    public override ParsingContext SetDependency<T>(IStrategy<ParsingContext, T> factory)
+    public ParsingContext SetDependency<T>(IStrategy<ParsingContext, T> factory)
     {
         DependencyContainer.Register(factory);
         return this;
+    }
+
+    private void SetFactories()
+    {
+        SetDependency(new LambdaStrategy<IExpressionConverter>(x => CreateExpressionConverter(x)));
+        SetDependency(new LambdaStrategy<ITypeConverter>(x => CreateTypeConverter(x)));
+        SetDependency(new LambdaStrategy<IParameterInfoConverter>(x => CreateParameterInfoConverter(x)));
+        SetDependency(new LambdaStrategy<IMemberInfoConverter>(x => CreateMemberInfoConverter(x)));
+        SetDependency(new LambdaStrategy<IPropertyInfoConverter>(x => CreatePropertyInfoConverter(x)));
+        SetDependency(new LambdaStrategy<IMethodInfoConverter>(x => CreateMethodInfoConverter(x)));
+        SetDependency(new LambdaStrategy<IConstructorInfoConverter>(x => CreateConstructorInfoConverter(x)));
+        SetDependency(new LambdaStrategy<IMemberBindingConverter>(x => GetMemberBindingConverter(x)));
+        SetDependency(new LambdaStrategy<IElementInitConverter>(x => GetElementInitConverter(x)));
+        SetDependency(new LambdaStrategy<ISerializer>(x => GetSerializer(x)));
+    }
+
+    protected virtual IExpressionConverter CreateExpressionConverter(ParsingContext context)
+    {
+        return new ExpressionConverter(context);
     }
 
     protected virtual ITypeConverter CreateTypeConverter(ParsingContext context)
@@ -145,9 +153,4 @@ internal class LambdaStrategy<T> : IStrategy<ParsingContext, T>
 
         return lambda.Invoke(input);
     }
-}
-
-public class ParsingDependencyContainer
-{
-
 }

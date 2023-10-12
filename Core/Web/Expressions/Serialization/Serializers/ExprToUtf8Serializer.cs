@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core;
+using ModularSystem.Core.Expressions;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -100,6 +101,6 @@ internal class ExpressionJsonConverter : JsonConverter<SerializableExpression>
 
     public override void Write(Utf8JsonWriter writer, SerializableExpression value, JsonSerializerOptions options)
     {
-        JsonSerializer.Serialize(writer, value, SerializableExpression.GetConcreteType(value.NodeType), JsonSerializerSingleton.GetOptions());
+        JsonSerializer.Serialize(writer, value, SerializableExpression.GetConcreteType(value.NodeType), options);
     }
 }

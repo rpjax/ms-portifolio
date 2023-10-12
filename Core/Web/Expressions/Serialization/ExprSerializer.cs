@@ -29,7 +29,7 @@ public class ExprSerializer : ISerializer<Expression>
     public ExprSerializer(Configs? config = null)
     {
         config ??= new();
-        Converter = config.ExpressionConverterFactory.Execute(null)!;
+        Converter = config.ExpressionConverter;
         Serializer = config.Serializer;
     }
 
@@ -98,49 +98,22 @@ public class ExprSerializer : ISerializer<Expression>
         return expression;
     }
 
+    private ParsingContext CreateContext()
+    {
+        return new DefaultParsingContext("Root Expression Serializer");
+    }
+
     /// <summary>
     /// Represents the configuration settings for the <see cref="ExprSerializer"/>.
     /// </summary>
     public class Configs
     {
-        public IStrategy<ParsingContext, IExpressionConverter> ExpressionConverterFactory { get; set; } = new DefaultExpressionConverterStrategy();
+        public IExpressionConverter ExpressionConverter { get; set; } = new ExpressionConverter(new DefaultParsingContext("Root Expression Converter"));
 
         /// <summary>
         /// Gets the underlying serializer used for string serialization.
         /// </summary>
-        public ISerializer Serializer { get; } = new ExprToUtf8Serializer();
+        public ISerializer Serializer { get; set; } = new ExprToUtf8Serializer();
     }
 
-    internal class DefaultExpressionConverterStrategy : IStrategy<ParsingContext, IExpressionConverter>
-    {
-        public IExpressionConverter? Execute(ParsingContext? context)
-        {
-            var strategy = new LambdaStrategy<IExpressionConverter>(x => new ExpressionConverter(x));
-
-            context = new DefaultParsingContext("Root")
-                .SetDependency(strategy);
-
-            return new ExpressionConverter(context);
-        }
-
-    }
-}
-
-public interface IBidirectionalParser<T1, T2>
-{
-    T1 Parse(T2 instance);
-    T2 Parse(T1 instance);
-}
-
-public class ExprParser : IBidirectionalParser<Expression, SerializableExpression>
-{
-    public Expression Parse(SerializableExpression instance)
-    {
-        throw new NotImplementedException();
-    }
-
-    public SerializableExpression Parse(Expression instance)
-    {
-        throw new NotImplementedException();
-    }
 }

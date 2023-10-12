@@ -1,4 +1,6 @@
-﻿using System.Linq.Expressions;
+﻿using ModularSystem.Core;
+using ModularSystem.Core.Expressions;
+using System.Linq.Expressions;
 
 namespace ModularSystem.Web.Expressions;
 
@@ -7,7 +9,7 @@ public abstract class SerializableExpression
     /// <summary>
     /// Gets or sets the specific type of the node within the expression tree, like Add, Subtract, And, Or, etc.
     /// </summary>
-    public ExpressionType NodeType { get; set; }
+    public ExtendedExpressionType NodeType { get; set; }
 
     public static Type GetConcreteType(ExtendedExpressionType type)
     {
@@ -183,6 +185,10 @@ public abstract class SerializableExpression
                 return typeof(SerializableUnaryExpression);
             case ExtendedExpressionType.IsFalse:
                 return typeof(SerializableUnaryExpression);
+            case ExtendedExpressionType.UpdateSet:
+                return typeof(SerializableUpdateSetExpression);
+            case ExtendedExpressionType.Ordering:
+                return typeof(SerializableOrderingExpression);
             default:
                 throw new Exception("Invalid or not supported node type.");
         }
@@ -231,7 +237,7 @@ public class SerializableUnaryExpression : SerializableExpression
 public class SerializableMethodCallExpression : SerializableExpression
 {
     public SerializableMethodInfo? MethodInfo { get; set; }
-    public SerializableExpression? Target { get; set; }
+    public SerializableExpression? Object { get; set; }
     public SerializableExpression[] Arguments { get; set; } = Array.Empty<SerializableExpression>();
 }
 
@@ -395,4 +401,18 @@ public class SerializableThrowExpression : SerializableExpression
 public class SerializableTryExpression : SerializableExpression
 {
 
+}
+
+public class SerializableUpdateSetExpression : SerializableExpression
+{
+    public string? FieldName { get; set; }
+    public SerializableType? FieldType { get; set; }
+    public string? Value { get; set; }
+}
+
+public class SerializableOrderingExpression : SerializableExpression
+{
+    public SerializableExpression? FieldSelector { get; set; }
+    public string? FieldName { get; set; }
+    public SerializableType? FieldType { get; set; }
 }

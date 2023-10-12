@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using ModularSystem.Core;
+using ModularSystem.Core.Expressions;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;

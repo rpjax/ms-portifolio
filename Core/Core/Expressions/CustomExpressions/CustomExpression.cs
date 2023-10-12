@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace ModularSystem.Core;
+namespace ModularSystem.Core.Expressions;
 
 /// <summary>
 /// Represents a custom expression that is distinct from the standard system-defined expressions.

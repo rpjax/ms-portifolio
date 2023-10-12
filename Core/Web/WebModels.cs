@@ -82,10 +82,7 @@ public class SerializableQuery
             return null;
         }
 
-        var node = QueryProtocol.ExpressionSerializer.FromJson(serializedExpression);
-        var expression = QueryProtocol.ExpressionSerializer.FromNode(node);
-
-        return expression;
+        return QueryProtocol.FromJson(serializedExpression);
     }
 }
 
@@ -138,9 +135,6 @@ public class SerializableUpdate
             return null;
         }
 
-        var node = QueryProtocol.ExpressionSerializer.FromJson(serializedExpression);
-        var expression = QueryProtocol.ExpressionSerializer.FromNode(node);
-
-        return expression;
+        return QueryProtocol.FromJson(serializedExpression);
     }
 }
