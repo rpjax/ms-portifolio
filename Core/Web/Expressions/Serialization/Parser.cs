@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Web.Expressions;
+﻿using ModularSystem.Core.Expressions;
+
+namespace ModularSystem.Web.Expressions;
 
 /// <summary>
 /// Provides a base for converting between different representations of data.
@@ -20,6 +22,16 @@ public abstract class Parser
     protected Exception ParsingException(string message, Exception? innerException = null, object? additionalData = null)
     {
         return new ParsingException(message, Context, innerException);
+    }
+
+    /// <summary>
+    /// Generates an exception indicating that the provided expression type is not supported.
+    /// </summary>
+    /// <param name="expressionType">The type of the expression that is not supported.</param>
+    /// <returns>An exception with a detailed error message.</returns>
+    protected Exception ExpressionNotSupportedException(ExtendedExpressionType expressionType)
+    {
+        return ParsingException($"The expression of type '{expressionType}' is not currently supported by the serializer.");
     }
 
     /// <summary>

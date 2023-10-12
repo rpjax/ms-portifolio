@@ -163,7 +163,6 @@ internal class ExpressionToSerializable : Parser, IConversion<Expression, Serial
         {
             NodeType = (ExtendedExpressionType)expression.NodeType,
             Type = TypeConverter.Convert(expression.Type),
-            IsLiftedToNull = expression.IsLiftedToNull,
             Operand = Convert(expression.Operand)
         };
     }

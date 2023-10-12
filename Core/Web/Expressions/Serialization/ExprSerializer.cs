@@ -98,6 +98,10 @@ public class ExprSerializer : ISerializer<Expression>
         return expression;
     }
 
+    /// <summary>
+    /// Creates a new parsing context for the serializer.
+    /// </summary>
+    /// <returns>A new instance of <see cref="ParsingContext"/>.</returns>
     private ParsingContext CreateContext()
     {
         return new DefaultParsingContext("Root Expression Serializer");
@@ -108,12 +112,14 @@ public class ExprSerializer : ISerializer<Expression>
     /// </summary>
     public class Configs
     {
+        /// <summary>
+        /// Gets or sets the expression converter used for converting between LINQ Expressions and their serializable counterparts.
+        /// </summary>
         public IExpressionConverter ExpressionConverter { get; set; } = new ExpressionConverter(new DefaultParsingContext("Root Expression Converter"));
 
         /// <summary>
-        /// Gets the underlying serializer used for string serialization.
+        /// Gets or sets the underlying serializer used for string serialization.
         /// </summary>
         public ISerializer Serializer { get; set; } = new ExprToUtf8Serializer();
     }
-
 }

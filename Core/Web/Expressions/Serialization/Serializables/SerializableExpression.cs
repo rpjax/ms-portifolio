@@ -212,17 +212,12 @@ public class SerializableBinaryExpression : SerializableExpression
 {
     public bool IsLiftedToNull { get; set; }
     public SerializableType? Type { get; set; }
-    public SerializableExpression Left { get; set; }
-    public SerializableExpression Right { get; set; }
+    public SerializableExpression? Left { get; set; }
+    public SerializableExpression? Right { get; set; }
 }
 
 public class SerializableUnaryExpression : SerializableExpression
 {
-    /// <summary>
-    /// Indicates whether the expression is lifted to a nullable type.
-    /// </summary>
-    public bool IsLiftedToNull { get; set; }
-
     /// <summary>
     /// Gets or sets the type of the unary operation.
     /// </summary>
