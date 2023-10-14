@@ -14,12 +14,12 @@ public interface IConstructorInfoConverter : IBidirectionalConverter<Constructor
 /// <summary>
 /// Provides an implementation for converting between <see cref="ConstructorInfo"/> and <see cref="SerializableConstructorInfo"/>.
 /// </summary>
-public class ConstructorInfoConverter : Parser, IConstructorInfoConverter
+public class ConstructorInfoConverter : ConverterBase, IConstructorInfoConverter
 {
     /// <summary>
     /// Gets the parsing context associated with the converter.
     /// </summary>
-    protected override ParsingContext Context { get; }
+    protected override ConversionContext Context { get; }
 
     /// <summary>
     /// Gets the type converter used for type conversions.
@@ -30,7 +30,7 @@ public class ConstructorInfoConverter : Parser, IConstructorInfoConverter
     /// Initializes a new instance of the <see cref="ConstructorInfoConverter"/> class.
     /// </summary>
     /// <param name="parentContext">The parsing context.</param>
-    public ConstructorInfoConverter(ParsingContext parentContext)
+    public ConstructorInfoConverter(ConversionContext parentContext)
     {
         Context = parentContext.CreateChild("Constructor Info Conversion");
         TypeConverter = Context.GetDependency<ITypeConverter>();

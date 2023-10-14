@@ -1,5 +1,6 @@
 ﻿using ModularSystem.Core;
 using System.Reflection;
+using System.Text;
 
 namespace ModularSystem.Web.Expressions;
 
@@ -10,27 +11,27 @@ public interface ITypeConverter : IBidirectionalConverter<Type, SerializableType
 {
 }
 
-/// <summary>
-/// Responsible for initializing the type converter.
-/// </summary>
-internal class TypeConverterInitializer : Initializer
-{
-    /// <summary>
-    /// Performs internal initialization tasks for the type converter.
-    /// </summary>
-    /// <param name="options">Initialization options.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    public override Task InternalInitAsync(Options options)
-    {
-        _ = TypeConverter.InitCache();
-        return base.InternalInitAsync(options);
-    }
-}
+///// <summary>
+///// Responsible for initializing the type converter.
+///// </summary>
+//internal class TypeConverterInitializer : Initializer
+//{
+//    /// <summary>
+//    /// Performs internal initialization tasks for the type converter.
+//    /// </summary>
+//    /// <param name="options">Initialization options.</param>
+//    /// <returns>A task representing the asynchronous operation.</returns>
+//    public override Task InternalInitAsync(Options options)
+//    {
+//        //_ = TypeConverter.InitCache();
+//        return base.InternalInitAsync(options);
+//    }
+//}
 
 /// <summary>
 /// Provides functionality to convert between <see cref="Type"/> and <see cref="SerializableType"/>.
 /// </summary>
-public class TypeConverter : Parser, ITypeConverter
+public class TypeConverter : ConverterBase, ITypeConverter
 {
     /// <summary>
     /// Specifies the strategies available for converting types.
@@ -50,12 +51,10 @@ public class TypeConverter : Parser, ITypeConverter
         UseFullName
     }
 
-    private static readonly IQueryable<Assembly> Assemblies = AppDomain.CurrentDomain.GetAssemblies().AsQueryable();
-
     /// <summary>
     /// Gets the parsing context associated with this converter.
     /// </summary>
-    protected override ParsingContext Context { get; }
+    protected override ConversionContext Context { get; }
 
     /// <summary>
     /// The strategy used for type conversion.
@@ -67,20 +66,20 @@ public class TypeConverter : Parser, ITypeConverter
     /// </summary>
     /// <param name="parentContext">The parsing context.</param>
     /// <param name="strategy">The strategy for this converter.</param>
-    public TypeConverter(ParsingContext parentContext, TypeConversionStrategy strategy)
+    public TypeConverter(ConversionContext parentContext, TypeConversionStrategy strategy)
     {
         Context = parentContext.CreateChild("Type Conversion");
         Strategy = strategy;
     }
 
-    /// <summary>
-    /// Initializes the cache of assemblies.
-    /// </summary>
-    /// <returns>A queryable collection of assemblies.</returns>
-    public static IQueryable<Assembly> InitCache()
-    {
-        return Assemblies;
-    }
+    ///// <summary>
+    ///// Initializes the cache of assemblies.
+    ///// </summary>
+    ///// <returns>A queryable collection of assemblies.</returns>
+    //public static IQueryable<Assembly> InitCache()
+    //{
+    //    return Assemblies;
+    //}
 
     /// <summary>
     /// Converts a <see cref="Type"/> to its serializable representation.
@@ -91,15 +90,13 @@ public class TypeConverter : Parser, ITypeConverter
     {
         return new SerializableType()
         {
+            IsGenericMethodParameter = type.IsGenericMethodParameter,
+            IsGenericParameter = type.IsGenericParameter,
+            IsGenericType = type.IsGenericType,
+            IsGenericTypeParameter = type.IsGenericTypeParameter,
             IsGenericTypeDefinition = type.IsGenericTypeDefinition,
-            Name =
-                Strategy == TypeConversionStrategy.UseFullName
-                ? type.Name
-                : null,
-            Namespace =
-                Strategy == TypeConversionStrategy.UseFullName
-                ? type.Namespace
-                : null,
+            Name = type.Name,
+            Namespace = type.Namespace,
             AssemblyQualifiedName = 
                 Strategy == TypeConversionStrategy.UseAssemblyName 
                 ? type.AssemblyQualifiedName 
@@ -153,12 +150,70 @@ public class TypeConverter : Parser, ITypeConverter
             throw TypeNotFoundException(sType);
         }
 
-        if (sType.IsGenericTypeDefinition && sType.ContainsGenericArguments())
+        if(sType.IsGenericTypeDefinition)
         {
-            type = type
-                .MakeGenericType(sType.GenericTypeArguments.Transform(x => Convert(x)).ToArray());
+            type = type.MakeGenericType(sType.GenericTypeArguments.Transform(x => Convert(x)).ToArray());
         }
 
         return type;
+    }
+
+    string GetQualifiedFullName(SerializableType sType)
+    {
+        if(sType.FullName == null)
+        {
+            throw MissingArgumentException(nameof(sType.FullName)); 
+        }
+
+        if (!sType.IsGenericTypeDefinition)
+        {
+            return sType.FullName;
+        }
+
+        var split = sType.FullName.Split('`');
+
+        if(split.Length != 2)
+        {
+            throw InvalidTypeNameException(sType.FullName);
+        }
+
+        var fullname = split[0];
+        var argCountStr = split[1];
+
+        if(!int.TryParse(argCountStr, out var argCount))
+        {
+            throw InvalidTypeNameException(sType.FullName);
+        }
+        if(argCount != sType.GenericTypeArguments.Length)
+        {
+            throw InvalidTypeNameException(sType.FullName);
+        }
+
+        var argNames = sType.GenericTypeArguments.Select(x => x.FullName).ToArray();
+        var strBuilder = new StringBuilder();
+
+        strBuilder.Append($"{fullname}`{argCount}[");
+
+        for (int i = 0; i < argNames.Length; i++)
+        {
+            var argName = argNames[i];
+            var isLast = argNames.Length - 1 == i;
+
+            if (argName == null)
+            {
+                throw InvalidTypeNameException(sType.FullName);
+            }
+            if (isLast)
+            {
+                strBuilder.Append($"[{argName}]");
+            }
+            else
+            {
+                strBuilder.Append($"[{argName}],");
+            }   
+        }
+
+        strBuilder.Append(']');
+        return strBuilder.ToString();
     }
 }

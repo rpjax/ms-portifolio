@@ -14,26 +14,29 @@ public interface IParameterInfoConverter : IBidirectionalConverter<ParameterInfo
 /// <summary>
 /// Implements the conversion logic between <see cref="ParameterInfo"/> and <see cref="SerializableParameterInfo"/>.
 /// </summary>
-public class ParameterInfoConverter : Parser, IParameterInfoConverter
+public class ParameterInfoConverter : ConverterBase, IParameterInfoConverter
 {
     /// <summary>
     /// Gets the parsing context associated with the converter.
     /// </summary>
-    protected override ParsingContext Context { get; }
+    protected override ConversionContext Context { get; }
 
     /// <summary>
     /// Gets the type converter used for type conversions.
     /// </summary>
     private ITypeConverter TypeConverter { get; }
 
+    private IMethodInfoConverter MethodInfoConverter { get; }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="MethodInfoConverter"/> class.
     /// </summary>
     /// <param name="parentContext">The parsing context.</param>
-    public ParameterInfoConverter(ParsingContext parentContext)
+    public ParameterInfoConverter(ConversionContext parentContext)
     {
         Context = parentContext.CreateChild("Parameter Info Conversion");
         TypeConverter = Context.GetDependency<ITypeConverter>();
+        MethodInfoConverter = Context.GetDependency<IMethodInfoConverter>();
     }
 
     /// <summary>
@@ -43,15 +46,13 @@ public class ParameterInfoConverter : Parser, IParameterInfoConverter
     /// <returns>The serializable representation of the parameter.</returns>
     public SerializableParameterInfo Convert(ParameterInfo parameterInfo)
     {
+        var methodInfo = parameterInfo.Member.TypeCast<MethodInfo>();
+        var methodParamters = methodInfo.GetParameters();
+
         return new SerializableParameterInfo()
         {
-            MethodDeclaringType = TypeConverter.Convert(parameterInfo.Member.DeclaringType!),
-            MethodName = parameterInfo.Member.Name,
-            MethodParameters = parameterInfo.Member
-                .TypeCast<MethodInfo>()
-                .GetParameters()
-                .Transform(x => TypeConverter.Convert(x.ParameterType))
-                .ToArray(),
+            MethodDeclaringType = TypeConverter.Convert(methodInfo.DeclaringType!),
+            MethodInfo = MethodInfoConverter.Convert(methodInfo),
             ParameterName = parameterInfo.Name,
             ParameterType = TypeConverter.Convert(parameterInfo.ParameterType)
         };
@@ -68,17 +69,9 @@ public class ParameterInfoConverter : Parser, IParameterInfoConverter
         {
             throw MissingArgumentException(nameof(sParameterInfo.MethodDeclaringType));
         }
-        if (sParameterInfo.MethodName == null)
+        if (sParameterInfo.MethodInfo == null)
         { 
-            throw MissingArgumentException(nameof(sParameterInfo.MethodName));
-        }
-        if (sParameterInfo.MethodReturnType == null)
-        {
-            throw MissingArgumentException(nameof(sParameterInfo.MethodReturnType));
-        }
-        if (sParameterInfo.MethodParameters == null)
-        {
-            throw MissingArgumentException(nameof(sParameterInfo.MethodParameters));
+            throw MissingArgumentException(nameof(sParameterInfo.MethodInfo));
         }
 
         if (sParameterInfo.ParameterName == null)
@@ -91,19 +84,7 @@ public class ParameterInfoConverter : Parser, IParameterInfoConverter
         }
 
         var methodDeclaringType = TypeConverter.Convert(sParameterInfo.MethodDeclaringType!);
-        var methodName = sParameterInfo.MethodName;
-        var methodReturnType = TypeConverter.Convert(sParameterInfo.MethodReturnType);
-        var methodParamters = sParameterInfo.MethodParameters
-            .Transform(st => TypeConverter.Convert(st))
-            .ToArray();
-
-        var methodInfo = methodDeclaringType
-            .GetMethodInfo(methodName, methodReturnType, methodParamters);
-
-        if(methodInfo == null)
-        {
-            throw MethodNotFoundException(methodDeclaringType, methodName);
-        }
+        var methodInfo = MethodInfoConverter.Convert(sParameterInfo.MethodInfo);
 
         var parameterType = TypeConverter.Convert(sParameterInfo.ParameterType);
         var paramters = methodInfo

@@ -10,7 +10,7 @@ public class SerializableMethodInfo
     public BindingFlags BindingFlags { get; set; }
     public SerializableType? DeclaringType { get; set; }
     public SerializableType? ReturnType { get; set; }
-    public SerializableParameterInfo[] Parameters { get; set; }    
+    public SerializableType[] Parameters { get; set; }    
     public SerializableType[] GenericArguments { get; set; } = Array.Empty<SerializableType>();
 
     /// <summary>

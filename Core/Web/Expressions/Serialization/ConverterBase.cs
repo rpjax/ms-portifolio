@@ -5,12 +5,12 @@ namespace ModularSystem.Web.Expressions;
 /// <summary>
 /// Provides a base for converting between different representations of data.
 /// </summary>
-public abstract class Parser
+public abstract class ConverterBase
 {
     /// <summary>
     /// Gets the parsing context associated with the converter.
     /// </summary>
-    protected abstract ParsingContext Context { get; }
+    protected abstract ConversionContext Context { get; }
 
     /// <summary>
     /// Creates a new instance of the <see cref="ParsingException"/> class with a specified error message.
@@ -42,6 +42,16 @@ public abstract class Parser
     protected Exception MissingArgumentException(string argumentName)
     {
         return ParsingException($"The argument '{argumentName}' is required and cannot be null.");
+    }
+
+    /// <summary>
+    /// Creates a new instance of the <see cref="ParsingException"/> class indicating an invalid type name.
+    /// </summary>
+    /// <param name="name">The invalid type name.</param>
+    /// <returns>A new instance of the <see cref="ParsingException"/> class.</returns>
+    protected Exception InvalidTypeNameException(string name)
+    {
+        return ParsingException($"The type name '{name}' is invalid or not recognized.");
     }
 
     /// <summary>
@@ -142,7 +152,17 @@ public abstract class Parser
     /// <returns>An exception indicating the type was not found.</returns>
     protected Exception TypeNotFoundException(SerializableType type)
     {
-        return ParsingException($"Failed to locate the type '{type.GetFullName()}' within the current running assembly. Please verify the type's existence and its accessibility.");
+        return ParsingException($"Failed to locate the type '{type.GetQualifiedFullName()}' within the current running assembly. Please verify the type's existence and its accessibility.");
+    }
+
+    /// <summary>
+    /// Generates an exception when a specific type cannot be found within the current running assembly.
+    /// </summary>
+    /// <param name="typeName">The serializable type name.</param>
+    /// <returns>An exception indicating the type was not found.</returns>
+    protected Exception TypeNotFoundException(string typeName)
+    {
+        return ParsingException($"Failed to locate the type '{typeName}' within the current running assembly. Please verify the type's existence and its accessibility.");
     }
 
     /// <summary>

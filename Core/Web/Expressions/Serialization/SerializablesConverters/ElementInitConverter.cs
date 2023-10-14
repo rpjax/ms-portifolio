@@ -14,12 +14,12 @@ public interface IElementInitConverter : IBidirectionalConverter<ElementInit, Se
 /// <summary>
 /// Provides an implementation for converting between <see cref="ElementInit"/> and <see cref="SerializableElementInit"/>.
 /// </summary>
-public class ElementInitConverter : Parser, IElementInitConverter
+public class ElementInitConverter : ConverterBase, IElementInitConverter
 {
     /// <summary>
     /// Gets the parsing context associated with the converter.
     /// </summary>
-    protected override ParsingContext Context { get; }
+    protected override ConversionContext Context { get; }
 
     /// <summary>
     /// Gets the method info converter used for method info conversions.
@@ -35,7 +35,7 @@ public class ElementInitConverter : Parser, IElementInitConverter
     /// Initializes a new instance of the <see cref="ElementInitConverter"/> class.
     /// </summary>
     /// <param name="parentContext">The parsing context.</param>
-    public ElementInitConverter(ParsingContext parentContext)
+    public ElementInitConverter(ConversionContext parentContext)
     {
         Context = parentContext.CreateChild("Element Init Conversion");
         MethodInfoConverter = Context.GetDependency<IMethodInfoConverter>();

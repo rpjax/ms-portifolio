@@ -21,22 +21,22 @@ public class SerializableQuery
     /// <summary>
     /// Gets or sets the serialized filter expression for the query.
     /// </summary>
-    public string? Filter { get; set; }
+    public SerializableExpression? Filter { get; set; }
 
     /// <summary>
     /// Gets or sets the serialized grouping expression for the query.
     /// </summary>
-    public string? Grouping { get; set; }
+    public SerializableExpression? Grouping { get; set; }
 
     /// <summary>
     /// Gets or sets the serialized projection expression for the query.
     /// </summary>
-    public string? Projection { get; set; }
+    public SerializableExpression? Projection { get; set; }
 
     /// <summary>
     /// Gets or sets the serialized ordering expression for the query.
     /// </summary>
-    public string? Ordering { get; set; }
+    public SerializableExpression? Ordering { get; set; }
 
     /// <summary>
     /// Gets or sets the pagination information for the query.
@@ -67,10 +67,10 @@ public class SerializableQuery
         return new Query<T>()
         {
             Pagination = Pagination,
-            Filter = Deserialize(Filter),
-            Grouping = Deserialize(Grouping),
-            Projection = Deserialize(Projection),
-            Ordering = Deserialize(Ordering),
+            Filter = QueryProtocol.FromSerializable(Filter),
+            Grouping = QueryProtocol.FromSerializable(Grouping),
+            Projection = QueryProtocol.FromSerializable(Projection),
+            Ordering = QueryProtocol.FromSerializable(Ordering),
             OrderingDirection = OrderingDirection,
         };
     }
@@ -101,12 +101,12 @@ public class SerializableUpdate
     /// <summary>
     /// Gets or sets the serialized representation of the filter expression.
     /// </summary>
-    public string? Filter { get; set; } = null;
+    public SerializableExpression? Filter { get; set; } = null;
 
     /// <summary>
     /// Gets or sets the serialized representations of the modification expressions.
     /// </summary>
-    public string[]? Modifications { get; set; }
+    public SerializableExpression[]? Modifications { get; set; }
 
     /// <summary>
     /// Converts the serialized update into its corresponding <see cref="Update{T}"/> object.
@@ -117,24 +117,11 @@ public class SerializableUpdate
     {
         return new Update<T>()
         {
-            Filter = Deserialize(Filter),
-            Modifications = Modifications == null ? new() : Modifications.Transform(x => Deserialize(x)).ToList(),
+            Filter = QueryProtocol.FromSerializable(Filter),
+            Modifications = Modifications == null 
+                ? new() 
+                : Modifications.Transform(x => QueryProtocol.FromSerializable(x)).ToList(),
         };
     }
 
-    /// <summary>
-    /// Deserializes a serialized expression string into its corresponding <see cref="Expression"/> object.
-    /// </summary>
-    /// <param name="serializedExpression">The serialized expression string.</param>
-    /// <returns>The deserialized <see cref="Expression"/> object, or null if the input is null.</returns>
-    [return: NotNullIfNotNull("serializedExpression")]
-    static Expression? Deserialize(string? serializedExpression)
-    {
-        if (serializedExpression == null)
-        {
-            return null;
-        }
-
-        return QueryProtocol.FromJson(serializedExpression);
-    }
 }

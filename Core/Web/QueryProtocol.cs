@@ -16,7 +16,29 @@ public static class QueryProtocol
     /// <summary>
     /// Gets or sets the serializer responsible for converting expressions to and from their string representations.
     /// </summary>
-    public static ISerializer<Expression> ExpressionSerializer { get; set; } = DefaultExpressionSerializer();
+    public static ExprSerializer ExpressionSerializer { get; set; } = DefaultExpressionSerializer();
+
+    [return: NotNullIfNotNull("expression")]
+    public static SerializableExpression? ToSerializable(Expression? expression)
+    {
+        if (expression == null)
+        {
+            return null;
+        }
+
+        return ExpressionSerializer.ToSerializable(expression);
+    }
+
+    [return: NotNullIfNotNull("sExpression")]
+    public static Expression? FromSerializable(SerializableExpression? sExpression)
+    {
+        if (sExpression == null)
+        {
+            return null;
+        }
+
+        return ExpressionSerializer.FromSerializable(sExpression);
+    }
 
     /// <summary>
     /// Converts the provided expression into its JSON string representation.
@@ -54,7 +76,7 @@ public static class QueryProtocol
     /// Provides the default configuration for the expression serializer.
     /// </summary>
     /// <returns>A new instance of <see cref="ExpressionSerializer"/> with default configurations.</returns>
-    static ISerializer<Expression> DefaultExpressionSerializer()
+    static ExprSerializer DefaultExpressionSerializer()
     {
         return new ExprSerializer();
     }

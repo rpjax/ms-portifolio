@@ -267,28 +267,26 @@ public class SerializableInvocationExpression : SerializableExpression
 
 public class SerializableLambdaExpression : SerializableExpression
 {
-    public SerializableType? Type { get; set; }
-    public SerializableType? ReturnType { get; set; }
-    public SerializableExpression[] Parameters { get; set; } = Array.Empty<SerializableExpression>();
+    public SerializableType? DelegateType { get; set; }
+    public SerializableParameterExpression[] Parameters { get; set; } = Array.Empty<SerializableParameterExpression>();
     public SerializableExpression? Body { get; set; }
 }
 
 public class SerializableListInitExpression : SerializableExpression
 {
-    public SerializableExpression? NewExpression { get; set; }
+    public SerializableNewExpression? NewExpression { get; set; }
     public SerializableElementInit[] Initializers { get; set; } = Array.Empty<SerializableElementInit>();
 }
 
 public class SerializableMemberExpression : SerializableExpression
 {
-    public SerializableType? Type { get; set; }
     public SerializableMemberInfo? MemberInfo { get; set; }
     public SerializableExpression? Expression { get; set; }
 }
 
 public class SerializableMemberInitExpression : SerializableExpression
 {
-    public SerializableExpression? NewExpression { get; set; }
+    public SerializableNewExpression? NewExpression { get; set; }
     public SerializableMemberBinding[] Bindings { get; set; }
 }
 

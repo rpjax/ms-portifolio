@@ -1,6 +1,7 @@
 ﻿using ModularSystem.Web;
 using ModularSystem.Web.Expressions;
 using System.Linq.Expressions;
+using System.Text.Json;
 
 namespace ModularSystem.Core;
 
@@ -59,9 +60,9 @@ public partial class QueryWriter<T> : IFactory<Query<T>>
     /// Produces a <see cref="string"/> representation of the <see cref="Query{T}"/> object as constructed by this factory.
     /// </summary>
     /// <returns>The serialized string representation of the constructed query object.</returns>
-    public string CreateSerialized(ISerializer? serializer = null)
+    public string ToJson(JsonSerializerOptions? options = null)
     {
-        serializer ??= new ExprToUtf8Serializer();
+        var serializer = new ExprJsonSerializer(options);
         return serializer.Serialize(CreateSerializable());
     }
 }

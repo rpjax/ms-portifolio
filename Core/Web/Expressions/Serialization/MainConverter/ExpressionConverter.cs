@@ -13,12 +13,12 @@ public interface IExpressionConverter : IBidirectionalConverter<Expression, Seri
 /// <summary>
 /// Provides functionality to convert between <see cref="Expression"/> and <see cref="SerializableExpression"/>.
 /// </summary>
-public class ExpressionConverter : Parser, IExpressionConverter
+public class ExpressionConverter : ConverterBase, IExpressionConverter
 {
     /// <summary>
     /// Gets the parsing context associated with this converter.
     /// </summary>
-    protected override ParsingContext Context { get; }
+    protected override ConversionContext Context { get; }
 
     /// <summary>
     /// Provides functionality to convert from <see cref="Expression"/> to <see cref="SerializableExpression"/>.
@@ -34,7 +34,7 @@ public class ExpressionConverter : Parser, IExpressionConverter
     /// Initializes a new instance of the <see cref="ExpressionConverter"/> class.
     /// </summary>
     /// <param name="context">The parsing context.</param>
-    public ExpressionConverter(ParsingContext context)
+    public ExpressionConverter(ConversionContext context)
     {
         Context = context;
         ExpressionToNodeConversion = new ExpressionToSerializable(context);

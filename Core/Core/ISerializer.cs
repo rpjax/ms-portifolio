@@ -21,6 +21,12 @@ public interface ISerializer
     /// <returns>An instance of type <typeparamref name="T"/> if successful, otherwise <c>null</c>.</returns>
     T? TryDeserialize<T>(string serialized);
 
+    /// <summary>
+    /// Attempts to deserialize the provided string back into an object of the specified type.
+    /// </summary>
+    /// <param name="serialized">The string representation of the object.</param>
+    /// <param name="type">The type of the object to deserialize to.</param>
+    /// <returns>An instance of the specified type if successful, otherwise <c>null</c>.</returns>
     object? TryDeserialize(string serialized, Type type);
 
     /// <summary>
@@ -32,7 +38,14 @@ public interface ISerializer
     /// <exception cref="System.Exception">Thrown if the deserialization process encounters an error.</exception>
     T Deserialize<T>(string serialized);
 
-    object? Deserialize(string serialized, Type type);
+    /// <summary>
+    /// Deserializes the provided string back into an object of the specified type.
+    /// </summary>
+    /// <param name="serialized">The string representation of the object.</param>
+    /// <param name="type">The type of the object to deserialize to.</param>
+    /// <returns>An instance of the specified type.</returns>
+    /// <exception cref="System.Exception">Thrown if the deserialization process encounters an error.</exception>
+    object Deserialize(string serialized, Type type);
 }
 
 /// <summary>

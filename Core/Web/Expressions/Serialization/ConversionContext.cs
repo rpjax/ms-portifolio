@@ -2,11 +2,11 @@
 
 namespace ModularSystem.Web.Expressions;
 
-public abstract class ParsingContext
+public abstract class ConversionContext
 {
     public string[] Stack { get; }
 
-    public ParsingContext(string label, string[]? stack = null)
+    public ConversionContext(string label, string[]? stack = null)
     {
         Stack = stack != null 
             ? new List<string>(stack).FluentAdd(label).ToArray() 
@@ -18,35 +18,35 @@ public abstract class ParsingContext
         return string.Join("->", Stack);
     }
 
-    public abstract ParsingContext CreateChild(string label);
+    public abstract ConversionContext CreateChild(string label);
 
     public abstract T GetDependency<T>();
     
 }
 
-public class DefaultParsingContext : ParsingContext
+public class DefaultConversionContext : ConversionContext
 {
     private DependencyContainerObject DependencyContainer { get; init; }
 
-    public DefaultParsingContext(string label, string[]? stack = null) : base(label, stack)
+    public DefaultConversionContext(string label, string[]? stack = null) : base(label, stack)
     {
         DependencyContainer = new();
         SetFactories();
     }
 
-    private DefaultParsingContext(DependencyContainerObject dependencyContainer,string label, string[]? stack = null) : this(label, stack)
+    private DefaultConversionContext(DependencyContainerObject dependencyContainer,string label, string[]? stack = null) : this(label, stack)
     {
         DependencyContainer = dependencyContainer;
     }
 
-    public override ParsingContext CreateChild(string label)
+    public override ConversionContext CreateChild(string label)
     {
-        return new DefaultParsingContext(DependencyContainer, label, Stack);
+        return new DefaultConversionContext(DependencyContainer, label, Stack);
     }
 
     public override T GetDependency<T>()
     {
-        var factory = DependencyContainer.TryGet<IStrategy<ParsingContext, T>>();
+        var factory = DependencyContainer.TryGet<IStrategy<ConversionContext, T>>();
 
         if (factory == null)
         {
@@ -63,7 +63,7 @@ public class DefaultParsingContext : ParsingContext
         return dependency;
     }
 
-    public ParsingContext SetDependency<T>(IStrategy<ParsingContext, T> factory)
+    public ConversionContext SetDependency<T>(IStrategy<ConversionContext, T> factory)
     {
         DependencyContainer.Register(factory);
         return this;
@@ -83,68 +83,68 @@ public class DefaultParsingContext : ParsingContext
         SetDependency(new LambdaStrategy<ISerializer>(x => GetSerializer(x)));
     }
 
-    protected virtual IExpressionConverter CreateExpressionConverter(ParsingContext context)
+    protected virtual IExpressionConverter CreateExpressionConverter(ConversionContext context)
     {
         return new ExpressionConverter(context);
     }
 
-    protected virtual ITypeConverter CreateTypeConverter(ParsingContext context)
+    protected virtual ITypeConverter CreateTypeConverter(ConversionContext context)
     {
-        return new TypeConverter(context, TypeConverter.TypeConversionStrategy.UseFullName);
+        return new TypeConverter(context, TypeConverter.TypeConversionStrategy.UseAssemblyName);
     }
 
-    protected virtual IParameterInfoConverter CreateParameterInfoConverter(ParsingContext context)
+    protected virtual IParameterInfoConverter CreateParameterInfoConverter(ConversionContext context)
     {
         return new ParameterInfoConverter(context);
     }
 
-    protected virtual IMemberInfoConverter CreateMemberInfoConverter(ParsingContext context)
+    protected virtual IMemberInfoConverter CreateMemberInfoConverter(ConversionContext context)
     {
         return new MemberInfoConverter(context);
     }
 
-    protected virtual IPropertyInfoConverter CreatePropertyInfoConverter(ParsingContext context)
+    protected virtual IPropertyInfoConverter CreatePropertyInfoConverter(ConversionContext context)
     {
         return new PropertyInfoConverter(context);
     }
 
-    protected virtual IMethodInfoConverter CreateMethodInfoConverter(ParsingContext context)
+    protected virtual IMethodInfoConverter CreateMethodInfoConverter(ConversionContext context)
     {
         return new MethodInfoConverter(context);
     }
 
-    protected virtual IConstructorInfoConverter CreateConstructorInfoConverter(ParsingContext context)
+    protected virtual IConstructorInfoConverter CreateConstructorInfoConverter(ConversionContext context)
     {
         return new ConstructorInfoConverter(context);
     }
 
-    protected virtual IMemberBindingConverter GetMemberBindingConverter(ParsingContext context)
+    protected virtual IMemberBindingConverter GetMemberBindingConverter(ConversionContext context)
     {
         return new MemberBindingConverter(context);
     }
 
-    protected virtual IElementInitConverter GetElementInitConverter(ParsingContext context)
+    protected virtual IElementInitConverter GetElementInitConverter(ConversionContext context)
     {
         return new ElementInitConverter(context);
     }
 
-    protected virtual ISerializer GetSerializer(ParsingContext context)
+    protected virtual ISerializer GetSerializer(ConversionContext context)
     {
-        return new ExprToUtf8Serializer();
+        return new ExprJsonSerializer();
     }
 
 }
 
-internal class LambdaStrategy<T> : IStrategy<ParsingContext, T>
+internal class LambdaStrategy<T> : IStrategy<ConversionContext, T>
 {
-    private readonly Func<ParsingContext, T> lambda;
+    private readonly Func<ConversionContext, T> lambda;
 
-    public LambdaStrategy(Func<ParsingContext, T> lambda)
+    public LambdaStrategy(Func<ConversionContext, T> lambda)
     {
         this.lambda = lambda;
     }
 
-    public T? Execute(ParsingContext? input)
+    public T? Execute(ConversionContext? input)
     {
         if (input == null)
         {

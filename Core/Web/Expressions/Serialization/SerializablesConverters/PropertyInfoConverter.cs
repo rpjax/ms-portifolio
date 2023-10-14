@@ -14,12 +14,12 @@ public interface IPropertyInfoConverter : IBidirectionalConverter<PropertyInfo, 
 /// <summary>
 /// Provides an implementation for converting between <see cref="PropertyInfo"/> and <see cref="SerializablePropertyInfo"/>.
 /// </summary>
-public class PropertyInfoConverter : Parser, IPropertyInfoConverter
+public class PropertyInfoConverter : ConverterBase, IPropertyInfoConverter
 {
     /// <summary>
     /// Gets the parsing context associated with the converter.
     /// </summary>
-    protected override ParsingContext Context { get; }
+    protected override ConversionContext Context { get; }
 
     /// <summary>
     /// Gets the type converter used for type conversions.
@@ -30,7 +30,7 @@ public class PropertyInfoConverter : Parser, IPropertyInfoConverter
     /// Initializes a new instance of the <see cref="PropertyInfoConverter"/> class.
     /// </summary>
     /// <param name="parentContext">The parsing context.</param>
-    public PropertyInfoConverter(ParsingContext parentContext)
+    public PropertyInfoConverter(ConversionContext parentContext)
     {
         Context = parentContext.CreateChild("Property Info Conversion");
         TypeConverter = Context.GetDependency<ITypeConverter>();

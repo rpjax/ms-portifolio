@@ -1,11 +1,11 @@
-﻿using ModularSystem.Core;
+﻿using DnsClient;
+using ModularSystem.Core;
 using ModularSystem.Core.Cli;
 using ModularSystem.Mailing;
 using ModularSystem.Mongo;
 using ModularSystem.Web.Expressions;
 using MongoDB.Bson;
 using System.Linq.Expressions;
-using static ModularSystem.Tester.Sandbox;
 
 namespace ModularSystem.Tester;
 
@@ -25,50 +25,24 @@ public partial class Sandbox : CliCommand
     {
         using var service = new MongoTestEntity();
 
-        if (Context.GetFlag("list"))
-        {
-            var _query = new QueryWriter<MongoTestModel>()
-                .SetLimit(50)
-                .SetFilter(x => x.FirstName != "Rodrigo")
-                .Create();
-            var _queryResult = await service.QueryAsync(_query);
-
-            foreach (var item in _queryResult.Data)
-            {
-                Console.WriteLine("record:");
-                Console.WriteLine($"  id: {item.Id}");
-                Console.WriteLine($"  email: {item.Email}");
-                Console.WriteLine($"  first name: {item.FirstName}");
-            }
-        }
-        else if (Context.GetFlag("update"))
-        {
-            var _id = new ObjectId("64dcf50977052318c964670e");
-            var _update = new UpdateWriter<MongoTestModel>()
-                .SetFilter(x => x.Surnames.Contains("Richthofen"))
-                .SetModification(x => x.HasKilledChild, true)
-                .Create();
-
-            await service.UpdateAsync(_update);
-
-            await Console.Out.WriteLineAsync("entity updated.");
-        }
-        else
-        {
-            await Console.Out.WriteLineAsync("No valid flags were provided.");
-        }
-
         var query = new QueryWriter<MongoTestModel>()
                 .SetLimit(50)
-                .SetFilter(x => 50 == 50 && x.Nickname.Contains("becetinha apertada"))
-                .Create();
+                .SetFilter(x => 50 == 50 && x.FirstName.ToLower().Contains("ama"))
+                .CreateSerializable();
+
+        var rebQuery = query.ToQuery<MongoTestModel>();
 
         var update = new UpdateWriter<MongoTestModel>()
-                .SetFilter(x => x.Surnames.Contains("Richthofen"))
-                .SetModification(x => x.HasKilledChild, true)
-                .CreateSerialized();
+                .SetFilter(x => x.FirstName.ToLower().Contains("amanda"))
+                .SetModification(x => x.Email, new Email("amandatoques@gmail.com"))
+                .CreateSerializable();
 
-        Console.WriteLine(update);
+        var rebUpdate = update.ToUpdate<MongoTestModel>();
+
+        await service.UpdateAsync(rebUpdate);
+        var queryResult = await service.QueryAsync(rebQuery);
+
+        await Console.Out.WriteLineAsync();
     }
 
     public override string Instruction()

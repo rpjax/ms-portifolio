@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace ModularSystem.Web.Expressions;
 
-internal class ExpressionToSerializable : Parser, IConversion<Expression, SerializableExpression>
+internal class ExpressionToSerializable : ConverterBase, IConversion<Expression, SerializableExpression>
 {
     private ITypeConverter TypeConverter { get; }
     private IMemberInfoConverter MemberInfoConverter { get; }
@@ -16,9 +16,9 @@ internal class ExpressionToSerializable : Parser, IConversion<Expression, Serial
     private IElementInitConverter ElementInitConverter { get; }
     private ISerializer Serializer { get; }
 
-    protected override ParsingContext Context { get; }
+    protected override ConversionContext Context { get; }
 
-    public ExpressionToSerializable(ParsingContext parentContext)
+    public ExpressionToSerializable(ConversionContext parentContext)
     {
         Context = parentContext.CreateChild("Expression To Serializable Conversion");
         TypeConverter = Context.GetDependency<ITypeConverter>();
@@ -126,7 +126,7 @@ internal class ExpressionToSerializable : Parser, IConversion<Expression, Serial
             case ExtendedExpressionType.Ordering: return Convert(As<OrderingExpression>(expression));
         }
 
-        throw new Exception();
+        throw ExpressionNotSupportedException(nodeType);
     }
 
     [return: NotNullIfNotNull("expression")]
@@ -177,7 +177,7 @@ internal class ExpressionToSerializable : Parser, IConversion<Expression, Serial
                 expression.Object != null
                 ? Convert(expression.Object!)
                 : null,
-            Arguments = expression.Arguments.Transform(x => Convert(x)).ToArray(),
+            Arguments = expression.Arguments.Transform(x => Convert(x)).ToArray()
         };
     }
 
@@ -217,8 +217,7 @@ internal class ExpressionToSerializable : Parser, IConversion<Expression, Serial
         return new()
         {
             NodeType = (ExtendedExpressionType)expression.NodeType,
-            Type = TypeConverter.Convert(expression.Type),
-            ReturnType = TypeConverter.Convert(expression.ReturnType),
+            DelegateType = TypeConverter.Convert(expression.Type),            
             Parameters = expression.Parameters.Transform(x => Convert(x)).ToArray(),
             Body = Convert(expression.Body)
         };
@@ -239,7 +238,6 @@ internal class ExpressionToSerializable : Parser, IConversion<Expression, Serial
         return new()
         {
             NodeType = (ExtendedExpressionType)expression.NodeType,
-            Type = TypeConverter.Convert(expression.Type),
             MemberInfo = MemberInfoConverter.Convert(expression.Member),
             Expression = NullableConvert(expression.Expression)
         };
@@ -272,7 +270,8 @@ internal class ExpressionToSerializable : Parser, IConversion<Expression, Serial
         return new()
         {
             NodeType = (ExtendedExpressionType)expression.NodeType,
-            Initializers = expression.Expressions.Transform(x => Convert(x)).ToArray()
+            Type = TypeConverter.Convert(expression.Type!),
+            Initializers = expression.Expressions.Transform(x => Convert(x)).ToArray(),
         };
     }
 
@@ -315,7 +314,7 @@ internal class ExpressionToSerializable : Parser, IConversion<Expression, Serial
             NodeType = ExtendedExpressionType.UpdateSet,
             FieldName = expression.FieldName,
             FieldType = TypeConverter.Convert(expression.FieldType),
-            Value = Serializer.Serialize(expression.Value),
+            Value = Serializer.Serialize(expression.Value)
         };
     }
 
@@ -326,7 +325,7 @@ internal class ExpressionToSerializable : Parser, IConversion<Expression, Serial
             NodeType = ExtendedExpressionType.UpdateSet,
             FieldSelector = Convert(expression.FieldSelector),
             FieldName = expression.FieldName,
-            FieldType = TypeConverter.Convert(expression.FieldType),
+            FieldType = TypeConverter.Convert(expression.FieldType)
         };
     }
 }

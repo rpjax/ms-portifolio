@@ -14,12 +14,12 @@ public interface IMemberBindingConverter : IBidirectionalConverter<MemberMemberB
 /// <summary>
 /// Provides an implementation for converting between <see cref="MemberMemberBinding"/> and <see cref="SerializableMemberBinding"/>.
 /// </summary>
-public class MemberBindingConverter : Parser, IMemberBindingConverter
+public class MemberBindingConverter : ConverterBase, IMemberBindingConverter
 {
     /// <summary>
     /// Gets the parsing context associated with the converter.
     /// </summary>
-    protected override ParsingContext Context { get; }
+    protected override ConversionContext Context { get; }
 
     /// <summary>
     /// Gets the member info converter used for member info conversions.
@@ -30,7 +30,7 @@ public class MemberBindingConverter : Parser, IMemberBindingConverter
     /// Initializes a new instance of the <see cref="MemberBindingConverter"/> class.
     /// </summary>
     /// <param name="parentContext">The parsing context.</param>
-    public MemberBindingConverter(ParsingContext parentContext)
+    public MemberBindingConverter(ConversionContext parentContext)
     {
         Context = parentContext.CreateChild("Member Binding Conversion");
         MemberInfoConverter = Context.GetDependency<IMemberInfoConverter>();

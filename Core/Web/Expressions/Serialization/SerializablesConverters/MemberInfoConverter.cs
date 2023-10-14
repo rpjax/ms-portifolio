@@ -14,10 +14,10 @@ public interface IMemberInfoConverter : IBidirectionalConverter<MemberInfo, Seri
 /// <summary>
 /// A converter that facilitates the transformation between <see cref="MemberInfo"/> and its serializable form, <see cref="SerializableMemberInfo"/>.
 /// </summary>
-public class MemberInfoConverter : Parser, IMemberInfoConverter
+public class MemberInfoConverter : ConverterBase, IMemberInfoConverter
 {
     /// <inheritdoc/>
-    protected override ParsingContext Context { get; }
+    protected override ConversionContext Context { get; }
 
     /// <summary>
     /// Provides capabilities to convert types during the conversion process.
@@ -28,7 +28,7 @@ public class MemberInfoConverter : Parser, IMemberInfoConverter
     /// Constructs a new instance of <see cref="MemberInfoConverter"/>, initialized with the given context and configuration.
     /// </summary>
     /// <param name="parentContext">The parsing context to be used during conversion.</param>
-    public MemberInfoConverter(ParsingContext parentContext)
+    public MemberInfoConverter(ConversionContext parentContext)
     {
         Context = parentContext.CreateChild("Member Info Conversion");
         TypeConverter = Context.GetDependency<ITypeConverter>();

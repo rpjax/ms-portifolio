@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -122,24 +123,16 @@ public static class JsonSerializerSingleton
     /// Retrieves or creates a <see cref="JsonSerializerOptions"/> instance, and injects the static
     /// <see cref="JsonConverter"/> items added from this container.
     /// </summary>
-    /// <param name="options">The existing options to augment with the static converters. If null and <paramref name="create_if_null"/> is true, a new instance will be created.</param>
-    /// <param name="create_if_null">Specifies whether a new JsonSerializerOptions instance should be created if the provided one is null. Defaults to true.</param>
     /// <returns>The augmented or created JsonSerializerOptions.</returns>
-    public static JsonSerializerOptions GetOptions(JsonSerializerOptions? options = null, bool create_if_null = true)
+    public static JsonSerializerOptions GetOptions(JsonSerializerOptions? options = null)
     {
-        if (create_if_null)
-        {
-            options ??= new JsonSerializerOptions();
-        }
+        options ??= new JsonSerializerOptions();
 
-        if (options != null)
+        foreach (var converter in Converters.Values)
         {
-            foreach (var converter in Converters.Values)
+            if (!options.Converters.Contains(converter))
             {
-                if (!options.Converters.Contains(converter))
-                {
-                    options.Converters.Add(converter);
-                }
+                options.Converters.Add(converter);
             }
         }
 

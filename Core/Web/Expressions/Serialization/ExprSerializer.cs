@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core;
+using ModularSystem.Core.Expressions;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Web.Expressions;
@@ -12,6 +13,8 @@ namespace ModularSystem.Web.Expressions;
 /// </remarks>
 public class ExprSerializer : ISerializer<Expression>
 {
+    private Configs Config { get; }
+
     /// <summary>
     /// Gets the converter used to transform between Expression and its serializable counterpart.
     /// </summary>
@@ -29,6 +32,7 @@ public class ExprSerializer : ISerializer<Expression>
     public ExprSerializer(Configs? config = null)
     {
         config ??= new();
+        Config = config;
         Converter = config.ExpressionConverter;
         Serializer = config.Serializer;
     }
@@ -46,11 +50,18 @@ public class ExprSerializer : ISerializer<Expression>
     /// <summary>
     /// Converts a serializable representation of an expression back into a LINQ Expression.
     /// </summary>
-    /// <param name="serializedExpression">The serializable representation of the expression.</param>
+    /// <param name="serializableExpression">The serializable representation of the expression.</param>
     /// <returns>The LINQ Expression.</returns>
-    public Expression FromSerializable(SerializableExpression serializedExpression)
+    public Expression FromSerializable(SerializableExpression serializableExpression)
     {
-        return Converter.Convert(serializedExpression);
+        var expression =  Converter.Convert(serializableExpression);
+
+        if (Config.UseParameterUniformityVisitor)
+        {
+            expression = new ParameterExpressionUniformityVisitor().Visit(expression);
+        }
+
+        return expression;
     }
 
     /// <summary>
@@ -99,15 +110,6 @@ public class ExprSerializer : ISerializer<Expression>
     }
 
     /// <summary>
-    /// Creates a new parsing context for the serializer.
-    /// </summary>
-    /// <returns>A new instance of <see cref="ParsingContext"/>.</returns>
-    private ParsingContext CreateContext()
-    {
-        return new DefaultParsingContext("Root Expression Serializer");
-    }
-
-    /// <summary>
     /// Represents the configuration settings for the <see cref="ExprSerializer"/>.
     /// </summary>
     public class Configs
@@ -115,11 +117,13 @@ public class ExprSerializer : ISerializer<Expression>
         /// <summary>
         /// Gets or sets the expression converter used for converting between LINQ Expressions and their serializable counterparts.
         /// </summary>
-        public IExpressionConverter ExpressionConverter { get; set; } = new ExpressionConverter(new DefaultParsingContext("Root Expression Converter"));
+        public IExpressionConverter ExpressionConverter { get; set; } = new ExpressionConverter(new DefaultConversionContext("Root Expression Converter"));
 
         /// <summary>
         /// Gets or sets the underlying serializer used for string serialization.
         /// </summary>
-        public ISerializer Serializer { get; set; } = new ExprToUtf8Serializer();
+        public ISerializer Serializer { get; set; } = new ExprJsonSerializer();
+
+        public bool UseParameterUniformityVisitor { get; set; } = true;
     }
 }

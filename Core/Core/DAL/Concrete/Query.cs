@@ -53,18 +53,17 @@ public class Query<T> : IQuery<T>
     }
 
     /// <summary>
-    /// Converts the query into a <see cref="SerializableQuery"/> format.
+    /// Converts the query into a <see cref="SerializableQuery"/> format using <see cref="QueryProtocol"/>.
     /// </summary>
-    /// <param name="serializer">An optional serializer to use for the serialization. If not provided, the default serializer will be used.</param>
     /// <returns>A serialized representation of the query.</returns>
-    public SerializableQuery ToSerializable(ISerializer<Expression>? serializer = null)
+    public SerializableQuery ToSerializable()
     {
         return new()
         {
-            Filter = QueryProtocol.ToJson(Filter, serializer),
-            Grouping = QueryProtocol.ToJson(Grouping, serializer),
-            Projection = QueryProtocol.ToJson(Projection, serializer),
-            Ordering = QueryProtocol.ToJson(Ordering, serializer),
+            Filter = QueryProtocol.ToSerializable(Filter),
+            Grouping = QueryProtocol.ToSerializable(Grouping),
+            Projection = QueryProtocol.ToSerializable(Projection),
+            Ordering = QueryProtocol.ToSerializable(Ordering),
             OrderingDirection = OrderingDirection
         };
     }
