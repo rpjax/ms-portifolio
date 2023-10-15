@@ -29,11 +29,11 @@ public class EFLogEntry : EFModel, ILogEntry
 
 public class SqliteLogReader<T> : ILogReader<T> where T : EFLogEntry
 {
-    EFCoreContext<T> context;
+    EFCoreSqliteContext<T> context;
 
     public SqliteLogReader(FileInfo file)
     {
-        context = new EFCoreContext<T>(file);
+        context = new EFCoreSqliteContext<T>(file);
     }
 
     public void Dispose()
@@ -49,11 +49,11 @@ public class SqliteLogReader<T> : ILogReader<T> where T : EFLogEntry
 
 public class SqliteLogWriter<T> : ILogWriter<T> where T : EFLogEntry
 {
-    EFCoreContext<T> context;
+    EFCoreSqliteContext<T> context;
 
     public SqliteLogWriter(FileInfo file)
     {
-        context = new EFCoreContext<T>(file);
+        context = new EFCoreSqliteContext<T>(file);
     }
 
     public void Dispose()

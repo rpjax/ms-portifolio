@@ -3,7 +3,7 @@
 namespace ModularSystem.Core.Expressions;
 
 /// <summary>
-/// Represents an expression that defines a field update operation. <br/>
+/// Represents an expression that defines a field update operation. 
 /// This expression is not intended to be visited by standard expression visitors.
 /// </summary>
 public class UpdateSetExpression : NotVisitableExpression
@@ -14,7 +14,7 @@ public class UpdateSetExpression : NotVisitableExpression
     public override Type Type { get; }
 
     /// <summary>
-    /// Gets the node type of this expression. Always returns <see cref="ExpressionType.Assign"/>.
+    /// Gets the node type of this expression. Always returns <see cref="ExtendedExpressionType.UpdateSet"/>.
     /// </summary>
     public override ExpressionType NodeType { get; }
 
@@ -29,22 +29,29 @@ public class UpdateSetExpression : NotVisitableExpression
     public Type FieldType { get; }
 
     /// <summary>
+    /// Gets the expression that selects the field to be updated.
+    /// </summary>
+    public Expression FieldSelector { get; }
+
+    /// <summary>
     /// Gets the value to set for the field.
     /// </summary>
-    public dynamic? Value { get; }
+    public Expression Value { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UpdateSetExpression"/> class.
     /// </summary>
     /// <param name="fieldName">The name of the field being updated.</param>
     /// <param name="type">The type of the value being set.</param>
+    /// <param name="selector">The expression that selects the field to be updated.</param>
     /// <param name="value">The value to set for the field.</param>
-    public UpdateSetExpression(string fieldName, Type type, dynamic? value)
+    public UpdateSetExpression(string fieldName, Type type, Expression selector, Expression value)
     {
-        NodeType = (ExpressionType) ExtendedExpressionType.UpdateSet;
+        NodeType = (ExpressionType)ExtendedExpressionType.UpdateSet;
         Type = type;
         FieldName = fieldName;
         FieldType = type;
+        FieldSelector = selector;
         Value = value;
     }
 
@@ -55,6 +62,23 @@ public class UpdateSetExpression : NotVisitableExpression
     public override string ToString()
     {
         return $"{FieldName} = {Value?.ToString()}";
+    }
+
+    /// <summary>
+    /// Converts the field selector expression to a lambda expression.
+    /// </summary>
+    /// <param name="parameters">Optional parameters for the lambda expression.</param>
+    /// <returns>A lambda expression representing the field selector.</returns>
+    public LambdaExpression? ToLambda(params ParameterExpression[]? parameters)
+    {
+        if(FieldSelector is not LambdaExpression cast)
+        {
+            return null;
+        }
+
+        return new ParameterExpressionUniformityVisitor()
+            .Visit(Lambda(cast.Body, parameters))
+            .TypeCast<LambdaExpression>();
     }
 
     /// <summary>

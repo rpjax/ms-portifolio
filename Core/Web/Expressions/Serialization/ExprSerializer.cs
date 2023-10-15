@@ -54,7 +54,7 @@ public class ExprSerializer : ISerializer<Expression>
     /// <returns>The LINQ Expression.</returns>
     public Expression FromSerializable(SerializableExpression serializableExpression)
     {
-        var expression =  Converter.Convert(serializableExpression);
+        var expression = Converter.Convert(serializableExpression);
 
         if (Config.UseParameterUniformityVisitor)
         {
@@ -124,6 +124,12 @@ public class ExprSerializer : ISerializer<Expression>
         /// </summary>
         public ISerializer Serializer { get; set; } = new ExprJsonSerializer();
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the ParameterUniformityVisitor should be used during deserialization.
+        /// </summary>
+        /// <remarks>
+        /// This visitor ensures that parameters with the same name in the expression tree are represented by the same object instance.
+        /// </remarks>
         public bool UseParameterUniformityVisitor { get; set; } = true;
     }
 }

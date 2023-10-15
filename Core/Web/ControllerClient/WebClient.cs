@@ -1,5 +1,6 @@
 using ModularSystem.Core;
 using ModularSystem.Web.Client;
+using System.Linq.Expressions;
 
 namespace ModularSystem.Web;
 
@@ -100,14 +101,23 @@ public class CrudClient<T> : WebClient where T : class
     }
 
     /// <summary>
-    /// Asynchronously queries instances of type <typeparamref name="T"/> based on a serialized search query.
+    /// Asynchronously queries instances of type <typeparamref name="T"/> based on a search query.
     /// </summary>
-    /// <param name="serializedSearch">The serialized query for the search.</param>
+    /// <param name="query">The serializable query for the search.</param>
     /// <returns>A task representing the asynchronous operation, with a result of the query.</returns>
-    public Task<QueryResult<T>> QueryAsync(SerializableQuery serializedSearch)
+    public Task<QueryResult<T>> QueryAsync(SerializableQuery query)
     {
-        var endpoint = new QueryEndpoint<T>(CopyUri());
-        return endpoint.RunAsync(serializedSearch);
+        return new QueryEndpoint<T>(CopyUri()).RunAsync(query);
+    }
+
+    /// <summary>
+    /// Asynchronously queries entities of type <typeparamref name="T"/> based on a search query.
+    /// </summary>
+    /// <param name="query">The query defining the search criteria.</param>
+    /// <returns>A task representing the asynchronous query operation, with a result containing the matched entities.</returns>
+    public Task<QueryResult<T>> QueryAsync(Query<T> query)
+    {
+        return QueryAsync(query.ToSerializable());
     }
 
     /// <summary>
@@ -122,14 +132,46 @@ public class CrudClient<T> : WebClient where T : class
     }
 
     /// <summary>
+    /// Asynchronously updates entities based on the provided update criteria.
+    /// </summary>
+    /// <param name="update">The serialized update criteria.</param>
+    /// <returns>The number of entities updated; null if the update count is unavailable.</returns>
+    public Task<long?> UpdateAsync(SerializableUpdate update)
+    {
+        return new UpdateBulkEndpoint(CopyUri()).RunAsync(update);
+    }
+
+    /// <summary>
+    /// Asynchronously updates multiple entities of type <typeparamref name="T"/> based on the provided update criteria.
+    /// </summary>
+    /// <param name="update">The update criteria specifying which entities to update and the modifications to apply.</param>
+    /// <returns>A task representing the asynchronous bulk update operation, with a result indicating the number of entities updated. Returns null if the update count is not available.</returns>
+    public Task<long?> BulkUpdateAsync(Update<T> update)
+    {
+        return UpdateAsync(update.ToSerializable());
+    }
+
+    /// <summary>
     /// Asynchronously deletes an instance of type <typeparamref name="T"/> by its ID.
     /// </summary>
     /// <param name="id">The ID of the instance.</param>
     /// <returns>A task representing the asynchronous delete operation.</returns>
-    public async Task DeleteByIdAsync(string id)
+    public Task DeleteByIdAsync(string id)
     {
-        var endpoint = new DeleteByIdEndpoint<T>(CopyUri());
-        await endpoint.RunAsync(id);
+        return new DeleteByIdEndpoint<T>(CopyUri()).RunAsync(id);
+    }
+
+    /// <summary>
+    /// Deletes multiple entities of type <typeparamref name="T"/> based on the provided criteria.
+    /// </summary>
+    /// <param name="expression">The criteria to identify entities to delete.</param>
+    /// <returns>The number of entities deleted; null if the delete count is unavailable.</returns>
+    public async Task<long?> BulkDeleteAsync(Expression<Func<T, bool>> expression)
+    {
+        var serializable = QueryProtocol.ToSerializable(expression);
+        var endpoint = new BulkDeleteEndpoint(CopyUri());
+        var dto = await endpoint.RunAsync(serializable);
+        return dto.Value;
     }
 
     /// <summary>

@@ -13,7 +13,7 @@ namespace ModularSystem.Web;
 /// Default implementation of <see cref="ISessionManager"/> that uses SQLite to store it's data.
 /// </summary>
 [Obsolete]
-public class DefaultSessionManager : EFEntity<EFSession>, ISessionManager
+public class DefaultSessionManager : EFEntityService<EFSession>, ISessionManager
 {
     /// <summary>
     /// Defaults to 15 seconds.
@@ -46,10 +46,10 @@ public class DefaultSessionManager : EFEntity<EFSession>, ISessionManager
         return new DefaultSessionManager();
     }
 
-    public static EFCoreContext<EFSession> DefaultStorageContext()
+    public static EFCoreSqliteContext<EFSession> DefaultStorageContext()
     {
         var fileInfo = LocalStorage.GetFileInfo("WebSessions.db");
-        return new EFCoreContext<EFSession>(fileInfo);
+        return new EFCoreSqliteContext<EFSession>(fileInfo);
     }
 
     public override void Dispose()
@@ -109,7 +109,7 @@ public class DefaultSessionManager : EFEntity<EFSession>, ISessionManager
         public byte[]? Bytes { get; set; } = new byte[0];
     }
 
-    public class DefaultSessionEntity : EFEntity<EFSession>
+    public class DefaultSessionEntity : EFEntityService<EFSession>
     {
         public override IDataAccessObject<EFSession> DataAccessObject { get; }
 

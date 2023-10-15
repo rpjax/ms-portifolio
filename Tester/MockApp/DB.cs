@@ -31,16 +31,21 @@ public static class DatabaseSource
 
 public static class EFDatabaseSource
 {
-    public class AntContext : EFCoreContext<EFAnt>
+    public class AntContext : EFCoreSqliteContext<EFTestEntity>
     {
         public AntContext(FileInfo fileInfo, string tableName = "Entries") : base(fileInfo, tableName)
         {
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<EFTestEntity>().OwnsOne(e => e.Email);
+        }
     }
 
-    public static DbContext AntsContext()
+    public static DbContext TestContext()
     {
-        var file = new FileInfo(Path.GetFullPath("A:\\RPJ\\TEMP\\ants.db"));
+        var file = new FileInfo(Path.GetFullPath("C:\\RPJ\\TEMP\\ef_test_entity.db"));
         var context = new AntContext(file);
         return context;
     }

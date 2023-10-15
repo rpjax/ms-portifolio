@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Query;
 using ModularSystem.Core;
 using ModularSystem.Core.Expressions;
+using MongoDB.Driver;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -16,11 +17,17 @@ public class EFCoreDataAccessObject<T> : IDataAccessObject<T> where T : class, I
     protected DbContext DbContext { get; }
     protected DbSet<T> DbSet { get; }
 
-    public EFCoreDataAccessObject(DbContext dbContext)
+    /// <summary>
+    /// Represents the configuration settings used for database operations in this data access object.
+    /// </summary>
+    protected Configuration Config { get; }
+
+    public EFCoreDataAccessObject(DbContext dbContext, Configuration? config = null)
     {
         dbContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
         DbContext = dbContext;
         DbSet = dbContext.Set<T>();
+        Config = config ?? new();
     }
 
     public virtual void Dispose()
@@ -59,9 +66,9 @@ public class EFCoreDataAccessObject<T> : IDataAccessObject<T> where T : class, I
         await DbContext.SaveChangesAsync();
     }
 
-    public virtual Task UpdateAsync(IUpdate<T> update)
+    public virtual Task<long?> UpdateAsync(IUpdate<T> update)
     {
-        return new EFCoreUpdateOperation<T>(DbSet).ExecuteAsync(update);
+        return new EFCoreUpdateOperation<T>(DbSet, Config).ExecuteAsync(update);
     }
 
     public Task UpdateAsync<TField>(Expression<Func<T, bool>> selector, Expression<Func<T, TField?>> fieldSelector, TField? value)
@@ -75,9 +82,9 @@ public class EFCoreDataAccessObject<T> : IDataAccessObject<T> where T : class, I
         return DbSet.Where(x => x.Id == _id).ExecuteDeleteAsync();
     }
 
-    public Task DeleteAsync(Expression<Func<T, bool>> predicate)
+    public async Task<long?> DeleteAsync(Expression<Func<T, bool>> predicate)
     {
-        return DbSet.Where(predicate).ExecuteDeleteAsync();
+        return await DbSet.Where(predicate).ExecuteDeleteAsync();
     }
 
     public Task DeleteAllAsync()
@@ -147,6 +154,23 @@ public class EFCoreDataAccessObject<T> : IDataAccessObject<T> where T : class, I
 
         return schema != null ? $"{schema}.{tableName}" : tableName;
     }
+
+    /// <summary>
+    /// Represents the configuration settings for database operations.
+    /// </summary>
+    public class Configuration
+    {
+        /// <summary>
+        /// Gets or sets a value indicating whether update operations can be performed on all records simultaneously.<br/>
+        /// When set to <c>true</c>, updates can be executed without specifying a filter definition.<br/>
+        /// Default value is <c>false</c>.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if updates without a filter are allowed; otherwise, <c>false</c>.
+        /// </value>
+        public bool AllowUpdatesWithNoFilter { get; set; } = false;
+    }
+
 }
 
 internal class EFCoreQueryOperation<T> where T : class, IEFModel
@@ -303,23 +327,38 @@ internal class EFCoreQueryOperation<T> where T : class, IEFModel
 internal class EFCoreUpdateOperation<T> where T : class, IEFModel
 {
     private DbSet<T> DbSet { get; }
+    private EFCoreDataAccessObject<T>.Configuration Config { get; }
 
-    public EFCoreUpdateOperation(DbSet<T> dbSet)
+    public EFCoreUpdateOperation(DbSet<T> dbSet, EFCoreDataAccessObject<T>.Configuration config)
     {
         DbSet = dbSet;
+        Config = config;
     }
 
-    public async Task ExecuteAsync(IUpdate<T> update)
+    public async Task<long?> ExecuteAsync(IUpdate<T> update)
     {
         var reader = new UpdateReader<T>(update);
         var modifications = reader.GetUpdateSetExpressions();
 
         if (modifications == null || modifications.IsEmpty())
         {
-            return;
+            return 0;
         }
 
         var queryable = DbSet.AsQueryable();
+        var filterExpr = reader.GetFilterExpression();
+
+        if (filterExpr == null)
+        {
+            if (!Config.AllowUpdatesWithNoFilter)
+            {
+                throw new Exception("Update operation requires a filter definition. To allow updates without a filter, adjust the settings in the provided configuration object when initializing the data access object.");
+            }
+        }
+        else
+        {
+            queryable = queryable.Where(filterExpr);
+        }
 
         //*
         // Developer Notes:
@@ -336,50 +375,57 @@ internal class EFCoreUpdateOperation<T> where T : class, IEFModel
         var parameterExpression = Expression.Parameter(typeof(SetPropertyCalls<T>), "s");
         var fluentParameter = parameterExpression as Expression;
         var setCalls = new List<MethodCallExpression>();
-        //new SetPropertyCalls<T>().SetProperty()
+        
         foreach (var updateSet in modifications)
         {
+            //*
+            // The LINQ method used to generate the update is:
+            // new SetPropertyCalls<T>().SetProperty();
+            //
+            // NOTE: The method is the second element in the sequence produced by:
+            // typeof(SetPropertyCalls<T>).GetMethods()
+            //
+            // If Entity Framework's API change this could require adaptation.
+            //*
             var setMethodInfo = typeof(SetPropertyCalls<T>)
-                .GetMethod("SetProperty")
-                ?.MakeGenericMethod(updateSet.FieldType);
+                .GetMethods()
+                .Where(x => x.Name == "SetProperty")
+                .ElementAt(1)
+                .MakeGenericMethod(updateSet.FieldType);
 
             if (setMethodInfo == null)
             {
                 throw new InvalidOperationException();
             }
 
+            var selectorFuncDelegate = typeof(Func<,>)
+                .MakeGenericType(new Type[] { typeof(T), updateSet.FieldType });
+            var selectorExprDelegate = typeof(Expression<>)
+                .MakeGenericType(selectorFuncDelegate);
+
+            var selectorExpr = updateSet.ToLambda(Expression.Parameter(typeof(T), "x"));
+
+            if(selectorExpr == null)
+            {
+                throw new Exception("Invalid or insupported UpdateSetExpression expression.");
+            }
+
             var setMethodArgs = new Expression[]
             {
-                Expression.Constant(reader.GetFilterExpression(), typeof(Expression<Func<T, bool>>)),
-                Expression.Constant(updateSet.Value, updateSet.FieldType)
+                selectorExpr,
+                updateSet.Value
             };
 
-            var setExpression = Expression.Call(fluentParameter, setMethodInfo, setMethodArgs);
-
-            setCalls.Add(setExpression);
-            fluentParameter = setExpression;
+            fluentParameter = Expression.Call(fluentParameter, setMethodInfo, setMethodArgs);
         }
 
-        var lambdaExpression = Expression.Lambda<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>>(parameterExpression, parameterExpression);
+        var lambdaExpression = Expression.Lambda<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>>(fluentParameter, parameterExpression);
 
         var visitor = new ParameterExpressionUniformityVisitor();
 
         lambdaExpression = visitor.VisitAndConvert(lambdaExpression, "VisitLambda");
 
-        await queryable.ExecuteUpdateAsync(lambdaExpression);
+        return await queryable.ExecuteUpdateAsync(lambdaExpression);
     }
 
-    private Expression<Func<TEntity, TEntity>> CreateUpdateExpression<TEntity>(string propertyName, object newValue)
-    {
-        var entityParameter = Expression.Parameter(typeof(TEntity), "x");
-
-        var property = Expression.Property(entityParameter, propertyName);
-        var value = Expression.Constant(newValue);
-
-        var assign = Expression.Assign(property, value);
-
-        var updateExpression = Expression.Lambda<Func<TEntity, TEntity>>(assign, entityParameter);
-
-        return updateExpression;
-    }
 }

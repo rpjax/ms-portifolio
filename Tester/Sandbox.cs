@@ -1,10 +1,13 @@
 ﻿using DnsClient;
 using ModularSystem.Core;
 using ModularSystem.Core.Cli;
+using ModularSystem.EntityFramework;
 using ModularSystem.Mailing;
 using ModularSystem.Mongo;
+using ModularSystem.Web;
 using ModularSystem.Web.Expressions;
 using MongoDB.Bson;
+using System.Collections.Concurrent;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Tester;
@@ -13,6 +16,7 @@ public partial class Sandbox : CliCommand
 {
     public Sandbox(CLI cli, PromptContext context) : base(cli, context)
     {
+
     }
 
     class Env
@@ -23,21 +27,36 @@ public partial class Sandbox : CliCommand
 
     protected override async void Execute()
     {
-        using var service = new MongoTestEntity();
+        using var service = new EFTestService();
 
-        var query = new QueryWriter<MongoTestModel>()
+        //for (int i = 0; i < 100; i++)
+        //{
+        //    service.CreateAsync(new EFTestEntity()
+        //    {
+        //        Nickname = "jacques",
+        //        FirstName = "Rodrigo",
+        //        Email = new("jacques@more.tt")
+        //    }).Wait();  
+        //}
+
+        //await Console.Out.WriteLineAsync("success");
+        //return;
+
+        var query = new QueryWriter<EFTestEntity>()
                 .SetLimit(50)
-                .SetFilter(x => 50 == 50 && x.FirstName.ToLower().Contains("ama"))
+                .SetFilter(x => x.Nickname.ToLower().Contains("amanda"))
                 .CreateSerializable();
 
-        var rebQuery = query.ToQuery<MongoTestModel>();
+        var rebQuery = query.ToQuery<EFTestEntity>();
 
-        var update = new UpdateWriter<MongoTestModel>()
-                .SetFilter(x => x.FirstName.ToLower().Contains("amanda"))
-                .SetModification(x => x.Email, new Email("amandatoques@gmail.com"))
+        var update = new UpdateWriter<EFTestEntity>()
+                .SetFilter(x => x.Id <= 90)
+                .SetModification(x => x.Email.Username, "yummandy")
+                //.SetModification(x => x.Email.Domain, "gmail")
+                //.SetModification(x => x.Email.Extension, "com")
                 .CreateSerializable();
 
-        var rebUpdate = update.ToUpdate<MongoTestModel>();
+        var rebUpdate = update.ToUpdate<EFTestEntity>();
 
         await service.UpdateAsync(rebUpdate);
         var queryResult = await service.QueryAsync(rebQuery);
@@ -73,14 +92,13 @@ class MyMiddleware : EntityMiddleware<MongoTestModel>
 
 public class MongoTestModel : MongoModel
 {
-    public bool HasKilledChild { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string[] Surnames { get; set; } = Array.Empty<string>();
     public string? Nickname { get; set; }
     public Email Email { get; set; } = Email.Empty();
 }
 
-public class MongoTestEntity : MongoEntity<MongoTestModel>
+public class MongoTestEntity : MongoEntityService<MongoTestModel>
 {
     public override IDataAccessObject<MongoTestModel> DataAccessObject { get; }
 
@@ -89,5 +107,48 @@ public class MongoTestEntity : MongoEntity<MongoTestModel>
         DataAccessObject = new MongoDataAccessObject<MongoTestModel>(DatabaseSource.TestModel);
         Validator = new EmptyValidator<MongoTestModel>();
         UpdateValidator = new EmptyValidator<MongoTestModel>();
+    }
+}
+
+public class Register
+{
+    public ushort Value { get; set; }
+}
+
+public class SizedMemory
+{
+    public long Size { get; }
+    private byte[] Bytes { get; }
+
+    public SizedMemory(long size)
+    {
+        Size = size;
+        Bytes = new byte[size];
+    }
+}
+
+public class EmulatedClock
+{
+
+}
+
+public class ClockSignalEvent
+{
+
+}
+
+public class InterruptHandler 
+{
+    public ushort Address { get; }
+}
+
+public class CpuEmulator
+{
+    private Register ProgramCounter { get; } = new();
+    private ConcurrentDictionary<string, InterruptHandler> InterruptHandlers { get; } = new();
+
+    private void OnClockSignal(ClockSignalEvent clockSignal)
+    {
+
     }
 }

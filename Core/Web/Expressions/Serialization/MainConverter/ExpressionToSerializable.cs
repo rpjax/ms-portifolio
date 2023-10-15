@@ -314,7 +314,8 @@ internal class ExpressionToSerializable : ConverterBase, IConversion<Expression,
             NodeType = ExtendedExpressionType.UpdateSet,
             FieldName = expression.FieldName,
             FieldType = TypeConverter.Convert(expression.FieldType),
-            Value = Serializer.Serialize(expression.Value)
+            FieldSelector = Convert(expression.FieldSelector),
+            Value = Convert(expression.Value)
         };
     }
 

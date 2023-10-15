@@ -21,22 +21,22 @@ public class RootController : WebController
 [Route("api/exception-logs")]
 public class ExceptionLogsController : CrudController<ExceptionEntry>
 {
-    protected override EntityService<ExceptionEntry> Entity { get; }
+    protected override EntityService<ExceptionEntry> Service { get; }
 
     public ExceptionLogsController()
     {
-        Entity = new ExceptionEntryEntity();
+        Service = new ExceptionEntryEntity();
     }
 }
 
 [Route("api/mongo-ant")]
 public class TestModelController : CrudController<MongoAnt>
 {
-    protected override EntityService<MongoAnt> Entity { get; }
+    protected override EntityService<MongoAnt> Service { get; }
 
     public TestModelController()
     {
-        Entity = new MongoAntEntity();
+        Service = new MongoAntService();
     }
 }
 

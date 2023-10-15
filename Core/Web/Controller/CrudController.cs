@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using ModularSystem.Core;
+using ModularSystem.Core.Expressions;
 using ModularSystem.Core.Security;
+using ModularSystem.Web.Expressions;
 
 namespace ModularSystem.Web;
 
@@ -15,14 +17,14 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
     /// <summary>
     /// Gets the associated entity instance for CRUD operations.
     /// </summary>
-    protected abstract EntityService<T> Entity { get; }
+    protected abstract EntityService<T> Service { get; }
 
     /// <summary>
     /// Disposes the associated entity.
     /// </summary>
     public virtual void Dispose()
     {
-        Entity.Dispose();
+        Service.Dispose();
         GC.SuppressFinalize(this);
     }
 
@@ -38,7 +40,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
             }
 
             await AuthorizeAsync(resourcePolicy);
-            var id = await Entity.CreateAsync(data);
+            var id = await Service.CreateAsync(data);
             return Ok(Dto<string>.From(id));
         }
         catch (Exception e)
@@ -59,7 +61,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
             }
 
             await AuthorizeAsync(resourcePolicy);
-            var data = await Entity.GetAsync(id);
+            var data = await Service.GetAsync(id);
             return Ok(data);
         }
         catch (Exception e)
@@ -80,7 +82,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
 
             await AuthorizeAsync(resourcePolicy);
             var query = serializedQuery.ToQuery<T>();
-            var result = await Entity.QueryAsync(query);
+            var result = await Service.QueryAsync(query);
             return Ok(result);
         }
         catch (Exception e)
@@ -102,7 +104,27 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
             }
 
             await AuthorizeAsync(resourcePolicy);
-            await Entity.UpdateAsync(data);
+            await Service.UpdateAsync(data);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return HandleException(e);
+        }
+    }
+
+    [HttpPatch("bulk-update")]
+    public virtual async Task<IActionResult> BulkUpdateAsync([FromBody] SerializableUpdate serializableUpdate, [BindNever] IResourcePolicy? resourcePolicy = null)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            await AuthorizeAsync(resourcePolicy);
+            await Service.UpdateAsync(serializableUpdate.ToUpdate<T>());
             return Ok();
         }
         catch (Exception e)
@@ -123,7 +145,29 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
             }
 
             await AuthorizeAsync(resourcePolicy);
-            await Entity.DeleteAsync(id);
+            await Service.DeleteAsync(id);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return HandleException(e);
+        }
+    }
+
+    [HttpPatch("bulk-delete")]
+    public async Task<IActionResult> BulkDeleteAsync([FromBody] SerializableExpression serializableExpression, IResourcePolicy? resourcePolicy = null)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var reader = new ExpressionReader(QueryProtocol.FromSerializable(serializableExpression));
+
+            await AuthorizeAsync(resourcePolicy);
+            await Service.DeleteAsync(reader.GetPredicate<T>());
             return Ok();
         }
         catch (Exception e)
@@ -166,7 +210,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
             }
 
             await AuthorizeAsync(resourcePolicy);
-            var isValid = await Entity.ValidateIdAsync(id);
+            var isValid = await Service.ValidateIdAsync(id);
             return Ok(Dto<bool>.From(isValid));
         }
         catch (Exception e)

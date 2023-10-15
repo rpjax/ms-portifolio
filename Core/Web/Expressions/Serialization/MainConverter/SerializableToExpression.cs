@@ -485,12 +485,21 @@ internal class SerializableToExpression : ConverterBase, IConversion<Serializabl
         {
             throw MissingArgumentException(nameof(sExpression.FieldType));
         }
+        if (sExpression.FieldSelector == null)
+        {
+            throw MissingArgumentException(nameof(sExpression.FieldSelector));
+        }
+        if (sExpression.Value == null)
+        {
+            throw MissingArgumentException(nameof(sExpression.Value));
+        }
 
         var name = sExpression.FieldName;
         var type = TypeConverter.Convert(sExpression.FieldType);
-        var value = sExpression.Value == null ? null : Serializer.Deserialize(sExpression.Value, type);
+        var selectorExpr = Convert(sExpression.FieldSelector);
+        var valueExpr = Convert(sExpression.Value);
 
-        return new UpdateSetExpression(name, type, value);
+        return new UpdateSetExpression(name, type, selectorExpr, valueExpr);
     }
 
     private OrderingExpression Convert(SerializableOrderingExpression sExpression)

@@ -158,8 +158,12 @@ public class MongoDataAccessObject<T> : IDataAccessObject<T> where T : IMongoMod
     /// Updates multiple entities in the MongoDB collection based on the provided update definition.
     /// </summary>
     /// <param name="update">The update definition specifying which entities to update and how to update them.</param>
-    /// <returns>A task representing the asynchronous update operation.</returns>
-    public virtual async Task UpdateAsync(IUpdate<T> update)
+    /// <returns>
+    /// A task that represents the asynchronous update operation. <br/>
+    /// The task result contains the number of updated entities 
+    /// if the operation was acknowledged and the modified count is available; otherwise, it returns null.
+    /// </returns>
+    public virtual async Task<long?> UpdateAsync(IUpdate<T> update)
     {
         var reader = new UpdateReader<T>(update);
         var filter = reader.GetFilterExpression();
@@ -176,7 +180,7 @@ public class MongoDataAccessObject<T> : IDataAccessObject<T> where T : IMongoMod
         }
         if (modifications == null || modifications.IsEmpty())
         {
-            return;
+            return 0;
         }
 
         var filterDefinition = FilterBuilder.Where(filter);
@@ -187,7 +191,14 @@ public class MongoDataAccessObject<T> : IDataAccessObject<T> where T : IMongoMod
             updateDefinition = UpdateBuilder.Combine(updateDefinition, UpdateBuilder.Set(updateSet.FieldName, updateSet.Value));
         }
 
-        await Collection.UpdateManyAsync(filterDefinition, updateDefinition);
+        var result = await Collection.UpdateManyAsync(filterDefinition, updateDefinition);
+
+        if (result.IsAcknowledged && result.IsModifiedCountAvailable)
+        {
+            return result.ModifiedCount;
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -229,10 +240,21 @@ public class MongoDataAccessObject<T> : IDataAccessObject<T> where T : IMongoMod
     /// Deletes multiple entities from the MongoDB collection based on a predicate.
     /// </summary>
     /// <param name="predicate">The predicate to determine which entities to delete.</param>
-    /// <returns>A task representing the asynchronous delete operation.</returns>
-    public Task DeleteAsync(Expression<Func<T, bool>> predicate)
+    /// <returns>
+    /// A task that represents the asynchronous delete operation. <br/>
+    /// The task result contains the number of deleted entities 
+    /// if the operation was acknowledged; otherwise, it returns null.
+    /// </returns>
+    public async Task<long?> DeleteAsync(Expression<Func<T, bool>> predicate)
     {
-        return Collection.DeleteManyAsync(predicate);
+        var result = await Collection.DeleteManyAsync(predicate);
+
+        if (result.IsAcknowledged)
+        {
+            return result.DeletedCount;
+        }
+
+        return null;
     }
 
     /// <summary>

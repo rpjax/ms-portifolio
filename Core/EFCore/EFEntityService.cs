@@ -7,7 +7,7 @@ namespace ModularSystem.EntityFramework;
 /// Provides a base for entities in an Entity Framework context.
 /// </summary>
 /// <typeparam name="T">The type of the entity, which should implement the <see cref="IEFModel"/> interface.</typeparam>
-public abstract class EFEntity<T> : EntityService<T> where T : class, IEFModel
+public abstract class EFEntityService<T> : EntityService<T> where T : class, IEFModel
 {
     /// <summary>
     /// Creates an expression to select the ID of an entity.

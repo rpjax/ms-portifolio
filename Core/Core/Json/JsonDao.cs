@@ -111,11 +111,11 @@ public class JsonDao<T> : IDataAccessObject<T> where T : class, IQueryableModel
         File.Data.RemoveAt(index);
     }
 
-    public Task DeleteAsync(Expression<Func<T, bool>> predicate)
+    public Task<long?> DeleteAsync(Expression<Func<T, bool>> predicate)
     {
         File.Data = File.Data.RemoveWhere(predicate.Compile());
         Storage.Write(File);
-        return Task.CompletedTask;
+        return null;
     }
 
     public Task DeleteAllAsync()
@@ -180,7 +180,7 @@ public class JsonDao<T> : IDataAccessObject<T> where T : class, IQueryableModel
         throw new NotImplementedException();
     }
 
-    public Task UpdateAsync(IUpdate<T> update)
+    public Task<long?> UpdateAsync(IUpdate<T> update)
     {
         throw new NotImplementedException();
     }

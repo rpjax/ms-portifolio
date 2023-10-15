@@ -52,6 +52,19 @@ public class Query<T> : IQuery<T>
         OrderingDirection = OrderingDirection.Ascending;
     }
 
+    public Query<TNew> TypeConvert<TNew>()
+    {
+        return new Query<TNew>
+        {
+            Filter = Filter,
+            Grouping = Grouping,
+            Projection = Projection,
+            Ordering = Ordering,
+            Pagination = Pagination,
+            OrderingDirection = OrderingDirection.Ascending
+        };
+    }
+
     /// <summary>
     /// Converts the query into a <see cref="SerializableQuery"/> format using <see cref="QueryProtocol"/>.
     /// </summary>

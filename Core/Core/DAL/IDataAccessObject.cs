@@ -50,14 +50,14 @@ public interface IDataAccessObject<T> : IDisposable
     /// </summary>
     /// <param name="update">Update criteria and values.</param>
     /// <returns>A task representing the update process.</returns>
-    Task UpdateAsync(IUpdate<T> update);
+    Task<long?> UpdateAsync(IUpdate<T> update);
 
     /// <summary>
     /// Deletes entities matching the provided criteria asynchronously.
     /// </summary>
     /// <param name="expression">Criteria to identify entities to delete.</param>
     /// <returns>A task representing the deletion process.</returns>
-    Task DeleteAsync(Expression<Func<T, bool>> expression);
+    Task<long?> DeleteAsync(Expression<Func<T, bool>> expression);
 
     /// <summary>
     /// Purges all entities from the data storage asynchronously.

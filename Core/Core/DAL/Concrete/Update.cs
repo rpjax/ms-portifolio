@@ -156,8 +156,9 @@ public class UpdateWriter<T> : IFactory<Update<T>>
     {
         var analyser = new SelectorExpressionAnalyzer<T, TField>(selector)
             .Execute();
+        var valueExpr = Expression.Constant(value, typeof(TField));
         var modification = 
-            new UpdateSetExpression(analyser.GetFieldName(), analyser.GetFieldType(), value);
+            new UpdateSetExpression(analyser.GetFieldName(), analyser.GetFieldType(), selector, valueExpr);
         var reader = new UpdateReader<T>(Update);
 
         var updatesForSelectedField = reader

@@ -400,7 +400,8 @@ public class SerializableUpdateSetExpression : SerializableExpression
 {
     public string? FieldName { get; set; }
     public SerializableType? FieldType { get; set; }
-    public string? Value { get; set; }
+    public SerializableExpression? FieldSelector { get; set; }
+    public SerializableExpression? Value { get; set; }
 }
 
 public class SerializableOrderingExpression : SerializableExpression

@@ -1,4 +1,5 @@
 using ModularSystem.Core;
+using ModularSystem.Web.Expressions;
 using ModularSystem.Web.Http;
 
 namespace ModularSystem.Web.Client;
@@ -78,6 +79,26 @@ internal class UpdateEndpoint<T> : EndpointBase<T, Dto<bool>> where T : class
     }
 }
 
+internal class UpdateBulkEndpoint : EndpointBase<SerializableUpdate, long?>
+{
+    public UpdateBulkEndpoint(Http.Uri uri) : base(uri)
+    {
+
+    }
+
+    protected override HttpRequest CreateRequest(SerializableUpdate input)
+    {
+        return new HttpRequest(RequestUri.AppendPath("bulk-update"), HttpMethod.Patch)
+            .SetJsonBody(input);
+    }
+
+    protected override long? DeserializeResponse(HttpResponse response)
+    {
+        var dto = response.DeserializeAsJson<Dto<long?>>();
+        return dto.Value;
+    }
+}
+
 // DELETE
 internal class DeleteByIdEndpoint<T> : EndpointBase<string, Core.Void>
 {
@@ -94,7 +115,21 @@ internal class DeleteByIdEndpoint<T> : EndpointBase<string, Core.Void>
 
     protected override Core.Void DeserializeResponse(HttpResponse response)
     {
-        return new Core.Void();
+        return new();
+    }
+}
+
+internal class BulkDeleteEndpoint : EndpointBase<SerializableExpression, Dto<long?>>
+{
+    public BulkDeleteEndpoint(Http.Uri uri) : base(uri)
+    {
+
+    }
+
+    protected override HttpRequest CreateRequest(SerializableExpression input)
+    {
+        return new HttpRequest(RequestUri.AppendPath("bulk-delete"), HttpMethod.Patch)
+            .SetJsonBody(input);
     }
 }
 
