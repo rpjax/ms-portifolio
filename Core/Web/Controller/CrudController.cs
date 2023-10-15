@@ -231,6 +231,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
 /// </summary>
 /// <typeparam name="TEntity"></typeparam>
 /// <typeparam name="TPresented"></typeparam>
+[Obsolete("As of version 1.40.0, the CrudController with an adapter layer is deprecated due to its tight coupling with the type-based modeling of expression tree operations across applications. This behavior is primarily introduced by the QueryProtocol class. Consider using alternative approaches.")]
 public abstract class CrudController<TEntity, TPresented> : WebController, IPingController, IDisposable where TEntity : class, IQueryableModel where TPresented : class
 {
     /// <summary>

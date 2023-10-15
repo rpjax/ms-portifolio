@@ -419,7 +419,8 @@ internal class EFCoreUpdateOperation<T> where T : class, IEFModel
             fluentParameter = Expression.Call(fluentParameter, setMethodInfo, setMethodArgs);
         }
 
-        var lambdaExpression = Expression.Lambda<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>>(fluentParameter, parameterExpression);
+        var lambdaExpression = Expression
+            .Lambda<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>>(fluentParameter, parameterExpression);
 
         var visitor = new ParameterExpressionUniformityVisitor();
 

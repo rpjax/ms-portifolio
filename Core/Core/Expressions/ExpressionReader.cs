@@ -2,6 +2,9 @@
 
 namespace ModularSystem.Core.Expressions;
 
+/// <summary>
+/// *under development.*
+/// </summary>
 public class ExpressionReader
 {
     private Expression Expression { get; }
@@ -20,9 +23,15 @@ public class ExpressionReader
     }
 }
 
-public class SelectorExpressionWriter
+/// <summary>
+/// *under development.*
+/// </summary>
+public class SelectorWriter
 {
     private Expression? Expression { get; set; }
 
-    public 
+    public SelectorWriter SetSelector<TEntity, TField>()
+    {
+        return this;
+    }
 }
