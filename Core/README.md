@@ -14,11 +14,11 @@ The library offers complete CRUD (Create, Read, Update, Delete) operations, feat
 
 ## Generics
 
-The entity interface employs a generic type `T`, which inherits from a base class. This design allows the library to apply dynamic CRUD operations to any class. Developers will need to implement or override specific methods, where application-specific logic like validation and presentation can be added.
+The crud service employs a generic type `T`, which inherits from a base class. This design allows the library to apply dynamic CRUD operations to any class. Developers will need to implement or override specific methods, where application-specific logic like validation and presentation can be added.
 
-## Entity Interface
+## Service Interface
 
-The Entity Interface serves as the foundation for CRUD operations. It consolidates validation logic, data access layers, and much more to expose methods through the entity.
+The entity service interface serves as the foundation for CRUD operations. It consolidates validation logic, data access layers, and much more to expose methods through the entity.
 
 ## Usage
 
@@ -67,7 +67,7 @@ public class User : QueryableModel
 }
 ```
 
-* Implement the IEntity<T> interface in the entity class. One approach is to extend from Entity<T> and implement the abstract methods.
+* Implement the IEntityService<T> interface. One approach is to extend from EntityService<T> and implement the abstract methods.
 
 Example:
 ```
@@ -75,12 +75,12 @@ using ModularSystem.Core;
 
 namespace MyApp;
   
-public class UserEntity : Entity<User>
+public class UserService : EntityService<User>
 {
     // ...
 }
 ```
-* Now call the entity anywhere to create a usecase.
+* Now call the service anywhere to create a usecase.
 
 Example:
 ```
@@ -90,7 +90,7 @@ public class Program
 {
     public static async Task Main()
     {
-        using var userEntity = new UserEntity();
+        using var userService = new UserService();
         
         var user = new User() 
         { 
@@ -98,13 +98,13 @@ public class Program
             Password = "super-password" 
         };
         
-        var userId = await entity.CreateAsync(user);
+        var userId = await userService.CreateAsync(user);
     }
 }
 ```
 
 ##
-Note that the raw entity class requires implementation of certain methods and properties:
+Note that the raw service class requires implementation of certain methods and properties:
 
 Example:
 ```
@@ -112,11 +112,11 @@ using ModularSystem.Core;
 
 namespace MyApp;
 
-public class UserEntity : Entity<User>
+public class UserService : EntityService<User>
 {
-    protected IDataAccessObject<User> DataAccessObject { get; }
+    protected override IDataAccessObject<User> DataAccessObject { get; }
 
-    public UserEntity()
+    public UserService()
     {
         //...
     }
@@ -142,11 +142,11 @@ using ModularSystem.EntityFramework;
     
 namespace MyApp;
 
-public class UserEntity : EFEntity<User>
+public class UserService : EFEntityService<User>
 {
-    protected IDataAccessObject<User> DataAccessObject { get; }
+    protected override IDataAccessObject<User> DataAccessObject { get; }
     
-    public UserEntity()
+    public UserService()
     {
         //...
     }
@@ -163,11 +163,11 @@ using ModularSystem.EntityFramework;
 
 namespace MyApp;
 
-class UserEntity : EFEntity<User>
+public class UserService : EFEntityService<User>
 {
-    protected IDataAccessObject<User> DataAccessObject { get; }
+    protected override IDataAccessObject<User> DataAccessObject { get; }
 
-    public UserEntity()
+    public UserService()
     {
         DataAccessObject = new EFCoreDataAccessObject<User>(new MyDbContext());
     }
@@ -192,11 +192,11 @@ public class UserValidator : IValidator<User>
     }
 }
 
-class UserEntity : EFEntity<User>
+public class UserService : EFEntityService<User>
 {
-    protected IDataAccessObject<User> DataAccessObject { get; }
+    protected override IDataAccessObject<User> DataAccessObject { get; }
 
-    public UserEntity()
+    public UserService()
     {
         DataAccessObject = new EFCoreDataAccessObject<User>(new MyDbContext());
         Validator = new UserValidator();
@@ -217,19 +217,23 @@ public class MyUseCase
 {
     public async Task DoSomeStuff()
     {
-        using var entity = new UserEntity();
+        using var service = new UserService();
         var user = new User();
-        var id = await entity.CreateAsync(user);
+        var id = await service.CreateAsync(user);
     }
 
     public async Task DoSomeMoreStuff()
     {
-        using var entity = new UserEntity();
+        using var service = new UserService();
 
-        var query = new Query<User>()
-            .SetFilter(user => user.Email == "foo@bar.baz");
+        var query = new QueryWriter<User>()
+            .SetFilter(user => user.Email == "foo@bar.baz")
+            .OrFilter(user => user.Email == "bar@foo.baz")
+            .SetOrdering(user => user.Id)
+            .SetOrderingDirection(OrderingDirection.Ascending)
+            .Create();
 
-        var queryResult = await entity.QueryAsync(query);
+        var queryResult = await service.QueryAsync(query);
     }
 }
 ```
@@ -247,7 +251,7 @@ namespace MyApp;
 [Route("api/user")]
 public class UserController : CrudController<User>
 {
-    protected override Entity<User> Entity => new UserEntity();
+    protected override EntityService<User> Service => new UserService();
 }
 ```
 
@@ -273,9 +277,9 @@ public class Program
         var config = new EndpointConfiguration("https://localhost:5001/api/user");
         var userClient = new CrudClient<User>(config);
         
-        var query = new SerializedQueryFactory<User>()
+        var query = new QueryWriter<User>()
             .SetFilter(user => user.Email == "foo@bar.baz")
-            .Create();
+            .CreateSerializable();
             
         var queryResult = await userClient.QueryAsync(query);
     }

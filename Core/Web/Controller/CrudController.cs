@@ -15,7 +15,7 @@ namespace ModularSystem.Web;
 public abstract class CrudController<T> : WebController, IPingController, IDisposable where T : class, IQueryableModel
 {
     /// <summary>
-    /// Gets the associated entity instance for CRUD operations.
+    /// Gets the associated service instance for CRUD operations.
     /// </summary>
     protected abstract EntityService<T> Service { get; }
 
@@ -155,7 +155,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
     }
 
     [HttpPatch("bulk-delete")]
-    public async Task<IActionResult> BulkDeleteAsync([FromBody] SerializableExpression serializableExpression, IResourcePolicy? resourcePolicy = null)
+    public async Task<IActionResult> BulkDeleteAsync([FromBody] SerializableExpression serializableExpression, [BindNever] IResourcePolicy? resourcePolicy = null)
     {
         try
         {

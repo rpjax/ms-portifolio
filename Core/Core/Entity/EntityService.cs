@@ -264,11 +264,12 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
     /// </remarks>
     /// <param name="update">The update criteria and values to be applied.</param>
     /// <returns>A task representing the asynchronous update operation.</returns>
-    public virtual async Task UpdateAsync(IUpdate<T> update)
+    public virtual async Task<long?> UpdateAsync(IUpdate<T> update)
     {
         await BeforeUpdateAsync(update);
-        await DataAccessObject.UpdateAsync(update);
+        var affectedRecordsCount = await DataAccessObject.UpdateAsync(update);
         await AfterUpdateAsync(update);
+        return affectedRecordsCount;
     }
 
     //*
@@ -286,11 +287,12 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
     /// </remarks>
     /// <param name="predicate">The expression determining which entities should be targeted for deletion.</param>
     /// <returns>A task representing the asynchronous delete operation.</returns>
-    public virtual async Task DeleteAsync(Expression<Func<T, bool>> predicate)
+    public virtual async Task<long?> DeleteAsync(Expression<Func<T, bool>> predicate)
     {
         predicate = await BeforeDeleteAsync(predicate);
-        await DataAccessObject.DeleteAsync(this.Visit<T, Func<T, bool>>(predicate));
+        var affectedRecordsCount = await DataAccessObject.DeleteAsync(this.Visit<T, Func<T, bool>>(predicate));
         await AfterDeleteAsync(predicate);
+        return affectedRecordsCount;
     }
 
     /// <summary>
@@ -636,12 +638,17 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
     }
 
     /// <summary>
-    /// Called before updating the entity.
+    /// Called before updating the entity.<br/>
+    /// By default, this method retains the values of <see cref="IQueryableModel.CreatedAt"/> from <paramref name="currentValue"/> to <paramref name="updatedValue"/>,<br/>
+    /// and sets <see cref="IQueryableModel.LastModifiedAt"/> to <see cref="TimeProvider.UtcNow"/>.
     /// </summary>
     /// <param name="currentValue">The current state of the entity.</param>
     /// <param name="updatedValue">The new state of the entity.</param>
     protected virtual async Task<(T, T)> BeforeUpdateAsync(T currentValue, T updatedValue)
     {
+        updatedValue.CreatedAt = currentValue.CreatedAt;
+        updatedValue.LastModifiedAt = TimeProvider.UtcNow();
+
         foreach (var middleware in CreateMiddlewarePipeline())
         {
             (currentValue, updatedValue) = await middleware.BeforeUpdateAsync(currentValue, updatedValue);
@@ -815,6 +822,11 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
             return Entity.AfterCreateAsync(entities);
         }
 
+        public override Task<IQueryable<T>> OnCreateQueryAsync(IQueryable<T> queryable)
+        {
+            return Entity.OnCreateQueryAsync(queryable);
+        }
+
         public override Task<IQuery<T>> BeforeQueryAsync(IQuery<T> query)
         {
             return Entity.BeforeQueryAsync(query);
@@ -833,6 +845,16 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
         public override Task<(T, T)> AfterUpdateAsync(T old, T @new)
         {
             return Entity.AfterUpdateAsync(old, @new);
+        }
+
+        public override Task<IUpdate<T>> BeforeUpdateAsync(IUpdate<T> update)
+        {
+            return Entity.BeforeUpdateAsync(update);
+        }
+
+        public override Task<IUpdate<T>> AfterUpdateAsync(IUpdate<T> update)
+        {
+            return Entity.AfterUpdateAsync(update);
         }
 
         public override Task<Expression<Func<T, bool>>> BeforeDeleteAsync(Expression<Func<T, bool>> predicate)

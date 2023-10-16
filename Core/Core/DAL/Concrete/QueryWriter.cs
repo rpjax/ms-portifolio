@@ -242,7 +242,7 @@ public partial class QueryWriter<T>
     /// </summary>
     /// <param name="order">The ordering direction to set.</param>
     /// <returns>The current instance of the writer.</returns>
-    public QueryWriter<T> SetOrderDirection(OrderingDirection order)
+    public QueryWriter<T> SetOrderingDirection(OrderingDirection order)
     {
         Query.OrderingDirection = order;
         return this;

@@ -52,14 +52,14 @@ public interface IEntityService<T> : IDisposable
     /// </summary>
     /// <param name="update">Contains filter criteria and modifications to be applied.</param>
     /// <returns>A task representing the update operation.</returns>
-    Task UpdateAsync(IUpdate<T> update);
+    Task<long?> UpdateAsync(IUpdate<T> update);
 
     /// <summary>
     /// Deletes entities that match the provided expression asynchronously.
     /// </summary>
     /// <param name="expression">Criteria to select entities to be deleted.</param>
     /// <returns>A task representing the delete operation.</returns>
-    Task DeleteAsync(Expression<Func<T, bool>> expression);
+    Task<long?> DeleteAsync(Expression<Func<T, bool>> expression);
 
     /// <summary>
     /// Deletes all entities of type <typeparamref name="T"/> after confirming the operation.
