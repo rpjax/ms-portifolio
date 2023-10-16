@@ -74,22 +74,7 @@ public class HttpResponse : IDisposable
     /// </summary>
     /// <param name="encoding">The encoding to use when reading the response body.</param>
     /// <returns>The response body as a string.</returns>
-    public string ReadAsString(Encoding? encoding = null)
-    {
-        if (Body == null)
-        {
-            return string.Empty;
-        }
-
-        return Body.ReadAsString(encoding);
-    }
-
-    /// <summary>
-    /// Reads the response body asynchronously as a string using the provided encoding.
-    /// </summary>
-    /// <param name="encoding">The encoding to use when reading the response body.</param>
-    /// <returns>A task representing the asynchronous operation with the response body as a string.</returns>
-    public Task<string> ReadAsStringAsync(Encoding encoding)
+    public Task<string> ReadAsStringAsync(Encoding? encoding = null)
     {
         if (Body == null)
         {
@@ -117,85 +102,6 @@ public class HttpResponse : IDisposable
     // sync deserialziation
     //*
 
-    /// <summary>
-    /// Attempts to deserialize the response content from JSON into the specified object type using the provided encoding and options.
-    /// </summary>
-    /// <param name="type">The type of object to deserialize into.</param>
-    /// <param name="encoding">The encoding used for the response content.</param>
-    /// <param name="options">Optional parameters for the JSON deserializer.</param>
-    /// <returns>The deserialized object if successful; otherwise, null.</returns>
-    public object? TryDeserializeAsJson(Type type, Encoding? encoding = null, JsonSerializerOptions? options = null)
-    {
-        try
-        {
-            options ??= options ??= JsonSerializerOptions ??= DefaultJsonSerializerOptions();
-            return JsonSerializerSingleton.Deserialize(Body.ReadAsString(encoding), type, options);
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// Attempts to deserialize the response content from JSON into the specified generic type using the provided encoding and options.
-    /// </summary>
-    /// <typeparam name="T">The type of object to deserialize into.</typeparam>
-    /// <param name="encoding">The encoding used for the response content.</param>
-    /// <param name="options">Optional parameters for the JSON deserializer.</param>
-    /// <returns>The deserialized object if successful; otherwise, null.</returns>
-    public T? TryDeserializeAsJson<T>(Encoding? encoding = null, JsonSerializerOptions? options = null) where T : class
-    {
-        try
-        {
-            return TryDeserializeAsJson(typeof(T), encoding, options)?.TypeCast<T>();
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// Deserializes the response content from JSON into the specified object type using the provided encoding and options. <br/>
-    /// Throws an exception if deserialization fails.
-    /// </summary>
-    /// <param name="type">The type of object to deserialize into.</param>
-    /// <param name="encoding">The encoding used for the response content.</param>
-    /// <param name="options">Optional parameters for the JSON deserializer.</param>
-    /// <returns>The deserialized object.</returns>
-    public object DeserializeAsJson(Type type, Encoding? encoding = null, JsonSerializerOptions? options = null)
-    {
-        try
-        {
-            return TryDeserializeAsJson(type, encoding, options)!;
-        }
-        catch (Exception e)
-        {
-            throw new AppException($"Failed to deserialize the HTTP response content to an object of type '{type.FullName}'. Ensure that the response content is a valid JSON representation of the specified type.", ExceptionCode.Internal, e, this);
-        }
-    }
-
-    /// <summary>
-    /// Deserializes the response content from JSON into the specified generic type using the provided encoding and options.
-    /// <br/>Throws an exception if deserialization fails.
-    /// </summary>
-    /// <typeparam name="T">The type of object to deserialize into.</typeparam>
-    /// <param name="encoding">The encoding used for the response content.</param>
-    /// <param name="options">Optional parameters for the JSON deserializer.</param>
-    /// <returns>The deserialized object.</returns>
-    public T DeserializeAsJson<T>(Encoding? encoding = null, JsonSerializerOptions? options = null) where T : class
-    {
-        try
-        {
-            return DeserializeAsJson(typeof(T), encoding, options)!.TypeCast<T>();
-        }
-        catch (Exception e)
-        {
-            throw new AppException($"Failed to deserialize the HTTP response content to an object of type '{typeof(T).FullName}'. Ensure that the response content is a valid JSON representation of the specified type.", ExceptionCode.Internal, e, this);
-        }
-    }
-
     //*
     // async deserialziation
     //*
@@ -209,12 +115,15 @@ public class HttpResponse : IDisposable
     /// <returns>A task representing the asynchronous operation with the deserialized object as the result. Returns null if deserialization fails.</returns>
     public async Task<object?> TryDeserializeAsJsonAsync(Type type, Encoding? encoding = null, JsonSerializerOptions? options = null)
     {
+        if (Body == null)
+        {
+            return null;
+        }
+
         try
         {
-            using var stream = Body.ReadAsStream();
             options ??= options ??= JsonSerializerOptions ??= DefaultJsonSerializerOptions();
-
-            return await JsonSerializerSingleton.DeserializeAsync(stream, type, options);
+            return JsonSerializerSingleton.Deserialize(await Body.ReadAsStringAsync(encoding), type, options);
         }
         catch
         {
@@ -283,9 +192,9 @@ public class HttpResponse : IDisposable
     /// Retrieves a summary of the current HttpResponse instance, that is serializable and does not require disposing.
     /// </summary>
     /// <returns>A <see cref="SummaryCopy"/> instance representing a condensed version of the HTTP response.</returns>
-    public SummaryCopy GetSummary()
+    public Task<SummaryCopy> GetSummaryAsync()
     {
-        return new SummaryCopy(this);
+        return SummaryCopy.CreateAsync(this);
     }
 
     /// <summary>
@@ -310,17 +219,22 @@ public class HttpResponse : IDisposable
     {
         public bool IsSuccess { get; private set; }
         public int StatusCode { get; private set; }
-        public HttpHeader Header { get; set; } = new();
-        public string? Body { get; set; }
-        public HttpRequest? Request { get; }
+        public HttpHeader Header { get; private set; } = new();
+        public string? Body { get; private set; }
+        public HttpRequest? Request { get; private set; }
 
-        public SummaryCopy(HttpResponse response)
+        private SummaryCopy() { }
+
+        public static async Task<SummaryCopy> CreateAsync(HttpResponse response)
         {
-            IsSuccess = response.IsSuccess;
-            StatusCode = response.StatusCode;
-            Header = response.Header;
-            Body = response?.Body.ReadAsString();
-            Request = response.Request;
+            return new SummaryCopy()
+            {
+                IsSuccess = response.IsSuccess,
+                StatusCode = response.StatusCode,
+                Header = response.Header,
+                Body = await response.ReadAsStringAsync(),
+                Request = response.Request
+            };
         }
     }
 }

@@ -79,7 +79,7 @@ internal class UpdateEndpoint<T> : EndpointBase<T, Dto<bool>> where T : class
     }
 }
 
-internal class UpdateBulkEndpoint : EndpointBase<SerializableUpdate, long?>
+internal class UpdateBulkEndpoint : EndpointBase<SerializableUpdate, Dto<long?>>
 {
     public UpdateBulkEndpoint(Http.Uri uri) : base(uri)
     {
@@ -90,12 +90,6 @@ internal class UpdateBulkEndpoint : EndpointBase<SerializableUpdate, long?>
     {
         return new HttpRequest(RequestUri.AppendPath("bulk-update"), HttpMethod.Patch)
             .SetJsonBody(input);
-    }
-
-    protected override long? DeserializeResponse(HttpResponse response)
-    {
-        var dto = response.DeserializeAsJson<Dto<long?>>();
-        return dto.Value;
     }
 }
 

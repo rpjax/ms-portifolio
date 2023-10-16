@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using ModularSystem.Core;
+using System.ComponentModel;
+using System.Text;
 
 namespace ModularSystem.Web.Expressions;
 
@@ -35,6 +37,16 @@ public class ParsingException : Exception
         ParseContext = context;
         _message = CreateMessage(message);
         Data.Add("Context Additional Data", additionalData);
+    }
+
+    /// <summary>
+    /// Creates a representation of this parsing exception as <see cref="AppException"/> with the provided exception code.
+    /// </summary>
+    /// <param name="exceptionCode"></param>
+    /// <returns></returns>
+    public AppException ToAppException(ExceptionCode exceptionCode)
+    {
+        return new AppException($"An error occurred while parsing the input. Details: {Message}. Please ensure the input format is correct and try again.", ExceptionCode.InvalidInput, this);
     }
 
     /// <summary>

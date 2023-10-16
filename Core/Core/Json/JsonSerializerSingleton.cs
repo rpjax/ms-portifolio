@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.IO;
-using System.Text;
+﻿using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -13,6 +10,27 @@ namespace ModularSystem.Core;
 /// </summary>
 public static class JsonSerializerSingleton
 {
+    /// <summary>
+    /// Specifies the strategy to use when there's a conflict while adding a JSON converter.
+    /// </summary>
+    public enum ConverterConflictStrategy
+    {
+        /// <summary>
+        /// Retains the existing converter and ignores the new one.
+        /// </summary>
+        UseOldest,
+
+        /// <summary>
+        /// Replaces the existing converter with the new one.
+        /// </summary>
+        UseNewest,
+
+        /// <summary>
+        /// Throws an exception if a converter of the same type already exists.
+        /// </summary>
+        Throw
+    }
+
     /// <summary>
     /// Gets the static collection of JSON converters to be used by the <see cref="JsonSerializer"/>.
     /// </summary>
@@ -26,21 +44,46 @@ public static class JsonSerializerSingleton
         Converters = new();
     }
 
-    public static bool TryAddConverter(string key, JsonConverter converter)
+    /// <summary>
+    /// Attempts to add a new JSON converter to the static collection. <br/>
+    /// If a converter of the same type already exists, 
+    /// the behavior is determined by the provided conflict strategy.
+    /// </summary>
+    /// <typeparam name="T">The type of the JSON converter.</typeparam>
+    /// <param name="converter">The converter instance to add.</param>
+    /// <param name="strategy">The strategy to use if a converter of the same type already exists.</param>
+    /// <returns>True if the converter was added successfully; otherwise, false.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the conflict strategy is set to 'Throw' and a converter of the same type already exists.</exception>
+    public static bool TryAddConverter<T>(T converter, ConverterConflictStrategy strategy = ConverterConflictStrategy.Throw) where T : JsonConverter
     {
+        var type = typeof(T);
+        var key = type.FullName ?? type.Name;
+
         if (!Converters.ContainsKey(key))
         {
             return Converters.TryAdd(key, converter);
+        }
+        if(strategy == ConverterConflictStrategy.UseOldest)
+        {
+            return false;
+        }
+        if(strategy == ConverterConflictStrategy.UseNewest)
+        {
+            Converters.Remove(key, out _);
+            return Converters.TryAdd(key, converter);
+        }
+        if (strategy == ConverterConflictStrategy.Throw)
+        {
+            throw new InvalidOperationException($"Conflict detected: A JSON converter of type '{key}' is already registered. To resolve this, consider using a different conflict strategy.");
         }
 
         return false;
     }
 
-    public static bool TryAddConverter(Type type, JsonConverter converter)
-    {
-        return TryAddConverter(type.FullName!, converter);
-    }
-
+    /// <summary>
+    /// Retrieves all the JSON converters currently registered in the static collection.
+    /// </summary>
+    /// <returns>An enumerable of registered JSON converters.</returns>
     public static IEnumerable<JsonConverter> GetConverters()
     {
         return Converters.Values;

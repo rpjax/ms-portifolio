@@ -41,12 +41,23 @@ public static class QueryProtocol
     [return: NotNullIfNotNull("sExpression")]
     public static Expression? FromSerializable(SerializableExpression? sExpression)
     {
-        if (sExpression == null)
+        try
         {
-            return null;
-        }
+            if (sExpression == null)
+            {
+                return null;
+            }
 
-        return ExpressionSerializer.FromSerializable(sExpression);
+            return ExpressionSerializer.FromSerializable(sExpression);
+        }
+        catch(ParsingException e)
+        {
+            throw e.ToAppException(ExceptionCode.InvalidInput);
+        }
+        catch
+        {
+            throw;
+        }
     }
 
     /// <summary>
@@ -77,14 +88,25 @@ public static class QueryProtocol
     [return: NotNullIfNotNull("json")]
     public static Expression? FromJson(string? json, ISerializer<Expression>? serializer = null)
     {
-        serializer ??= ExpressionSerializer;
-
-        if (json == null)
+        try
         {
-            return null;
-        }
+            serializer ??= ExpressionSerializer;
 
-        return serializer.Deserialize(json);
+            if (json == null)
+            {
+                return null;
+            }
+
+            return serializer.Deserialize(json);
+        }
+        catch (ParsingException e)
+        {
+            throw e.ToAppException(ExceptionCode.InvalidInput);
+        }
+        catch
+        {
+            throw;
+        }
     }
 
     /// <summary>

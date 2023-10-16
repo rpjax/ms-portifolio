@@ -55,7 +55,7 @@ public abstract class Middleware
         }
         catch (Exception e)
         {
-            await HandleExceptionAsync(context, e);
+            await OnExceptionAsync(context, e);
         }
     }
 
@@ -206,23 +206,19 @@ public abstract class Middleware
     }
 
     /// <summary>
-    /// Method that is called when an exception occurs during the processing of the middleware.
+    /// Handles exceptions that occur during the processing of the middleware.
+    /// This method provides a mechanism to handle exceptions in a centralized manner, 
+    /// allowing for custom error handling, logging, or response modification.
+    /// By default, this method re-throws the exception, allowing it to be caught by 
+    /// any subsequent error-handling middleware in the pipeline. Override this method 
+    /// in derived classes to implement custom exception handling behavior.
     /// </summary>
-    protected virtual Task OnException(HttpContext context, Exception exception)
+    /// <param name="context">The current HTTP context.</param>
+    /// <param name="exception">The exception that occurred.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    protected virtual Task OnExceptionAsync(HttpContext context, Exception exception)
     {
-        return Task.CompletedTask;
+        throw exception;
     }
 
-    /// <summary>
-    /// Handles exceptions that may occur during the processing of the middleware.
-    /// </summary>
-    protected virtual async Task HandleExceptionAsync(HttpContext context, Exception exception)
-    {
-        var appException = exception.ToAppException();
-        var statusCode = AppExceptionPresenter.GetStatusCodeFrom(appException);
-        var json = AppExceptionPresenter.ToJson(appException);
-
-        ExceptionLogger.Log(appException);
-        await WriteJsonResponseAsync(context, statusCode, json);
-    }
 }

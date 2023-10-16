@@ -136,9 +136,10 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="update">The serialized update criteria.</param>
     /// <returns>The number of entities updated; null if the update count is unavailable.</returns>
-    public Task<long?> UpdateAsync(SerializableUpdate update)
+    public async Task<long?> UpdateAsync(SerializableUpdate update)
     {
-        return new UpdateBulkEndpoint(CopyUri()).RunAsync(update);
+        var dto = await new UpdateBulkEndpoint(CopyUri()).RunAsync(update);
+        return dto.Value;
     }
 
     /// <summary>

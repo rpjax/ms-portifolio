@@ -48,9 +48,13 @@ public class HttpResponseBody
         ResponseMessage = responseMessage;
     }
 
+    /// <summary>
+    /// Returns a string representation of the HTTP response body, summarizing its status code, content type, and content length.
+    /// </summary>
+    /// <returns>A string summarizing the HTTP response body.</returns>
     public override string ToString()
     {
-        return ReadAsString(Encoding.UTF8);
+        return $"{ResponseMessage.StatusCode} - {ResponseMessage.Content.Headers.ContentType} - Length: {ResponseMessage.Content.Headers.ContentLength}";
     }
 
     /// <summary>
@@ -60,28 +64,6 @@ public class HttpResponseBody
     public HttpResponseMessage? GetResponseMessage()
     {
         return ResponseMessage;
-    }
-
-    /// <summary>
-    /// Reads the body as a byte array.
-    /// </summary>
-    /// <returns>The byte array.</returns>
-    public byte[] ReadAsBytes()
-    {
-        if (ResponseMessage == null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        byte[] bytes;
-        var stream = ResponseMessage.Content.ReadAsStream();
-        using var memoryStream = new MemoryStream();
-        using var binaryReader = new BinaryReader(memoryStream);
-
-        stream.CopyTo(memoryStream);
-        bytes = binaryReader.ReadBytes((int)stream.Length);
-
-        return bytes;
     }
 
     /// <summary>
@@ -103,23 +85,13 @@ public class HttpResponseBody
     /// </summary>
     /// <param name="encoding">The encoding to use.</param>
     /// <returns>The decoded string.</returns>
-    public string ReadAsString(Encoding? encoding = null)
+    public async Task<string> ReadAsStringAsync(Encoding? encoding = null)
     {
         if (encoding == null)
         {
-            return ResponseMessage.Content.ReadAsStringAsync().Result;
+            return Encoding.UTF8.GetString(await ReadAsBytesAsync());
         }
 
-        return encoding.GetString(ReadAsBytes());
-    }
-
-    /// <summary>
-    /// Asynchronously reads the body as a string using the specified encoding.
-    /// </summary>
-    /// <param name="encoding">The encoding to use.</param>
-    /// <returns>A task representing the asynchronous operation. The value of the TResult parameter contains the decoded string.</returns>
-    public async Task<string> ReadAsStringAsync(Encoding encoding)
-    {
         return encoding.GetString(await ReadAsBytesAsync());
     }
 
@@ -132,15 +104,6 @@ public class HttpResponseBody
         return ResponseMessage.Content.ReadAsStream();
     }
 
-    /// <summary>
-    /// Asynchronously reads the HTTP response content as a <see cref="Stream"/>.
-    /// </summary>
-    /// <returns>A <see cref="Task{TResult}"/> representing the asynchronous operation,
-    /// with a <see cref="Stream"/> result representing the HTTP response content.</returns>
-    public Task<Stream> ReadAsStreamAsync()
-    {
-        return ResponseMessage.Content.ReadAsStreamAsync();
-    }
 }
 
 /// <summary>

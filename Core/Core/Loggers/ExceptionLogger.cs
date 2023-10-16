@@ -6,7 +6,7 @@ namespace ModularSystem.Core.Logging;
 
 class ExceptionLoggerInitializer : Initializer
 {
-    public override Task InternalInitAsync(Options options)
+    protected internal override Task InternalInitAsync(Options options)
     {
         ExceptionLogger.EnableDiskLogging = options.EnableDiskExceptionLogger;
         ExceptionLogger.EnableConsoleLogging = options.EnableConsoleExceptionLogger;

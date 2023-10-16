@@ -1,7 +1,5 @@
 ﻿using ModularSystem.Core;
-using ModularSystem.Core.Expressions;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace ModularSystem.Web.Expressions;
 
@@ -101,48 +99,7 @@ public class ExprJsonSerializer : ISerializer
     protected virtual JsonSerializerOptions GetOptions()
     {
         var options = JsonSerializerSingleton.GetOptions(Options);
-        options.AddConverter<ExpressionJsonConverter>();
+        options.AddConverter<ExprJsonConverter>();
         return options;
-    }
-}
-
-internal class ExpressionJsonConverter : JsonConverter<SerializableExpression>
-{
-    /// <summary>
-    /// Reads a JSON string and converts it to an ObjectId instance.
-    /// </summary>
-    public override SerializableExpression Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        using var jsonDocument = JsonDocument.ParseValue(ref reader);
-        var root = jsonDocument.RootElement;
-        var json = root.ToString();
-
-        if (root.TryGetProperty(nameof(SerializableExpression.NodeType), out var nodeTypeProperty))
-        {
-            throw new Exception($"Could not deserialize the provided JSON string to an instance of SerializableNode. The provided JSON does not contain a '{nameof(SerializableExpression.NodeType)}' property.");
-        }
-
-        if (nodeTypeProperty.ValueKind != JsonValueKind.Number)
-        {
-            throw new Exception("The 'NodeType' property in the provided JSON string is not a valid number. Ensure the JSON represents a valid SerializableExpression.");
-        }
-
-        var nodeTypeInt = nodeTypeProperty.GetInt32();
-        var nodeType = (ExtendedExpressionType)nodeTypeInt;
-        var emptynode = new EmptySerializableNode() as SerializableExpression;
-        var concreteType = SerializableExpression.GetConcreteType(emptynode.NodeType);
-        var node = root.Deserialize(concreteType, options)?.TryTypeCast<SerializableExpression>();
-
-        if (node == null)
-        {
-            throw new Exception($"Could not deserialize the provided JSON string to an instance of SerializableNode of type'{concreteType.FullName}'.");
-        }
-
-        return node;
-    }
-
-    public override void Write(Utf8JsonWriter writer, SerializableExpression value, JsonSerializerOptions options)
-    {
-        JsonSerializer.Serialize(writer, value, SerializableExpression.GetConcreteType(value.NodeType), options);
     }
 }

@@ -9,7 +9,7 @@ internal class JsonSerializerInitializer : Initializer
         Priority = (int)PriorityLevel.Normal;
     }
 
-    public override Task InternalInitAsync(Options options)
+    protected internal override Task InternalInitAsync(Options options)
     {
         if (options.JsonSerialization.UseEntityConverters)
         {
@@ -31,6 +31,6 @@ internal class JsonSerializerInitializer : Initializer
 
     void RegisterUtcDateTimeJsonConverter()
     {
-        JsonSerializerSingleton.TryAddConverter(typeof(DateTime), new UtcDateTimeConverter());
+        JsonSerializerSingleton.TryAddConverter(new UtcDateTimeConverter());
     }
 }

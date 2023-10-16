@@ -57,10 +57,16 @@ public class EndpointConfiguration
 }
 
 /// <summary>
-/// Provides a base implementation of the <see cref="IRestfulEndpoint{TIn, TOut}"/> interface. <br/>
-/// This class handles the boilerplate logic for performing HTTP API requests,
-/// including request creation, response handling, and error handling.
+/// Provides a base implementation of the <see cref="IRestfulEndpoint{TIn, TOut}"/> interface.
+/// This class streamlines the process of performing HTTP API requests by handling the boilerplate logic,
+/// including request creation, response handling, and error handling. Additionally, it offers hooks
+/// for various stages of the request-response cycle, allowing for custom behaviors and modifications
+/// at key points in the process.
 /// </summary>
+/// <remarks>
+/// Implementers can leverage the provided hooks to introduce custom logic before and after key operations,
+/// such as request creation, response deserialization, and error handling.
+/// </remarks>
 /// <typeparam name="TIn">The input type for the endpoint.</typeparam>
 /// <typeparam name="TOut">The output type of the endpoint.</typeparam>
 public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
@@ -91,17 +97,23 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
             var client = GetRequester();
 
             request = CreateRequest(input);
+
             OnRequestCreated(request);
+            await OnRequestCreatedAsync(request);
 
             response = await client.SendAsync(request);
+
             OnResponse(response);
+            await OnResponseAsync(response);
 
             if (!response.IsSuccess)
             {
-                throw new BoxedException(HandleFailureResponse(response));
+                throw new BoxedException(await HandleFailureResponseAsync(response));
             }
 
             BeforeDeserialize(response);
+            await BeforeDeserializeAsync(response);
+
             return await DeserializeResponseAsync(response);
         }
         catch (Exception e)
@@ -111,7 +123,7 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
                 throw ((BoxedException)e).Exception;
             }
 
-            throw HandleException(e, request, response);
+            throw await HandleExceptionAsync(e, request, response);
         }
         finally
         {
@@ -136,21 +148,41 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     protected abstract HttpRequest CreateRequest(TIn input);
 
     /// <summary>
-    /// Called after the HttpRequest object is created and before it is sent.
+    /// Invoked after the HttpRequest object is constructed and before it's sent.
     /// </summary>
-    /// <param name="request">The HttpRequest object.</param>
+    /// <param name="request">The constructed HttpRequest object.</param>
     protected virtual void OnRequestCreated(HttpRequest request)
     {
-
+        return;
     }
 
     /// <summary>
-    /// Called right after the response is created regardless of its status code.
+    /// Asynchronously invoked after the HttpRequest object is constructed and before it's sent.
     /// </summary>
-    /// <param name="response"></param>
+    /// <param name="request">The constructed HttpRequest object.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    protected virtual Task OnRequestCreatedAsync(HttpRequest request)
+    {
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Invoked immediately after receiving the HttpResponse, regardless of its status code.
+    /// </summary>
+    /// <param name="response">The received HttpResponse.</param>
     protected virtual void OnResponse(HttpResponse response)
     {
+        return;
+    }
 
+    /// <summary>
+    /// Asynchronously invoked after receiving the HttpResponse, regardless of its status code.
+    /// </summary>
+    /// <param name="response">The received HttpResponse.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    protected virtual Task OnResponseAsync(HttpResponse response)
+    {
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -163,15 +195,43 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     /// that captures the essence of the error or issue. <br/>
     /// This exception will typically be propagated up to the calling code for further handling or logging.
     /// </remarks>
-    protected abstract Exception HandleFailureResponse(HttpResponse response);
+    protected abstract Task<Exception> HandleFailureResponseAsync(HttpResponse response);
 
     /// <summary>
-    /// Called before the deserialization of a successfull response.
+    /// Invoked before the deserialization process of a successful response. <br/>
+    /// This method provides an opportunity to perform any pre-processing or validation on the raw response data.
     /// </summary>
-    /// <param name="response"></param>
+    /// <param name="response">The received HttpResponse that will be deserialized.</param>
     protected virtual void BeforeDeserialize(HttpResponse response)
     {
+        return;
+    }
 
+    /// <summary>
+    /// Asynchronously invoked before the deserialization process of a successful response. <br/>
+    /// This method provides an opportunity to perform any asynchronous pre-processing or validation on the raw response data.
+    /// </summary>
+    /// <param name="response">The received HttpResponse that will be deserialized.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    protected virtual Task BeforeDeserializeAsync(HttpResponse response)
+    {
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Asynchronously deserializes the successful API response.
+    /// </summary>
+    /// <remarks>
+    /// This method provides an asynchronous implementation for deserializing the API response and is directly 
+    /// invoked within the request pipeline by <see cref="RunAsync"/>.
+    /// If not overridden in a subclass, this method defaults to invoking the synchronous 
+    /// <see cref="DeserializeResponse"/> method.
+    /// </remarks>
+    /// <param name="response">The HttpResponse representing the successful API response.</param>
+    /// <returns>A task representing the asynchronous operation with a result of type <typeparamref name="TOut"/> containing the deserialized response.</returns>
+    protected virtual Task<TOut> DeserializeResponseAsync(HttpResponse response)
+    {
+        return Task.FromResult(DeserializeResponse(response));
     }
 
     /// <summary>
@@ -191,23 +251,6 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
         throw new NotImplementedException("The deserialize method was not implemented.");
     }
 
-
-    /// <summary>
-    /// Asynchronously deserializes the successful API response.
-    /// </summary>
-    /// <remarks>
-    /// This method provides an asynchronous implementation for deserializing the API response and is directly 
-    /// invoked within the request pipeline by <see cref="RunAsync"/>.
-    /// If not overridden in a subclass, this method defaults to invoking the synchronous 
-    /// <see cref="DeserializeResponse"/> method.
-    /// </remarks>
-    /// <param name="response">The HttpResponse representing the successful API response.</param>
-    /// <returns>A task representing the asynchronous operation with a result of type <typeparamref name="TOut"/> containing the deserialized response.</returns>
-    protected virtual Task<TOut> DeserializeResponseAsync(HttpResponse response)
-    {
-        return Task.FromResult(DeserializeResponse(response));
-    }
-
     /// <summary>
     /// Handles exceptions that occur during the API request and response cycle.
     /// </summary>
@@ -215,14 +258,14 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     /// <param name="request">The HttpRequest object, if available.</param>
     /// <param name="response">The HttpResponse object, if available.</param>
     /// <returns>An exception that encapsulates additional information and context.</returns>
-    protected virtual Exception HandleException(Exception e, HttpRequest? request, HttpResponse? response)
+    protected virtual async Task<Exception> HandleExceptionAsync(Exception e, HttpRequest? request, HttpResponse? response)
     {
         var error = $"Failed to process the HTTP API request. Refer to the associated metadata and inner exception for detailed information.";
         var exception = new AppException(error, ExceptionCode.Internal, e);
 
         if (response != null)
         {
-            exception.AddData(response.GetSummary());
+            exception.AddData(await response.GetSummaryAsync());
         }
         else if (request != null)
         {

@@ -16,7 +16,7 @@ public class ConsoleLoggerInitializer : Initializer
     /// Initializes the console logger based on the provided options.
     /// </summary>
     /// <param name="options">Custom options for initializing the console logger.</param>
-    public override Task InternalInitAsync(Options options)
+    protected internal override Task InternalInitAsync(Options options)
     {
         if (!options.InitConsoleLogger || !ConsoleLogger.ConsoleIsAvailable())
         {

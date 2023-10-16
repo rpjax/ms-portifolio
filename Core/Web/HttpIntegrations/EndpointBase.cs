@@ -35,11 +35,11 @@ public abstract class EndpointBase<TIn, TOut> : RestfulEndpoint<TIn, TOut>
     /// </summary>
     /// <param name="response">The failed HTTP response.</param>
     /// <returns>An exception that represents the error.</returns>
-    protected override Exception HandleFailureResponse(HttpResponse response)
+    protected override async Task<Exception> HandleFailureResponseAsync(HttpResponse response)
     {
         try
         {
-            var json = response.ReadAsString(Encoding.UTF8);
+            var json = await response.ReadAsStringAsync(Encoding.UTF8);
             var deserializedException = JsonSerializer.Deserialize<SerializableAppException>(json, new JsonSerializerOptions()
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -48,7 +48,7 @@ public abstract class EndpointBase<TIn, TOut> : RestfulEndpoint<TIn, TOut>
             if (deserializedException == null || deserializedException.Message.IsEmpty())
             {
                 return new AppException($"Failed to process the HTTP API request. Received status code: {response.StatusCode}. Refer to the associated metadata and inner exception for detailed information.", ExceptionCode.Internal)
-                    .AddData(response.GetSummary());
+                    .AddData(await response.GetSummaryAsync());
             }
 
             return deserializedException.ToAppException();
@@ -56,7 +56,7 @@ public abstract class EndpointBase<TIn, TOut> : RestfulEndpoint<TIn, TOut>
         catch (Exception e)
         {
             return new AppException($"Failed to process the HTTP API request. Received status code: {response.StatusCode}. Refer to the associated metadata and inner exception for detailed information.",
-                ExceptionCode.Internal, e).AddData(response.GetSummary());
+                ExceptionCode.Internal, e).AddData(await response.GetSummaryAsync());
         }
     }
 

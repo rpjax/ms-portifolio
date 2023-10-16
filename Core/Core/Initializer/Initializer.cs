@@ -72,7 +72,7 @@ public abstract class Initializer
     /// This method runs first in the initialization pipeline.
     /// </summary>
     /// <param name="options">Configuration options for the initialization process.</param>
-    public virtual Task BeforeInitAsync(Options options)
+    protected virtual Task BeforeInitAsync(Options options)
     {
         return Task.CompletedTask;
     }
@@ -82,7 +82,7 @@ public abstract class Initializer
     /// </summary>
     /// <param name="options"></param>
     /// <returns></returns>
-    public virtual Task InternalInitAsync(Options options)
+    protected internal virtual Task InternalInitAsync(Options options)
     {
         return Task.CompletedTask;
     }
@@ -91,7 +91,7 @@ public abstract class Initializer
     /// Contains the logic that needs to be executed during initialization. <br/>
     /// Derived classes must override this method to define their custom initialization behavior.
     /// </summary>
-    public virtual Task OnInitAsync(Options options)
+    protected virtual Task OnInitAsync(Options options)
     {
         return Task.CompletedTask;
     }
@@ -101,7 +101,7 @@ public abstract class Initializer
     /// This method runs last in the initialization pipeline.
     /// </summary>
     /// <param name="options">Configuration options for the initialization process.</param>
-    public virtual Task AfterInitAsync(Options options)
+    protected virtual Task AfterInitAsync(Options options)
     {
         return Task.CompletedTask;
     }
