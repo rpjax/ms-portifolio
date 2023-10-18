@@ -14,7 +14,7 @@ public interface IQueryResult<T>
     /// <summary>
     /// Gets or sets the collection of data elements of type <typeparamref name="T"/> returned by the query.
     /// </summary>
-    IEnumerable<T> Data { get; set; }
+    T[] Data { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether the query result is empty.
@@ -23,6 +23,14 @@ public interface IQueryResult<T>
     /// <c>true</c> if the query result is empty; otherwise, <c>false</c>.
     /// </value>
     bool IsEmpty { get; }
+
+    /// <summary>
+    /// Gets the total number of data elements of type <typeparamref name="T"/> in the query result.
+    /// </summary>
+    /// <value>
+    /// The total count of data elements in the query result.
+    /// </value>
+    public long Length { get; }
 
     /// <summary>
     /// Gets the first element of type <typeparamref name="T"/> in the query result, or null if the result is empty.

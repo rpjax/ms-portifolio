@@ -17,13 +17,22 @@ public class QueryResult<T> : IQueryResult<T>
     /// <summary>
     /// Gets or sets the data returned by the query.
     /// </summary>
-    public IEnumerable<T> Data { get; set; } = new List<T>();
+    public T[] Data { get; set; } = Array.Empty<T>();
 
     /// <summary>
     /// Checks if the query result contains any data.
     /// </summary>
     /// <returns><c>true</c> if empty; otherwise, <c>false</c>.</returns>
+    [JsonIgnore]
     public bool IsEmpty => Data.IsEmpty();
+
+    /// <summary>
+    /// Gets the total number of data elements of type <typeparamref name="T"/> in the query result.
+    /// </summary>
+    /// <value>
+    /// The total count of data elements in the query result.
+    /// </value>
+    public long Length => Data.LongLength;
 
     /// <summary>
     /// Gets the first item from the data set returned by the query, or null if the set is empty.
@@ -42,9 +51,9 @@ public class QueryResult<T> : IQueryResult<T>
     /// Constructor that initializes the query result with data.
     /// </summary>
     /// <param name="data">The data for the query result.</param>
-    public QueryResult(List<T> data)
+    public QueryResult(IEnumerable<T> data)
     {
-        Data = data;
+        Data = data.ToArray();
     }
 
     /// <summary>
@@ -54,7 +63,8 @@ public class QueryResult<T> : IQueryResult<T>
     /// <param name="pagination">The pagination details.</param>
     public QueryResult(IEnumerable<T> data, PaginationOut pagination)
     {
-        Data = data.ToList();
+        Data = data.ToArray();
         Pagination = pagination;
     }
+
 }

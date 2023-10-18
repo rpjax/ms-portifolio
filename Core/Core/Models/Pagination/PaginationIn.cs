@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Core;
+﻿using System.Text.Json.Serialization;
+
+namespace ModularSystem.Core;
 
 /// <summary>
 /// Represents pagination parameters with configurable limit and offset.<br/>
@@ -30,22 +32,24 @@ public class PaginationIn
     public long Offset { get; set; } = DefaultOffset;
 
     /// <summary>
+    /// This field is reserved for mechanisms of pagination that rely on a state preservation to optimize operations.<br/>
+    /// It can be used for strategies like token/cursor-based pagination to keep track of the state.
+    /// </summary>
+    public object? State { get; set; }
+
+    /// <summary>
     /// Provides an integer representation of the Limit property.
     /// Useful for systems that require integer-based limits.
     /// </summary>
+    [JsonIgnore]
     public int IntLimit => (int)Limit;
 
     /// <summary>
     /// Provides an integer representation of the Offset property.
     /// Useful for systems that require integer-based offsets.
     /// </summary>
+    [JsonIgnore]
     public int IntOffset => (int)Offset;
-
-    /// <summary>
-    /// This field is reserved for mechanisms of pagination that rely on a state preservation to optimize operations.<br/>
-    /// It can be used for strategies like token/cursor-based pagination to keep track of the state.
-    /// </summary>
-    public object? State { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PaginationIn"/> class with default limit and offset.

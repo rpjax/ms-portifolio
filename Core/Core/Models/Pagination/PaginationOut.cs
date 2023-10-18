@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Core;
+﻿using System.Text.Json.Serialization;
+
+namespace ModularSystem.Core;
 
 /// <summary>
 /// Represents the result metadata for paginated queries. This metadata includes information <br/>
@@ -27,23 +29,26 @@ public class PaginationOut
     /// This field is reserved for mechanisms of pagination that rely on a state preservation to optimize operations.<br/>
     /// It can be used for strategies like token/cursor-based pagination to keep track of the state.
     /// </summary>
-    public string? EncodedState { get; set; }
+    public object? State { get; set; }
 
     /// <summary>
     /// Provides an integer representation of the Limit property.
     /// This is useful for systems or contexts where integer-based limits are preferable or required.
     /// </summary>
+    [JsonIgnore]
     public int IntLimit => (int)Limit;
 
     /// <summary>
     /// Provides an integer representation of the Offset property.
     /// This is useful for systems or contexts where integer-based offsets are preferable or required.
     /// </summary>
+    [JsonIgnore]
     public int IntOffset => (int)Offset;
 
     /// <summary>
     /// Provides an integer representation of the Total property.
     /// This is useful for systems or contexts where integer-based total counts are preferable or required.
     /// </summary>
+    [JsonIgnore]
     public int IntTotal => (int)Total;
 }
