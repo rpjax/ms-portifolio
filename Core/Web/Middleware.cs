@@ -55,10 +55,13 @@ public abstract class Middleware
             switch (await BeforeNextAsync(context))
             {
                 case Strategy.Continue:
-                    await Next(context);
+                    await Next.Invoke(context);
                     break;
                 case Strategy.Break:
                     return;
+
+                default:
+                    throw new InvalidOperationException();
             }
 
             await AfterNextAsync(context);    
@@ -71,6 +74,7 @@ public abstract class Middleware
                     throw;
                 case Strategy.Break:
                     break;
+
                 default:
                     throw new InvalidOperationException();
             }

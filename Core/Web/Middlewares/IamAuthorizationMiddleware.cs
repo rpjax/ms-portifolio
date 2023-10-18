@@ -50,8 +50,9 @@ public class IamAuthorizationMiddleware : Middleware
         if (!isAuthorized)
         {
             await WriteErrorResponseAsync(context, new AppException("The authenticated user lacks the required permissions to execute this operation. Ensure you have the right privileges.", ExceptionCode.Unauthorized));
+            return Strategy.Break;
         }
 
-        return Strategy.Break;
+        return Strategy.Continue;
     }
 }

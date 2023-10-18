@@ -60,7 +60,14 @@ public class EntityCache<T> : IDisposable where T : class
 
     public void Dispose()
     {
-      
+        
+    }
+
+    public EntityCache<T> EmptyCopy(long? maxSize = null)
+    {
+        return new EntityCache<T>(maxSize ?? Capacity)
+            .SetInvalidationStrategy(InvalidationStrategy)
+            .SetRecordLifetime(RecordLifetime);
     }
 
     public EntityCache<T> SetRecordLifetime(TimeSpan recordLifetime)
