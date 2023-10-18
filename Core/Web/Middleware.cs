@@ -1,16 +1,31 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using ModularSystem.Core;
-using ModularSystem.Core.Logging;
 using System.Text;
 
 namespace ModularSystem.Web;
 
 /// <summary>
-/// Provides a base implementation for creating custom middleware components in an ASP.NET Core application.
+/// Provides a foundational structure for creating custom middleware components in an ASP.NET Core application.
 /// </summary>
 public abstract class Middleware
 {
+    /// <summary>
+    /// Enumerates strategies for middleware execution flow.
+    /// </summary>
+    public enum Strategy
+    {
+        /// <summary>
+        /// Continue executing the next middleware in the pipeline.
+        /// </summary>
+        Continue,
+
+        /// <summary>
+        /// Break the middleware execution and do not proceed to the next middleware.
+        /// </summary>
+        Break
+    }
+
     /// <summary>
     /// Gets the next middleware in the request processing pipeline. <br/>
     /// This delegate is invoked after the current middleware completes its processing.
@@ -27,61 +42,38 @@ public abstract class Middleware
     }
 
     /// <summary>
-    /// Invokes the middleware with the given context. <br/>
-    /// If <see cref="BeforeNextAsync"/> returns true, the next middleware in the pipeline will be executed. <br/>
-    /// After that, if <see cref="AfterNextAsync"/> returns true, reserved future additions (if any) will be executed.
+    /// Invokes the middleware using the provided context.
+    /// Depending on the result of <see cref="BeforeNextAsync"/>, the subsequent middleware in the pipeline might be executed.
+    /// Post that, <see cref="AfterNextAsync"/> is executed.
     /// </summary>
-    /// <param name="context">The current HTTP context.</param>
+    /// <param name="context">The prevailing HTTP context.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     public virtual async Task InvokeAsync(HttpContext context)
     {
         try
         {
-            Exception? beforeNextException = await RunBeforeNextAsync(context);
-
-            if (beforeNextException != null)
+            switch (await BeforeNextAsync(context))
             {
-                throw beforeNextException;
+                case Strategy.Continue:
+                    await Next(context);
+                    break;
+                case Strategy.Break:
+                    return;
             }
 
-            await Next.Invoke(context);
-
-            Exception? afterNextException = await RunAfterNextAsync(context);
-
-            if (afterNextException != null)
+            await AfterNextAsync(context);    
+        }
+        catch (Exception e)
+        {
+            switch (await OnExceptionAsync(context, e))
             {
-                throw afterNextException;
+                case Strategy.Continue:
+                    throw;
+                case Strategy.Break:
+                    break;
+                default:
+                    throw new InvalidOperationException();
             }
-        }
-        catch (Exception e)
-        {
-            await OnExceptionAsync(context, e);
-        }
-    }
-
-    private async Task<Exception?> RunBeforeNextAsync(HttpContext context)
-    {
-        try
-        {
-            await BeforeNextAsync(context);
-            return null;
-        }
-        catch (Exception e)
-        {
-            return e;
-        }
-    }
-
-    private async Task<Exception?> RunAfterNextAsync(HttpContext context)
-    {
-        try
-        {
-            await AfterNextAsync(context);
-            return null;
-        }
-        catch (Exception e)
-        {
-            return e;
         }
     }
 
@@ -90,9 +82,9 @@ public abstract class Middleware
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
     /// <returns>A task that, when executed, will return true if the next middleware should be executed, otherwise false.</returns>
-    protected virtual Task BeforeNextAsync(HttpContext context)
+    protected virtual Task<Strategy> BeforeNextAsync(HttpContext context)
     {
-        return Task.CompletedTask;
+        return Task.FromResult(Strategy.Continue);
     }
 
     /// <summary>
@@ -143,6 +135,22 @@ public abstract class Middleware
     protected Task WriteHtmlResponseAsync(HttpContext context, int statusCode, string html)
     {
         return WriteTextResponseAsync(context, statusCode, "text/html", html);
+    }
+
+    /// <summary>
+    /// Writes an error response to the client based on the provided exception.
+    /// </summary>
+    /// <param name="context">The prevailing HTTP context.</param>
+    /// <param name="exception">The exception to be processed and presented to the client.</param>
+    /// <returns>A task representing the asynchronous operation of writing the error response.</returns>
+    /// <remarks>
+    /// This method first converts the given exception into a standardized application exception using <see cref="Exception.ToAppException"/>.
+    /// It then determines the appropriate HTTP status code and formats the exception as a JSON response.
+    /// If the exception represents an internal error, it will be logged for further analysis.
+    /// </remarks>
+    protected Task WriteErrorResponseAsync(HttpContext context, Exception exception)
+    {
+        return context.WriteErrorResponseAsync(exception);
     }
 
     /// <summary>
@@ -213,12 +221,12 @@ public abstract class Middleware
     /// any subsequent error-handling middleware in the pipeline. Override this method 
     /// in derived classes to implement custom exception handling behavior.
     /// </summary>
-    /// <param name="context">The current HTTP context.</param>
+    /// <param name="context">The prevailing HTTP context.</param>
     /// <param name="exception">The exception that occurred.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    protected virtual Task OnExceptionAsync(HttpContext context, Exception exception)
+    protected virtual Task<Strategy> OnExceptionAsync(HttpContext context, Exception exception)
     {
-        throw exception;
+        return Task.FromResult(Strategy.Continue); 
     }
 
 }

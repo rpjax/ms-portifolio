@@ -32,5 +32,5 @@ public interface IAsyncStrategy<TIn, TOut>
     /// A task representing the asynchronous operation which, when completed, yields the result of the strategy execution 
     /// or null if the strategy produces no result for the given input.
     /// </returns>
-    Task<TOut?> ExecuteAsync(TIn? input);
+    Task<TOut> ExecuteAsync(TIn input);
 }

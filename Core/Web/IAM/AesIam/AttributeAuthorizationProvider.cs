@@ -22,7 +22,7 @@ public class AttributeAuthorizationProvider : IAuthorizationProvider
     /// <summary>
     /// Represents the strategy for obtaining an <see cref="IdentityAction"/> based on the <see cref="IdentityActionAttribute"/>.
     /// </summary>
-    private IAsyncStrategy<IdentityActionAttribute, IdentityAction> ActionGetterStrategy { get; }
+    private IAsyncStrategy<IdentityActionAttribute, IdentityAction?> Strategy { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AttributeAuthorizationProvider"/> class with the provided configuration options.
@@ -31,7 +31,8 @@ public class AttributeAuthorizationProvider : IAuthorizationProvider
     public AttributeAuthorizationProvider(Options options)
     {
         AllowActionlessAttributes = options.AllowActionlessAttributes;
-        ActionGetterStrategy = options.ActionGetterStrategy ?? throw new ArgumentNullException(nameof(options.ActionGetterStrategy));
+        Strategy = options.Strategy
+            ?? throw new ArgumentNullException(nameof(options.Strategy));
     }
 
     ///<inheritdoc/>
@@ -44,7 +45,7 @@ public class AttributeAuthorizationProvider : IAuthorizationProvider
             return null;
         }
 
-        var action = await ActionGetterStrategy.ExecuteAsync(attribute);
+        var action = await Strategy.ExecuteAsync(attribute);
 
         if (action == null)
         {
@@ -66,7 +67,7 @@ public class AttributeAuthorizationProvider : IAuthorizationProvider
     /// </summary>
     /// <param name="context">The HTTP context from which the attribute is extracted.</param>
     /// <returns>The extracted <see cref="IdentityActionAttribute"/> or null if it's absent.</returns>
-    private IdentityActionAttribute? GetActionAttributeFrom(HttpContext context)
+    private static IdentityActionAttribute? GetActionAttributeFrom(HttpContext context)
     {
         var endpoint = context.GetEndpoint();
 
@@ -93,15 +94,14 @@ public class AttributeAuthorizationProvider : IAuthorizationProvider
         /// <summary>
         /// Defines the strategy used to retrieve an <see cref="IdentityAction"/> based on the <see cref="IdentityActionAttribute"/>.
         /// </summary>
-        public IAsyncStrategy<IdentityActionAttribute, IdentityAction> ActionGetterStrategy { get; set; }
+        public IAsyncStrategy<IdentityActionAttribute, IdentityAction?>? Strategy { get; set; }
 
         /// <summary>
-        /// Constructs a new instance of the <see cref="Options"/> class using the provided strategy.
+        /// Constructs a new instance of the <see cref="Options"/>.
         /// </summary>
-        /// <param name="actionGetterStrategy">The strategy used to extract an identity action based on its attribute.</param>
-        public Options(IAsyncStrategy<IdentityActionAttribute, IdentityAction> actionGetterStrategy)
+        public Options()
         {
-            ActionGetterStrategy = actionGetterStrategy ?? throw new ArgumentNullException(nameof(actionGetterStrategy));
+
         }
     }
 }

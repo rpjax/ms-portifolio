@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using ModularSystem.Core;
+using ModularSystem.Core.Logging;
 using ModularSystem.Core.Security;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace ModularSystem.Web;
@@ -155,4 +157,70 @@ public static class HttpContextExtensions
 
         return identity;
     }
+
+    /// <summary>
+    /// Sends an HTTP response with no content.
+    /// </summary>
+    /// <param name="context">The current HTTP context.</param>
+    public static void WriteNoContentResponse(HttpContext context)
+    {
+        context.Response.Clear();
+        context.Response.StatusCode = 204;
+    }
+
+    /// <summary>
+    /// Sends an HTTP response with the specified content type and data.
+    /// </summary>
+    public static async Task WriteTextResponseAsync(HttpContext context, int statusCode, string contentType, string data)
+    {
+        var bytes = Encoding.UTF8.GetBytes(data);
+
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = contentType;
+        context.Response.ContentLength = bytes.Length;
+
+        await context.Response.Body.WriteAsync(bytes, 0, bytes.Length);
+    }
+
+    /// <summary>
+    /// Sends a JSON response with the specified status code and data.
+    /// </summary>
+    public static Task WriteJsonResponseAsync(HttpContext context, int statusCode, string data)
+    {
+        return WriteTextResponseAsync(context, statusCode, "application/json", data);
+    }
+
+    /// <summary>
+    /// Sends an HTML response with the specified status code and data.
+    /// </summary>
+    public static Task WriteHtmlResponseAsync(HttpContext context, int statusCode, string html)
+    {
+        return WriteTextResponseAsync(context, statusCode, "text/html", html);
+    }
+
+    /// <summary>
+    /// Writes an error response to the client based on the provided exception.
+    /// </summary>
+    /// <param name="context">The current HTTP context.</param>
+    /// <param name="exception">The exception to be processed and presented to the client.</param>
+    /// <returns>A task representing the asynchronous operation of writing the error response.</returns>
+    /// <remarks>
+    /// This method first converts the given exception into a standardized application exception using <see cref="Exception.ToAppException"/>.
+    /// It then determines the appropriate HTTP status code and formats the exception as a JSON response.
+    /// If the exception represents an internal error, it will be logged for further analysis.
+    /// </remarks>
+    public static Task WriteErrorResponseAsync(this HttpContext context, Exception exception)
+    {
+        var appException = exception.ToAppException();
+        var statusCode = AppExceptionPresenter.GetStatusCodeFrom(appException);
+        var json = AppExceptionPresenter.ToJson(appException);
+
+        if (appException.Code == ExceptionCode.Internal)
+        {
+            ExceptionLogger.Log(appException);
+        }
+
+        return WriteJsonResponseAsync(context, statusCode, json);
+    }
+
 }

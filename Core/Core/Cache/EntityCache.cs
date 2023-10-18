@@ -3,45 +3,64 @@ using System.Collections.Concurrent;
 
 namespace ModularSystem.Core.Caching;
 
+
+/// <summary>
+/// Represents a cache for storing entities of a given type.
+/// </summary>
+/// <typeparam name="T">The type of entity to be cached.</typeparam>
 public class EntityCache<T> : IDisposable where T : class
 {
+    /// <summary>
+    /// Specifies the strategies for invalidating cache records.
+    /// </summary>
     public enum InvalidationStrategyType
     {
+        None,
         LastUsageLifetime,
         CreationLifetime
     }
 
     public static readonly TimeSpan DefaultRecordLifetime = TimeSpan.FromMinutes(5);
-    public static readonly TimeSpan DefaultDeletionRoutineDelay = TimeSpan.FromMinutes(1);
-
-    public long Size { get => Records.Count; }
-    public long SizeLimit { get; set; }
-    public TimeSpan RecordLifetime { get; set; }
-    public TimeSpan DeletionRoutineDelay { get; set; }
-    public InvalidationStrategyType InvalidationStrategy { get; set; }
-
-    private ConcurrentDictionary<string, CacheRecord<T>> Records { get; set; }
-    private DateTime DeletionRoutineLastRanAt { get; set; }
-    private TaskRoutine DeletionRoutine { get; }
-
-    public EntityCache(long sizeLimit)
-    {
-        SizeLimit = sizeLimit;
-        Records = new();
-        RecordLifetime = DefaultRecordLifetime;
-        DeletionRoutineDelay = DefaultDeletionRoutineDelay;
-        DeletionRoutineLastRanAt = TimeProvider.UtcNow();
-        DeletionRoutine = new DeletionTaskRoutine(this, DefaultDeletionRoutineDelay);
-
-        DeletionRoutine.Start();
-    }
 
     /// <summary>
-    /// This method must be MANUALLY called by the owner of the resource. If not there will be a memory leak.
+    /// Gets the current size of the cache.
     /// </summary>
+    public long Size { get => Records.Count; }
+
+    /// <summary>
+    /// Gets or sets the maximum size or capacity of the cache.
+    /// </summary>
+    public long Capacity { get; set; }
+
+    /// <summary>
+    /// Gets or sets the lifetime of a record in the cache.
+    /// </summary>
+    public TimeSpan RecordLifetime { get; set; }
+
+    /// <summary>
+    /// Gets or sets the strategy used for invalidating cache records.
+    /// </summary>
+    public InvalidationStrategyType InvalidationStrategy { get; set; }
+
+    private ConcurrentDictionary<string, CacheRecord> Records { get; set; }
+
+    private object SetLock { get; } = new object();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityCache{T}"/> class with a specified maximum size.
+    /// </summary>
+    /// <param name="maxSize">The maximum size of the cache.</param>
+    public EntityCache(long maxSize)
+    {
+        Capacity = maxSize;
+        RecordLifetime = DefaultRecordLifetime;
+        InvalidationStrategy = InvalidationStrategyType.LastUsageLifetime;
+        Records = new();
+    }
+
     public void Dispose()
     {
-        DeletionRoutine.Dispose();
+      
     }
 
     public EntityCache<T> SetRecordLifetime(TimeSpan recordLifetime)
@@ -50,15 +69,10 @@ public class EntityCache<T> : IDisposable where T : class
         return this;
     }
 
-    public EntityCache<T> SetDeletionRoutineDelay(TimeSpan deletionRoutineDelay)
+    public EntityCache<T> SetInvalidationStrategy(InvalidationStrategyType strategyType)
     {
-        DeletionRoutineDelay = deletionRoutineDelay;
+        InvalidationStrategy = strategyType;
         return this;
-    }
-
-    public bool IsFull()
-    {
-        return Records.Count >= SizeLimit;
     }
 
     public IQueryable<T> AsQueryable()
@@ -67,6 +81,23 @@ public class EntityCache<T> : IDisposable where T : class
             .AsQueryable()
             .Where(x => x.Value != null)
             .Select(x => x.Value!);
+    }
+
+    public bool IsFull()
+    {
+        return Records.Count >= Capacity;
+    }
+
+    public CacheRecord? TryGetRecord(string key)
+    {
+        if (Records.TryGetValue(key, out var record))
+        {
+            record.UpdateLastUsedAt();
+            record.UpdateDeletionTask();
+            return record;
+        }
+
+        return null;
     }
 
     public T? TryGet(string key)
@@ -82,75 +113,104 @@ public class EntityCache<T> : IDisposable where T : class
         {
             record.SetValue(data);
             record.UpdateLastUsedAt();
-        }
-        else
-        {
-            record = new CacheRecord<T>(data, lifetime ?? RecordLifetime);
+            record.UpdateDeletionTask();
+            return true;
         }
 
-        if (IsFull())
+        lock (SetLock)
         {
-            return false;
+            if (IsFull())
+            {
+                return false;
+            }
+        }
+
+        if(record == null)
+        {
+            record = new CacheRecord(this, key, data, lifetime ?? RecordLifetime);
         }
 
         Records[key] = record;
-
         return true;
     }
 
     public T? Remove(string key)
     {
         Records.Remove(key, out var value);
+        value?.DeletionTask?.Cancel();
         return value?.Value;
+    }
+
+    public T? Remove(CacheRecord record)
+    {
+        return Remove(record.Key);
     }
 
     public void Clear()
     {
-        Records.Clear();
-    }
-
-    public void DisableDeletionRoutine()
-    {
-        DeletionRoutine.Stop();
-    }
-
-    private CacheRecord<T>? TryGetRecord(string key)
-    {
-        if (Records.TryGetValue(key, out var record))
+        foreach (var record in Records.Values)
         {
-            record.UpdateLastUsedAt();
-            return record;
+            Remove(record.Key);
+            record.DeletionTask?.Cancel();
         }
-
-        return null;
     }
 
-    internal class CacheRecord<TValue> 
+    public void RemoveExpiredRecords()
     {
-        public TValue? Value { get; set; }
+        foreach (var record in Records.Values)
+        {
+            if (record.IsExpired())
+            {
+                Remove(record);
+            }
+        }
+    }
+
+    public class CacheRecord 
+    {
+        public string Key { get; set; }
+        public T Value { get; set; }
         public TimeSpan Lifetime { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime LastUsedAt { get; set; }
 
-        public CacheRecord(TValue? value, TimeSpan lifetime)
+        internal EntityCache<T> Cache { get; }
+        internal DelayedTask? DeletionTask { get; set; }
+
+        public CacheRecord(EntityCache<T> cache, string key, T value, TimeSpan lifetime)
         {
+            Key = key;
             Value = value;
             Lifetime = lifetime;
             CreatedAt = TimeProvider.UtcNow();
             LastUsedAt = TimeProvider.UtcNow();
+            Cache = cache;
+            
+            if(cache.InvalidationStrategy != InvalidationStrategyType.None)
+            {
+                DeletionTask = new RecordDeletionTask(this, lifetime);
+            }
         }
 
-        public bool IsExpiredByLastUsage()
+        public bool IsExpired()
         {
-            return LastUsedAt + Lifetime < TimeProvider.UtcNow();
+            switch (Cache.InvalidationStrategy)
+            {
+                case InvalidationStrategyType.None:
+                    return false;
+
+                case EntityCache<T>.InvalidationStrategyType.LastUsageLifetime:
+                    return IsExpiredByLastUsage();
+
+                case EntityCache<T>.InvalidationStrategyType.CreationLifetime:
+                    return IsExpiredByCreationDate();
+
+                default:
+                    throw new InvalidOperationException();
+            }
         }
 
-        public bool IsExpiredByCreationDate()
-        {
-            return CreatedAt + Lifetime < TimeProvider.UtcNow();
-        }
-
-        public void SetValue(TValue? value)
+        public void SetValue(T value)
         {
             Value = value;
         }
@@ -164,50 +224,54 @@ public class EntityCache<T> : IDisposable where T : class
         {
             LastUsedAt = TimeProvider.UtcNow();
         }
+
+        public void UpdateDeletionTask()
+        {
+            switch (Cache.InvalidationStrategy)
+            {
+                case EntityCache<T>.InvalidationStrategyType.None:
+                    return;
+
+                case EntityCache<T>.InvalidationStrategyType.LastUsageLifetime:
+                    DeletionTask?.Cancel();
+                    DeletionTask = new RecordDeletionTask(this, Lifetime);
+                    return;
+
+                case EntityCache<T>.InvalidationStrategyType.CreationLifetime:
+                    return;
+
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
+
+        private bool IsExpiredByLastUsage()
+        {
+            return LastUsedAt + Lifetime < TimeProvider.UtcNow();
+        }
+
+        private bool IsExpiredByCreationDate()
+        {
+            return CreatedAt + Lifetime < TimeProvider.UtcNow();
+        }
     }
 
-    internal class DeletionTaskRoutine : TaskRoutine
+    internal class RecordDeletionTask : DelayedTask
     {
-        private EntityCache<T> Cache { get; }
+        private EntityCache<T> Cache => Record.Cache;
+        private CacheRecord Record { get; }
 
-        public DeletionTaskRoutine(EntityCache<T> cache, TimeSpan delay) : base(delay)
+        public RecordDeletionTask(CacheRecord record, TimeSpan delay) : base(delay)
         {
-            Cache = cache;
+            Record = record;
         }
 
         protected override Task OnExecuteAsync(CancellationToken cancellationToken)
         {
-            if (Cache.DeletionRoutineLastRanAt + Cache.DeletionRoutineDelay > TimeProvider.UtcNow())
+            if (!cancellationToken.IsCancellationRequested)
             {
-                return Task.CompletedTask;
+                Cache.Remove(Record.Key);
             }
-
-            foreach (var item in Cache.Records)
-            {
-                var record = item.Value;
-
-                if(Cache.InvalidationStrategy == InvalidationStrategyType.LastUsageLifetime)
-                {
-                    if (record.IsExpiredByLastUsage())
-                    {
-                        Cache.Remove(item.Key);
-                    }
-                }
-                if (Cache.InvalidationStrategy == InvalidationStrategyType.CreationLifetime)
-                {
-                    if (record.IsExpiredByCreationDate())
-                    {
-                        Cache.Remove(item.Key);
-                    }
-                }
-
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
-            }
-
-            Cache.DeletionRoutineLastRanAt = TimeProvider.UtcNow();
 
             return Task.CompletedTask;
         }

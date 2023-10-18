@@ -14,7 +14,7 @@ public static class IApplicationBuilderExtension
     /// <param name="builder">The application builder to which the middlewares should be added.</param>
     /// <param name="iamSystem">The IAM system manager responsible for handling authentication and authorization operations.</param>
     /// <returns>The updated <see cref="IApplicationBuilder"/> with the IAM system middlewares added.</returns>
-    public static IApplicationBuilder UseIamSystem(this IApplicationBuilder builder, IIamSystem iamSystem)
+    public static IApplicationBuilder UseIamSystemMiddleware(this IApplicationBuilder builder, IIamSystem iamSystem)
     {
         DependencyContainer.TryRegister(iamSystem);
 
@@ -48,4 +48,9 @@ public static class IApplicationBuilderExtension
             .UseMiddleware<ExceptionHandlerMiddleware>();
     }
 
+    public static IApplicationBuilder UseAttributeHandlerMiddleware(this IApplicationBuilder builder)
+    {
+        return builder
+            .UseMiddleware<AttributesHandlerMiddleware>();
+    }
 }

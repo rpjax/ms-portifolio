@@ -36,22 +36,22 @@ public class IamAuthorizationMiddleware : Middleware
     /// <param name="context">The current HTTP context.</param>
     /// <returns>A value indicating whether the middleware pipeline should continue.</returns>
     /// <exception cref="AppException">Thrown when the authenticated user lacks the required permissions to execute the operation.</exception>
-    protected override async Task<bool> BeforeNextAsync(HttpContext context)
+    protected override async Task<Strategy> BeforeNextAsync(HttpContext context)
     {
         var resourcePolicy = await Iam.AuthorizationProvider.GetResourcePolicyAsync(context);
 
         if (resourcePolicy == null)
         {
-            return true;
+            return Strategy.Continue;
         }
 
-        var isAuthorized = await resourcePolicy.TryAuthorizeAsync(context.TryGetIdentity());
+        var isAuthorized = await resourcePolicy.AuthorizeAsync(context.TryGetIdentity());
 
         if (!isAuthorized)
         {
-            throw new AppException("The authenticated user lacks the required permissions to execute this operation. Ensure you have the right privileges.", ExceptionCode.Unauthorized);
+            await WriteErrorResponseAsync(context, new AppException("The authenticated user lacks the required permissions to execute this operation. Ensure you have the right privileges.", ExceptionCode.Unauthorized));
         }
 
-        return true;
+        return Strategy.Break;
     }
 }

@@ -8,9 +8,14 @@ public abstract class TaskRoutine : IDisposable
     /// <summary>
     /// Gets a value indicating whether the routine can start.
     /// </summary>
-    public bool CanStart => !IsRunning && ExitEvent.IsSet;
+    public bool CanStart => !IsRunningInternal && ExitEvent.IsSet;
 
-    private bool IsRunning { get; set; }
+    /// <summary>
+    /// Gets a value indicating whether the routine is currently running.
+    /// </summary>
+    public bool IsRunning => IsRunningInternal;
+
+    private bool IsRunningInternal { get; set; }
     private TimeSpan Delay { get; set; }
     private ManualResetEventSlim ExitEvent { get; set; }
     private CancellationTokenSource? CancellationTokenSource { get; set; }
@@ -60,11 +65,11 @@ public abstract class TaskRoutine : IDisposable
                 throw new InvalidOperationException("Cannot start the task routine because there is an instance running or that has not exited yet.");
             }
 
-            IsRunning = true;
+            IsRunningInternal = true;
             ExitEvent.Reset();
             CancellationTokenSource = new();
 
-            Task.Run(InternalExecuteAsync);
+            Task.Run(MainLoop);
 
             return this;
         }
@@ -77,12 +82,12 @@ public abstract class TaskRoutine : IDisposable
     {
         lock(LockObject)
         {
-            if(!IsRunning)
+            if(!IsRunningInternal)
             {
                 return;
             }
 
-            IsRunning = false;
+            IsRunningInternal = false;
         }
 
         CancellationTokenSource?.Cancel();
@@ -94,21 +99,24 @@ public abstract class TaskRoutine : IDisposable
     /// </summary>
     public void WaitExit()
     {
-        if(ExitEvent.IsSet)
+        lock (LockObject)
         {
-            return;
+            if (ExitEvent.IsSet)
+            {
+                return;
+            }
         }
 
         ExitEvent.Wait();
     }
 
-    private async Task InternalExecuteAsync()
+    private async Task MainLoop()
     {
-        while (IsRunning)
+        while (IsRunningInternal)
         {
             try
             {
-                await IterationWork();
+                await InternalExecuteAsync();
                 await Task.Delay(Delay, CancellationTokenSource!.Token);
             }
             catch (Exception e)
@@ -117,10 +125,10 @@ public abstract class TaskRoutine : IDisposable
             }
         }
 
-        OnExit();
+        OnInternalExit();
     }
 
-    private async Task IterationWork()
+    private async Task InternalExecuteAsync()
     {
         try
         {
@@ -155,18 +163,23 @@ public abstract class TaskRoutine : IDisposable
         return Task.CompletedTask;
     }
 
+    private void OnInternalExit()
+    {
+        CancellationTokenSource?.Dispose();
+        CancellationTokenSource = null;
+
+        ExitEvent.Set();
+        OnExit();
+    }
+
     /// <summary>
     /// Logic to be executed after the TaskRoutine stops running, either when it is manually stopped or completes its execution.
     /// Derived classes can override this method to provide custom behavior when the TaskRoutine stops.
     /// </summary>
     protected virtual void OnExit()
     {
-        CancellationTokenSource?.Dispose();
-        CancellationTokenSource = null;
 
-        ExitEvent.Set();
     }
-
 }
 
 /// <summary>

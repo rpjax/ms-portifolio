@@ -7,16 +7,6 @@
 public interface IResourcePolicy
 {
     /// <summary>
-    /// Determines if the specified identity has authorization to access the resource.
-    /// </summary>
-    /// <param name="identity">The identity that requires evaluation against the policy's criteria.</param>
-    /// <returns>
-    /// A task that, when completed, returns a boolean indicating if the provided identity is authorized. <br/>
-    /// True indicates authorized access, and false indicates denied access.
-    /// </returns>
-    Task<bool> AuthorizeAsync(IIdentity identity);
-
-    /// <summary>
     /// Tries to authorize the provided identity for resource access. If the identity is not provided or is null, <br/>
     /// the authorization is deemed unsuccessful and returns false.
     /// </summary>
@@ -27,7 +17,7 @@ public interface IResourcePolicy
     /// A task that, when completed, returns a boolean indicating if the provided identity is authorized or not. <br/>
     /// True indicates authorized access, while false indicates either denied access or no identity provided.
     /// </returns>
-    Task<bool> TryAuthorizeAsync(IIdentity? identity);
+    Task<bool> AuthorizeAsync(IIdentity? identity);
 }
 
 /// <summary>
@@ -37,20 +27,6 @@ public interface IResourcePolicy
 public class EmptyResourcePolicy : IResourcePolicy
 {
     /// <summary>
-    /// Asynchronously authorizes the provided identity to access a resource, <br/>
-    /// always returning true regardless of the identity's permissions.
-    /// </summary>
-    /// <param name="identity">The identity to evaluate against the policy.</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation. The task result always contains a value of true, <br/>
-    /// indicating that the identity is authorized.
-    /// </returns>
-    public Task<bool> AuthorizeAsync(IIdentity identity)
-    {
-        return Task.FromResult(true);
-    }
-
-    /// <summary>
     /// Asynchronously attempts to authorize the provided identity to access a resource,<br/>
     /// always returning true regardless of the identity's presence or permissions.
     /// </summary>
@@ -59,7 +35,7 @@ public class EmptyResourcePolicy : IResourcePolicy
     /// A task that represents the asynchronous operation. The task result always contains a value of true, <br/>
     /// indicating that the identity is authorized or no authorization check is required.
     /// </returns>
-    public Task<bool> TryAuthorizeAsync(IIdentity? identity)
+    public Task<bool> AuthorizeAsync(IIdentity? identity)
     {
         return Task.FromResult(true);
     }
@@ -157,21 +133,11 @@ public class ResourcePolicy : IResourcePolicy
     }
 
     /// <summary>
-    /// Asynchronously determines if the provided identity is authorized to access the resource.
-    /// </summary>
-    /// <param name="identity">The identity to evaluate against the policy.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a boolean value indicating whether the identity is authorized.</returns>
-    public virtual Task<bool> AuthorizeAsync(IIdentity identity)
-    {
-        return Task.FromResult(Authorize(identity));
-    }
-
-    /// <summary>
     /// Asynchronously attempts to authorize the provided identity to access the resource.
     /// </summary>
     /// <param name="identity">The identity to evaluate against the policy, which can be null.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a boolean value indicating whether the identity is authorized or not.</returns>
-    public virtual Task<bool> TryAuthorizeAsync(IIdentity? identity)
+    public virtual Task<bool> AuthorizeAsync(IIdentity? identity)
     {
         return Task.FromResult(TryAuthorize(identity));
     }

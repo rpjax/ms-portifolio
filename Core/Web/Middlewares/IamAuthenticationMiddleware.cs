@@ -36,7 +36,7 @@ public class IamAuthenticationMiddleware : Middleware
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a value indicating if the next middleware should be invoked.</returns>
-    protected override Task<bool> BeforeNextAsync(HttpContext context)
+    protected override Task<Strategy> BeforeNextAsync(HttpContext context)
     {
         var identity = GetIdentityFrom(context);
 
@@ -45,7 +45,7 @@ public class IamAuthenticationMiddleware : Middleware
             InjectIdentity(context, identity);
         }
 
-        return Task.FromResult(true);
+        return Task.FromResult(Strategy.Continue);
     }
 
     /// <summary>

@@ -30,7 +30,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
 
     // CREATE
     [HttpPost]
-    public virtual async Task<IActionResult> CreateAsync([FromBody] T data, [BindNever] IResourcePolicy? resourcePolicy = null)
+    public virtual async Task<IActionResult> CreateAsync([FromBody] T data)
     {
         try
         {
@@ -39,7 +39,6 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
                 return BadRequest(ModelState);
             }
 
-            await AuthorizeAsync(resourcePolicy);
             var id = await Service.CreateAsync(data);
             return Ok(Dto<string>.From(id));
         }
@@ -51,7 +50,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
 
     // READ
     [HttpGet]
-    public virtual async Task<IActionResult> GetByIdAsync(string id, [BindNever] IResourcePolicy? resourcePolicy = null)
+    public virtual async Task<IActionResult> GetByIdAsync(string id)
     {
         try
         {
@@ -60,7 +59,6 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
                 return BadRequest(ModelState);
             }
 
-            await AuthorizeAsync(resourcePolicy);
             var data = await Service.GetAsync(id);
             return Ok(data);
         }
@@ -71,7 +69,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
     }
 
     [HttpPost("query")]
-    public virtual async Task<IActionResult> QueryAsync([FromBody] SerializableQuery serializedQuery, [BindNever] IResourcePolicy? resourcePolicy = null)
+    public virtual async Task<IActionResult> QueryAsync([FromBody] SerializableQuery serializableQuery)
     {
         try
         {
@@ -80,8 +78,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
                 return BadRequest(ModelState);
             }
 
-            await AuthorizeAsync(resourcePolicy);
-            var query = serializedQuery.ToQuery<T>();
+            var query = serializableQuery.ToQuery<T>();
             var result = await Service.QueryAsync(query);
             return Ok(result);
         }
@@ -94,7 +91,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
 
     // UPDATE
     [HttpPut]
-    public virtual async Task<IActionResult> UpdateAsync([FromBody] T data, [BindNever] IResourcePolicy? resourcePolicy = null)
+    public virtual async Task<IActionResult> UpdateAsync([FromBody] T data)
     {
         try
         {
@@ -103,7 +100,6 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
                 return BadRequest(ModelState);
             }
 
-            await AuthorizeAsync(resourcePolicy);
             await Service.UpdateAsync(data);
             return Ok();
         }
@@ -114,7 +110,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
     }
 
     [HttpPatch("bulk-update")]
-    public virtual async Task<IActionResult> BulkUpdateAsync([FromBody] SerializableUpdate serializableUpdate, [BindNever] IResourcePolicy? resourcePolicy = null)
+    public virtual async Task<IActionResult> BulkUpdateAsync([FromBody] SerializableUpdate serializableUpdate)
     {
         try
         {
@@ -123,9 +119,10 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
                 return BadRequest(ModelState);
             }
 
-            await AuthorizeAsync(resourcePolicy);
-            await Service.UpdateAsync(serializableUpdate.ToUpdate<T>());
-            return Ok();
+            var affectedRecords = await Service.UpdateAsync(serializableUpdate.ToUpdate<T>());
+            var dto = new Dto<long?>(affectedRecords);
+
+            return Ok(dto);
         }
         catch (Exception e)
         {
@@ -135,7 +132,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
 
     // DELETE
     [HttpDelete]
-    public virtual async Task<IActionResult> DeleteAsync(string id, [BindNever] IResourcePolicy? resourcePolicy = null)
+    public virtual async Task<IActionResult> DeleteAsync(string id)
     {
         try
         {
@@ -144,7 +141,6 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
                 return BadRequest(ModelState);
             }
 
-            await AuthorizeAsync(resourcePolicy);
             await Service.DeleteAsync(id);
             return Ok();
         }
@@ -155,7 +151,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
     }
 
     [HttpPatch("bulk-delete")]
-    public async Task<IActionResult> BulkDeleteAsync([FromBody] SerializableExpression serializableExpression, [BindNever] IResourcePolicy? resourcePolicy = null)
+    public virtual async Task<IActionResult> BulkDeleteAsync([FromBody] SerializableExpression serializableExpression)
     {
         try
         {
@@ -165,10 +161,10 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
             }
 
             var reader = new ExpressionReader(QueryProtocol.FromSerializable(serializableExpression));
+            var affectedRecords = await Service.DeleteAsync(reader.GetPredicate<T>());
+            var dto = new Dto<long?>(affectedRecords);  
 
-            await AuthorizeAsync(resourcePolicy);
-            await Service.DeleteAsync(reader.GetPredicate<T>());
-            return Ok();
+            return Ok(dto);
         }
         catch (Exception e)
         {
@@ -181,7 +177,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
     //*
 
     [HttpGet("ping")]
-    public virtual async Task<IActionResult> Ping([BindNever] IResourcePolicy? resourcePolicy = null)
+    public virtual async Task<IActionResult> Ping()
     {
         try
         {
@@ -190,7 +186,6 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
                 return BadRequest(ModelState);
             }
 
-            await AuthorizeAsync(resourcePolicy);
             return Ok("pong!");
         }
         catch (Exception e)
@@ -200,7 +195,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
     }
 
     [HttpGet("id-validation")]
-    public virtual async Task<IActionResult> ValidateIdAsync(string id, [BindNever] IResourcePolicy? resourcePolicy = null)
+    public virtual async Task<IActionResult> ValidateIdAsync(string id)
     {
         try
         {
@@ -209,7 +204,6 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
                 return BadRequest(ModelState);
             }
 
-            await AuthorizeAsync(resourcePolicy);
             var isValid = await Service.ValidateIdAsync(id);
             return Ok(Dto<bool>.From(isValid));
         }
@@ -219,10 +213,6 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
         }
     }
 
-    protected virtual IQuery<T> CreateSearch(SerializableQuery input)
-    {
-        return input.ToQuery<T>();
-    }
 }
 
 /// <summary>
@@ -370,7 +360,7 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
     //*
 
     [HttpGet("ping")]
-    public virtual async Task<IActionResult> Ping([BindNever] IResourcePolicy? resourcePolicy = null)
+    public virtual async Task<IActionResult> Ping()
     {
         try
         {
@@ -379,7 +369,6 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
                 return BadRequest(ModelState);
             }
 
-            await AuthorizeAsync(resourcePolicy);
             return Ok("pong!");
         }
         catch (Exception e)

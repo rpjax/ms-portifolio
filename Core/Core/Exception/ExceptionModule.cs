@@ -36,6 +36,7 @@ public class ExceptionModule
         return new AppException(e.Message, ExceptionCode.Internal);
     }
 }
+
 public abstract class ExceptionHandler
 {
     public abstract bool ShouldHanlde(Exception e);

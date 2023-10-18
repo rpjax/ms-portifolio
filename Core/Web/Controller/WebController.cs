@@ -190,7 +190,7 @@ public abstract class WebController : ControllerBase
         }
 
         var identity = TryGetIdentity();
-        var isAuthorized = await resourcePolicy.TryAuthorizeAsync(identity);
+        var isAuthorized = await resourcePolicy.AuthorizeAsync(identity);
 
         if (!isAuthorized)
         {

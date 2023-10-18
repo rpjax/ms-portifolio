@@ -28,8 +28,7 @@ internal class ExprJsonConverter : JsonConverter<SerializableExpression>
 
         var nodeTypeInt = nodeTypeProperty.GetInt32();
         var nodeType = (ExtendedExpressionType)nodeTypeInt;
-        var emptynode = new EmptySerializableNode() as SerializableExpression;
-        var concreteType = SerializableExpression.GetConcreteType(emptynode.NodeType);
+        var concreteType = SerializableExpression.GetConcreteType(nodeType);
         var node = root.Deserialize(concreteType, options)?.TryTypeCast<SerializableExpression>();
 
         if (node == null)
