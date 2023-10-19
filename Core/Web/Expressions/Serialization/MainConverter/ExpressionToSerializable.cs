@@ -33,6 +33,8 @@ internal class ExpressionToSerializable : ConverterBase, IConversion<Expression,
 
     public SerializableExpression Convert(Expression expression)
     {
+        expression = Visit(expression);
+
         var nodeType = (ExtendedExpressionType)expression.NodeType;
 
         switch (nodeType)
@@ -140,9 +142,65 @@ internal class ExpressionToSerializable : ConverterBase, IConversion<Expression,
         return Convert(expression);
     }
 
+    private static Expression Visit(Expression expression)
+    {
+        if (IsAnnonymousClassMemberAccess(expression))
+        {
+            return VisitClosureExpression(expression.TypeCast<MemberExpression>());
+        }
+
+        return expression;
+    }
+
+    private static bool IsAnnonymousClassMemberAccess(Expression expression)
+    {
+        return expression is MemberExpression cast
+            && cast.Expression is ConstantExpression
+            && cast.Member.DeclaringType != null
+            && cast.Member.DeclaringType.Name.StartsWith("<>");
+    }
+
     private static T As<T>(Expression expression) where T : Expression
     {
         return expression.TypeCast<T>();
+    }
+
+    private static ConstantExpression VisitClosureExpression(MemberExpression expression)
+    {
+        if (expression.Expression == null)
+        {
+            throw new InvalidOperationException("The provided expression does not have a valid sub-expression.");
+        }
+        if (expression.Expression.NodeType != ExpressionType.Constant)
+        {
+            throw new InvalidOperationException("The sub-expression type is not of type 'Constant'.");
+        }
+
+        var constantExpression = expression.Expression.TryTypeCast<ConstantExpression>();
+
+        if (constantExpression == null)
+        {
+            throw new InvalidOperationException("Failed to cast the sub-expression to 'ConstantExpression'.");
+        }
+
+        var annonymousObject = constantExpression.Value;
+
+        if (annonymousObject == null)
+        {
+            throw new Exception("The value of the constant expression is null.");
+        }
+
+        var capturedValue = annonymousObject
+            .GetType()
+            .GetField(expression.Member.Name)
+            ?.GetValue(annonymousObject);
+
+        if (capturedValue == null)
+        {
+            throw new Exception($"Failed to retrieve the value of the property '{expression.Member.Name}' from the anonymous object.");
+        }
+
+        return Expression.Constant(capturedValue, expression.Type);
     }
 
     private SerializableBinaryExpression Convert(BinaryExpression expression)

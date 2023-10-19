@@ -149,6 +149,15 @@ public abstract class TaskRoutine : IDisposable
         return Task.CompletedTask;
     }
 
+    private void OnInternalExit()
+    {
+        CancellationTokenSource?.Dispose();
+        CancellationTokenSource = null;
+
+        ExitEvent.Set();
+        OnExit();
+    }
+
     /// <summary>
     /// Main execution logic to be implemented by derived classes.
     /// </summary>
@@ -161,15 +170,6 @@ public abstract class TaskRoutine : IDisposable
     protected virtual Task OnExceptionAsync(Exception e)
     {
         return Task.CompletedTask;
-    }
-
-    private void OnInternalExit()
-    {
-        CancellationTokenSource?.Dispose();
-        CancellationTokenSource = null;
-
-        ExitEvent.Set();
-        OnExit();
     }
 
     /// <summary>

@@ -44,6 +44,11 @@ public class ExprSerializer : ISerializer<Expression>
     /// <returns>The serializable representation of the expression.</returns>
     public SerializableExpression ToSerializable(Expression expression)
     {
+        if(Config.UseClosureUnwrapper)
+        {
+            expression = new ClosureExpressionUnwrapper().Visit(expression);
+        }
+
         return Converter.Convert(expression);
     }
 
@@ -131,5 +136,14 @@ public class ExprSerializer : ISerializer<Expression>
         /// This visitor ensures that parameters with the same name in the expression tree are represented by the same object instance.
         /// </remarks>
         public bool UseParameterUniformityVisitor { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the <see cref="ClosureExpressionUnwrapper"/> should be used during serialization.
+        /// </summary>
+        /// <remarks>
+        /// When set to true, the serializer will unwrap closure expressions, extracting the underlying values from captured variables.
+        /// This can be useful for scenarios where the serialized expression needs to be evaluated in a different context or runtime.
+        /// </remarks>
+        public bool UseClosureUnwrapper { get; set; } = true;
     }
 }
