@@ -15,7 +15,7 @@ public class JsonStorage<T> where T : class, new()
             fileInfo = new FileInfo($"{fileInfo.FullName.Substring(0, fileInfo.FullName.Length - fileInfo.Extension.Length)}.json");
         }
 
-        FileInfo = FileSystemHelper.GetFileInfo(fileInfo.FullName, true, initializeFile);
+        FileInfo = FileSystemHelper.GetFileInformation(fileInfo.FullName, true, initializeFile);
         JsonSerializerOptions = jsonSerializerOptions;
     }
 

@@ -50,7 +50,7 @@ public class EFCoreSqliteContext<T> : DbContext where T : class, IEFModel
             throw new ArgumentException(nameof(fileInfo));
         }
 
-        FileSystemHelper.InitializeDirectory(fileInfo.DirectoryName);
+        FileSystemHelper.EnsureDirectoryExists(fileInfo.DirectoryName);
         Database.EnsureCreated();
     }
 

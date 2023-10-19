@@ -96,12 +96,19 @@ public class ConsoleLogger
     {
         try
         {
+            var stdIn = Console.OpenStandardInput();
+            var stdOut = Console.OpenStandardOutput();
+
+            _ = Console.CursorTop;
+            _ = Console.CursorSize;
+            _ = Console.CursorLeft;
+
             return
-                Environment.UserInteractive && 
-                Console.OpenStandardInput() != Stream.Null && 
-                Console.OpenStandardOutput() != Stream.Null;
+                Environment.UserInteractive &&
+                stdIn != Stream.Null &&
+                stdOut != Stream.Null;
         }
-        catch (Exception e)
+        catch
         {
             return false;
         }

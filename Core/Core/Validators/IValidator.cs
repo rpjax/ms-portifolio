@@ -18,6 +18,19 @@ public interface IValidator<T>
 }
 
 /// <summary>
+/// Defines a contract for synchronous validation of objects of type <typeparamref name="T"/>.
+/// </summary>
+/// <typeparam name="T">The type of the object to be validated.</typeparam>
+public interface ISyncValidator<T>
+{
+    /// <summary>
+    /// Validates the specified instance.
+    /// </summary>
+    /// <param name="instance">The instance of type <typeparamref name="T"/> to validate.</param>
+    void Validate(T instance);
+}
+
+/// <summary>
 /// Defines a contract for asynchronous validation of objects of type <typeparamref name="T"/>.
 /// </summary>
 /// <typeparam name="T">The type of the object to be validated.</typeparam>
