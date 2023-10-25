@@ -37,14 +37,15 @@ public abstract class DelayedTask
     /// <summary>
     /// Starts the delayed task.
     /// </summary>
+    /// <returns>The started instance of delayed task.</returns>
     /// <exception cref="InvalidOperationException">Thrown if the task has already been executed.</exception>
-    public void Start()
+    public DelayedTask Start()
     {
         lock (this)
         {
             if (IsStarted)
             {
-                throw new InvalidOperationException("The delayed task has already been executed.");
+                throw new InvalidOperationException("The delayed task has already been started.");
             }
 
             IsStarted = true;    
@@ -52,6 +53,7 @@ public abstract class DelayedTask
 
         CancellationTokenSource = new();
         Task.Run(() => ExecuteAsync(CancellationTokenSource.Token));
+        return this;
     }
 
     /// <summary>

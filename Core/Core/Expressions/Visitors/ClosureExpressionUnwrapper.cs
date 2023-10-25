@@ -27,6 +27,10 @@ public class ClosureExpressionUnwrapper : ExpressionVisitor
     /// </exception>
     protected override Expression VisitMember(MemberExpression node)
     {
+        if (node.Member.DeclaringType == null || !node.Member.DeclaringType.Name.StartsWith("<>"))
+        {
+            return base.VisitMember(node);
+        }
         if (node.Expression == null)
         {
             throw new InvalidOperationException("The provided expression does not have a valid sub-expression.");
