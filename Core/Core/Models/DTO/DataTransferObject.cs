@@ -10,7 +10,7 @@ namespace ModularSystem.Core;
 public class Dto<T>
 {
     [JsonPropertyName("value")]
-    public T? Value { get; }
+    public T? Value { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Dto{T}"/> class.
