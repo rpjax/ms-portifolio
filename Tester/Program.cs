@@ -1,6 +1,8 @@
 ﻿using ModularSystem.Core;
 using ModularSystem.Core.Cli;
 using ModularSystem.Core.Logging;
+using ModularSystem.Core.Security;
+using ModularSystem.Core.TextAnalysis;
 using ModularSystem.Core.Threading;
 using ModularSystem.EntityFramework;
 
@@ -16,7 +18,9 @@ public static class Program
         };
 
         Initializer.Run(config);
-        CLI.StartInstance();
+        var reader = new GDefReader();
+        var prods = reader.GetProdutions(new FileInfo("C:\\RPJ\\Coding\\Sandbox\\Compiler\\Formats\\example.gdef"));
+        reader.GetDefinitions(new FileInfo("C:\\RPJ\\Coding\\Sandbox\\Compiler\\Formats\\example.gdef"));
         //WebApplicationServer.StartSingleton();
     }
 }

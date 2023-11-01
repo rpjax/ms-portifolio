@@ -41,8 +41,6 @@ public partial class Sandbox : CliCommand
 
         //await Console.Out.WriteLineAsync("success");
         //return;
-        
-        CrudController
 
         var query = new QueryWriter<EFTestEntity>()
                 .SetLimit(50)

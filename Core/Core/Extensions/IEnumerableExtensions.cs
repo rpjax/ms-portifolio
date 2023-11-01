@@ -18,9 +18,9 @@ public static class IEnumerableExtensions
         }
     }
 
-    public static IEnumerable<T> RemoveWhere<T>(this IEnumerable<T> list, Func<T, bool> selector)
+    public static IEnumerable<T> RemoveWhere<T>(this IEnumerable<T> enumerable, Func<T, bool> selector)
     {
-        return list.Where(x => !selector.Invoke(x));
+        return enumerable.Where(x => !selector.Invoke(x));
     }
 
     public static bool IsEmpty<T>(this IEnumerable<T> enumerable)

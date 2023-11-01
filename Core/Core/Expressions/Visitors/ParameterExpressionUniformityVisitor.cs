@@ -52,11 +52,31 @@ public class ParameterExpressionUniformityVisitor : ExpressionVisitor
     /// <returns>The modified member access expression.</returns>
     protected override Expression VisitMember(MemberExpression node)
     {
-        if (node.Expression?.Type == RootParameterExpression?.Type)
+        var helper = new Helper();
+        var isLhs = helper.IsLhs(node);
+
+        if (node.Expression?.Type == RootParameterExpression?.Type && isLhs)
         {
             return Expression.MakeMemberAccess(RootParameterExpression, node.Member);
         }
 
         return base.VisitMember(node);
+    }
+
+    private class Helper : ExpressionVisitor
+    {
+        bool isLhs = true;
+
+        public bool IsLhs(Expression expression)
+        {
+            Visit(expression); 
+            return isLhs;
+        }
+
+        protected override Expression VisitConstant(ConstantExpression node)
+        {
+            isLhs = false;
+            return base.VisitConstant(node);
+        }
     }
 }

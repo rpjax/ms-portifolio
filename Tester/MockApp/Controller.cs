@@ -83,7 +83,7 @@ public class Testercontroller : WebController
                 .GetResourcePolicy();
 
             var identity = TryGetIdentity();
-            var isAuthorized = await resourcePolicy.TryAuthorizeAsync(identity);
+            var isAuthorized = await resourcePolicy.AuthorizeAsync(identity);
             var data = LoremIpsum.Sample();
 
             return Ok(new { data, isAuthorized });
