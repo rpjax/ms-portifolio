@@ -19,6 +19,8 @@ public abstract class Production
     /// </summary>
     public abstract string Name { get; }
 
+    public abstract bool ProducesEpsilon { get; }
+
     /// <summary>
     /// Gets the symbol at the left hand side(LHS) of the production rule.
     /// </summary>

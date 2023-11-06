@@ -1,9 +1,6 @@
 ﻿using ModularSystem.Core;
-using ModularSystem.Core.Cli;
 using ModularSystem.Core.Logging;
-using ModularSystem.Core.Security;
-using ModularSystem.Core.TextAnalysis;
-using ModularSystem.Core.Threading;
+using ModularSystem.Core.TextAnalysis.Gdef;
 using ModularSystem.EntityFramework;
 
 namespace ModularSystem.Tester;
@@ -18,21 +15,22 @@ public static class Program
         };
 
         Initializer.Run(config);
-        var reader = new GDefReader();
-        var prods = reader.GetProdutions(new FileInfo("C:\\RPJ\\Coding\\Sandbox\\Compiler\\Formats\\example.gdef"));
-        reader.GetDefinitions(new FileInfo("C:\\RPJ\\Coding\\Sandbox\\Compiler\\Formats\\example.gdef"));
-        //WebApplicationServer.StartSingleton();
+
+        var fileInfo = new FileInfo("C:\\RPJ\\Coding\\Sandbox\\Compiler\\Formats\\example.gdef");
+        var grammar = GDefReader.Read(fileInfo);
+
+        Console.WriteLine();
     }
 }
 
 //*
 // NOTE:
 //*
-public class ExceptionEntryEntity : EFEntityService<ExceptionEntry>
+public class ExceptionEntryService : EFEntityService<ExceptionEntry>
 {
     public override IDataAccessObject<ExceptionEntry> DataAccessObject { get; }
 
-    public ExceptionEntryEntity()
+    public ExceptionEntryService()
     {
         var file = Logger.DefaultPathFile(ExceptionLogger.DefaultFileName);
         var context = new EFCoreSqliteContext<ExceptionEntry>(file);

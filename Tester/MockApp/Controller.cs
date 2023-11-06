@@ -25,7 +25,7 @@ public class ExceptionLogsController : CrudController<ExceptionEntry>
 
     public ExceptionLogsController()
     {
-        Service = new ExceptionEntryEntity();
+        Service = new ExceptionEntryService();
     }
 }
 
