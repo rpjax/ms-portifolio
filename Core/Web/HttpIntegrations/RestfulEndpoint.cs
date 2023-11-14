@@ -114,7 +114,12 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
             BeforeDeserialize(response);
             await BeforeDeserializeAsync(response);
 
-            return await DeserializeResponseAsync(response);
+            var payload = await DeserializeResponseAsync(response);
+
+            AfterDeserialize(response, payload);
+            await AfterDeserializeAsync(response, payload);
+
+            return payload;
         }
         catch (Exception e)
         {
@@ -130,6 +135,18 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
             response?.Dispose();
         }
     }
+
+    /// <summary>
+    /// Handles the failure response received from an HTTP endpoint.
+    /// </summary>
+    /// <param name="response">The <see cref="HttpResponse"/> object representing the HTTP response from the endpoint.</param>
+    /// <returns>An exception that represents the error occurred during the handling of the HTTP response.</returns>
+    /// <remarks>
+    /// Implementations of this method should inspect the provided HTTP response, and return an appropriate exception
+    /// that captures the essence of the error or issue. <br/>
+    /// This exception will typically be propagated up to the calling code for further handling or logging.
+    /// </remarks>
+    protected abstract Task<Exception> HandleFailureResponseAsync(HttpResponse response);
 
     /// <summary>
     /// Retrieves an instance of the HttpRequester class to send HTTP requests.
@@ -186,18 +203,6 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     }
 
     /// <summary>
-    /// Handles the failure response received from an HTTP endpoint.
-    /// </summary>
-    /// <param name="response">The <see cref="HttpResponse"/> object representing the HTTP response from the endpoint.</param>
-    /// <returns>An exception that represents the error occurred during the handling of the HTTP response.</returns>
-    /// <remarks>
-    /// Implementations of this method should inspect the provided HTTP response, and return an appropriate exception
-    /// that captures the essence of the error or issue. <br/>
-    /// This exception will typically be propagated up to the calling code for further handling or logging.
-    /// </remarks>
-    protected abstract Task<Exception> HandleFailureResponseAsync(HttpResponse response);
-
-    /// <summary>
     /// Invoked before the deserialization process of a successful response. <br/>
     /// This method provides an opportunity to perform any pre-processing or validation on the raw response data.
     /// </summary>
@@ -219,6 +224,39 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     }
 
     /// <summary>
+    /// Invoked after the deserialization process of a successful response.
+    /// </summary>
+    /// <remarks>
+    /// This method provides a synchronization point for performing any post-processing or validation on the deserialized payload.
+    /// It is designed to be a counterpart to the asynchronous <see cref="AfterDeserializeAsync"/> method, offering a synchronous alternative.
+    /// Implementers can use this method to add custom logic that operates on the deserialized data, such as additional validation, 
+    /// transformation, or augmentation, in scenarios where asynchronous processing is not required or desired.
+    /// </remarks>
+    /// <param name="response">The HttpResponse from which the payload was deserialized.</param>
+    /// <param name="payload">The deserialized payload of type <typeparamref name="TOut"/>.</param>
+    protected virtual void AfterDeserialize(HttpResponse response, TOut payload)
+    {
+        return;
+    }
+
+    /// <summary>
+    /// Asynchronously invoked after the deserialization process of a successful response.
+    /// </summary>
+    /// <remarks>
+    /// This method serves as a hook for performing any post-processing or validation on the deserialized payload.
+    /// It allows implementers to add custom logic that executes after the API response has been successfully deserialized
+    /// but before the control is returned to the caller. This is particularly useful for scenarios where the deserialized
+    /// data needs to be augmented, validated, or transformed before being used.
+    /// </remarks>
+    /// <param name="response">The HttpResponse from which the payload was deserialized.</param>
+    /// <param name="payload">The deserialized payload of type <typeparamref name="TOut"/>.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    protected virtual Task AfterDeserializeAsync(HttpResponse response, TOut payload)
+    {
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
     /// Asynchronously deserializes the successful API response.
     /// </summary>
     /// <remarks>
@@ -231,7 +269,7 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     /// <returns>A task representing the asynchronous operation with a result of type <typeparamref name="TOut"/> containing the deserialized response.</returns>
     protected virtual Task<TOut> DeserializeResponseAsync(HttpResponse response)
     {
-        return Task.FromResult(DeserializeResponse(response));
+        return response.DeserializeAsJsonAsync<TOut>();
     }
 
     /// <summary>

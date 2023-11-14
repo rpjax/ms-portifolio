@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core.TextAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace ModularSystem.Core.Cli;
@@ -82,6 +83,18 @@ public class PromptContext
         }
 
         return Arguments[name];
+    }
+
+    public bool GetOptionalArgument(string name, [MaybeNullWhen(false)] out string value)
+    {
+        if (!Arguments.ContainsKey(name))
+        {
+            value = null;
+            return false;
+        }
+
+        value = Arguments[name];
+        return true;
     }
 
     public bool GetFlag(string name)

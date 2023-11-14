@@ -147,6 +147,11 @@ public class JsonBody : HttpRequestBody
     {
         return "application/json";
     }
+
+    public override string ToString()
+    {
+        return Encoding.GetString(Content);
+    }
 }
 
 /// <summary>

@@ -176,7 +176,7 @@ public class HttpResponse : IDisposable
     /// <param name="encoding">The encoding used for the response content.</param>
     /// <param name="options">Optional parameters for the JSON deserializer.</param>
     /// <returns>A task representing the asynchronous operation with the deserialized object as the result.</returns>
-    public async Task<T> DeserializeAsJsonAsync<T>(Encoding? encoding = null, JsonSerializerOptions? options = null) where T : class
+    public async Task<T> DeserializeAsJsonAsync<T>(Encoding? encoding = null, JsonSerializerOptions? options = null) 
     {
         try
         {
