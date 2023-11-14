@@ -316,7 +316,7 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     /// <summary>
     /// Internal class to wrap exceptions.
     /// </summary>
-    internal class BoxedException : Exception
+    protected class BoxedException : Exception
     {
         /// <summary>
         /// Gets or sets the wrapped exception.
