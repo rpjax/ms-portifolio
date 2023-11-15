@@ -1,6 +1,7 @@
 ﻿using ModularSystem.Core;
 using ModularSystem.Core.Logging;
 using ModularSystem.Core.TextAnalysis.Gdef;
+using ModularSystem.Core.Threading;
 using ModularSystem.EntityFramework;
 
 namespace ModularSystem.Tester;
@@ -14,12 +15,46 @@ public static class Program
             InitConsoleLogger = true,
         };
 
-        Initializer.Run(config);
+        //Initializer.Run(config);
 
-        var fileInfo = new FileInfo("C:\\RPJ\\Coding\\Sandbox\\Compiler\\Formats\\example.gdef");
-        var grammar = GDefReader.Read(fileInfo);
+        //var fileInfo = new FileInfo("C:\\RPJ\\Coding\\Sandbox\\Compiler\\Formats\\example.gdef");
+        //var grammar = GDefReader.Read(fileInfo);
 
-        Console.WriteLine();
+        JobQueue.Enqueue(new LambdaJob(async x =>
+        {
+            await Task.Delay(3000);
+            await Console.Out.WriteLineAsync("Exited task 1.");
+        }));
+
+        JobQueue.Enqueue(new LambdaJob(async x =>
+        {
+            await Task.Delay(6000);
+            await Console.Out.WriteLineAsync("Exited task 2.");
+        }));
+
+        Task.WhenAll(new[]
+        {
+            JobQueue.WaitAllJobsAsync(),
+            JobQueue.WaitAllJobsAsync(),
+            JobQueue.WaitAllJobsAsync()
+        }).Wait();
+
+        JobQueue.WaitAllJobsAsync().Wait();
+
+        JobQueue.Enqueue(new LambdaJob(async x =>
+        {
+            await Task.Delay(3000);
+            await Console.Out.WriteLineAsync("Exited task 3.");
+        }));
+
+        JobQueue.Enqueue(new LambdaJob(async x =>
+        {
+            await Task.Delay(6000);
+            await Console.Out.WriteLineAsync("Exited task 4.");
+        }));
+
+        JobQueue.WaitAllJobsAsync().Wait();
+        Console.WriteLine("Exiting program.");
     }
 }
 

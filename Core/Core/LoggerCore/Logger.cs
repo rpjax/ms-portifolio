@@ -39,6 +39,15 @@ public interface ILogWriter<T> : IDisposable
     Task WriteAsync(IEnumerable<T> entries);
 }
 
+class LoggerInitializer : Initializer
+{
+    protected internal override Task InternalInitAsync(Options options)
+    {
+        Logger.InitDefaultDirectory();
+        return Task.CompletedTask;
+    }
+}
+
 /// <summary>
 /// Provides utility methods for logger implementations, including default directory and file path management.
 /// </summary>
@@ -96,13 +105,4 @@ public abstract class Logger<T> where T : ILogEntry
     /// </summary>
     /// <returns>A log writer instance.</returns>
     public abstract ILogWriter<T> GetWriter();
-}
-
-class LoggerInitializer : Initializer
-{
-    protected internal override Task InternalInitAsync(Options options)
-    {
-        Logger.InitDefaultDirectory();
-        return Task.CompletedTask;
-    }
 }

@@ -18,7 +18,6 @@ internal class JsonSerializerInitializer : Initializer
             //*
 
             ConsoleLogger.Warn("Entity converters initialization has been disabled duo to development issues.");
-            //RegisterEntityJsonConverters(options);
         }
 
         if (options.JsonSerialization.UseUtcDateTimeConverter)
