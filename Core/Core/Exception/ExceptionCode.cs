@@ -51,5 +51,17 @@ public enum ExceptionCode
     /// </summary>
     Forbidden,
 
+    /// <summary>
+    /// Indicates the operation cannot be completed as the current state of the target object or resource is incompatible<br/>
+    /// or unsuitable for the requested action. This might occur when a prerequisite condition is not met or an expected<br/>
+    /// state transition has not occurred.
+    /// </summary>
+    InvalidState,
+
+    /// <summary>
+    /// Represents an error where the requested operation or feature is not supported by the system. This can occur<br/>
+    /// in situations where the application lacks the necessary capabilities or when an attempt is made to use a<br/>
+    /// feature that is not yet implemented.
+    /// </summary>
     NotSupported
 }
