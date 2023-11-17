@@ -26,65 +26,30 @@ public static class AppExceptionPresenter
 
     public static int GetStatusCodeFrom(AppException e)
     {
-        var code = e.Code;
-
-        if (code == ExceptionCode.BadRequest)
+        switch (e.Code)
         {
-            return 400;
-        }
-        else if (code == ExceptionCode.InvalidInput)
-        {
-            return 422;
-        }
-        else if (code == ExceptionCode.Unauthorized)
-        {
-            return 401;
-        }
-        else if (code == ExceptionCode.CredentialsExpired || code == ExceptionCode.CredentialsInvalid)
-        {
-            return 401;
-        }
-        else if (code == ExceptionCode.Forbidden)
-        {
-            return 403;
-        }
-        else
-        {
-            return 500;
-        }
-    }
-
-    public static string GetMessageFrom(AppException e)
-    {
-        var code = e.Code;
-
-        if (code == ExceptionCode.BadRequest)
-        {
-            return MsgIsValid(e) ? e.Message : "Bad request, something is malformed in the request.";
-        }
-        else if (code == ExceptionCode.InvalidInput)
-        {
-            return MsgIsValid(e) ? e.Message : "Invalid input, something is wrong in the incoming data.";
-        }
-        else if (code == ExceptionCode.Unauthorized)
-        {
-            return MsgIsValid(e) ? e.Message : "Unathorized!";
-        }
-        else if (code == ExceptionCode.CredentialsExpired)
-        {
-            return MsgIsValid(e) ? e.Message : "Credentials expired.";
-        }
-        else if (code == ExceptionCode.CredentialsInvalid)
-        {
-            return MsgIsValid(e) ? e.Message : "Credentials invalid!";
-        }
-        else if (code == ExceptionCode.Forbidden)
-        {
-            return MsgIsValid(e) ? e.Message : "Forbbiden resource.";
-        }
-        else
-        {
-            return "An unexpected error has occurred in the server.";
+            case ExceptionCode.Internal:
+                return 500;
+            case ExceptionCode.BadRequest:
+                return 400;
+            case ExceptionCode.InvalidInput:
+                return 422;
+            case ExceptionCode.Unauthenticated:
+                return 401;
+            case ExceptionCode.Unauthorized:
+                return 401;
+            case ExceptionCode.CredentialsExpired:
+                return 401;
+            case ExceptionCode.CredentialsInvalid:
+                return 401;
+            case ExceptionCode.Forbidden:
+                return 403;
+            case ExceptionCode.InvalidState:
+                return 409;
+            case ExceptionCode.NotSupported:
+                return 500;
+            default:
+                return 500;
         }
     }
 
@@ -104,10 +69,6 @@ public static class AppExceptionPresenter
         });
     }
 
-    static bool MsgIsValid(AppException e)
-    {
-        return e.Message != null && e.Message?.Length != 0;
-    }
 }
 
 /// <summary>
