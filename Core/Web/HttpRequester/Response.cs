@@ -156,7 +156,7 @@ public class HttpResponse : IDisposable
         {
             if(Body == null)
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("The response body is null. Deserialization cannot proceed without content.");
             }
 
             options ??= options ??= JsonSerializerOptions ??= DefaultJsonSerializerOptions();
@@ -166,7 +166,7 @@ public class HttpResponse : IDisposable
 
             if (deserialized == null)
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException($"Deserialization of the JSON content to type '{type.FullName}' resulted in a null object, indicating that the content may not match the expected type.");
             }
 
             return deserialized;
