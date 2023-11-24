@@ -263,7 +263,11 @@ public class Identity : IIdentity
     /// <returns>The current <see cref="Identity"/> instance for fluent chaining.</returns>
     public Identity AddRole(IdentityRole role)
     {
-        Roles.Add(role.Name);
+        if(!Roles.Contains(role.Name))
+        {
+            Roles.Add(role.Name);
+        }
+
         AddPermissions(role.Permissions);
         return this;
     }

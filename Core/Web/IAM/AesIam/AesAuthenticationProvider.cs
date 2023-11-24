@@ -26,27 +26,27 @@ public class AesAuthenticationProvider : IAuthenticationProvider
     /// <summary>
     /// Gets information about the file where the encryption key is stored.
     /// </summary>
-    FileInfo? EncryptionKeyFileInfo { get; }
+    protected FileInfo? EncryptionKeyFileInfo { get; }
 
     /// <summary>
     /// Cache for the encryption key used by the encrypter.
     /// </summary>
-    byte[]? EncryptionKeyCache { get; set; } = null;
+    protected byte[]? EncryptionKeyCache { get; set; } = null;
 
     /// <summary>
     /// Object used to synchronize access to the encryption key cache.
     /// </summary>
-    object EncryptionKeyLock { get; } = new object();
+    protected object EncryptionKeyLock { get; } = new object();
 
     /// <summary>
     /// Responsible for encrypting and decrypting tokens.
     /// </summary>
-    ITokenEncrypter TokenEncrypter { get; }
+    protected ITokenEncrypter TokenEncrypter { get; }
 
     /// <summary>
     /// Generates salts for token creation.
     /// </summary>
-    ISaltGenerator SaltGenerator { get; }
+    protected ISaltGenerator SaltGenerator { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AesAuthenticationProvider"/> class.
@@ -65,7 +65,7 @@ public class AesAuthenticationProvider : IAuthenticationProvider
     /// <summary>
     /// Extracts and decrypts the bearer token from the provided HTTP context.
     /// </summary>
-    public IToken? GetToken(HttpContext httpContext)
+    public virtual IToken? GetToken(HttpContext httpContext)
     {
         var rawToken = httpContext.GetBearerToken();
 
@@ -85,7 +85,7 @@ public class AesAuthenticationProvider : IAuthenticationProvider
     /// <summary>
     /// Creates a token with prefixed and suffixed salts from the provided identity.
     /// </summary>
-    public IToken GetToken(IIdentity identity)
+    public virtual IToken GetToken(IIdentity identity)
     {
         if (identity is not Identity)
         {
@@ -112,7 +112,7 @@ public class AesAuthenticationProvider : IAuthenticationProvider
     /// <summary>
     /// Deserializes the token payload into an identity instance.
     /// </summary>
-    public IIdentity? GetIdentity(IToken token)
+    public virtual IIdentity? GetIdentity(IToken token)
     {
         try
         {
@@ -121,7 +121,7 @@ public class AesAuthenticationProvider : IAuthenticationProvider
                 throw new AppException("Invalid or unrecognized credentials provided. Authentication failed.", ExceptionCode.CredentialsInvalid);
             }
 
-            return JsonSerializer.Deserialize<Identity>(token.Payload);
+            return JsonSerializerSingleton.Deserialize<Identity>(token.Payload);
         }
         catch (Exception e)
         {

@@ -91,6 +91,19 @@ public class Uri
         return str;
     }
 
+    public string? GetQueryParam(string key)
+    {
+        foreach (var item in QueryParams)
+        {
+            if (item.Key == key)
+            {
+                return item.Value;
+            }
+        }
+
+        return null;
+    }
+
     public Uri SetQueryParam(string key, string? value)
     {
         if (value == null)

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Net;
+using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -85,7 +86,9 @@ public class TextEncrypter : ITextEncrypter
     {
         var bytes = Encoding.UTF8.GetBytes(data);
         var encryptedBytes = Encrypter.Encrypt(bytes);
-        return Convert.ToBase64String(encryptedBytes);
+        var base64Encoded = Convert.ToBase64String(encryptedBytes);
+
+        return WebUtility.UrlEncode(base64Encoded);
     }
 
     /// <summary>
@@ -95,8 +98,10 @@ public class TextEncrypter : ITextEncrypter
     /// <returns>The original content of the text, after decryption.</returns>
     public virtual string Decrypt(string encryptedData)
     {
-        var encryptedBytes = Convert.FromBase64String(encryptedData);
+        var base64Decoded = WebUtility.UrlDecode(encryptedData);
+        var encryptedBytes = Convert.FromBase64String(base64Decoded);
         var bytes = Encrypter.Decrypt(encryptedBytes);
+
         return Encoding.UTF8.GetString(bytes);
     }
 
@@ -105,7 +110,10 @@ public class TextEncrypter : ITextEncrypter
     {
         try
         {
-            return Encrypter.Verify(Convert.FromBase64String(encryptedData));
+            var base64Decoded = WebUtility.UrlDecode(encryptedData);
+            var encryptedBytes = Convert.FromBase64String(base64Decoded);
+
+            return Encrypter.Verify(encryptedBytes);
         }
         catch
         {

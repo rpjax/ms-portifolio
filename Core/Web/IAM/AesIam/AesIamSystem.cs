@@ -32,6 +32,18 @@ public class AesIamSystem : IIamSystem
     }
 
     /// <summary>
+    /// Initializes a new instance of the AesIamSystem class with specified authentication and authorization providers.
+    /// </summary>
+    /// <param name="authenticationProvider">The authentication provider to be used. If null, a default AesAuthenticationProvider will be instantiated using the provided options.</param>
+    /// <param name="authorizationProvider">The authorization provider to be used. If null, a default AttributeAuthorizationProvider will be instantiated using the provided options.</param>
+    /// <param name="options">Options for configuring the authentication and authorization providers.</param>
+    public AesIamSystem(IAuthenticationProvider? authenticationProvider, IAuthorizationProvider? authorizationProvider, Options options)
+    {
+        AuthenticationProvider = authenticationProvider ?? new AesAuthenticationProvider(options.AuthenticationOptions);
+        AuthorizationProvider = authorizationProvider ?? new AttributeAuthorizationProvider(options.AuthorizationOptions);
+    }
+
+    /// <summary>
     /// Obtains the specific authentication provider in use that leverages AES cryptographic methods.
     /// </summary>
     /// <returns>The <see cref="AesAuthenticationProvider"/> instance managing authentication in the current IAM system.</returns>
@@ -69,10 +81,10 @@ public class AesIamSystem : IIamSystem
         /// </summary>
         /// <param name="authenticationOptions">Settings specific to AES token management.</param>
         /// <param name="authorizationOptions">Settings specific to attribute-driven authorization.</param>
-        public Options(AesAuthenticationProvider.Options authenticationOptions, AttributeAuthorizationProvider.Options authorizationOptions)
+        public Options(AesAuthenticationProvider.Options? authenticationOptions = null, AttributeAuthorizationProvider.Options? authorizationOptions = null)
         {
-            AuthenticationOptions = authenticationOptions;
-            AuthorizationOptions = authorizationOptions;
+            AuthenticationOptions = authenticationOptions ?? new();
+            AuthorizationOptions = authorizationOptions ?? new();
         }
     }
 }
