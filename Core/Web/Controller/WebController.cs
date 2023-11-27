@@ -37,9 +37,9 @@ public abstract class WebController : ControllerBase
     /// <returns>An IActionResult representing the exception response.</returns>
     protected virtual IActionResult HandleException(Exception exception)
     {
-        var appException = exception.ToAppException();
-
         OnException(exception);
+
+        var appException = exception.ToAppException();
 
         if (EnableExceptionLogging)
         {
