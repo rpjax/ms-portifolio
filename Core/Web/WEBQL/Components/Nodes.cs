@@ -67,27 +67,6 @@ public class RhsNode : Node
         Value = value;
     }
 
-    public static RhsType GetRhsType(JsonNode? jsonNode)
-    {
-        if (jsonNode == null)
-        {
-            return RhsType.Literal;
-        }
-        if (jsonNode is JsonObject)
-        {
-            return RhsType.Object;
-        }
-        if (jsonNode is JsonArray)
-        {
-            return RhsType.Array;
-        }
-        if (jsonNode is JsonValue)
-        {
-            return RhsType.Literal;
-        }
-
-        return RhsType.Invalid;
-    }
 }
 
 public class ExpressionNode : Node

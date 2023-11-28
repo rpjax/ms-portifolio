@@ -15,7 +15,6 @@ public enum NodeType
 /// </summary>
 public enum RhsType
 {
-    Invalid,
     Literal,
     Object,
     Array

@@ -1,5 +1,4 @@
 ﻿using ModularSystem.Web;
-using ModularSystem.Web.Expressions;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Core;
@@ -27,11 +26,6 @@ public class Query<T> : IQuery<T>
     public PaginationIn Pagination { get; set; } = new();
 
     /// <summary>
-    /// Gets or sets the ordering (ascending or descending) for the query.
-    /// </summary>
-    public OrderingDirection OrderingDirection { get; set; } = OrderingDirection.Ascending;
-
-    /// <summary>
     /// Initializes an empty query.
     /// </summary>
     public Query()
@@ -49,7 +43,6 @@ public class Query<T> : IQuery<T>
         Projection = query.Projection;
         Ordering = query.Ordering;
         Pagination = query.Pagination;
-        OrderingDirection = OrderingDirection.Ascending;
     }
 
     public Query<TNew> TypeConvert<TNew>()
@@ -61,7 +54,6 @@ public class Query<T> : IQuery<T>
             Projection = Projection,
             Ordering = Ordering,
             Pagination = Pagination,
-            OrderingDirection = OrderingDirection.Ascending
         };
     }
 
@@ -77,7 +69,7 @@ public class Query<T> : IQuery<T>
             Grouping = QueryProtocol.ToSerializable(Grouping),
             Projection = QueryProtocol.ToSerializable(Projection),
             Ordering = QueryProtocol.ToSerializable(Ordering),
-            OrderingDirection = OrderingDirection
+            Pagination = Pagination
         };
     }
 

@@ -71,6 +71,12 @@ public class SemanticContext
         return new SemanticContext(propertyInfo.PropertyType, this, Stack + subStack);
     }
 
+    /// <summary>
+    /// Gets the operator associated with the specified LhsNode.
+    /// </summary>
+    /// <param name="node">The LhsNode representing the operator.</param>
+    /// <returns>The Operator corresponding to the LhsNode.</returns>
+    /// <exception cref="SemanticException">Thrown if the operator is not recognized or supported.</exception>
     public Operator GetOperatorFromLhs(LhsNode node)
     {
         var operators = Enum.GetValues(typeof(Operator));

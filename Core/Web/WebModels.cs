@@ -64,12 +64,11 @@ public class SerializableQuery
     {
         return new Query<T>()
         {
-            Pagination = Pagination,
             Filter = QueryProtocol.FromSerializable(Filter),
             Grouping = QueryProtocol.FromSerializable(Grouping),
             Projection = QueryProtocol.FromSerializable(Projection),
             Ordering = QueryProtocol.FromSerializable(Ordering),
-            OrderingDirection = OrderingDirection,
+            Pagination = Pagination,
         };
     }
 

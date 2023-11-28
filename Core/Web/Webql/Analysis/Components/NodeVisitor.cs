@@ -19,22 +19,22 @@ public class NodeVisitor
         switch (node.NodeType)
         {
             case NodeType.Literal:
-                return Visit(node.As<LiteralNode>());
+                return VisitLiteral(node.As<LiteralNode>());
 
             case NodeType.Array:
-                return Visit(node.As<ArrayNode>());
+                return VisitArray(node.As<ArrayNode>());
 
             case NodeType.LeftHandSide:
-                return Visit(node.As<LhsNode>());
+                return VisitLhs(node.As<LhsNode>());
 
             case NodeType.RightHandSide:
-                return Visit(node.As<RhsNode>());
+                return VisitRhs(node.As<RhsNode>());
 
             case NodeType.Expression:
-                return Visit(node.As<ExpressionNode>());
+                return VisitExpression(node.As<ExpressionNode>());
 
             case NodeType.ScopeDefinition:
-                return Visit(node.As<ScopeDefinitionNode>());
+                return VisitScope(node.As<ScopeDefinitionNode>());
 
             default:
                 return node;
@@ -47,7 +47,7 @@ public class NodeVisitor
     /// <param name="node">The ScopeDefinitionNode to visit.</param>
     /// <returns>The visited ScopeDefinitionNode. Subclasses can override this method to provide custom handling.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual Node? Visit(ScopeDefinitionNode node)
+    protected virtual Node? VisitScope(ScopeDefinitionNode node)
     {
         for (int i = 0; i < node.Expressions.Length; i++)
         {
@@ -63,7 +63,7 @@ public class NodeVisitor
     /// <param name="node">The ArrayNode to visit.</param>
     /// <returns>The visited ArrayNode. Subclasses can override this method to provide custom handling.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual Node? Visit(ArrayNode node)
+    protected virtual Node? VisitArray(ArrayNode node)
     {
         for (int i = 0; i < node.Values.Length; i++)
         {
@@ -79,7 +79,7 @@ public class NodeVisitor
     /// <param name="node">The ExpressionNode to visit.</param>
     /// <returns>The visited ExpressionNode. Subclasses can override this method to provide custom handling.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual Node? Visit(ExpressionNode node)
+    protected virtual Node? VisitExpression(ExpressionNode node)
     {
         return new ExpressionNode(Visit(node.Lhs).As<LhsNode>(), Visit(node.Rhs).As<RhsNode>());
     }
@@ -90,7 +90,7 @@ public class NodeVisitor
     /// <param name="node">The LhsNode to visit.</param>
     /// <returns>The visited LhsNode. Subclasses can override this method to provide custom handling.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual Node? Visit(LhsNode node)
+    protected virtual Node? VisitLhs(LhsNode node)
     {
         return node;
     }
@@ -101,7 +101,7 @@ public class NodeVisitor
     /// <param name="node">The RhsNode to visit.</param>
     /// <returns>The visited RhsNode. Subclasses can override this method to provide custom handling.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual Node? Visit(RhsNode node)
+    protected virtual Node? VisitRhs(RhsNode node)
     {
         return new RhsNode(Visit(node.Value));
     }
@@ -112,7 +112,7 @@ public class NodeVisitor
     /// <param name="node">The LiteralNode to visit.</param>
     /// <returns>The visited LiteralNode. Subclasses can override this method to provide custom handling.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual Node? Visit(LiteralNode node)
+    protected virtual Node? VisitLiteral(LiteralNode node)
     {
         return node;
     }

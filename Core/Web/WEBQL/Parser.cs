@@ -3,104 +3,152 @@ using ModularSystem.Core.Expressions;
 using ModularSystem.Webql.Analysis;
 using ModularSystem.Webql.Synthesis;
 using System.Linq.Expressions;
-using System.Text.Json.Nodes;
 
 namespace ModularSystem.Webql;
 
-public static class Parser
+/// <summary>
+/// Provides parsing functionality for WebQL queries, converting JSON strings into syntax trees, <br/>
+/// and transforming these trees into various expressions and structures.
+/// </summary>
+public class Parser
 {
+    private ParserOptions Options { get; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Parser"/> class.
+    /// </summary>
+    /// <param name="options">The parser options.</param>
+    public Parser(ParserOptions? options = null)
+    {
+        Options = options ?? new();
+    }
+
     /// <summary>
     /// Performs a syntax analysis and returns the syntax tree with no further transformations.
     /// </summary>
     /// <param name="json"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static Node Parse(string json)
+    public ScopeDefinitionNode Parse(string json)
     {
         try
         {
-            var jsonNode = JsonNode.Parse(json);
-
-            if (jsonNode == null)
-            {
-                throw new Exception();
-            }
-
-            return SyntaxAnalyser.Parse(jsonNode);
+            return SyntaxAnalyser.Parse(json);
         }
         catch (Exception e)
         {
-            throw HandleError(null, null, e);
+            throw HandleError(e);
         }
     }
 
-    public static PaginationIn ParsePagination(Node root)
+    /// <summary>
+    /// Parses the specified JSON expression node to obtain the pagination limit.
+    /// </summary>
+    /// <param name="node">The JSON expression node containing the pagination limit.</param>
+    /// <returns>The parsed pagination limit value.</returns>
+    /// <exception cref="AppException">Thrown when an error occurs during parsing.</exception>
+    public long ParseToPaginationLimit(ExpressionNode node)
     {
         try
         {
-            if (root is not ScopeDefinitionNode scope)
+            var context = new SyntaxContext("$.limit");
+
+            if(node.Rhs.Value is not LiteralNode literal)
             {
-                throw new Exception();
+                throw new SyntaxException("", context);
             }
 
-            var pagination = new PaginationIn();
-            var limitExpression = scope["limit"];
-            var offsetExpression = scope["offset"];
-
-            if (limitExpression != null)
+            if (literal.Value == null)
             {
-                if (limitExpression.Rhs.Value is not LiteralNode literal)
-                {
-                    throw new Exception();
-                }
-                if (literal.Value == null)
-                {
-                    throw new Exception();
-                }
-
-                pagination.Limit = int.Parse(literal.Value);
+                return Options.DefaultLimit;
             }
 
+            if (!long.TryParse(literal.Value, out var value))
+            {
+                throw new SyntaxException("", context);
+            }
+
+            return value;
+        }
+        catch (Exception e)
+        {
+            throw HandleError(e);
+        }
+    }
+
+    public long ParseToPaginationOffset(ExpressionNode node)
+    {
+        try
+        {
+            var context = new SyntaxContext("$.offset");
+
+            if (node.Rhs.Value is not LiteralNode literal)
+            {
+                throw new SyntaxException("", context);
+            }
+
+            if (literal.Value == null)
+            {
+                return Options.DefaultOffset;
+            }
+
+            if(!long.TryParse(literal.Value, out var value))
+            {
+                throw new SyntaxException("", context);
+            }
+
+            return value;
+        }
+        catch (Exception e)
+        {
+            throw HandleError(e);
+        }
+    }
+
+    /// <summary>
+    /// Parses the root syntax tree to obtain the pagination information.
+    /// </summary>
+    /// <param name="root">The root syntax tree node.</param>
+    /// <returns>The parsed pagination information.</returns>
+    /// <exception cref="AppException">Thrown when an error occurs during parsing.</exception>
+    public PaginationIn ParseToPagination(ScopeDefinitionNode root)
+    {
+        try
+        {
+            var limitExpression = root[QueryDefinition.LimitKey];
+            var offsetExpression = root[QueryDefinition.OffsetKey];
+            var limit = Options.DefaultLimit;
+            var offset = Options.DefaultOffset;
+
+            if(limitExpression != null)
+            {
+                limit = ParseToPaginationLimit(limitExpression);
+            }
             if (offsetExpression != null)
             {
-                if (offsetExpression.Rhs.Value is not LiteralNode literal)
-                {
-                    throw new Exception();
-                }
-                if (literal.Value == null)
-                {
-                    throw new Exception();
-                }
-
-                pagination.Offset = int.Parse(literal.Value);
+                offset = ParseToPaginationOffset(offsetExpression);
             }
 
-            return pagination;
+            return new(limit, offset);
         }
         catch (Exception e)
         {
-            throw HandleError(root, null, e);
+            throw HandleError(e);
         }
     }
 
-    public static Expression? ParseFilter(Node root, Type type)
+    /// <summary>
+    /// Parses the specified JSON expression node to obtain a filter expression.
+    /// </summary>
+    /// <param name="node">The JSON expression node containing the filter information.</param>
+    /// <param name="type">The type of the entity for filtering.</param>
+    /// <returns>The parsed filter expression.</returns>
+    /// <exception cref="AppException">Thrown when an error occurs during parsing.</exception>
+    public Expression? ParseToFilter(ExpressionNode node, Type type)
     {
         try
         {
-            if (root is not ScopeDefinitionNode scope)
-            {
-                throw new Exception();
-            }
-
-            var whereExpression = scope["where"];
-
-            if (whereExpression == null || scope.Expressions.IsEmpty())
-            {
-                return null;
-            }
-
-            var whereExpressionRhs = whereExpression.Rhs.Value;
-            var syntaxTree = FilterSemanticsAnalyser.Parse(type, whereExpressionRhs);
+            var syntaxTree = FilterSemanticsAnalyser.Parse(type, node);
 
             var parameter = Expression.Parameter(type, "x");
             var context = new GeneratorContext(type, parameter);
@@ -116,41 +164,48 @@ public static class Parser
         }
         catch (Exception e)
         {
-            throw HandleError(root, type, e);
+            throw HandleError(e);
         }
     }
 
-    public static Expression<Func<T, bool>>? ParseToLambdaFilter<T>(Node root)
+    /// <summary>
+    /// Parses the specified JSON expression node to obtain a filter expression as a lambda function.
+    /// </summary>
+    /// <typeparam name="T">The type of the entity for filtering.</typeparam>
+    /// <param name="node">The JSON expression node containing the filter information.</param>
+    /// <returns>The parsed filter expression as a lambda function.</returns>
+    /// <exception cref="AppException">Thrown when an error occurs during parsing.</exception>
+    public Expression<Func<T, bool>>? ParseToLambdaFilter<T>(ExpressionNode node)
     {
-        var expression = ParseFilter(root, typeof(T));
-
-        if (expression == null)
-        {
-            return null;
-        }
-
-        return expression.TypeCast<Expression<Func<T, bool>>>();
-    }
-
-    public static OrderExpression[]? ParseOrder<T>(Node root)
-    {
-        var type = typeof(T);
-
         try
         {
-            if (root is not ScopeDefinitionNode scope)
-            {
-                throw new Exception();
-            }
+            var expression = ParseToFilter(node, typeof(T));
 
-            var orderExpression = scope["order"];
-
-            if (orderExpression == null || scope.Expressions.IsEmpty())
+            if (expression == null)
             {
                 return null;
             }
 
-            var syntaxTree = OrderSemanticsAnalyser.Parse(type, orderExpression.Rhs.Value);
+            return expression.TypeCast<Expression<Func<T, bool>>>();
+        }
+        catch (Exception e)
+        {
+            throw HandleError(e);
+        }
+    }
+
+    /// <summary>
+    /// Parses the specified JSON node to obtain ordering definitions.
+    /// </summary>
+    /// <param name="node">The JSON node containing ordering information.</param>
+    /// <param name="type">The type of the entity for ordering.</param>
+    /// <returns>The parsed ordering definitions.</returns>
+    /// <exception cref="AppException">Thrown when an error occurs during parsing.</exception>
+    public OrderDefinition[] ParseToOrderDefinitions(Node node, Type type)
+    {
+        try
+        {
+            var syntaxTree = OrderSemanticsAnalyser.Parse(type, node);
             var parameter = Expression.Parameter(type, "x");
             var context = new GeneratorContext(type, parameter);
 
@@ -160,28 +215,102 @@ public static class Parser
         }
         catch (Exception e)
         {
-            throw HandleError(root, type, e);
+            throw HandleError(e);
         }
     }
 
-    private static Exception HandleError(Node? root, Type? type, Exception e)
+    /// <summary>
+    /// Parses the specified JSON node to obtain ordering definitions for a specific entity type.
+    /// </summary>
+    /// <typeparam name="T">The type of the entity for ordering.</typeparam>
+    /// <param name="node">The JSON node containing ordering information.</param>
+    /// <returns>The parsed ordering definitions.</returns>
+    /// <exception cref="AppException">Thrown when an error occurs during parsing.</exception>
+    public OrderDefinition[]? ParseToOrderDefinitions<T>(Node node)
     {
-        if (e is SyntaxException syntaxException)
-        {
-            return new AppException(syntaxException.GetMessage(), ExceptionCode.InvalidInput, e, root);
-        }
-
-        if (e is SemanticException semanticException)
-        {
-            return new AppException(semanticException.GetMessage(), ExceptionCode.InvalidInput, e, root);
-        }
-
-        if (e is GeneratorException generatorException)
-        {
-            return new AppException(generatorException.GetMessage(), ExceptionCode.InvalidInput, e, root);
-        }
-
-        return e;
+        return ParseToOrderDefinitions(node, typeof(T));
     }
 
+    /// <summary>
+    /// Parses the specified JSON string to obtain a query definition.
+    /// </summary>
+    /// <param name="json">The JSON string representing the WebQL query.</param>
+    /// <returns>The parsed query definition.</returns>
+    /// <exception cref="AppException">Thrown when an error occurs during parsing.</exception>
+    public QueryDefinition ParseToQueryDefinition(string json)
+    {
+        try
+        {
+            return new QueryDefinition(this, Parse(json));
+        }
+        catch (Exception e)
+        {
+            throw HandleError(e);
+        }
+    }
+
+    /// <summary>
+    /// Parses the specified JSON string to obtain a query for the specified entity type.
+    /// </summary>
+    /// <typeparam name="T">The type of the entity for the query.</typeparam>
+    /// <param name="json">The JSON string representing the WebQL query.</param>
+    /// <returns>The parsed query for the specified entity type.</returns>
+    /// <exception cref="AppException">Thrown when an error occurs during parsing.</exception>
+    public IQuery<T> ParseToQuery<T>(string json)
+    {
+        try
+        {
+            var type = typeof(T);
+            var queryDefinition = ParseToQueryDefinition(json);
+            var pagination = queryDefinition.GetPagination();
+            var orderDefinitions = queryDefinition.GetOrderDefinitions(type);
+            var orderingWriter = new ComplexOrderingWriter<T>();
+
+            foreach (var item in orderDefinitions)
+            {
+                orderingWriter.AddOrdering(item.FieldType, item.Expression, item.GetOrderingDirection());
+            }
+
+            var filter = queryDefinition.GetFilterExpression(type);
+            var ordering = orderingWriter.Create();
+
+            return new Query<T>()
+            {
+                Pagination = pagination,
+                Filter = filter,
+                Ordering = ordering
+            };
+        }
+        catch (Exception e)
+        {
+            throw HandleError(e);
+        }
+    }
+
+    private Exception HandleError(Exception e)
+    {
+        if (e is ParseException parserException)
+        {
+            return new AppException(parserException.GetMessage(), ExceptionCode.InvalidInput, e);
+        }
+
+        return new AppException("An internal error occurred while processing the WebQL query.", ExceptionCode.Internal, e);
+    }
+
+}
+
+/// <summary>
+/// Represents the options for the <see cref="Parser"/>.
+/// </summary>
+public class ParserOptions
+{
+    /// <summary>
+    /// Gets or sets the default limit for pagination.
+    /// </summary>
+    public long DefaultLimit { get; set; } = PaginationIn.DefaultLimit;
+
+    /// <summary>
+    /// Gets or sets the default offset for pagination.
+    /// </summary>
+    public long DefaultOffset { get; set; } = PaginationIn.DefaultOffset;
 }

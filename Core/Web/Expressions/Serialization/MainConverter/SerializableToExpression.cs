@@ -210,6 +210,8 @@ internal class SerializableToExpression : ConverterBase, IConversion<Serializabl
                 return Convert(As<SerializableUpdateSetExpression>(sExpression));
             case ExtendedExpressionType.Ordering: 
                 return Convert(As<SerializableOrderingExpression>(sExpression));
+            case ExtendedExpressionType.ComplexOrdering:
+                return Convert(As<SerializableComplexOrderingExpression>(sExpression));
         }
 
         throw ExpressionNotSupportedException(nodeType);
@@ -515,7 +517,21 @@ internal class SerializableToExpression : ConverterBase, IConversion<Serializabl
 
         var type = TypeConverter.Convert(sExpression.FieldType);
         var selector = Convert(sExpression.FieldSelector);
+        var direction = sExpression.Direction;
 
-        return new OrderingExpression(type, selector);
+        return new OrderingExpression(type, selector, direction);
+    }
+
+    private ComplexOrderingExpression Convert(SerializableComplexOrderingExpression sExpression)
+    {
+        if (sExpression.EntityType == null)
+        {
+            throw MissingArgumentException(nameof(sExpression.EntityType));
+        }
+
+        var type = TypeConverter.Convert(sExpression.EntityType);
+        var expressions = sExpression.Expressions.Transform(x => Convert(x));
+
+        return new ComplexOrderingExpression(type, expressions);
     }
 }

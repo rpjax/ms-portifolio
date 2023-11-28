@@ -192,7 +192,7 @@ internal class EFCoreQueryOperation<T> where T : class, IEFModel
 
     Task<T[]> GetDataAsync(IQuery<T> query)
     {
-        var builder = new QueryableBuilder(DbSet.AsQueryable(), query);
+        var builder = new QueryableBuilder<T>(DbSet.AsQueryable(), query);
         var queryable = builder
             .UseFilter()
             .UseOrdering()
@@ -204,8 +204,11 @@ internal class EFCoreQueryOperation<T> where T : class, IEFModel
 
     async Task<PaginationOut> GetPaginationAsync(IQuery<T> query)
     {
-        var builder = new QueryableBuilder(DbSet.AsQueryable(), query);
-        var queryable = builder.UseFilter().Create();
+        var builder = new QueryableBuilder<T>(DbSet.AsQueryable(), query);
+        var queryable = builder
+            .UseFilter()
+            .Create();
+
         var total = await queryable.LongCountAsync();
 
         return new PaginationOut()
@@ -216,78 +219,83 @@ internal class EFCoreQueryOperation<T> where T : class, IEFModel
         };
     }
 
-    internal class QueryableBuilder
+}
+
+internal class QueryableBuilder<T>
+{
+    IQueryable<T> Queryable { get; set; }
+    QueryReader<T> QueryReader { get; init; }
+
+    public QueryableBuilder(IQueryable<T> queryable, IQuery<T> query)
     {
-        IQueryable<T> Queryable { get; set; }
-        QueryReader<T> QueryReader { get; init; }
+        Queryable = queryable;
+        QueryReader = new(query);
+    }
 
-        public QueryableBuilder(IQueryable<T> queryable, IQuery<T> query)
+    public IQueryable<T> Create()
+    {
+        return Queryable;
+    }
+
+    public QueryableBuilder<T> UseFilter()
+    {
+        var predicate = QueryReader.GetFilterExpression();
+
+        if (predicate != null)
         {
-            Queryable = queryable;
-            QueryReader = new(query);
+            Queryable = Queryable.Where(predicate);
         }
 
-        public IQueryable<T> Create()
+        return this;
+    }
+
+    public QueryableBuilder<T> UseGrouping()
+    {
+        // todo...
+        return this;
+    }
+
+    public QueryableBuilder<T> UseProjection()
+    {
+        // todo...
+
+        //*
+        // NOTE: This code is commented because when the last code review was made, projection was not developed because of a problem in the Expression parser.
+        //*
+
+        //if (query.Projection != null)
+        //{
+        //    //var type = typeof(T);
+
+        //    //if (type.IsAssignableFrom(typeof(ProductJoin)))
+        //    //{
+        //    //    Console.WriteLine();
+        //    //}
+
+        //    queryable = queryable.Select(query.Projection);
+        //}
+        return this;
+    }
+
+    public QueryableBuilder<T> UseOrdering()
+    {
+        var complexOrdering = QueryReader.GetOrderingExpression();
+        var reader = new ComplexOrderingReader<T>(complexOrdering);
+
+        if (complexOrdering != null)
         {
-            return Queryable;
-        }
-
-        public QueryableBuilder UseFilter()
-        {
-            var predicate = QueryReader.GetFilterExpression();
-
-            if (predicate != null)
-            {
-                Queryable = Queryable.Where(predicate);
-            }
-
-            return this;
-        }
-
-        public QueryableBuilder UseGrouping()
-        {
-            // todo...
-            return this;
-        }
-
-        public QueryableBuilder UseProjection()
-        {
-            // todo...
-
-            //*
-            // NOTE: This code is commented because when the last code review was made, projection was not developed because of a problem in the Expression parser.
-            //*
-
-            //if (query.Projection != null)
-            //{
-            //    //var type = typeof(T);
-
-            //    //if (type.IsAssignableFrom(typeof(ProductJoin)))
-            //    //{
-            //    //    Console.WriteLine();
-            //    //}
-
-            //    queryable = queryable.Select(query.Projection);
-            //}
-            return this;
-        }
-
-        public QueryableBuilder UseOrdering()
-        {
-            var ordering = QueryReader.GetOrderingExpression();
-
-            if (ordering != null)
+            foreach (var orderingExpression in reader.GetOrderingExpressions())
             {
                 MethodInfo? methodInfo;
 
                 var methodName =
-                    QueryReader.GetOrderingDirection() == OrderingDirection.Descending
+                    orderingExpression.Direction == OrderingDirection.Descending
                     ? "OrderByDescending"
                     : "OrderBy";
 
                 methodInfo = typeof(IOrderedEnumerable<T>)
                         .GetMethod(methodName)?
-                        .MakeGenericMethod(ordering.FieldType);
+                        .MakeGenericMethod(orderingExpression.FieldType);
 
                 if (methodInfo == null)
                 {
@@ -295,7 +303,7 @@ internal class EFCoreQueryOperation<T> where T : class, IEFModel
                 }
 
                 var modifiedQueryable = methodInfo
-                    .Invoke(Queryable, new object[] { ordering.FieldSelector })
+                    .Invoke(Queryable, new object[] { orderingExpression.FieldSelector })
                     ?.TryTypeCast<IQueryable<T>>();
 
                 if (modifiedQueryable == null)
@@ -305,23 +313,22 @@ internal class EFCoreQueryOperation<T> where T : class, IEFModel
 
                 Queryable = modifiedQueryable;
             }
-            else
-            {
-                Queryable = Queryable.OrderBy(x => x);
-            }
-
-            return this;
         }
-
-        public QueryableBuilder UsePagination()
+        else
         {
-            Queryable = Queryable
-                .Skip(QueryReader.GetIntOffset())
-                .Take(QueryReader.GetIntLimit());
-            return this;
+            Queryable = Queryable.OrderBy(x => x);
         }
+
+        return this;
     }
 
+    public QueryableBuilder<T> UsePagination()
+    {
+        Queryable = Queryable
+            .Skip(QueryReader.GetIntOffset())
+            .Take(QueryReader.GetIntLimit());
+        return this;
+    }
 }
 
 internal class EFCoreUpdateOperation<T> where T : class, IEFModel

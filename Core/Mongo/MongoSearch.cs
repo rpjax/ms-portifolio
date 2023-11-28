@@ -24,7 +24,7 @@ public class MongoSearch<T> where T : IMongoModel
     public Task<IQueryResult<T>> RunAsync()
     {
         FilterDefinition<T>? filter = null;
-        SortDefinition<T>? sort = null;
+        SortDefinition<T>? sortDefinition = null;
 
         var predicate = Reader.GetFilterExpression();
 
@@ -37,25 +37,33 @@ public class MongoSearch<T> where T : IMongoModel
             filter = MongoModule.GetFilterBuilder<T>().Empty;
         }
 
-        var ordering = Reader.GetOrderingExpression();
+        var complexOrdering = Reader.GetOrderingExpression();
+        var orderingReader = new ComplexOrderingReader<T>(complexOrdering);
 
-        if (ordering != null)
+        if (complexOrdering != null)
         {
-            if (Reader.GetOrderingDirection() == OrderingDirection.Ascending)
+            foreach (var orderingExpression in orderingReader.GetOrderingExpressions())
             {
-                sort = Builders<T>.Sort.Ascending(ordering.FieldName);
-            }
-            else
-            {
-                sort = Builders<T>.Sort.Descending(ordering.FieldName);
+                var newOrder = null as SortDefinition<T>;
+
+                if (orderingExpression.Direction == OrderingDirection.Ascending)
+                {
+                    newOrder = Builders<T>.Sort.Ascending(orderingExpression.FieldName);
+                }
+                else
+                {
+                    newOrder = Builders<T>.Sort.Descending(orderingExpression.FieldName);
+                }
+
+                sortDefinition = Builders<T>.Sort.Combine(sortDefinition, newOrder);
             }
         }
         else
         {
-            sort = Builders<T>.Sort.Ascending(x => x.CreatedAt);
+            sortDefinition = Builders<T>.Sort.Ascending(x => x.CreatedAt);
         }
 
-        return SearchAsync(filter, Reader.Pagination, sort, null);
+        return SearchAsync(filter, Reader.Pagination, sortDefinition, null);
     }
 
 }

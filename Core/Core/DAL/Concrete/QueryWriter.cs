@@ -1,4 +1,5 @@
-﻿using ModularSystem.Web;
+﻿using ModularSystem.Core.Expressions;
+using ModularSystem.Web;
 using ModularSystem.Web.Expressions;
 using System.Linq.Expressions;
 using System.Text.Json;
@@ -20,6 +21,8 @@ public partial class QueryWriter<T> : IFactory<Query<T>>
     /// </summary>
     private Query<T> Query { get; set; }
 
+    private ComplexOrderingWriter<T> OrderingWriter { get; }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="QueryWriter{T}"/> class, optionally starting with an existing query.
     /// </summary>
@@ -27,6 +30,7 @@ public partial class QueryWriter<T> : IFactory<Query<T>>
     public QueryWriter(IQuery<T>? query = null)
     {
         Query = new();
+        OrderingWriter = new();
 
         if (query != null)
         {
@@ -36,6 +40,10 @@ public partial class QueryWriter<T> : IFactory<Query<T>>
             Query.Ordering = query.Ordering;
             Query.Pagination = query.Pagination;
         }
+        if (Query.Ordering is ComplexOrderingExpression complexOrdering)
+        {
+            OrderingWriter.AddOrdering(complexOrdering);
+        }
     }
 
     /// <summary>
@@ -44,7 +52,14 @@ public partial class QueryWriter<T> : IFactory<Query<T>>
     /// <returns>The constructed query object.</returns>
     public Query<T> Create()
     {
-        return Query;
+        return new Query<T>
+        {
+            Filter = Query.Filter,
+            Grouping = Query.Grouping,
+            Projection = Query.Projection,
+            Ordering = OrderingWriter.Create(),
+            Pagination = Query.Pagination,
+        };
     }
 
     /// <summary>
@@ -226,25 +241,40 @@ public partial class QueryWriter<T>
 public partial class QueryWriter<T>
 {
     /// <summary>
-    /// Sets the ordering expression for the query, determining the field or property by which the results should be sorted.
+    /// Clears the ordering configuration for the query.
     /// </summary>
-    /// <typeparam name="TField">The type of the field or property by which to sort.</typeparam>
-    /// <param name="sort">The ordering expression to set.</param>
     /// <returns>The current instance of the writer.</returns>
-    public QueryWriter<T> SetOrdering<TField>(Expression<Func<T, TField>> sort)
+    public QueryWriter<T> ClearOrdering()
     {
-        Query.Ordering = sort;
+        OrderingWriter.Clear();
         return this;
     }
 
     /// <summary>
-    /// Sets the direction in which the results should be ordered, either ascending or descending.
+    /// Adds an ordering expression to the query, determining the field or property by which the results should be sorted.
     /// </summary>
-    /// <param name="order">The ordering direction to set.</param>
+    /// <typeparam name="TField">The type of the field or property by which to sort.</typeparam>
+    /// <param name="fieldSelector">The ordering expression to set.</param>
+    /// <param name="direction">The ordering direction (ascending or descending).</param>
     /// <returns>The current instance of the writer.</returns>
-    public QueryWriter<T> SetOrderingDirection(OrderingDirection order)
+    public QueryWriter<T> AddOrdering<TField>(Expression<Func<T, TField>> fieldSelector, OrderingDirection direction)
     {
-        Query.OrderingDirection = order;
+        OrderingWriter.AddOrdering<TField>(fieldSelector, direction);
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the ordering expression for the query, determining the field or property by which the results should be sorted.<br/>
+    /// Clears any existing ordering configuration before setting the new ordering expression.
+    /// </summary>
+    /// <typeparam name="TField">The type of the field or property by which to sort.</typeparam>
+    /// <param name="fieldSelector">The ordering expression to set.</param>
+    /// <param name="direction">The ordering direction (ascending or descending).</param>
+    /// <returns>The current instance of the writer.</returns>
+    public QueryWriter<T> SetOrdering<TField>(Expression<Func<T, TField>> fieldSelector, OrderingDirection direction)
+    {
+        ClearOrdering();
+        AddOrdering(fieldSelector, direction);
         return this;
     }
 }

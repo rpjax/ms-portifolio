@@ -439,6 +439,11 @@ public enum ExtendedExpressionType : int
     /// <summary>
     /// Represents an expression type for specifying the ordering of a query result set.
     /// </summary>
-    Ordering = 86
+    Ordering = 86,
+
+    /// <summary>
+    /// Represents an expression type for specifying the complex ordering of a query result set.
+    /// </summary>
+    ComplexOrdering = 87
 
 }

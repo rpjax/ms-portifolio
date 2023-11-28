@@ -13,8 +13,9 @@ namespace ModularSystem.Core;
 /// <typeparam name="T">The type of the entity being targeted by the query.</typeparam>
 public partial class QueryReader<T>
 {
-    private Query<T> Query { get; }
     private Configs Config { get; }
+    private Query<T> Query { get; }
+    private ComplexOrderingReader<T>? OrderingReader { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="QueryReader{T}"/> class using a specific query and optional configurations.
@@ -23,8 +24,13 @@ public partial class QueryReader<T>
     /// <param name="configs">Optional configurations for the reader.</param>
     public QueryReader(Query<T> query, Configs? configs = null)
     {
-        Query = query;
         Config = configs ?? new();
+        Query = query;
+
+        if (Query.Ordering is ComplexOrderingExpression complexOrdering)
+        {
+            OrderingReader = new(complexOrdering);
+        }
     }
 
     /// <summary>
@@ -34,8 +40,13 @@ public partial class QueryReader<T>
     /// <param name="configs">Optional configurations for the reader.</param>
     public QueryReader(IQuery<T> query, Configs? configs = null)
     {
-        Query = new(query);
         Config = configs ?? new();
+        Query = new(query);
+
+        if (Query.Ordering is ComplexOrderingExpression complexOrdering)
+        {
+            OrderingReader = new(complexOrdering);
+        }
     }
 
     /// <summary>
@@ -77,7 +88,7 @@ public partial class QueryReader<T>
 }
 
 // partial dedicated to filter.
-public partial class QueryReader<T> 
+public partial class QueryReader<T>
 {
     /// <summary>
     /// Retrieves the filter expression from the query. <br/>
@@ -111,41 +122,39 @@ public partial class QueryReader<T>
 public partial class QueryReader<T>
 {
     /// <summary>
-    /// Retrieves the ordering expression from the query. <br/>
+    /// Retrieves the complex ordering expression from the query. <br/>
     /// If the configuration is set to use the ParameterUniformityVisitor, <br/>
     /// the field selector of the ordering expression is visited to ensure consistent parameter references.
     /// </summary>
-    /// <returns>The ordering expression, potentially with a modified field selector for parameter uniformity; otherwise the original ordering expression.</returns>
-    public OrderingExpression? GetOrderingExpression()
+    /// <returns>
+    /// The ordering expression, potentially with a modified field selector for parameter uniformity;
+    /// otherwise, the original ordering expression.
+    /// </returns>
+    public ComplexOrderingExpression? GetOrderingExpression()
     {
         if (Config.UseParameterUniformityVisitor)
         {
-            if (Query.Ordering is OrderingExpression cast)
+            if (Query.Ordering is ComplexOrderingExpression cast)
             {
-                return new(cast.FieldType, VisitExpression(cast.FieldSelector));
+                return new ComplexOrderingExpression(cast.EntityType, cast.Expressions.Transform(x => VisitExpression(x)));
             }
         }
 
-        return Query.Ordering as OrderingExpression;
+        return Query.Ordering as ComplexOrderingExpression;
     }
 
     /// <summary>
-    /// Retrieves the field selector expression from the ordering expression.
+    /// Retrieves the list of ordering expressions from the query.
     /// </summary>
-    /// <typeparam name="TField">The type of the field being ordered.</typeparam>
-    /// <returns>The field selector expression used for ordering, if available; otherwise null.</returns>
-    public Expression<Func<T, TField>>? GetOrderingSelectorExpression<TField>()
+    /// <returns>The list of ordering expressions.</returns>
+    public IEnumerable<OrderingExpression> GetOrderings()
     {
-        return GetOrderingExpression()?.FieldSelector as Expression<Func<T, TField>>;
-    }
+        if (OrderingReader == null)
+        {
+            return Array.Empty<OrderingExpression>();
+        }
 
-    /// <summary>
-    /// Retrieves the direction of ordering specified in the query.
-    /// </summary>
-    /// <returns>The direction of ordering.</returns>
-    public OrderingDirection GetOrderingDirection()
-    {
-        return Query.OrderingDirection;
+        return OrderingReader.GetOrderingExpressions();
     }
 }
 

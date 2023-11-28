@@ -38,16 +38,6 @@ public class CustomExpressionVisitor : ExpressionVisitor
     }
 
     /// <summary>
-    /// Visits the <see cref="OrderingExpression"/> node and returns a new node with potentially modified children.
-    /// </summary>
-    /// <param name="node">The expression to visit.</param>
-    /// <returns>The modified expression, if it or any sub-expression was modified; otherwise, returns the original expression.</returns>
-    protected internal virtual Expression VisitOrdering(OrderingExpression node)
-    {
-        return new OrderingExpression(node.FieldType, Visit(node.FieldSelector));
-    }
-
-    /// <summary>
     /// Visits the <see cref="UpdateSetExpression"/> node. This method will not be called if <see cref="EnableNotVisitableExpression"/> is set to false.
     /// </summary>
     /// <param name="node">The expression to visit.</param>
@@ -56,4 +46,25 @@ public class CustomExpressionVisitor : ExpressionVisitor
     {
         return node;
     }
+
+    /// <summary>
+    /// Visits the <see cref="OrderingExpression"/> node and returns a new node with potentially modified children.
+    /// </summary>
+    /// <param name="node">The expression to visit.</param>
+    /// <returns>The modified expression, if it or any sub-expression was modified; otherwise, returns the original expression.</returns>
+    protected internal virtual Expression VisitOrdering(OrderingExpression node)
+    {
+        return new OrderingExpression(node.FieldType, Visit(node.FieldSelector), node.Direction);
+    }
+
+    /// <summary>
+    /// Visits the <see cref="ComplexOrderingExpression"/> node and returns a new node with potentially modified children.
+    /// </summary>
+    /// <param name="node">The expression to visit.</param>
+    /// <returns>The modified expression, if it or any sub-expression was modified; otherwise, returns the original expression.</returns>
+    protected internal virtual Expression VisitComplexOrdering(ComplexOrderingExpression node)
+    {
+        return new ComplexOrderingExpression(node.EntityType, node.Expressions.Transform(x => Visit(x)));
+    }
+
 }

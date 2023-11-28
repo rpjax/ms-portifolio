@@ -189,6 +189,8 @@ public abstract class SerializableExpression
                 return typeof(SerializableUpdateSetExpression);
             case ExtendedExpressionType.Ordering:
                 return typeof(SerializableOrderingExpression);
+            case ExtendedExpressionType.ComplexOrdering:
+                return typeof(SerializableComplexOrderingExpression);
             default:
                 throw new Exception("Invalid or not supported node type.");
         }
@@ -406,7 +408,14 @@ public class SerializableUpdateSetExpression : SerializableExpression
 
 public class SerializableOrderingExpression : SerializableExpression
 {
-    public SerializableExpression? FieldSelector { get; set; }
     public string? FieldName { get; set; }
     public SerializableType? FieldType { get; set; }
+    public SerializableExpression? FieldSelector { get; set; }
+    public OrderingDirection Direction { get; set; }
+}
+
+public class SerializableComplexOrderingExpression : SerializableExpression
+{
+    public SerializableType? EntityType { get; set; }
+    public SerializableExpression[] Expressions { get; set; } = Array.Empty<SerializableExpression>();
 }
