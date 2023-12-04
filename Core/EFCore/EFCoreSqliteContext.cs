@@ -4,19 +4,14 @@ using ModularSystem.Core.Helpers;
 namespace ModularSystem.EntityFramework;
 
 /// <summary>
-/// Represents a base context for Entity Framework Core operations.
-/// </summary>
-public class EFCoreContext : DbContext
-{
- 
-}
-
-/// <summary>
 /// Represents an Entity Framework Core context specifically designed for SQLite databases.
 /// </summary>
 /// <typeparam name="T">The type of the entity that this context operates on. Must be a class and implement the <see cref="IEFModel"/> interface.</typeparam>
-public class EFCoreSqliteContext<T> : DbContext where T : class, IEFModel
+public class EFCoreSqliteContext<T> : EFCoreContext where T : class, IEFModel
 {
+    /// <summary>
+    /// The default table name used in the <see cref="EFCoreSqliteContext{T}"/>.
+    /// </summary>
     public const string DefaultTableName = "Entries";
 
     /// <summary>
@@ -24,8 +19,8 @@ public class EFCoreSqliteContext<T> : DbContext where T : class, IEFModel
     /// </summary>
     public DbSet<T> Entries { get; set; }
 
-    private FileInfo fileInfo { get; }
-    private string tableName { get; }
+    private FileInfo FileInfo { get; }
+    private string TableName { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EFCoreSqliteContext{T}"/> class with the specified SQLite database file and table name.
@@ -42,8 +37,8 @@ public class EFCoreSqliteContext<T> : DbContext where T : class, IEFModel
             fileInfo = new FileInfo($"{fileInfo.FullName.Substring(0, fileInfo.FullName.Length - fileInfo.Extension.Length)}.db");
         }
 
-        this.fileInfo = fileInfo;
-        this.tableName = tableName;
+        FileInfo = fileInfo;
+        TableName = tableName;
 
         if (fileInfo.DirectoryName == null)
         {
@@ -62,13 +57,23 @@ public class EFCoreSqliteContext<T> : DbContext where T : class, IEFModel
         Database.ExecuteSqlRaw("PRAGMA wal_checkpoint(TRUNCATE);");
     }
 
+    /// <summary>
+    /// Configures the DbContext options for SQLite.
+    /// </summary>
+    /// <param name="optionsBuilder">The options builder used to configure the DbContext.</param>
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlite($@"Data Source={fileInfo.FullName}");
+        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.UseSqlite($@"Data Source={FileInfo.FullName}");
     }
 
+    /// <summary>
+    /// Configures the model for the DbContext, specifying the table name for the entity.
+    /// </summary>
+    /// <param name="modelBuilder">The model builder used to configure the DbContext model.</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<T>().ToTable(tableName);
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<T>().ToTable(TableName);
     }
 }

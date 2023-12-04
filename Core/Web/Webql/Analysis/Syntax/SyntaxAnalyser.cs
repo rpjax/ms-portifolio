@@ -13,7 +13,7 @@ public static class SyntaxAnalyser
     /// <param name="json">The JSON string to parse.</param>
     /// <returns>The parsed syntax tree.</returns>
     /// <exception cref="SyntaxException">Thrown when there's an error in the syntax of the provided JSON.</exception>
-    public static ScopeDefinitionNode Parse(string json)
+    public static ObjectNode Parse(string json)
     {
         var node = JsonNode.Parse(json);
         var context = new SyntaxContext();
@@ -52,7 +52,7 @@ public static class SyntaxAnalyser
         throw new SyntaxException("The right-hand side (RHS) of the expression is invalid. Ensure that the RHS is a proper literal, object, or array as per the WebQL syntax.", context);
     }
 
-    private static ScopeDefinitionNode ParseScopeDefinition(SyntaxContext context, JsonObject jsonObject)
+    private static ObjectNode ParseScopeDefinition(SyntaxContext context, JsonObject jsonObject)
     {
         var children = new List<ExpressionNode>();
 
@@ -61,7 +61,7 @@ public static class SyntaxAnalyser
             children.Add(ParseExpression(context, item));
         }
 
-        return new ScopeDefinitionNode(children);
+        return new ObjectNode(children);
     }
 
     private static LhsNode ParseLeftHandSide(SyntaxContext context, string key)

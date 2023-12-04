@@ -34,7 +34,7 @@ public class NodeVisitor
                 return VisitExpression(node.As<ExpressionNode>());
 
             case NodeType.ScopeDefinition:
-                return VisitScope(node.As<ScopeDefinitionNode>());
+                return VisitScope(node.As<ObjectNode>());
 
             default:
                 return node;
@@ -47,7 +47,7 @@ public class NodeVisitor
     /// <param name="node">The ScopeDefinitionNode to visit.</param>
     /// <returns>The visited ScopeDefinitionNode. Subclasses can override this method to provide custom handling.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual Node? VisitScope(ScopeDefinitionNode node)
+    protected virtual Node? VisitScope(ObjectNode node)
     {
         for (int i = 0; i < node.Expressions.Length; i++)
         {

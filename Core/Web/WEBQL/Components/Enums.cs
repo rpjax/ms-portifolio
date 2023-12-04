@@ -34,10 +34,42 @@ public enum Operator
     All
 }
 
-public enum BinaryOperator
+public enum OperatorType
+{
+    Arithmetic,
+    Relational,
+    Logical,
+    Array
+}
+
+public enum ArithmeticOperator
+{
+    Add,
+    Subtract,
+    Divide,
+    Multiply,
+    Modulo
+}
+
+public enum RelationalOperator
+{
+    Equals,
+    NotEquals,
+    Less,
+    LessEquals,
+    Greater,
+    GreaterEquals,
+}
+
+public enum LogicalOperator
 {
     Or,
     And
+}
+
+public enum ArrayOperator
+{
+    Index,
 }
 
 public enum OrderDirection

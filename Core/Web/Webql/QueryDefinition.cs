@@ -12,13 +12,13 @@ public class QueryDefinition
     public const string OrderKey = "order";
 
     private Parser Parser { get; }
-    private ScopeDefinitionNode Root { get; }
+    private ObjectNode Root { get; }
     private ExpressionNode? LimitSyntaxTree { get; }
     private ExpressionNode? OffetSyntaxTree { get; }
     private ExpressionNode? FilterSyntaxTree { get; }
     private ExpressionNode? OrderSyntaxTree { get; }
 
-    public QueryDefinition(Parser parser, ScopeDefinitionNode root)
+    public QueryDefinition(Parser parser, ObjectNode root)
     {
         Parser = parser;
         Root = root;

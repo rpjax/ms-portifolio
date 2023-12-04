@@ -60,7 +60,7 @@ public static class OrderGenerator
     //*
     public static IEnumerable<OrderDefinition> Translate(GeneratorContext context, Node node)
     {
-        if (node is not ScopeDefinitionNode scope)
+        if (node is not ObjectNode scope)
         {
             throw new GeneratorException("The 'order' node must be a scope definition (object) with ordering expressions.", context);
         }
@@ -72,7 +72,7 @@ public static class OrderGenerator
                 yield return TranslateLiteralExpression(context, expression);
             }
 
-            if (expression.Rhs.Value is ScopeDefinitionNode _scope)
+            if (expression.Rhs.Value is ObjectNode _scope)
             {
                 var memberName = expression.Lhs.Value;
                 var subContext = context.CreateSubContext(memberName);
@@ -85,7 +85,7 @@ public static class OrderGenerator
         }
     }
 
-    private static IEnumerable<OrderDefinition> TranslateScopeExpression(GeneratorContext context, ScopeDefinitionNode node)
+    private static IEnumerable<OrderDefinition> TranslateScopeExpression(GeneratorContext context, ObjectNode node)
     {
         foreach (var item in node.Expressions)
         {
@@ -95,7 +95,7 @@ public static class OrderGenerator
                 continue;
             }
 
-            if (item.Rhs.Value is ScopeDefinitionNode scope)
+            if (item.Rhs.Value is ObjectNode scope)
             {
                 var memberName = item.Lhs.Value;
                 var subContext = context.CreateSubContext(memberName);

@@ -7,6 +7,8 @@ public abstract class Node
 {
     public abstract NodeType NodeType { get; }
 
+    public abstract override string ToString();
+
     public T As<T>() where T : Node
     {
         return this.TypeCast<T>();
@@ -17,11 +19,18 @@ public class LiteralNode : Node
 {
     public override NodeType NodeType { get; }
     public string? Value { get; }
+    public bool IsOperator { get; }
 
     public LiteralNode(string? value)
     {
         NodeType = NodeType.Literal;
+        IsOperator = value.StartsWith("\"$");
         Value = value;
+    }
+
+    public override string ToString()
+    {
+        return Value ?? string.Empty;
     }
 }
 
@@ -40,6 +49,13 @@ public class ArrayNode : Node
     {
 
     }
+
+    public override string ToString()
+    {
+        var values = Values.Transform(value => value.ToString());
+        var joinedValues = string.Join(", ", values);
+        return $"[{joinedValues}]";
+    }
 }
 
 public class LhsNode : Node
@@ -54,6 +70,11 @@ public class LhsNode : Node
         IsOperator = value.StartsWith('$');
         Value = value;
     }
+
+    public override string ToString()
+    {
+        return Value;
+    }
 }
 
 public class RhsNode : Node
@@ -67,6 +88,10 @@ public class RhsNode : Node
         Value = value;
     }
 
+    public override string ToString()
+    {
+        return Value.ToString();
+    }
 }
 
 public class ExpressionNode : Node
@@ -81,20 +106,25 @@ public class ExpressionNode : Node
         Lhs = lhs;
         Rhs = rhs;
     }
+
+    public override string ToString()
+    {
+        return $"\"{Lhs}\": {Rhs}";
+    }
 }
 
-public class ScopeDefinitionNode : Node
+public class ObjectNode : Node
 {
     public override NodeType NodeType { get; }
     public ExpressionNode[] Expressions { get; }
 
-    public ScopeDefinitionNode(IEnumerable<ExpressionNode> expressions)
+    public ObjectNode(IEnumerable<ExpressionNode> expressions)
     {
         NodeType = NodeType.ScopeDefinition;
         Expressions = expressions.ToArray();
     }
 
-    public ScopeDefinitionNode(params ExpressionNode[] expressions) : this(expressions.ToList())
+    public ObjectNode(params ExpressionNode[] expressions) : this(expressions.ToList())
     {
 
     }
@@ -102,5 +132,14 @@ public class ScopeDefinitionNode : Node
     public ExpressionNode? this[string key]
     {
         get => Expressions.Where(x => x.Lhs.Value == key).FirstOrDefault();
+    }
+
+    public override string ToString()
+    {
+        var values = Expressions.Transform(x => x.ToString());
+        var separator = $", {Environment.NewLine}";
+        var joinedValues = string.Join(separator, values);
+        var str = $"{{ {joinedValues} }}";
+        return $"{{ {joinedValues} }}";
     }
 }

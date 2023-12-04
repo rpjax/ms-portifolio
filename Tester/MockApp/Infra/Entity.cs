@@ -16,7 +16,7 @@ public class MongoAntService : MongoEntityService<MongoAnt>
 
     public MongoAntService()
     {
-        DataAccessObject = new MongoDataAccessObject<MongoAnt>(DatabaseSource.Ants);
+        DataAccessObject = new MongoDataAccessObject<MongoAnt>(MongoDb.Ants);
     }
 }
 

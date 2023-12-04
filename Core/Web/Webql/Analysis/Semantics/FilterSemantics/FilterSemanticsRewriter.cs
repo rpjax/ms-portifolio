@@ -79,7 +79,7 @@ public class FilterSemanticsRewriterVisitor : SemanticsVisitor
         }
 
         var innerScopes = innerExpressions
-            .Transform(x => new ScopeDefinitionNode(x))
+            .Transform(x => new ObjectNode(x))
             .ToArray();
 
         var anyLhs = new LhsNode(HelperTools.Stringify(Operator.Any));
@@ -105,7 +105,7 @@ public class FilterSemanticsRewriterVisitor : SemanticsVisitor
     [return: NotNullIfNotNull("node")]
     private ExpressionNode? RewriteIteratorExpressionWithScopeRhs(SemanticContext context, ExpressionNode node)
     {
-        if (node.Rhs.Value is not ScopeDefinitionNode scope)
+        if (node.Rhs.Value is not ObjectNode scope)
         {
             throw new InvalidOperationException("Error in query: For the iterator expression '" + node.Lhs.Value + "', the right-hand side must be a valid scope definition (object).");
         }
@@ -137,7 +137,7 @@ public class FilterSemanticsRewriterVisitor : SemanticsVisitor
         var innerLhs = new LhsNode(HelperTools.Stringify(Operator.Equals));
         var innerRhs = new RhsNode(literal);
         var innerExpression = new ExpressionNode(innerLhs, innerRhs);
-        var innerScope = new ScopeDefinitionNode(new[] { innerExpression });
+        var innerScope = new ObjectNode(new[] { innerExpression });
         var lhs = node.Lhs;
         var rhs = new RhsNode(innerScope);
 
@@ -171,7 +171,7 @@ public class FilterSemanticsRewriterVisitor : SemanticsVisitor
 
         foreach (var item in array.Values)
         {
-            if (item is not LiteralNode && item is not ScopeDefinitionNode)
+            if (item is not LiteralNode && item is not ObjectNode)
             {
                 throw new SemanticException("Error in query: Each item in the list for property '" + node.Lhs.Value + "' must be a value or a nested expression. Found an unsupported structure.", context);
             }
@@ -183,7 +183,7 @@ public class FilterSemanticsRewriterVisitor : SemanticsVisitor
         }
 
         var scopes = expressions
-            .Transform(x => new ScopeDefinitionNode(new[] { x }))
+            .Transform(x => new ObjectNode(new[] { x }))
             .ToArray();
 
         var anyExpressionLhs = new LhsNode(HelperTools.Stringify(Operator.Any));
@@ -192,7 +192,7 @@ public class FilterSemanticsRewriterVisitor : SemanticsVisitor
 
         var memberAccessLhs = node.Lhs;
         var memberAccessRhsExpressions = new ExpressionNode[] { anyExpression };
-        var memberAccessRhs = new RhsNode(new ScopeDefinitionNode(memberAccessRhsExpressions));
+        var memberAccessRhs = new RhsNode(new ObjectNode(memberAccessRhsExpressions));
         var memberExpression = new ExpressionNode(memberAccessLhs, memberAccessRhs);
 
         return Visit(context, memberExpression);

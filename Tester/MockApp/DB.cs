@@ -4,7 +4,7 @@ using MongoDB.Driver;
 
 namespace ModularSystem.Tester;
 
-public static class DatabaseSource
+public static class MongoDb
 {
     public static IMongoDatabase MongoDatabase { get; }
     public static IMongoCollection<Credential> Credentials { get; }
@@ -16,7 +16,7 @@ public static class DatabaseSource
     /// <summary>
     /// db pass: 8PLnrex8k2w8ZLPZ
     /// </summary>
-    static DatabaseSource()
+    static MongoDb()
     {
         MongoModule.ConnectionString = "mongodb+srv://rpjcoding:8PLnrex8k2w8ZLPZ@genericdatabase.gns6dtg.mongodb.net/?retryWrites=true&w=majority";
         MongoDatabase = MongoModule.GetDatabase(MongoModule.ConnectionString, "TesterApp");
@@ -26,6 +26,11 @@ public static class DatabaseSource
         Papers = MongoDatabase.GetCollection<Paper>("Papers");
         Ants = MongoDatabase.GetCollection<MongoAnt>("Ants");
         TestModel = MongoDatabase.GetCollection<MongoTestModel>("TestModel");
+    }
+
+    public static IMongoCollection<T> GetCollection<T>(string name)
+    {
+        return MongoDatabase.GetCollection<T>(name);
     }
 }
 

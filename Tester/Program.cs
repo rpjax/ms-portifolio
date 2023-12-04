@@ -1,7 +1,10 @@
 ﻿using ModularSystem.Core;
-using ModularSystem.Core.Logging;
-using ModularSystem.Core.Threading;
-using ModularSystem.EntityFramework;
+using ModularSystem.Mongo;
+using ModularSystem.Mongo.Webql;
+using ModularSystem.Web;
+using ModularSystem.Webql;
+using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 
 namespace ModularSystem.Tester;
 
@@ -9,69 +12,88 @@ public static class Program
 {
     public static void Main()
     {
-        var config = new Initializer.Options()
+        var json = "{ \r\n    \"$filter\": { \r\n        \"$and\": [\r\n            { \"cpf\": { \"$equals\": \"11548128988\" } },\r\n            { \"firstName\": { \"$equals\": \"Rodrigo\" } },\r\n            { \r\n                \"surnames\": { \r\n                    \"$any\": { \"$equals\": \"Jacques\" } \r\n                }\r\n            }\r\n        ] \r\n    },\r\n    \"$project\": {\r\n        \"Nome\": { \"$select\": \"$firstName\" },\r\n        \"Sobrenomes\": {\"$select\": \"$surnames\" }\r\n    }\r\n}";
+        var parser = new Parser();
+        var syntaxTree = parser.Parse(json);
+        var generator = new Generator();
+
+        PopulateService();
+
+        using var service = new MyDataService();
+        var serviceQueryable = service.AsQueryable();
+
+        var translatedEnumerable = generator.CreateEnumerable(syntaxTree, service.AsQueryable());
+        var mongoEnum = new MongoTranslatedEnumerable(translatedEnumerable.InputType, translatedEnumerable.OutputType, translatedEnumerable.Enumerable);
+
+        var serviceQuery = serviceQueryable
+           .Where(x => x.Cpf == "11548128988")
+           .Select(x => new { Nome = x.FirstName, Sobrenomes = x.Surnames });
+
+        var mongoQueryable = serviceQueryable as IMongoQueryable<MyData>;
+
+        var mongoQueryableQuery = mongoQueryable
+           .Where(x => x.Cpf == "11548128988")
+           .Select(x => new { Nome = x.FirstName, Sobrenomes = x.Surnames });
+
+        var data = mongoEnum.ToListAsync().Result;
+        var result = translatedEnumerable.ToArray(); 
+
+        Console.WriteLine(syntaxTree.ToString());
+        //var projectedQueryable = queryable.Select(x => new { Nome = x.FirstName, Sobrenomes = x.Surnames });
+        //var anonymousType = TypeHelper.CreateAnonymousType(new AnonymousPropertyDefinition[] 
+        //{ 
+        //    new("FirstName", typeof(string)),
+        //    new("Surnames", typeof(string[]))
+        //});
+
+        //      call expression (IQueryable<T>.Select()) arguments:
+        //          constant expression (IEnumerable<T>)
+        //          quoat expression operand:
+        //              lambda expression (Func<T, projectedT>) body:
+        //                  new expression:
+        //                      members: in order, the lhs of the assignments.
+        //                      arguments: in order, the rhs of the assignments.
+    }
+
+    static void PopulateService()
+    {
+        using var service = new MyDataService();
+        var count = service.CountAllAsync().Result;
+
+        if(count > 0)
         {
-            InitConsoleLogger = true,
+            return;
+        }
+
+        var data = new MyData[]
+        {
+            new(){ Cpf = "11709620927", FirstName = "Amanda", Surnames = new[]{ "de", "Lima", "Santos" }, Score = 98 },
+            new(){ Cpf = "11548128988", FirstName = "Rodrigo", Surnames = new[]{ "Pazzini", "Jacques" }, Score = 85 },
         };
 
-        //Initializer.Run(config);
-
-        //var fileInfo = new FileInfo("C:\\RPJ\\Coding\\Sandbox\\Compiler\\Formats\\example.gdef");
-        //var grammar = GDefReader.Read(fileInfo);
-
-        JobQueue.Enqueue(new LambdaJob(async x =>
-        {
-            await Task.Delay(3000);
-            await Console.Out.WriteLineAsync("Exited task 1.");
-        }));
-
-        JobQueue.Enqueue(new LambdaJob(async x =>
-        {
-            await Task.Delay(6000);
-            await Console.Out.WriteLineAsync("Exited task 2.");
-        }));
-
-        Task.WhenAll(new[]
-        {
-            JobQueue.WaitAllJobsAsync(),
-            JobQueue.WaitAllJobsAsync(),
-            JobQueue.WaitAllJobsAsync()
-        }).Wait();
-
-        JobQueue.WaitAllJobsAsync().Wait();
-
-        JobQueue.Enqueue(new LambdaJob(async x =>
-        {
-            await Task.Delay(3000);
-            await Console.Out.WriteLineAsync("Exited task 3.");
-        }));
-
-        JobQueue.Enqueue(new LambdaJob(async x =>
-        {
-            await Task.Delay(6000);
-            await Console.Out.WriteLineAsync("Exited task 4.");
-        }));
-
-        JobQueue.WaitAllJobsAsync().Wait();
-        Console.WriteLine("Exiting program.");
+        service.CreateAsync(data).Wait();
     }
 }
 
-//*
-// NOTE:
-//*
-public class ExceptionEntryService : EFEntityService<ExceptionEntry>
+public class MyData : MongoModel
 {
-    public override IDataAccessObject<ExceptionEntry> DataAccessObject { get; }
+    public string FirstName { get; set; } = "";
+    public string[] Surnames { get; set; } = new string[0];
+    public string Cpf { get; set; } = "";
+    public int Score { get; set; }
+}
 
-    public ExceptionEntryService()
+public class MyDataService : MongoEntityService<MyData>
+{
+    public override IDataAccessObject<MyData> DataAccessObject { get; }
+
+    public MyDataService()
     {
-        var file = Logger.DefaultPathFile(ExceptionLogger.DefaultFileName);
-        var context = new EFCoreSqliteContext<ExceptionEntry>(file);
-
-        DataAccessObject = new EFCoreDataAccessObject<ExceptionEntry>(context);
-        Validator = new EmptyValidator<ExceptionEntry>();
-        UpdateValidator = new EmptyValidator<ExceptionEntry>();
+        DataAccessObject = CreateDao();
     }
 
+    private static IDataAccessObject<MyData> CreateDao()
+    {
+        return new MongoDataAccessObject<MyData>(MongoDb.GetCollection<MyData>("my_data_temp"));
+    }
 }

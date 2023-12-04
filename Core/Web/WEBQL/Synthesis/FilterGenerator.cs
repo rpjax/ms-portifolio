@@ -37,7 +37,7 @@ public static partial class FilterGenerator
                 return TranslateLiteral(context, node.As<LiteralNode>());
 
             case NodeType.Array:
-                return TranslateArray(context, node.As<ArrayNode>(), BinaryOperator.And);
+                return TranslateArray(context, node.As<ArrayNode>(), LogicalOperator.And);
 
             case NodeType.LeftHandSide:
                 throw new GeneratorException("A left-hand side (LHS) node cannot be used as the root node in the translation process. Node: " + node.ToString(), context);
@@ -49,14 +49,14 @@ public static partial class FilterGenerator
                 return TranslateExpression(context, node.As<ExpressionNode>());
 
             case NodeType.ScopeDefinition:
-                return TranslateScopeDefinition(context, node.As<ScopeDefinitionNode>());
+                return TranslateScopeDefinition(context, node.As<ObjectNode>());
 
             default:
                 throw new GeneratorException("The node type '" + node.NodeType + "' is not supported as the root in the translation context. Node: " + node.NodeType.ToString(), context);
         }
     }
 
-    private static Expression TranslateScopeDefinition(GeneratorContext context, ScopeDefinitionNode node)
+    private static Expression TranslateScopeDefinition(GeneratorContext context, ObjectNode node)
     {
         var childrenNodes = node.Expressions;
         var expression = null as Expression;
@@ -88,7 +88,7 @@ public static partial class FilterGenerator
         return expression;
     }
 
-    private static Expression TranslateArray(GeneratorContext context, ArrayNode array, BinaryOperator op)
+    private static Expression TranslateArray(GeneratorContext context, ArrayNode array, LogicalOperator op)
     {
         if (array.Values.Length == 0)
         {
@@ -101,7 +101,7 @@ public static partial class FilterGenerator
         {
             var item = array.Values[i];
 
-            if (item is not ScopeDefinitionNode scope)
+            if (item is not ObjectNode scope)
             {
                 throw new GeneratorException("Each item in the array must be a scope definition. Invalid item found.", context);
             }
@@ -115,11 +115,11 @@ public static partial class FilterGenerator
             }
             else
             {
-                if (op == BinaryOperator.Or)
+                if (op == LogicalOperator.Or)
                 {
                     expression = Expression.OrElse(expression, translation);
                 }
-                else if (op == BinaryOperator.And)
+                else if (op == LogicalOperator.And)
                 {
                     expression = Expression.AndAlso(expression, translation);
                 }
@@ -155,7 +155,7 @@ public static partial class FilterGenerator
         var memberName = node.Lhs.Value;
         var subContext = context.CreateSubContext(memberName);
 
-        if (node.Rhs.Value is not ScopeDefinitionNode scope)
+        if (node.Rhs.Value is not ObjectNode scope)
         {
             throw new GeneratorException("The right-hand side of the member expression '" + memberName + "' must be a scope definition (object).", context);
         }
@@ -358,7 +358,7 @@ public static partial class FilterGenerator
         var enumType = HelperTools.GetEnumerableType(context.Type);
         var lambdaParam = Expression.Parameter(enumType, "y");
         var subContext = new GeneratorContext(enumType, lambdaParam, context);
-        var body = TranslateArray(subContext, array, BinaryOperator.Or);
+        var body = TranslateArray(subContext, array, LogicalOperator.Or);
         var lambda = Expression.Lambda(body, lambdaParam);
         var args = new Expression[]
         {
@@ -377,7 +377,7 @@ public static partial class FilterGenerator
             throw new GeneratorException("The right-hand side of a non-enumerable 'Any' expression must be an array of conditions.", context);
         }
 
-        return TranslateArray(context, array, BinaryOperator.Or);
+        return TranslateArray(context, array, LogicalOperator.Or);
     }
 
     //*
@@ -405,7 +405,7 @@ public static partial class FilterGenerator
         var enumType = HelperTools.GetEnumerableType(context.Type);
         var lambdaParam = Expression.Parameter(enumType, "y");
         var subContext = new GeneratorContext(enumType, lambdaParam, context);
-        var body = TranslateArray(subContext, array, BinaryOperator.And);
+        var body = TranslateArray(subContext, array, LogicalOperator.And);
         var lambda = Expression.Lambda(body, lambdaParam);
         var args = new Expression[]
         {
@@ -424,7 +424,7 @@ public static partial class FilterGenerator
             throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(Operator.All)}' expression must be an array of conditions for a non-enumerable type.", context);
         }
 
-        return TranslateArray(context, array, BinaryOperator.And);
+        return TranslateArray(context, array, LogicalOperator.And);
     }
 
 }

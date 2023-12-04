@@ -35,7 +35,7 @@ public class SemanticsVisitor
                 return Visit(context, node.As<ExpressionNode>());
 
             case NodeType.ScopeDefinition:
-                return Visit(context, node.As<ScopeDefinitionNode>());
+                return Visit(context, node.As<ObjectNode>());
 
             default:
                 return node;
@@ -49,7 +49,7 @@ public class SemanticsVisitor
     /// <param name="node">The ScopeDefinitionNode to visit.</param>
     /// <returns>The visited ScopeDefinitionNode, possibly modified based on semantic rules.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual Node? Visit(SemanticContext context, ScopeDefinitionNode node)
+    protected virtual Node? Visit(SemanticContext context, ObjectNode node)
     {
         for (int i = 0; i < node.Expressions.Length; i++)
         {

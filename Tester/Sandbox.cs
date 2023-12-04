@@ -104,7 +104,7 @@ public class MongoTestEntity : MongoEntityService<MongoTestModel>
 
     public MongoTestEntity()
     {
-        DataAccessObject = new MongoDataAccessObject<MongoTestModel>(DatabaseSource.TestModel);
+        DataAccessObject = new MongoDataAccessObject<MongoTestModel>(MongoDb.TestModel);
         Validator = new EmptyValidator<MongoTestModel>();
         UpdateValidator = new EmptyValidator<MongoTestModel>();
     }

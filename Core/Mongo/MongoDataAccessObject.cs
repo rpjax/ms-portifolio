@@ -1,6 +1,7 @@
 using ModularSystem.Core;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Mongo;
@@ -135,7 +136,7 @@ public class MongoDataAccessObject<T> : IDataAccessObject<T> where T : IMongoMod
             Projection = projection ?? Builders<T>.Projection.Combine(),
             Sort = sort
         };
-
+        
         var query = await Collection.FindAsync(filter, options);
         var data = await query.ToListAsync();
         var total = await MongoCountAsync(filter);

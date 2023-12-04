@@ -1,8 +1,14 @@
-﻿using ModularSystem.Core;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using ModularSystem.Core;
 using ModularSystem.Core.Expressions;
 using ModularSystem.Webql.Analysis;
 using ModularSystem.Webql.Synthesis;
+using System.Collections;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Xml.Linq;
 
 namespace ModularSystem.Webql;
 
@@ -29,7 +35,7 @@ public class Parser
     /// <param name="json"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public ScopeDefinitionNode Parse(string json)
+    public ObjectNode Parse(string json)
     {
         try
         {
@@ -53,7 +59,7 @@ public class Parser
         {
             var context = new SyntaxContext("$.limit");
 
-            if(node.Rhs.Value is not LiteralNode literal)
+            if (node.Rhs.Value is not LiteralNode literal)
             {
                 throw new SyntaxException("", context);
             }
@@ -92,7 +98,7 @@ public class Parser
                 return Options.DefaultOffset;
             }
 
-            if(!long.TryParse(literal.Value, out var value))
+            if (!long.TryParse(literal.Value, out var value))
             {
                 throw new SyntaxException("", context);
             }
@@ -111,7 +117,7 @@ public class Parser
     /// <param name="root">The root syntax tree node.</param>
     /// <returns>The parsed pagination information.</returns>
     /// <exception cref="AppException">Thrown when an error occurs during parsing.</exception>
-    public PaginationIn ParseToPagination(ScopeDefinitionNode root)
+    public PaginationIn ParseToPagination(ObjectNode root)
     {
         try
         {
@@ -120,7 +126,7 @@ public class Parser
             var limit = Options.DefaultLimit;
             var offset = Options.DefaultOffset;
 
-            if(limitExpression != null)
+            if (limitExpression != null)
             {
                 limit = ParseToPaginationLimit(limitExpression);
             }

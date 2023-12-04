@@ -84,18 +84,30 @@ public static class FileSystemHelper
 }
 
 /// <summary>
-/// Default application folder used to store data.
+/// Provides access to the default application folder for storing data.
 /// </summary>
 public static class LocalStorage
 {
+    /// <summary>
+    /// Gets the path to the default application folder for data storage.
+    /// </summary>
+    /// <returns>The normalized absolute path to the storage folder.</returns>
     public static string DirectoryPath()
     {
         return FileSystemHelper.NormalizeAbsolutePath($"{AppDomain.CurrentDomain.BaseDirectory}{Path.DirectorySeparatorChar}Storage");
     }
 
+    /// <summary>
+    /// Gets the <see cref="FileInfo"/> for the specified file within the storage folder.
+    /// </summary>
+    /// <param name="file">The name of the file.</param>
+    /// <param name="initializeFolder">Specifies whether to initialize the folder if it does not exist.</param>
+    /// <param name="initializeFile">Specifies whether to initialize the file if it does not exist.</param>
+    /// <returns>The <see cref="FileInfo"/> for the specified file.</returns>
     public static FileInfo GetFileInfo(string file, bool initializeFolder = false, bool initializeFile = false)
     {
-        var fileInfo = new FileInfo(FileSystemHelper.NormalizeAbsolutePath($"{DirectoryPath()}{Path.DirectorySeparatorChar}{file}"));
+        var normalizedPath = FileSystemHelper.NormalizeAbsolutePath($"{DirectoryPath()}{Path.DirectorySeparatorChar}{file}");
+        var fileInfo = new FileInfo(normalizedPath);
 
         fileInfo.Refresh();
 
