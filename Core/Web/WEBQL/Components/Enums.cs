@@ -56,27 +56,27 @@ public enum OperatorV2
     And,
     Not,
 
-    // Queryable Operators
-    Filter,
-    Project,
-    Limit,
-    Skip,
-    Size,
-    Index,
-    Any,
-    All,
-
     // Semantic Operators
     Expr,
     Literal,
     Select,
 
-    // Aggregation Operators
+    // Queryable Operators
+    Filter,
+    Project,
+    Limit,
+    Skip,
     Count,
+    Index,
+    Any,
+    All,
+
+    // Aggregation Operators
     Min,
     Max,
     Sum,
-    Average
+    Average,
+
 }
 
 public enum OperatorType

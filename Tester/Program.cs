@@ -20,7 +20,7 @@ public static class Program
     public static void Main()
     {
         Initializer.Run();
-        var json = "{\r\n    \"$filter\": {\r\n        \"firstName\": {\r\n            \"$or\":[\r\n                { \"$equals\": \"Rodrigo\" },\r\n                { \"$equals\": \"Amanda\" }\r\n            ]\r\n        },\r\n        \"$equals\": [\"$cpf\", \"11548128988\"],\r\n        \"surnames\":{\r\n            \"$any\": { \r\n                \"$equals\": \"Jacques\"\r\n            }\r\n        }\r\n    }\r\n}";
+        var json = "{\r\n    \"$limit\": 25   \r\n}";
 
         var parser = new Parser();
         var syntaxTree = parser.Parse(json);
@@ -28,7 +28,7 @@ public static class Program
 
         using var service = new MyDataService();
         var serviceQueryable = service.AsQueryable();
-
+        Queryable.Sum(serviceQueryable, x => x.Cpf.Length);
         var translatedQueryable = generator.CreateQueryable(syntaxTree, service.AsQueryable());
         var mongoQueryable = new MongoTranslatedQueryable(translatedQueryable);
 

@@ -185,14 +185,21 @@ public class ExpressionNodeParser
 {
     private GeneratorOptions Options { get; }
     private NodeParser NodeParser { get; }
-
     private ArithmeticOperatorsParser ArithmeticOperatorsParser { get; }
+    private RelationalOperatorsParser RelationalOperatorsParser { get; }
+    private LogicalOperatorsParser LogicalOperatorsParser { get; }
+    private SemanticOperatorsParser SemanticOperatorsParser { get; }
+    private QueryableOperatorsParser QueryableOperatorsParser { get; }
 
     public ExpressionNodeParser(GeneratorOptions options, NodeParser nodeParser)
     {
         Options = options;
         NodeParser = nodeParser;
         ArithmeticOperatorsParser = new(options, NodeParser);
+        RelationalOperatorsParser = new(options, NodeParser);
+        LogicalOperatorsParser = new(options, NodeParser);
+        SemanticOperatorsParser = new(options, NodeParser);
+        QueryableOperatorsParser = new(options, NodeParser);
     }
 
     public Expression Parse(Context context, ExpressionNode node)
@@ -225,66 +232,72 @@ public class ExpressionNodeParser
 
             // Relational Operators
             case OperatorV2.Equals:
-                return ParseEquals(context, node);
+                return RelationalOperatorsParser.ParseEquals(context, node);
 
             case OperatorV2.NotEquals:
-                return ParseNotEquals(context, node);
+                return RelationalOperatorsParser.ParseNotEquals(context, node);
 
             case OperatorV2.Less:
-                break;
+                return RelationalOperatorsParser.ParseLess(context, node);
+
             case OperatorV2.LessEquals:
-                break;
+                return RelationalOperatorsParser.ParseLessEquals(context, node);
+
             case OperatorV2.Greater:
-                break;
+                return RelationalOperatorsParser.ParseGreater(context, node);
+
             case OperatorV2.GreaterEquals:
-                break;
+                return RelationalOperatorsParser.ParseGreaterEquals(context, node);
 
             // Logical Operators
             case OperatorV2.Or:
-                return ParseOr(context, node);
+                return LogicalOperatorsParser.ParseOr(context, node);
 
             case OperatorV2.And:
-                return ParseAnd(context, node);
+                return LogicalOperatorsParser.ParseAnd(context, node);
 
             case OperatorV2.Not:
-                break;
-
-            // Queryable Operators
-            case OperatorV2.Filter:
-                return ParseFilter(context, node);
-
-            case OperatorV2.Project:
-                return ParseProject(context, node);
-
-            case OperatorV2.Limit:
-                break;
-            case OperatorV2.Skip:
-                break;
-            case OperatorV2.Size:
-                break;
-            case OperatorV2.Index:
-                break;
-            case OperatorV2.Any:
-                return ParseAny(context, node);
-
-            case OperatorV2.All:
-                return ParseAll(context, node);
+                return LogicalOperatorsParser.ParseNot(context, node);
 
             // Semantic Operators
             case OperatorV2.Expr:
                 break;
 
             case OperatorV2.Literal:
-                return ParseLiteral(context, node);
+                return SemanticOperatorsParser.ParseLiteral(context, node);
 
             case OperatorV2.Select:
-                return ParseSelect(context, node);
+                return SemanticOperatorsParser.ParseSelect(context, node);
+
+            // Queryable Operators
+            case OperatorV2.Filter:
+                return QueryableOperatorsParser.ParseFilter(context, node);
+
+            case OperatorV2.Project:
+                return QueryableOperatorsParser.ParseProject(context, node);
+
+            case OperatorV2.Limit:
+                return QueryableOperatorsParser.ParseLimit(context, node);
+
+            case OperatorV2.Skip:
+                return QueryableOperatorsParser.ParseSkip(context, node);
+
+            case OperatorV2.Count:
+                return QueryableOperatorsParser.ParseCount(context, node);
+
+            case OperatorV2.Index:
+                break;
+
+            case OperatorV2.Any:
+                return QueryableOperatorsParser.ParseAny(context, node);
+
+            case OperatorV2.All:
+                return QueryableOperatorsParser.ParseAll(context, node);
 
             // Aggregation Operators
-            case OperatorV2.Count:
-                break;
             case OperatorV2.Min:
-                break;
+                return QueryableOperatorsParser.ParseMin(context, node);
+
             case OperatorV2.Max:
                 break;
             case OperatorV2.Sum:
@@ -327,7 +340,453 @@ public class ExpressionNodeParser
         return NodeParser.Parse(subContext, node.Rhs.Value);
     }
 
-    private Expression ParseFilter(Context context, ExpressionNode node)
+}
+
+public class ArithmeticOperatorsParser
+{
+    private GeneratorOptions Options { get; }
+    private NodeParser NodeParser { get; }
+
+    public ArithmeticOperatorsParser(GeneratorOptions options, NodeParser nodeParser)
+    {
+        Options = options;
+        NodeParser = nodeParser;
+    }
+
+    public Expression ParseAdd(Context context, ExpressionNode node)
+    {
+        var rhs = node.Rhs.Value;
+
+        if (rhs is ArrayNode arrayNode)
+        {
+            if(arrayNode.Length != 2)
+            {
+                throw new Exception();
+            }
+
+            var elementOne = NodeParser.Parse(context, arrayNode[0]);
+            var elementTwoContext = new Context(elementOne.Type, elementOne, context);
+            var elementTwo = NodeParser.Parse(elementTwoContext, arrayNode[1]);
+
+            return Expression.Add(elementOne, elementTwo);
+        }
+
+        return Expression.Add(context.InputExpression, NodeParser.Parse(context, rhs));
+    }
+
+    public Expression ParseSubtract(Context context, ExpressionNode node)
+    {
+        var rhs = node.Rhs.Value;
+
+        if (rhs is ArrayNode arrayNode)
+        {
+            if (arrayNode.Length != 2)
+            {
+                throw new Exception();
+            }
+
+            var elementOne = NodeParser.Parse(context, arrayNode[0]);
+            var elementTwoContext = new Context(elementOne.Type, elementOne, context);
+            var elementTwo = NodeParser.Parse(elementTwoContext, arrayNode[1]);
+
+            return Expression.Subtract(elementOne, elementTwo);
+        }
+
+        return Expression.Subtract(context.InputExpression, NodeParser.Parse(context, rhs));
+    }
+
+    public Expression ParseDivide(Context context, ExpressionNode node)
+    {
+        var rhs = node.Rhs.Value;
+
+        if (rhs is ArrayNode arrayNode)
+        {
+            if (arrayNode.Length != 2)
+            {
+                throw new Exception();
+            }
+
+            var elementOne = NodeParser.Parse(context, arrayNode[0]);
+            var elementTwoContext = new Context(elementOne.Type, elementOne, context);
+            var elementTwo = NodeParser.Parse(elementTwoContext, arrayNode[1]);
+
+            return Expression.Divide(elementOne, elementTwo);
+        }
+
+        return Expression.Divide(context.InputExpression, NodeParser.Parse(context, rhs));
+    }
+
+    public Expression ParseMultiply(Context context, ExpressionNode node)
+    {
+        var rhs = node.Rhs.Value;
+
+        if (rhs is ArrayNode arrayNode)
+        {
+            if (arrayNode.Length != 2)
+            {
+                throw new Exception();
+            }
+
+            var elementOne = NodeParser.Parse(context, arrayNode[0]);
+            var elementTwoContext = new Context(elementOne.Type, elementOne, context);
+            var elementTwo = NodeParser.Parse(elementTwoContext, arrayNode[1]);
+
+            return Expression.Multiply(elementOne, elementTwo);
+        }
+
+        return Expression.Multiply(context.InputExpression, NodeParser.Parse(context, rhs));
+    }
+
+    public Expression ParseModulo(Context context, ExpressionNode node)
+    {
+        var rhs = node.Rhs.Value;
+
+        if (rhs is ArrayNode arrayNode)
+        {
+            if (arrayNode.Length != 2)
+            {
+                throw new Exception();
+            }
+
+            var elementOne = NodeParser.Parse(context, arrayNode[0]);
+            var elementTwoContext = new Context(elementOne.Type, elementOne, context);
+            var elementTwo = NodeParser.Parse(elementTwoContext, arrayNode[1]);
+
+            return Expression.Modulo(elementOne, elementTwo);
+        }
+
+        return Expression.Modulo(context.InputExpression, NodeParser.Parse(context, rhs));
+    }
+}
+
+public class RelationalOperatorsParser
+{
+    private GeneratorOptions Options { get; }
+    private NodeParser NodeParser { get; }
+
+    public RelationalOperatorsParser(GeneratorOptions options, NodeParser nodeParser)
+    {
+        Options = options;
+        NodeParser = nodeParser;
+    }
+
+    public Expression ParseEquals(Context context, ExpressionNode node)
+    {
+        return Expression.Equal(GetLeftSide(context, node), GetRightSide(context, node));
+    }
+
+    public Expression ParseNotEquals(Context context, ExpressionNode node)
+    {
+        return Expression.NotEqual(GetLeftSide(context, node), GetRightSide(context, node));
+    }
+
+    public Expression ParseLess(Context context, ExpressionNode node)
+    {
+        return Expression.LessThan(GetLeftSide(context, node), GetRightSide(context, node));
+    }
+
+    public Expression ParseLessEquals(Context context, ExpressionNode node)
+    {
+        return Expression.LessThanOrEqual(GetLeftSide(context, node), GetRightSide(context, node));
+    }
+
+    public Expression ParseGreater(Context context, ExpressionNode node)
+    {
+        return Expression.GreaterThan(GetLeftSide(context, node), GetRightSide(context, node));
+    }
+
+    public Expression ParseGreaterEquals(Context context, ExpressionNode node)
+    {
+        return Expression.GreaterThanOrEqual(GetLeftSide(context, node), GetRightSide(context, node));
+    }
+
+    private Expression GetLeftSide(Context context, ExpressionNode node)
+    {
+        var rhs = node.Rhs.Value;
+
+        if (rhs is ArrayNode arrayNode)
+        {
+            if (arrayNode.Length != 2)
+            {
+                throw new Exception();
+            }
+
+            var nodeOne = arrayNode[0];
+            var nodeTwo = arrayNode[1];
+            var refNode = null as Node;
+            var valueNode = null as Node;
+
+            if (refNode == null && nodeOne is LiteralNode nodeOneLiteral)
+            {
+                if (nodeOneLiteral.IsOperator)
+                {
+                    refNode = nodeOne;
+                    valueNode = nodeTwo;
+                }
+            }
+            if (refNode == null && nodeTwo is LiteralNode nodeTwoLiteral)
+            {
+                if (nodeTwoLiteral.IsOperator)
+                {
+                    refNode = nodeTwo;
+                    valueNode = nodeOne;
+                }
+            }
+
+            if (refNode == null)
+            {
+                throw new Exception();
+            }
+            if (valueNode == null)
+            {
+                throw new Exception();
+            }
+
+            return NodeParser.Parse(context, refNode);
+        }
+
+        return context.InputExpression;
+    }
+
+    private Expression GetRightSide(Context context, ExpressionNode node)
+    {
+        var rhs = node.Rhs.Value;
+
+        if (rhs is ArrayNode arrayNode)
+        {
+            if (arrayNode.Length != 2)
+            {
+                throw new Exception();
+            }
+
+            var nodeOne = arrayNode[0];
+            var nodeTwo = arrayNode[1];
+            var refNode = null as Node;
+            var valueNode = null as Node;
+
+            if (refNode == null && nodeOne is LiteralNode nodeOneLiteral)
+            {
+                if (nodeOneLiteral.IsOperator)
+                {
+                    refNode = nodeOne;
+                    valueNode = nodeTwo;
+                }
+            }
+            if (refNode == null && nodeTwo is LiteralNode nodeTwoLiteral)
+            {
+                if (nodeTwoLiteral.IsOperator)
+                {
+                    refNode = nodeTwo;
+                    valueNode = nodeOne;
+                }
+            }
+
+            if (refNode == null)
+            {
+                throw new Exception();
+            }
+            if (valueNode == null)
+            {
+                throw new Exception();
+            }
+
+            var elementOne = NodeParser.Parse(context, refNode);
+            var elementTwoContext = new Context(elementOne.Type, elementOne, context);
+            var elementTwo = NodeParser.Parse(elementTwoContext, valueNode);
+
+            return elementTwo;
+        }
+
+        return NodeParser.Parse(context, rhs);
+    }
+
+
+}
+
+public class LogicalOperatorsParser
+{
+    private GeneratorOptions Options { get; }
+    private NodeParser NodeParser { get; }
+
+    public LogicalOperatorsParser(GeneratorOptions options, NodeParser nodeParser)
+    {
+        Options = options;
+        NodeParser = nodeParser;
+    }
+
+    public Expression ParseOr(Context context, ExpressionNode node)
+    {
+        if (node.Rhs.Value is not ArrayNode array)
+        {
+            throw new Exception();
+        }
+
+        var values = array.Values;
+        var objects = new List<ObjectNode>();
+
+        for (int i = 0; i < values.Length; i++)
+        {
+            var item = values[i];
+
+            if (item is not ObjectNode objectNode)
+            {
+                throw new Exception();
+            }
+
+            objects.Add(objectNode);
+        }
+
+        if (objects.Count == 0)
+        {
+            return Expression.Constant(true, typeof(bool));
+        }
+
+        if (objects.Count == 1)
+        {
+            return NodeParser.Parse(context, objects[0]);
+        }
+
+        var expression = null as Expression;
+
+        foreach (var item in objects)
+        {
+            if (expression == null)
+            {
+                expression = NodeParser.Parse(context, item);
+                continue;
+            }
+
+            expression = Expression.OrElse(expression, NodeParser.Parse(context, item));
+        }
+
+        if (expression == null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return expression;
+    }
+
+    public Expression ParseAnd(Context context, ExpressionNode node)
+    {
+        if (node.Rhs.Value is not ArrayNode array)
+        {
+            throw new Exception();
+        }
+
+        var values = array.Values;
+        var objects = new List<ObjectNode>();
+
+        for (int i = 0; i < values.Length; i++)
+        {
+            var item = values[i];
+
+            if (item is not ObjectNode objectNode)
+            {
+                throw new Exception();
+            }
+
+            objects.Add(objectNode);
+        }
+
+        if (objects.Count == 0)
+        {
+            return Expression.Constant(true, typeof(bool));
+        }
+
+        if (objects.Count == 1)
+        {
+            return NodeParser.Parse(context, objects[0]);
+        }
+
+        var expression = null as Expression;
+
+        foreach (var item in objects)
+        {
+            if (expression == null)
+            {
+                expression = NodeParser.Parse(context, item);
+                continue;
+            }
+
+            expression = Expression.AndAlso(expression, NodeParser.Parse(context, item));
+        }
+
+        if (expression == null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return expression;
+    }
+
+    public Expression ParseNot(Context context, ExpressionNode node)
+    {
+        var rhs = node.Rhs.Value;
+        var expression = NodeParser.Parse(context, rhs);
+
+        if(expression.Type != typeof(bool))
+        {
+            throw new Exception();
+        }
+
+        return Expression.Not(expression);
+    }
+
+}
+
+public class SemanticOperatorsParser
+{
+    private GeneratorOptions Options { get; }
+    private NodeParser NodeParser { get; }
+
+    public SemanticOperatorsParser(GeneratorOptions options, NodeParser nodeParser)
+    {
+        Options = options;
+        NodeParser = nodeParser;
+    }
+
+    public Expression ParseLiteral(Context context, ExpressionNode node)
+    {
+        var type = context.InputType;
+        var value = JsonSerializerSingleton.Deserialize(node.Rhs.ToString(), type);
+
+        return Expression.Constant(value, type);
+    }
+
+    public Expression ParseSelect(Context context, ExpressionNode node)
+    {
+        if (node.Rhs.Value is not LiteralNode literal)
+        {
+            throw new Exception();
+        }
+
+        if (literal.Value == null)
+        {
+            throw new Exception();
+        }
+        if (!literal.IsOperator)
+        {
+            throw new Exception();
+        }
+
+        return NodeParser.Parse(context, literal);
+    }
+
+}
+
+public class QueryableOperatorsParser
+{
+    private GeneratorOptions Options { get; }
+    private NodeParser NodeParser { get; }
+
+    public QueryableOperatorsParser(GeneratorOptions options, NodeParser nodeParser)
+    {
+        Options = options;
+        NodeParser = nodeParser;
+    }
+
+    public Expression ParseFilter(Context context, ExpressionNode node)
     {
         if (!context.IsQueryable())
         {
@@ -363,7 +822,7 @@ public class ExpressionNodeParser
         return callExpression;
     }
 
-    private Expression ParseProject(Context context, ExpressionNode node)
+    public Expression ParseProject(Context context, ExpressionNode node)
     {
         //      call expression (IQueryable<T>.Select()) arguments:
         //          constant expression (IEnumerable<T>)
@@ -447,222 +906,124 @@ public class ExpressionNodeParser
         var selectMethod = Options.ProjectProvider
             .MakeGenericMethod(new[] { queryableType, projectedType });
 
-        var callExpression = Expression.Call(selectMethod, context.InputExpression, lambda);
-
-        return callExpression;
+        return Expression.Call(selectMethod, context.InputExpression, lambda);
     }
 
-    private Expression ParseEquals(Context context, ExpressionNode node)
+    public Expression ParseLimit(Context context, ExpressionNode node)
     {
-        var rhs = node.Rhs.Value;
-
-        if (rhs is ArrayNode arrayNode)
+        if (!context.IsQueryable())
         {
-            if (arrayNode.Length != 2)
-            {
-                throw new Exception();
-            }
-
-            var nodeOne = arrayNode[0];
-            var nodeTwo = arrayNode[1];
-            var refNode = null as Node;
-            var valueNode = null as Node;
-
-            if (refNode == null && nodeOne is LiteralNode nodeOneLiteral)
-            {
-                if (nodeOneLiteral.IsOperator)
-                {
-                    refNode = nodeOne;
-                    valueNode = nodeTwo;
-                }
-            }
-            if (refNode == null && nodeTwo is LiteralNode nodeTwoLiteral)
-            {
-                if (nodeTwoLiteral.IsOperator)
-                {
-                    refNode = nodeTwo;
-                    valueNode = nodeOne;
-                }
-            }
-
-            if(refNode == null)
-            {
-                throw new Exception();
-            }
-            if(valueNode == null)
-            {
-                throw new Exception();
-            }
-
-            var elementOne = NodeParser.Parse(context, refNode);
-            var elementTwoContext = new Context(elementOne.Type, elementOne, context);
-            var elementTwo = NodeParser.Parse(elementTwoContext, valueNode);
-
-            return Expression.Equal(elementOne, elementTwo);
+            throw new Exception("Context must be IQueryable");
+        }
+        if (node.Rhs.Value is not LiteralNode literalNode)
+        {
+            throw new Exception("");
         }
 
-        return Expression.Equal(context.InputExpression, NodeParser.Parse(context, rhs));
-    }
+        var queryableType = context.GetQueryableType();
 
-    private Expression ParseNotEquals(Context context, ExpressionNode node)
-    {
-        var rhs = node.Rhs.Value;
-
-        if (rhs is ArrayNode arrayNode)
-        {
-            if (arrayNode.Length != 2)
-            {
-                throw new Exception();
-            }
-
-            var nodeOne = arrayNode[0];
-            var nodeTwo = arrayNode[1];
-            var refNode = null as Node;
-            var valueNode = null as Node;
-
-            if (refNode == null && nodeOne is LiteralNode nodeOneLiteral)
-            {
-                if (nodeOneLiteral.IsOperator)
-                {
-                    refNode = nodeOne;
-                    valueNode = nodeTwo;
-                }
-            }
-            if (refNode == null && nodeTwo is LiteralNode nodeTwoLiteral)
-            {
-                if (nodeTwoLiteral.IsOperator)
-                {
-                    refNode = nodeTwo;
-                    valueNode = nodeOne;
-                }
-            }
-
-            if (refNode == null)
-            {
-                throw new Exception();
-            }
-            if (valueNode == null)
-            {
-                throw new Exception();
-            }
-
-            var elementOne = NodeParser.Parse(context, refNode);
-            var elementTwoContext = new Context(elementOne.Type, elementOne, context);
-            var elementTwo = NodeParser.Parse(elementTwoContext, valueNode);
-
-            return Expression.NotEqual(elementOne, elementTwo);
-        }
-
-        return Expression.NotEqual(context.InputExpression, NodeParser.Parse(context, rhs));
-    }
-
-    private Expression ParseOr(Context context, ExpressionNode node)
-    {
-        if (node.Rhs.Value is not ArrayNode array)
+        if (queryableType == null)
         {
             throw new Exception();
         }
 
-        var values = array.Values;
-        var objects = new List<ObjectNode>();
+        var valueExpression = null as Expression;
 
-        for (int i = 0; i < values.Length; i++)
+        if (Options.TakeSupportsInt64)
         {
-            var item = values[i];
-
-            if (item is not ObjectNode objectNode)
+            if(!long.TryParse(literalNode.Value, out long longValue))
             {
                 throw new Exception();
             }
 
-            objects.Add(objectNode);
+            valueExpression = Expression.Constant(longValue, typeof(long));
         }
-
-        if (objects.Count == 0)
+        else
         {
-            return Expression.Constant(true, typeof(bool));
-        }
-
-        if (objects.Count == 1)
-        {
-            return NodeParser.Parse(context, objects[0]);
-        }
-
-        var expression = null as Expression;
-
-        foreach (var item in objects)
-        {
-            if (expression == null)
+            if (!int.TryParse(literalNode.Value, out int intValue))
             {
-                expression = NodeParser.Parse(context, item);
-                continue;
+                throw new Exception();
             }
 
-            expression = Expression.OrElse(expression, NodeParser.Parse(context, item));
+            valueExpression = Expression.Constant(intValue, typeof(int));
         }
 
-        if (expression == null)
-        {
-            throw new InvalidOperationException();
-        }
+        var methodInfo = Options.TakeProvider
+            .MakeGenericMethod(new[] { queryableType });
 
-        return expression;
+        return Expression.Call(methodInfo, context.InputExpression, valueExpression);
     }
 
-    private Expression ParseAnd(Context context, ExpressionNode node)
+    public Expression ParseSkip(Context context, ExpressionNode node)
     {
-        if (node.Rhs.Value is not ArrayNode array)
+        if (!context.IsQueryable())
+        {
+            throw new Exception("Context must be IQueryable");
+        }
+        if (node.Rhs.Value is not LiteralNode literalNode)
+        {
+            throw new Exception("");
+        }
+
+        var queryableType = context.GetQueryableType();
+
+        if (queryableType == null)
         {
             throw new Exception();
         }
 
-        var values = array.Values;
-        var objects = new List<ObjectNode>();
+        var valueExpression = null as Expression;
 
-        for (int i = 0; i < values.Length; i++)
+        if (Options.SkipSupportsInt64)
         {
-            var item = values[i];
-
-            if (item is not ObjectNode objectNode)
+            if (!long.TryParse(literalNode.Value, out long longValue))
             {
                 throw new Exception();
             }
 
-            objects.Add(objectNode);
+            valueExpression = Expression.Constant(longValue, typeof(long));
         }
-
-        if (objects.Count == 0)
+        else
         {
-            return Expression.Constant(true, typeof(bool));
-        }
-
-        if (objects.Count == 1)
-        {
-            return NodeParser.Parse(context, objects[0]);
-        }
-
-        var expression = null as Expression;
-
-        foreach (var item in objects)
-        {
-            if (expression == null)
+            if (!int.TryParse(literalNode.Value, out int intValue))
             {
-                expression = NodeParser.Parse(context, item);
-                continue;
+                throw new Exception();
             }
 
-            expression = Expression.AndAlso(expression, NodeParser.Parse(context, item));
+            valueExpression = Expression.Constant(intValue, typeof(int));
         }
 
-        if (expression == null)
-        {
-            throw new InvalidOperationException();
-        }
+        var methodInfo = Options.SkipProvider
+            .MakeGenericMethod(new[] { queryableType });
 
-        return expression;
+        return Expression.Call(methodInfo, context.InputExpression, valueExpression);
     }
 
-    private Expression ParseAny(Context context, ExpressionNode node)
+    public Expression ParseCount(Context context, ExpressionNode node)
+    {
+        if (!context.IsQueryable())
+        {
+            throw new Exception("Context must be IQueryable");
+        }
+        if (node.Rhs.Value is not LiteralNode literalNode)
+        {
+            throw new Exception("");
+        }
+
+        var queryableType = context.GetQueryableType();
+
+        if (queryableType == null)
+        {
+            throw new Exception();
+        }
+
+        var methodInfo = Options.CountProvider
+            .MakeGenericMethod(new[] { queryableType });
+
+        return Expression.Call(methodInfo, context.InputExpression);
+    }
+
+    public Expression ParseAny(Context context, ExpressionNode node)
     {
         if (!context.IsQueryable())
         {
@@ -692,7 +1053,7 @@ public class ExpressionNodeParser
         return Expression.Call(typeof(Enumerable), "Any", typeArgs, args);
     }
 
-    private Expression ParseAll(Context context, ExpressionNode node)
+    public Expression ParseAll(Context context, ExpressionNode node)
     {
         if (!context.IsQueryable())
         {
@@ -722,83 +1083,54 @@ public class ExpressionNodeParser
         return Expression.Call(typeof(Enumerable), "All", typeArgs, args);
     }
 
-    private Expression ParseLiteral(Context context, ExpressionNode node)
+    public Expression ParseMin(Context context, ExpressionNode node)
     {
-        var type = context.InputType;
-        var value = JsonSerializerSingleton.Deserialize(node.Rhs.ToString(), type);
-
-        return Expression.Constant(value, type);
-    }
-
-    private Expression ParseSelect(Context context, ExpressionNode node)
-    {
-        if (node.Rhs.Value is not LiteralNode literal)
+        if (!context.IsQueryable())
+        {
+            throw new Exception();
+        }
+        if (context.InputExpression == null)
         {
             throw new Exception();
         }
 
-        if (literal.Value == null)
-        {
-            throw new Exception();
-        }
-        if (!literal.IsOperator)
+        var subContextType = context.GetQueryableType();
+
+        if (subContextType == null)
         {
             throw new Exception();
         }
 
-        return NodeParser.Parse(context, literal);
+        var subContextExpression = Expression.Parameter(subContextType, "x");
+        var subContext = new Context(subContextType, subContextExpression, context);
+        var lambdaParameter = subContextExpression;
+        var lambdaBody = NodeParser.Parse(subContext, node.Rhs.Value);
+        var lambda = Expression.Lambda(lambdaBody, lambdaParameter);
+
+        var methodInfo = Options.MinProvider.MakeGenericMethod(subContextType);
+
+        if (methodInfo == null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        var methodArgs = new Expression[] { context.InputExpression, lambda };
+
+        return Expression.Call(null, methodInfo, methodArgs);
     }
 
 }
 
-public class ArithmeticOperatorsParser
+public class AggregationOperatorsParser
 {
     private GeneratorOptions Options { get; }
     private NodeParser NodeParser { get; }
 
-    public ArithmeticOperatorsParser(GeneratorOptions options, NodeParser nodeParser)
+    public AggregationOperatorsParser(GeneratorOptions options, NodeParser nodeParser)
     {
         Options = options;
         NodeParser = nodeParser;
     }
 
-    public Expression ParseAdd(Context context, ExpressionNode node)
-    {
-        var rhs = node.Rhs.Value;
-
-        if (rhs is ArrayNode arrayNode)
-        {
-            if(arrayNode.Length != 2)
-            {
-                throw new Exception();
-            }
-
-            var elementOne = NodeParser.Parse(context, arrayNode[0]);
-            var elementTwo = NodeParser.Parse(context, arrayNode[1]);
-
-            return Expression.Add(elementOne, elementTwo);
-        }
-
-        return Expression.Add(context.InputExpression, NodeParser.Parse(context, rhs));
-    }
-
-    public Expression ParseSubtract(Context context, ExpressionNode node)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Expression ParseDivide(Context context, ExpressionNode node)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Expression ParseMultiply(Context context, ExpressionNode node)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Expression ParseModulo(Context context, ExpressionNode node)
-    {
-        throw new NotImplementedException();
-    }
 }
+
