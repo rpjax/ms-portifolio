@@ -1,7 +1,76 @@
 ﻿using ModularSystem.Core;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Webql;
+namespace ModularSystem.Webql.Synthesis;
+
+//*
+// WebQL Notes:
+//
+// Pipeline Overview: The root is an object where key-value pairs represent expressions. Each root expression must
+// resolve itself to the root queryable context (e.g., IQueryable in C#). This context supports various operations
+// such as filtering, ordering, projection, limit, skip, etc.
+// Sub-expressions, expressions at the child-to-root level, can resolve themselves
+// to different values, such as bool, numbers, strings, etc.
+// All expressions ultimately resolve to a value with a known type. The root type corresponds to the query itself.
+//
+// Filter Pipeline:
+//  Arithmetic operators:
+//      $add - { "$add": [args...] }.
+//      $subtract - { "$subtract": [args...] }.
+//      $divide - { "$divide": [args...] }.
+//      $multiply - { "$multiply": [args...] }.
+//      $modulo - { "$modulo": "$prop" }.
+//
+//  Relational operators:
+//      syntax: <relational-expression> ::= <lhs> : (<literal> | <array> | <expression>)
+//
+//      $equals - { "prop": { "$equals: "foobar" } }.
+//      $notEquals - { "prop": { "$notEquals: "foobar" } }.
+//      $greater - { "prop": { "$greater: 5 } }.
+//      $greaterEquals - { "prop": { "$greaterEquals: 5 } }.
+//      $less - { "prop": { "$less: 5 } }.
+//      $lessEquals - { "prop": { "$lessEquals: 5 } }.
+//
+//  Logical operators:
+//      $and - { "$and": [{ }, { }] }.
+//      $or - { "$or": [{ }, { }] }.
+//      $not: { "$not": { } }.
+//
+//  String operators:
+//      $like
+//
+//  Queryable operators:
+//      $filter
+//      $project
+//      $limit
+//      $skip
+//      $size: - { "$size: "$arrayField" }.
+//      $index:{int} - { "array": { "$index[0]": "foobar" } }.
+//      
+//  Queryable iteration operators:
+//      $any - { "$any": [{ }, { }] }.
+//      $all - { "$any": [{ }, { }] }.
+//
+//  Semantic operators:
+//      $expr - { "$literal": "$text string..." }
+//      $literal - { "$literal": "$text string..." }
+//      $select - { "$select": "$property" }
+//
+//  Aggregation operators:    
+//      $count
+//      $min - { "$min": "$prop" } | { "$min": "$" }.
+//      $max.
+//      $sum.
+//      $average.
+//
+//
+// Filter Semantics:
+// Arithmetic operators: ($add, $subtract, $divide, $multiply) expect an ARRAY RHS.
+// Arithmetic operators: ($modulo) expect an ARRAY RHS.
+//
+// Projection Pipeline:
+//
+//*
 
 public class NodeParser
 {
@@ -11,7 +80,7 @@ public class NodeParser
     public NodeParser(GeneratorOptions options)
     {
         Options = options;
-        ExpressionNodeParser = new(this, options);
+        ExpressionNodeParser = new(options, this);
     }
 
     protected internal Expression Parse(Context context, Node node)
@@ -57,13 +126,6 @@ public class NodeParser
         var rootPropertyName = propPath.Contains('.')
             ? pathSplit.First()
             : propPath;
-
-        var rootPropertyInfo = context.GetPropertyInfo(rootPropertyName);
-
-        if (rootPropertyInfo == null)
-        {
-            throw new Exception();
-        }
 
         var subContext = context.AccessProperty(rootPropertyName);
 
@@ -124,10 +186,13 @@ public class ExpressionNodeParser
     private GeneratorOptions Options { get; }
     private NodeParser NodeParser { get; }
 
-    public ExpressionNodeParser(NodeParser nodeParser, GeneratorOptions options)
+    private ArithmeticOperatorsParser ArithmeticOperatorsParser { get; }
+
+    public ExpressionNodeParser(GeneratorOptions options, NodeParser nodeParser)
     {
-        NodeParser = nodeParser;
         Options = options;
+        NodeParser = nodeParser;
+        ArithmeticOperatorsParser = new(options, NodeParser);
     }
 
     public Expression Parse(Context context, ExpressionNode node)
@@ -135,57 +200,123 @@ public class ExpressionNodeParser
         var lhsValue = node.Lhs.Value;
         var isOperator = node.Lhs.IsOperator;
 
-        if (isOperator)
-        {
-            if (lhsValue == "$filter")
-            {
-                return ParseFilter(context, node);
-            }
-            if (lhsValue == "$project")
-            {
-                return ParseProject(context, node);
-            }
-            if (lhsValue == "$equals")
-            {
-                return ParseEquals(context, node);
-            }
-            if (lhsValue == "$notEquals")
-            {
-                return ParseNotEquals(context, node);
-            }
-            if (lhsValue == "$or")
-            {
-                return ParseOr(context, node);
-            }
-            if (lhsValue == "$and")
-            {
-                return ParseAnd(context, node);
-            }
-            if (lhsValue == "$any")
-            {
-                return ParseAny(context, node);
-            }
-            if (lhsValue == "$all")
-            {
-                return ParseAll(context, node);
-            }
-            if (lhsValue == "$literal")
-            {
-                return ParseLiteral(context, node);
-            }
-            if (lhsValue == "$select")
-            {
-                return ParseSelect(context, node);
-            }
-
-            throw new Exception("");
-        }
-        else
+        if (!isOperator)
         {
             return ParseMemberAccess(context, node);
         }
 
-        throw new Exception();
+        switch (ParseOperatorString(context, lhsValue))
+        {
+            // Arithmetic Operators
+            case OperatorV2.Add:
+                return ArithmeticOperatorsParser.ParseAdd(context, node);
+
+            case OperatorV2.Subtract:
+                return ArithmeticOperatorsParser.ParseSubtract(context, node);
+
+            case OperatorV2.Divide:
+                return ArithmeticOperatorsParser.ParseDivide(context, node);
+
+            case OperatorV2.Multiply:
+                return ArithmeticOperatorsParser.ParseMultiply(context, node);
+
+            case OperatorV2.Modulo:
+                return ArithmeticOperatorsParser.ParseModulo(context, node);
+
+            // Relational Operators
+            case OperatorV2.Equals:
+                return ParseEquals(context, node);
+
+            case OperatorV2.NotEquals:
+                return ParseNotEquals(context, node);
+
+            case OperatorV2.Less:
+                break;
+            case OperatorV2.LessEquals:
+                break;
+            case OperatorV2.Greater:
+                break;
+            case OperatorV2.GreaterEquals:
+                break;
+
+            // Logical Operators
+            case OperatorV2.Or:
+                return ParseOr(context, node);
+
+            case OperatorV2.And:
+                return ParseAnd(context, node);
+
+            case OperatorV2.Not:
+                break;
+
+            // Queryable Operators
+            case OperatorV2.Filter:
+                return ParseFilter(context, node);
+
+            case OperatorV2.Project:
+                return ParseProject(context, node);
+
+            case OperatorV2.Limit:
+                break;
+            case OperatorV2.Skip:
+                break;
+            case OperatorV2.Size:
+                break;
+            case OperatorV2.Index:
+                break;
+            case OperatorV2.Any:
+                return ParseAny(context, node);
+
+            case OperatorV2.All:
+                return ParseAll(context, node);
+
+            // Semantic Operators
+            case OperatorV2.Expr:
+                break;
+
+            case OperatorV2.Literal:
+                return ParseLiteral(context, node);
+
+            case OperatorV2.Select:
+                return ParseSelect(context, node);
+
+            // Aggregation Operators
+            case OperatorV2.Count:
+                break;
+            case OperatorV2.Min:
+                break;
+            case OperatorV2.Max:
+                break;
+            case OperatorV2.Sum:
+                break;
+            case OperatorV2.Average:
+                break;
+
+            default:
+                throw new Exception("Unknown or unsupported operator.");
+        }
+
+        throw new Exception("Unknown or unsupported operator.");
+    }
+
+    private string StringifyOperator(OperatorV2 op)
+    {
+        return $"${op.ToString().ToCamelCase()}";
+    }
+
+    private OperatorV2 ParseOperatorString(Context context, string value)
+    {
+        var operators = Enum.GetValues(typeof(OperatorV2));
+
+        foreach (OperatorV2 op in operators)
+        {
+            if (StringifyOperator(op) == value)
+            {
+                return op.TypeCast<OperatorV2>();
+            }
+        }
+
+        throw new GeneratorException($"The operator '{value}' is not recognized or supported. Please ensure it is a valid operator.", null);
     }
 
     private Expression ParseMemberAccess(Context context, ExpressionNode node)
@@ -327,13 +458,47 @@ public class ExpressionNodeParser
 
         if (rhs is ArrayNode arrayNode)
         {
-            // todo resolve the syntax where the comparison occurs
-            // using the array elements 0 and 1, such as: [0] == [1]
-        }
+            if (arrayNode.Length != 2)
+            {
+                throw new Exception();
+            }
 
-        if (context.InputExpression == null)
-        {
-            throw new Exception();
+            var nodeOne = arrayNode[0];
+            var nodeTwo = arrayNode[1];
+            var refNode = null as Node;
+            var valueNode = null as Node;
+
+            if (refNode == null && nodeOne is LiteralNode nodeOneLiteral)
+            {
+                if (nodeOneLiteral.IsOperator)
+                {
+                    refNode = nodeOne;
+                    valueNode = nodeTwo;
+                }
+            }
+            if (refNode == null && nodeTwo is LiteralNode nodeTwoLiteral)
+            {
+                if (nodeTwoLiteral.IsOperator)
+                {
+                    refNode = nodeTwo;
+                    valueNode = nodeOne;
+                }
+            }
+
+            if(refNode == null)
+            {
+                throw new Exception();
+            }
+            if(valueNode == null)
+            {
+                throw new Exception();
+            }
+
+            var elementOne = NodeParser.Parse(context, refNode);
+            var elementTwoContext = new Context(elementOne.Type, elementOne, context);
+            var elementTwo = NodeParser.Parse(elementTwoContext, valueNode);
+
+            return Expression.Equal(elementOne, elementTwo);
         }
 
         return Expression.Equal(context.InputExpression, NodeParser.Parse(context, rhs));
@@ -345,13 +510,47 @@ public class ExpressionNodeParser
 
         if (rhs is ArrayNode arrayNode)
         {
-            // todo resolve the syntax where the comparison occurs
-            // using the array elements 0 and 1, such as: [0] == [1]
-        }
+            if (arrayNode.Length != 2)
+            {
+                throw new Exception();
+            }
 
-        if (context.InputExpression == null)
-        {
-            throw new Exception();
+            var nodeOne = arrayNode[0];
+            var nodeTwo = arrayNode[1];
+            var refNode = null as Node;
+            var valueNode = null as Node;
+
+            if (refNode == null && nodeOne is LiteralNode nodeOneLiteral)
+            {
+                if (nodeOneLiteral.IsOperator)
+                {
+                    refNode = nodeOne;
+                    valueNode = nodeTwo;
+                }
+            }
+            if (refNode == null && nodeTwo is LiteralNode nodeTwoLiteral)
+            {
+                if (nodeTwoLiteral.IsOperator)
+                {
+                    refNode = nodeTwo;
+                    valueNode = nodeOne;
+                }
+            }
+
+            if (refNode == null)
+            {
+                throw new Exception();
+            }
+            if (valueNode == null)
+            {
+                throw new Exception();
+            }
+
+            var elementOne = NodeParser.Parse(context, refNode);
+            var elementTwoContext = new Context(elementOne.Type, elementOne, context);
+            var elementTwo = NodeParser.Parse(elementTwoContext, valueNode);
+
+            return Expression.NotEqual(elementOne, elementTwo);
         }
 
         return Expression.NotEqual(context.InputExpression, NodeParser.Parse(context, rhs));
@@ -550,4 +749,56 @@ public class ExpressionNodeParser
         return NodeParser.Parse(context, literal);
     }
 
+}
+
+public class ArithmeticOperatorsParser
+{
+    private GeneratorOptions Options { get; }
+    private NodeParser NodeParser { get; }
+
+    public ArithmeticOperatorsParser(GeneratorOptions options, NodeParser nodeParser)
+    {
+        Options = options;
+        NodeParser = nodeParser;
+    }
+
+    public Expression ParseAdd(Context context, ExpressionNode node)
+    {
+        var rhs = node.Rhs.Value;
+
+        if (rhs is ArrayNode arrayNode)
+        {
+            if(arrayNode.Length != 2)
+            {
+                throw new Exception();
+            }
+
+            var elementOne = NodeParser.Parse(context, arrayNode[0]);
+            var elementTwo = NodeParser.Parse(context, arrayNode[1]);
+
+            return Expression.Add(elementOne, elementTwo);
+        }
+
+        return Expression.Add(context.InputExpression, NodeParser.Parse(context, rhs));
+    }
+
+    public Expression ParseSubtract(Context context, ExpressionNode node)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Expression ParseDivide(Context context, ExpressionNode node)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Expression ParseMultiply(Context context, ExpressionNode node)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Expression ParseModulo(Context context, ExpressionNode node)
+    {
+        throw new NotImplementedException();
+    }
 }

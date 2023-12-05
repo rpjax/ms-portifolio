@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core;
+using System.Linq.Expressions;
 using System.Text.Json.Nodes;
 
 namespace ModularSystem.Webql;
@@ -38,6 +39,7 @@ public class ArrayNode : Node
 {
     public override NodeType NodeType { get; }
     public Node[] Values { get; }
+    public int Length => Values.Length;
 
     public ArrayNode(IEnumerable<Node> values)
     {
@@ -48,6 +50,11 @@ public class ArrayNode : Node
     public ArrayNode(params Node[] values) : this(values.ToList())
     {
 
+    }
+
+    public Node this[int index]
+    {
+        get => Values[index];
     }
 
     public override string ToString()

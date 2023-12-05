@@ -1,72 +1,7 @@
-﻿using System.Collections;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Reflection;
 
-namespace ModularSystem.Webql;
-
-//*
-// WebQL Notes:
-//
-// Pipeline Overview: The root is an object where key-value pairs represent expressions. Each root expression must
-// resolve itself to the root queryable context (e.g., IQueryable in C#). This context supports various operations
-// such as filtering, ordering, projection, limit, skip, etc.
-// Sub-expressions, expressions at the child-to-root level, can resolve themselves
-// to different values, such as bool, numbers, strings, etc.
-// All expressions ultimately resolve to a value with a known type. The root type corresponds to the query itself.
-//
-// Filter Pipeline:
-//  Arithmetic operators:
-//      $add - { "$add": [args...] }.
-//      $subtract - { "$subtract": [args...] }.
-//      $divide - { "$divide": [args...] }.
-//      $multiply - { "$multiply": [args...] }.
-//      $modulo - { "$modulo": "$prop" }.
-//
-//  Relational operators:
-//      syntax: <relational-expression> ::= <lhs> : (<literal> | <array> | <expression>)
-//
-//      $equals - { "prop": { "$equals: "foobar" } }.
-//      $notEquals - { "prop": { "$notEquals: "foobar" } }.
-//      $greater - { "prop": { "$greater: 5 } }.
-//      $greaterEquals - { "prop": { "$greaterEquals: 5 } }.
-//      $less - { "prop": { "$less: 5 } }.
-//      $lessEquals - { "prop": { "$lessEquals: 5 } }.
-//
-//  Logical operators:
-//      $and - { "$and": [{ }, { }] }.
-//      $or - { "$or": [{ }, { }] }.
-//      $not: { "$not": { } }.
-//
-//  String operators:
-//      $like
-//
-//  Array operators:
-//      $size: - { "$size: "$arrayField" }.
-//      $index:{int} - { "array": { "$index[0]": "foobar" } }.
-//      
-//  Array iteration operators:
-//      $any - { "$any": [{ }, { }] }.
-//      $all - { "$any": [{ }, { }] }.
-//
-//  Semantic operators:
-//      $expr - { "$literal": "$text string..." }
-//      $literal - { "$literal": "$text string..." }
-//      $select - { "$select": "$property" }
-//
-//  Aggregation operators:    
-//      $count
-//      $min - { "$min": "$prop" } | { "$min": "$" }.
-//      $max.
-//      $sum.
-//      $average.
-//
-// Filter Semantics:
-// Arithmetic operators: ($add, $subtract, $divide, $multiply) expect an ARRAY RHS.
-// Arithmetic operators: ($modulo) expect an ARRAY RHS.
-//
-// Projection Pipeline:
-//
-//*
+namespace ModularSystem.Webql.Synthesis;
 
 public class GeneratorOptions
 {
@@ -81,19 +16,42 @@ public class GeneratorOptions
 
     private static MethodInfo DefaultWhere()
     {
-        return typeof(Enumerable)
-            .GetMethods()
-            .Where(x => x.Name == "Where")
-            .Where(x => x.GetParameters().Length == 2)
-            .Where(x => x.GetParameters().ElementAt(1).ParameterType.IsGenericType)
-            .FirstOrDefault()!;
+        var method = typeof(Queryable).GetMethods()
+                .Where(m => m.Name == "Where" && m.IsGenericMethodDefinition)
+                .Select(m => new
+                {
+                    Method = m,
+                    Params = m.GetParameters(),
+                    Args = m.GetGenericArguments()
+                })
+                .Where(x => x.Params.Length == 2
+                            && x.Args.Length == 1
+                            && x.Params[0].ParameterType == typeof(IQueryable<>).MakeGenericType(x.Args[0])
+                            && x.Params[1].ParameterType == typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(x.Args[0], typeof(bool))))
+                .Select(x => x.Method)
+                .Single();
+
+        return method;
     }
 
     private static MethodInfo DefaultSelect()
     {
-        return typeof(Enumerable)
-            .GetMethods()
-            .First(m => m.Name == "Select" && m.IsGenericMethod)!;
+        var method = typeof(Queryable).GetMethods()
+                .Where(m => m.Name == "Select" && m.IsGenericMethodDefinition)
+                .Select(m => new
+                {
+                    Method = m,
+                    Params = m.GetParameters(),
+                    Args = m.GetGenericArguments()
+                })
+                .Where(x => x.Params.Length == 2
+                            && x.Args.Length == 2
+                            && x.Params[0].ParameterType == typeof(IQueryable<>).MakeGenericType(x.Args[0])
+                            && x.Params[1].ParameterType == typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(x.Args[0], x.Args[1])))
+                .Select(x => x.Method)
+                .Single();
+
+        return method;
     }
 }
 
@@ -117,15 +75,15 @@ public class Generator
         return NodeParser.Parse(context, node);
     }
 
-    public TranslatedEnumerable CreateEnumerable(Node node, Type type, IEnumerable queryable)
+    public TranslatedQueryable CreateQueryable(Node node, Type type, IQueryable queryable)
     {
-        var inputType = typeof(IEnumerable<>).MakeGenericType(type);
+        var inputType = typeof(IQueryable<>).MakeGenericType(type);
         var parameter = Expression.Parameter(inputType, "root");
         var context = new Context(inputType, parameter);
         var expression = NodeParser.Parse(context, node);
 
         var projectedType = expression.Type.GenericTypeArguments[0];
-        var outputType = typeof(IEnumerable<>).MakeGenericType(projectedType);
+        var outputType = typeof(IQueryable<>).MakeGenericType(projectedType);
         var lambdaExpressionType = typeof(Func<,>).MakeGenericType(inputType, outputType);
 
         var lambdaExpression = Expression.Lambda(lambdaExpressionType, expression, parameter);
@@ -138,12 +96,12 @@ public class Generator
             throw new Exception();
         }
 
-        return new TranslatedEnumerable(inputType.GenericTypeArguments.First(), outputType.GenericTypeArguments.Last(), transformedQueryable);
+        return new TranslatedQueryable(inputType.GenericTypeArguments.First(), outputType.GenericTypeArguments.Last(), transformedQueryable);
     }
 
-    public TranslatedEnumerable CreateEnumerable<T>(Node node, IEnumerable<T> queryable)
+    public TranslatedQueryable CreateQueryable<T>(Node node, IQueryable<T> queryable)
     {
-        return CreateEnumerable(node, typeof(T), queryable);
+        return CreateQueryable(node, typeof(T), queryable);
     }
 
 }

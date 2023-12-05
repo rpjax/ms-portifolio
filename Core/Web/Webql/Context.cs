@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 
-namespace ModularSystem.Webql;
+namespace ModularSystem.Webql.Synthesis;
 
 public class Context
 {
@@ -39,11 +39,6 @@ public class Context
             }
 
             context = context.ParentContext;
-        }
-
-        if (propertyInfo == null)
-        {
-            throw new GeneratorException($"Property '{name}' not found in the type '{InputType.FullName}'. Ensure the property name is correct and exists in the specified type.", null);
         }
 
         return propertyInfo;
@@ -101,7 +96,7 @@ public class Context
         return
             InputType.IsArray
             || InputType.IsGenericType
-            && typeof(IEnumerable<>).IsAssignableFrom(InputType.GetGenericTypeDefinition());
+            && typeof(IQueryable<>).IsAssignableFrom(InputType.GetGenericTypeDefinition());
     }
 
     public Type? GetQueryableType()
