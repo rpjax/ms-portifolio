@@ -6,6 +6,22 @@ using System.Reflection;
 
 namespace ModularSystem.Mongo.Webql;
 
+public class MongoGeneratorOptions : TranslatorOptions
+{
+    public MongoGeneratorOptions()
+    {
+        TakeProvider = GetTakeProvider();
+    }
+
+
+
+    private MethodInfo GetTakeProvider()
+    {
+        throw new NotImplementedException();
+        //MongoQueryable.Take
+    }
+}
+
 /// <summary>
 /// Represents a WebQL translated queryable object with MongoDB specific logic. <br/>
 /// This class extends the basic WebQL translated queryable functionalities
@@ -31,6 +47,15 @@ public class MongoTranslatedQueryable : TranslatedQueryable
     {
     }
 
+    public override IQueryable AsQueryable()
+    {
+        var method = typeof(Queryable)
+            .GetMethods(BindingFlags.Static | BindingFlags.Public)
+            .First(m => m.Name == "AsQueryable" && !m.IsGenericMethod);
+
+        return (IMongoQueryable)method.Invoke(null, new[] { Body })!;
+    }
+
     /// <summary>
     /// Asynchronously converts the query results to a list.
     /// </summary>
@@ -42,7 +67,7 @@ public class MongoTranslatedQueryable : TranslatedQueryable
             .Where(x => x.Name == "ToListAsync")
             .First()
             .MakeGenericMethod(OutputType);
-
+        var foo = AsQueryable();
         var token = default(CancellationToken);
         var task = (Task)method.Invoke(null, new object[] { AsQueryable(), token })!;
 

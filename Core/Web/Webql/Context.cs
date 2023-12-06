@@ -8,12 +8,44 @@ public class Context
     public Type InputType { get; }
     public Expression InputExpression { get; }
     public Context? ParentContext { get; }
+    public VariableNameProvider VariableNameProvider { get; }
 
-    public Context(Type inputType, Expression inputExpression, Context? parentContext = null)
+    public Context(Type inputType, Expression inputExpression, Context? parentContext = null, VariableNameProvider? variableNameProvider = null)
     {
         InputType = inputType;
         InputExpression = inputExpression;
         ParentContext = parentContext;
+        VariableNameProvider = variableNameProvider ?? new();
+    }
+
+    public bool IsVoid()
+    {
+        return InputType == typeof(void);
+    }
+
+    public bool IsQueryable()
+    {
+        return
+            InputType.IsArray
+            || InputType.IsGenericType
+            && typeof(IEnumerable<>).IsAssignableFrom(InputType.GetGenericTypeDefinition());
+    }
+
+    public Type? GetQueryableType()
+    {
+        if (IsQueryable())
+        {
+            if (InputType!.IsArray)
+            {
+                return InputType.GetElementType();
+            }
+            else
+            {
+                return InputType.GetGenericArguments().FirstOrDefault();
+            }
+        }
+
+        return null;
     }
 
     public PropertyInfo? GetPropertyInfo(string name)
@@ -42,6 +74,26 @@ public class Context
         }
 
         return propertyInfo;
+    }
+
+    public Expression AsQueryable()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Expression AsEnumerable()
+    {
+        throw new NotImplementedException();
+    }
+
+    public string CreateParameterName()
+    {
+        return "x";
+    }
+
+    public ParameterExpression CreateParameterExpression()
+    {
+        return Expression.Parameter(InputType);
     }
 
     public Context AccessProperty(string propertyName, bool useParentContexts = true)
@@ -86,44 +138,9 @@ public class Context
         return new Context(subType, expression, this);
     }
 
-    public bool IsVoid()
-    {
-        return InputType == typeof(void);
-    }
-
-    public bool IsQueryable()
-    {
-        return
-            InputType.IsArray
-            || InputType.IsGenericType
-            && typeof(IQueryable<>).IsAssignableFrom(InputType.GetGenericTypeDefinition());
-    }
-
-    public Type? GetQueryableType()
-    {
-        if (IsQueryable())
-        {
-            if (InputType!.IsArray)
-            {
-                return InputType.GetElementType();
-            }
-            else
-            {
-                return InputType.GetGenericArguments().FirstOrDefault();
-            }
-        }
-
-        return null;
-    }
-
-    public ParameterExpression CreateParameterExpression()
-    {
-        return Expression.Parameter(InputType);
-    }
-
-    public string CreateParameterName()
-    {
-        return "x";
-    }
 }
 
+public class VariableNameProvider
+{
+    private static readonly char[] Alfabet = new char[] { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' };
+}

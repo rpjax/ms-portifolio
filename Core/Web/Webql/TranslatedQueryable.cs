@@ -72,7 +72,7 @@ public class TranslatedQueryable : IQueryable
     /// Converts the queryable object to an IQueryable.
     /// </summary>
     /// <returns>An IQueryable representation of the query.</returns>
-    public IQueryable AsQueryable()
+    public virtual IQueryable AsQueryable()
     {
         if (QueryableConversion != null)
         {
@@ -90,7 +90,7 @@ public class TranslatedQueryable : IQueryable
     /// Converts the queryable object to an IEnumerable.
     /// </summary>
     /// <returns>An IEnumerable representation of the query.</returns>
-    public IEnumerable AsEnumerable()
+    public virtual IEnumerable AsEnumerable()
     {
         if (EnumerableConversion != null)
         {
@@ -138,7 +138,7 @@ public class TranslatedQueryable : IQueryable
                         m.GetParameters()[0].ParameterType.IsGenericType &&
                         m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IQueryable<>))
             .MakeGenericMethod(OutputType);
-
+ 
         return (int)method.Invoke(null, new object[] { AsQueryable() })!;
     }
 

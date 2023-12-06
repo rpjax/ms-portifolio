@@ -3,19 +3,19 @@ using ModularSystem.Webql.Synthesis;
 
 namespace ModularSystem.Mongo.Webql;
 
-public class MongoGenerator : Generator
+public class MongoGenerator : Translator
 {
     public MongoGenerator() : base(GetOptions())
     {
 
     }
 
-    public MongoGenerator(GeneratorOptions options) : base(options)
+    public MongoGenerator(TranslatorOptions options) : base(options)
     {
 
     }
 
-    public static GeneratorOptions GetOptions()
+    public static TranslatorOptions GetOptions()
     {
         return new()
         {
@@ -25,11 +25,11 @@ public class MongoGenerator : Generator
 
     public MongoTranslatedQueryable CreateMongoQueryable(Node node, Type type, IQueryable queryable)
     {
-        return new MongoTranslatedQueryable(CreateQueryable(node, type, queryable));
+        return new MongoTranslatedQueryable(TranslateToQueryable(node, type, queryable));
     }
 
     public MongoTranslatedQueryable CreateMongoQueryable<T>(Node node, IQueryable<T> queryable)
     {
-        return new MongoTranslatedQueryable(CreateQueryable(node, typeof(T), queryable));
+        return new MongoTranslatedQueryable(TranslateToQueryable(node, typeof(T), queryable));
     }
 }
