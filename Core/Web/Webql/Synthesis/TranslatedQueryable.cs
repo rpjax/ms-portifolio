@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using MongoDB.Driver.Linq;
+using System.Collections;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -9,7 +10,7 @@ namespace ModularSystem.Webql.Synthesis;
 /// This class provides the capability to interact with query results as both IQueryable and IEnumerable, <br/>
 /// supporting operations like enumeration, conversion to array, and count operations.
 /// </summary>
-public class TranslatedQueryable : IQueryable
+public class TranslatedQueryable : IQueryable<object>
 {
     /// <summary>
     /// Gets the input type of the query.
@@ -35,9 +36,6 @@ public class TranslatedQueryable : IQueryable
     /// <inheritdoc/>
     public IQueryProvider Provider => AsQueryable().Provider;
 
-    private IQueryable? QueryableConversion { get; set; }
-    private IEnumerable? EnumerableConversion { get; set; }
-
     /// <summary>
     /// Constructs a new instance of TranslatedQueryable with specified input and output types and a query body.
     /// </summary>
@@ -62,46 +60,41 @@ public class TranslatedQueryable : IQueryable
         Body = queryable.Body;
     }
 
-    /// <inheritdoc/>
-    public IEnumerator GetEnumerator()
-    {
-        return AsEnumerable().GetEnumerator();
-    }
-
     /// <summary>
-    /// Converts the queryable object to an IQueryable.
+    /// Converts the queryable object to an <see cref="IEnumerable"/>. This method enables the conversion of the queryable object into an enumerable collection, <br/>
+    /// facilitating operations like enumeration and iteration that are standard to collections in .NET.
     /// </summary>
-    /// <returns>An IQueryable representation of the query.</returns>
-    public virtual IQueryable AsQueryable()
-    {
-        if (QueryableConversion != null)
-        {
-            return QueryableConversion;
-        }
-
-        var method = typeof(Queryable)
-            .GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .First(m => m.Name == "AsQueryable" && !m.IsGenericMethod);
-
-        return QueryableConversion = (IQueryable)method.Invoke(null, new[] { AsEnumerable() })!;
-    }
-
-    /// <summary>
-    /// Converts the queryable object to an IEnumerable.
-    /// </summary>
-    /// <returns>An IEnumerable representation of the query.</returns>
+    /// <returns>An <see cref="IEnumerable"/> representation of the query, allowing for enumeration and iteration over the query results.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the method invocation or conversion fails.</exception>
     public virtual IEnumerable AsEnumerable()
     {
-        if (EnumerableConversion != null)
-        {
-            return EnumerableConversion;
-        }
-
         var method = typeof(Enumerable)
             .GetMethod("AsEnumerable")!
             .MakeGenericMethod(OutputType);
 
-        return (EnumerableConversion = (IEnumerable)method.Invoke(null, new object[] { Body })!);
+        return (IEnumerable)method.Invoke(null, new object[] { Body })!;
+    }
+
+    /// <summary>
+    /// Converts the queryable object to an <see cref="IQueryable"/> with the <see cref="OutputType"/> as the generic type parameter. <br/>
+    /// This method enables the seamless integration of the queryable object with standard LINQ operations.
+    /// </summary>
+    /// <returns>An <see cref="IQueryable"/> representation of the query, enabling standard LINQ query operations.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the method invocation or conversion fails.</exception>
+    public virtual IQueryable AsQueryable()
+    {
+        var method = typeof(Queryable)
+            .GetMethods(BindingFlags.Static | BindingFlags.Public)
+            .First(m => m.Name == "AsQueryable" && !m.IsGenericMethod)
+            .MakeGenericMethod(OutputType);
+
+        return (IQueryable)method.Invoke(null, new[] { Body })!;
+    }
+
+    /// <inheritdoc/>
+    public IEnumerator GetEnumerator()
+    {
+        return AsEnumerable().GetEnumerator();
     }
 
     /// <summary>
@@ -138,7 +131,7 @@ public class TranslatedQueryable : IQueryable
                         m.GetParameters()[0].ParameterType.IsGenericType &&
                         m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IQueryable<>))
             .MakeGenericMethod(OutputType);
- 
+
         return (int)method.Invoke(null, new object[] { AsQueryable() })!;
     }
 
@@ -159,5 +152,9 @@ public class TranslatedQueryable : IQueryable
         return (long)method.Invoke(null, new object[] { AsQueryable() })!;
     }
 
-}
+    IEnumerator<object> IEnumerable<object>.GetEnumerator()
+    {
+        return (IEnumerator<object>)AsEnumerable().GetEnumerator();
+    }
 
+}

@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.Collections;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace ModularSystem.Webql.Synthesis;
@@ -25,10 +26,11 @@ public class Context
 
     public bool IsQueryable()
     {
-        return
-            InputType.IsArray
-            || InputType.IsGenericType
-            && typeof(IEnumerable<>).IsAssignableFrom(InputType.GetGenericTypeDefinition());
+        return 
+            typeof(IEnumerable).IsAssignableFrom(InputType)
+            || InputType.GetInterfaces().Any(i =>
+               i.IsGenericType &&
+               i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
     }
 
     public Type? GetQueryableType()

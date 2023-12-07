@@ -3,27 +3,71 @@ using System.Linq.Expressions;
 
 namespace ModularSystem.Webql.Synthesis;
 
+/// <summary>
+/// Represents a translator for WebQL operators. This class facilitates the translation of various WebQL operators <br/>
+/// into their corresponding LINQ expressions.
+/// </summary>
 public class OperatorTranslator
 {
+    /// <summary>
+    /// Gets the options for the translator.
+    /// </summary>
     protected TranslatorOptions Options { get; }
-    protected NodeTranslator NodeParser { get; }
-    protected ArithmeticOperatorsTranslator ArithmeticOperatorsTranslator { get; }
-    protected RelationalOperatorsTranslator RelationalOperatorsTranslator { get; }
-    protected LogicalOperatorsTranslator LogicalOperatorTranslator { get; }
-    protected SemanticOperatorsTranslator SemanticOperatorsTranslator { get; }
-    protected QueryableOperatorsTranslator QueryableOperatorsParser { get; }
 
+    /// <summary>
+    /// An instance of NodeTranslator used for node parsing.
+    /// </summary>
+    protected NodeTranslator NodeTranslator { get; }
+
+    /// <summary>
+    /// A translator for arithmetic operators.
+    /// </summary>
+    protected ArithmeticOperatorsTranslator ArithmeticOperatorsTranslator { get; }
+
+    /// <summary>
+    /// A translator for relational operators.
+    /// </summary>
+    protected RelationalOperatorsTranslator RelationalOperatorsTranslator { get; }
+
+    /// <summary>
+    /// A translator for logical operators.
+    /// </summary>
+    protected LogicalOperatorsTranslator LogicalOperatorTranslator { get; }
+
+    /// <summary>
+    /// A translator for semantic operators.
+    /// </summary>
+    protected SemanticOperatorsTranslator SemanticOperatorsTranslator { get; }
+
+    /// <summary>
+    /// A translator for queryable operators.
+    /// </summary>
+    protected QueryableOperatorsTranslator QueryableOperatorsTranslator { get; }
+
+    /// <summary>
+    /// Initializes a new instance of the OperatorTranslator class with the specified options and node parser.
+    /// </summary>
+    /// <param name="options">The translator options.</param>
+    /// <param name="nodeParser">The node parser to be used.</param>
     public OperatorTranslator(TranslatorOptions options, NodeTranslator nodeParser)
     {
         Options = options;
-        NodeParser = nodeParser;
-        ArithmeticOperatorsTranslator = new(options, NodeParser);
-        RelationalOperatorsTranslator = new(options, NodeParser);
-        LogicalOperatorTranslator = new(options, NodeParser);
-        SemanticOperatorsTranslator = new(options, NodeParser);
-        QueryableOperatorsParser = new(options, NodeParser);
+        NodeTranslator = nodeParser;
+        ArithmeticOperatorsTranslator = new(options, NodeTranslator);
+        RelationalOperatorsTranslator = new(options, NodeTranslator);
+        LogicalOperatorTranslator = new(options, NodeTranslator);
+        SemanticOperatorsTranslator = new(options, NodeTranslator);
+        QueryableOperatorsTranslator = new(options, NodeTranslator);
     }
 
+    /// <summary>
+    /// Translates a WebQL operator and its associated node into a LINQ expression.
+    /// </summary>
+    /// <param name="context">The translation context.</param>
+    /// <param name="operator">The WebQL operator to be translated.</param>
+    /// <param name="node">The node associated with the operator.</param>
+    /// <returns>The translated LINQ expression.</returns>
+    /// <exception cref="Exception">Thrown if the operator is unknown or unsupported.</exception>
     public Expression Translate(Context context, OperatorV2 @operator, Node node)
     {
         switch (@operator)
@@ -85,41 +129,35 @@ public class OperatorTranslator
 
             // Queryable Operators
             case OperatorV2.Filter:
-                return QueryableOperatorsParser.TranslateFilter(context, node);
+                return QueryableOperatorsTranslator.TranslateFilter(context, node);
 
             case OperatorV2.Project:
-                return QueryableOperatorsParser.ParseProject(context, node);
+                return QueryableOperatorsTranslator.TranslateProject(context, node);
 
             case OperatorV2.Limit:
-                return QueryableOperatorsParser.ParseLimit(context, node);
+                return QueryableOperatorsTranslator.TranslateLimit(context, node);
 
             case OperatorV2.Skip:
-                return QueryableOperatorsParser.ParseSkip(context, node);
+                return QueryableOperatorsTranslator.TranslateSkip(context, node);
 
             case OperatorV2.Count:
-                return QueryableOperatorsParser.ParseCount(context, node);
+                return QueryableOperatorsTranslator.TranslateCount(context, node);
 
             case OperatorV2.Index:
                 break;
 
             case OperatorV2.Any:
-                return QueryableOperatorsParser.ParseAny(context, node);
+                return QueryableOperatorsTranslator.TranslateAny(context, node);
 
             case OperatorV2.All:
-                return QueryableOperatorsParser.ParseAll(context, node);
+                return QueryableOperatorsTranslator.TranslateAll(context, node);
 
-            // Aggregation Operators
+            // TODO:
+            // Aggregation Operators 
             case OperatorV2.Min:
-                return QueryableOperatorsParser.ParseMin(context, node);
-
             case OperatorV2.Max:
-                break;
             case OperatorV2.Sum:
-                break;
             case OperatorV2.Average:
-                break;
-
-            default:
                 throw new Exception("Unknown or unsupported operator.");
         }
 
@@ -560,304 +598,42 @@ public class QueryableOperatorsTranslator
 
     public Expression TranslateFilter(Context context, Node node)
     {
-        return Options.LinqProvider.TranslateWhereOperator(context, NodeTranslator, node);
+        return Options.LinqProvider.TranslateFilterOperator(context, NodeTranslator, node);
     }
 
-    public Expression ParseProject(Context context, Node node)
+    public Expression TranslateProject(Context context, Node node)
     {
-        //      call expression (IQueryable<T>.Select()) arguments:
-        //          constant expression (IEnumerable<T>)
-        //          quoat expression operand:
-        //              lambda expression (Func<T, projectedT>) body:
-        //                  new expression:
-        //                      members: in order, the lhs of the assignments.
-        //                      arguments: in order, the rhs of the assignments.
-
-        if (!context.IsQueryable())
-        {
-            throw new Exception("Context must be IQueryable");
-        }
-        if (node is not ObjectNode objectNode)
-        {
-            throw new Exception("");
-        }
-
-        var queryableType = context.GetQueryableType();
-
-        if (queryableType == null)
-        {
-            throw new Exception();
-        }
-
-        var subContextParameter = Expression.Parameter(queryableType, context.CreateParameterName());
-        var subContext = new Context(queryableType, subContextParameter, context);
-
-        // Cria uma lista para armazenar as associações de propriedades do tipo projetado
-        var propertyBindings = new List<MemberBinding>();
-
-        var anonymousTypeProperties = new List<AnonymousPropertyDefinition>(objectNode.Expressions.Length);
-        var propertySelectorExpressions = new List<Expression>(objectNode.Expressions.Length);
-
-        // Itera sobre cada propriedade na expressão de projeção
-        foreach (var projectionExpression in objectNode.Expressions)
-        {
-            // Obtém o nome da propriedade e a expressão associada
-            var propertyName = projectionExpression.Lhs.Value;
-            var propertyExpression = NodeTranslator.Translate(subContext, projectionExpression.Rhs.Value);
-
-            anonymousTypeProperties.Add(new(propertyName, propertyExpression.Type));
-            propertySelectorExpressions.Add(propertyExpression);
-        }
-
-        var typeCreationOptions = new AnonymousTypeCreationOptions()
-        {
-            CreateDefaultConstructor = true,
-            CreateSetters = true
-        };
-        var projectedType = TypeHelper.CreateAnonymousType(anonymousTypeProperties.ToArray(), typeCreationOptions);
-
-        if (projectedType == null)
-        {
-            throw new Exception();
-        }
-
-        for (int i = 0; i < anonymousTypeProperties.Count; i++)
-        {
-            var propDefinition = anonymousTypeProperties[i];
-            var propertyExpression = propertySelectorExpressions[i];
-
-            var propertyInfo = projectedType.GetProperty(propDefinition.Name);
-
-            if (propertyInfo == null)
-            {
-                throw new Exception();
-            }
-
-            // Cria um binding para a propriedade do novo tipo
-            propertyBindings.Add(Expression.Bind(propertyInfo, propertyExpression));
-        }
-
-        // Cria a expressão 'new projectedType { Prop1 = ..., Prop2 = ..., ... }'
-        var newExpression = Expression.MemberInit(Expression.New(projectedType), propertyBindings);
-
-        // Cria a expressão lambda 'x => new projectedType { Prop1 = ..., Prop2 = ..., ... }'
-        var lambda = Expression.Lambda(newExpression, subContextParameter);
-
-        // Cria a expressão de chamada ao método 'Select'
-        var selectMethod = Options.ProjectProvider
-            .MakeGenericMethod(new[] { queryableType, projectedType });
-
-        return Expression.Call(selectMethod, context.InputExpression, lambda);
+        return Options.LinqProvider.TranslateProjectOperator(context, NodeTranslator, node);
     }
 
-    public Expression ParseLimit(Context context, Node node)
+    public Expression TranslateLimit(Context context, Node node)
     {
-        if (!context.IsQueryable())
-        {
-            throw new Exception("Context must be IQueryable");
-        }
-        if (node is not LiteralNode literalNode)
-        {
-            throw new Exception("");
-        }
-
-        var queryableType = context.GetQueryableType();
-
-        if (queryableType == null)
-        {
-            throw new Exception();
-        }
-
-        var valueExpression = null as Expression;
-
-        if (Options.TakeSupportsInt64)
-        {
-            if (!long.TryParse(literalNode.Value, out long longValue))
-            {
-                throw new Exception();
-            }
-
-            valueExpression = Expression.Constant(longValue, typeof(long));
-        }
-        else
-        {
-            if (!int.TryParse(literalNode.Value, out int intValue))
-            {
-                throw new Exception();
-            }
-
-            valueExpression = Expression.Constant(intValue, typeof(int));
-        }
-
-        var methodInfo = Options.TakeProvider
-            .MakeGenericMethod(new[] { queryableType });
-
-        return Expression.Call(methodInfo, context.InputExpression, valueExpression);
+        return Options.LinqProvider.TranslateLimitOperator(context, NodeTranslator, node);
     }
 
-    public Expression ParseSkip(Context context, Node node)
+    public Expression TranslateSkip(Context context, Node node)
     {
-        if (!context.IsQueryable())
-        {
-            throw new Exception("Context must be IQueryable");
-        }
-        if (node is not LiteralNode literalNode)
-        {
-            throw new Exception("");
-        }
-
-        var queryableType = context.GetQueryableType();
-
-        if (queryableType == null)
-        {
-            throw new Exception();
-        }
-
-        var valueExpression = null as Expression;
-
-        if (Options.SkipSupportsInt64)
-        {
-            if (!long.TryParse(literalNode.Value, out long longValue))
-            {
-                throw new Exception();
-            }
-
-            valueExpression = Expression.Constant(longValue, typeof(long));
-        }
-        else
-        {
-            if (!int.TryParse(literalNode.Value, out int intValue))
-            {
-                throw new Exception();
-            }
-
-            valueExpression = Expression.Constant(intValue, typeof(int));
-        }
-
-        var methodInfo = Options.SkipProvider
-            .MakeGenericMethod(new[] { queryableType });
-
-        return Expression.Call(methodInfo, context.InputExpression, valueExpression);
+        return Options.LinqProvider.TranslateSkipOperator(context, NodeTranslator, node);
     }
 
-    public Expression ParseCount(Context context, Node node)
+    public Expression TranslateCount(Context context, Node node)
     {
-        if (!context.IsQueryable())
-        {
-            throw new Exception("Context must be IQueryable");
-        }
-        if (node is not LiteralNode literalNode)
-        {
-            throw new Exception("");
-        }
-
-        var queryableType = context.GetQueryableType();
-
-        if (queryableType == null)
-        {
-            throw new Exception();
-        }
-
-        var methodInfo = Options.CountProvider
-            .MakeGenericMethod(new[] { queryableType });
-
-        return Expression.Call(methodInfo, context.InputExpression);
+        return Options.LinqProvider.TranslateCountOperator(context, NodeTranslator, node);
     }
 
-    public Expression ParseAny(Context context, Node node)
+    public Expression TranslateAny(Context context, Node node)
     {
-        if (!context.IsQueryable())
-        {
-            throw new Exception();
-        }
-
-        var subContextType = context.GetQueryableType();
-
-        if (subContextType == null)
-        {
-            throw new Exception();
-        }
-
-        var subContextExpression = Expression.Parameter(subContextType, "x");
-        var subContext = new Context(subContextType, subContextExpression, context);
-        var lambdaParameter = subContextExpression;
-        var lambdaBody = NodeTranslator.Translate(subContext, node);
-        var lambda = Expression.Lambda(lambdaBody, lambdaParameter);
-
-        var args = new Expression[]
-        {
-            context.InputExpression,
-            lambda
-        };
-        var typeArgs = new Type[] { subContextType };
-
-        return Expression.Call(typeof(Enumerable), "Any", typeArgs, args);
+        return Options.LinqProvider.TranslateAnyOperator(context, NodeTranslator, node);
     }
 
-    public Expression ParseAll(Context context, Node node)
+    public Expression TranslateAll(Context context, Node node)
     {
-        if (!context.IsQueryable())
-        {
-            throw new Exception();
-        }
-
-        var subContextType = context.GetQueryableType();
-
-        if (subContextType == null)
-        {
-            throw new Exception();
-        }
-
-        var subContextExpression = Expression.Parameter(subContextType, "x");
-        var subContext = new Context(subContextType, subContextExpression, context);
-        var lambdaParameter = subContextExpression;
-        var lambdaBody = NodeTranslator.Translate(subContext, node);
-        var lambda = Expression.Lambda(lambdaBody, lambdaParameter);
-
-        var args = new Expression[]
-        {
-            context.InputExpression,
-            lambda
-        };
-        var typeArgs = new Type[] { subContextType };
-
-        return Expression.Call(typeof(Enumerable), "All", typeArgs, args);
+        return Options.LinqProvider.TranslateAllOperator(context, NodeTranslator, node);
     }
 
-    public Expression ParseMin(Context context, Node node)
+    public Expression TranslateMin(Context context, Node node)
     {
-        if (!context.IsQueryable())
-        {
-            throw new Exception();
-        }
-        if (context.InputExpression == null)
-        {
-            throw new Exception();
-        }
-
-        var subContextType = context.GetQueryableType();
-
-        if (subContextType == null)
-        {
-            throw new Exception();
-        }
-
-        var subContextExpression = Expression.Parameter(subContextType, "x");
-        var subContext = new Context(subContextType, subContextExpression, context);
-        var lambdaParameter = subContextExpression;
-        var lambdaBody = NodeTranslator.Translate(subContext, node);
-        var lambda = Expression.Lambda(lambdaBody, lambdaParameter);
-
-        var methodInfo = Options.MaxProvider.MakeGenericMethod(subContextType, lambdaBody.Type);
-
-        if (methodInfo == null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        var methodArgs = new Expression[] { context.InputExpression, lambda };
-
-        return Expression.Call(null, methodInfo, methodArgs);
+        return Options.LinqProvider.TranslateMinOperator(context, NodeTranslator, node);
     }
 
 }

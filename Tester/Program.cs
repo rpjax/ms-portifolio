@@ -3,8 +3,6 @@ using ModularSystem.Mongo;
 using ModularSystem.Mongo.Webql;
 using ModularSystem.Webql;
 using ModularSystem.Webql.Synthesis;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 
 namespace ModularSystem.Tester;
 
@@ -21,24 +19,21 @@ public static class Program
     public static void Main()
     {
         Initializer.Run(new() { InitConsoleLogger = true });
-        var json = "{ \"$filter\": { \"cpf\": { \"$equals\": \"11548128988\" } } }";
+        var json = "{ \r\n    \"$filter\": { \r\n        \"$and\": [\r\n            { \"cpf\": { \"$equals\": \"11548128988\" } },\r\n            { \"firstName\": { \"$equals\": \"Rodrigo\" } },\r\n            { \r\n                \"surnames\": { \r\n                    \"$any\": { \"$equals\": \"Jacques\" } \r\n                }\r\n            }\r\n        ] \r\n    },\r\n    \"$project\": {\r\n        \"Nome\": { \"$select\": \"$firstName\" },\r\n        \"Sobrenomes\": {\"$select\": \"$surnames\" }\r\n    }\r\n\r\n}";
        
-        foreach (var item in typeof(MongoQueryable).GetMethods())
-        {
-            Console.WriteLine($"{item.ReturnType.Name} {item.Name}()");
-        }
 
         var parser = new Parser();
         var syntaxTree = parser.Parse(json);
-        var generator = new Translator();
+        var translator = new Translator(new() { LinqProvider = new MongoLinqProvider() });
 
         using var service = new MyDataService();
         var serviceQueryable = service.AsQueryable();
+    
+        var translatedQueryable = translator.TranslateToQueryable(syntaxTree, service.AsQueryable());
 
-        var translatedQueryable = generator.TranslateToQueryable(syntaxTree, service.AsQueryable());
         var mongoQueryable = new MongoTranslatedQueryable(translatedQueryable);
 
-        //var data = mongoQueryable.ToListAsync().Result;
+        var data = mongoQueryable.ToListAsync().Result;
 
         Console.WriteLine(JsonSerializerSingleton.Serialize(data));
     }

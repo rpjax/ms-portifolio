@@ -19,7 +19,8 @@ public class MongoTranslatedQueryable : TranslatedQueryable
     /// <param name="inputType">The type of input data for the query.</param>
     /// <param name="outputType">The type of output data from the query.</param>
     /// <param name="body">The query body or expression tree.</param>
-    public MongoTranslatedQueryable(Type inputType, Type outputType, object body) : base(inputType, outputType, body)
+    public MongoTranslatedQueryable(Type inputType, Type outputType, object body)
+        : base(inputType, outputType, body)
     {
     }
 
@@ -31,13 +32,15 @@ public class MongoTranslatedQueryable : TranslatedQueryable
     {
     }
 
-    public override IQueryable AsQueryable()
+    /// <summary>
+    /// Converts the queryable object to an <see cref="IMongoQueryable"/> using the <see cref="OutputType"/> as the generic type parameter. <br/>
+    /// This method adapts the queryable object to be compatible with MongoDB's LINQ provider, allowing seamless integration and query operations against MongoDB collections.
+    /// </summary>
+    /// <returns>An <see cref="IMongoQueryable"/> representation of the query, enabling the use of MongoDB's LINQ capabilities for querying MongoDB collections.</returns>
+    /// <exception cref="InvalidCastException">Thrown if the conversion to <see cref="IMongoQueryable"/> is not successful.</exception>
+    public IMongoQueryable AsMongoQueryable()
     {
-        var method = typeof(Queryable)
-            .GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .First(m => m.Name == "AsQueryable" && !m.IsGenericMethod);
-
-        return (IMongoQueryable)method.Invoke(null, new[] { Body })!;
+        return (IMongoQueryable)AsQueryable();
     }
 
     /// <summary>
@@ -51,7 +54,7 @@ public class MongoTranslatedQueryable : TranslatedQueryable
             .Where(x => x.Name == "ToListAsync")
             .First()
             .MakeGenericMethod(OutputType);
-        var foo = AsQueryable();
+
         var token = default(CancellationToken);
         var task = (Task)method.Invoke(null, new object[] { AsQueryable(), token })!;
 

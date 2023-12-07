@@ -71,21 +71,42 @@ namespace ModularSystem.Webql.Synthesis;
 // Projection Pipeline:
 //
 //*
+
 /// <summary>
-/// The main translator for webql nodes.
+/// A central component for translating WebQL nodes into corresponding LINQ expressions. This class handles <br/>
+/// the conversion of different types of nodes, such as literal, object, and expression nodes, into expressions <br/>
+/// that can be executed in a .NET environment.
 /// </summary>
 public class NodeTranslator
 {
-    private TranslatorOptions Options { get; }
+    /// <summary>
+    /// Provides access to translation options and configurations.
+    /// </summary>
+    public TranslatorOptions Options { get; }
+
+    /// <summary>
+    /// Manages the translation of individual operators within nodes.
+    /// </summary>
     private OperatorTranslator OperatorTranslator { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the NodeTranslator class with specified translation options.
+    /// </summary>
+    /// <param name="options">Configuration options for the translator.</param>
     public NodeTranslator(TranslatorOptions options)
     {
         Options = options;
-        OperatorTranslator = new (options, this);
+        OperatorTranslator = new OperatorTranslator(options, this);
     }
 
-    protected internal Expression Translate(Context context, Node node)
+    /// <summary>
+    /// Translates a WebQL node into a LINQ Expression.
+    /// </summary>
+    /// <param name="context">The current translation context.</param>
+    /// <param name="node">The WebQL node to be translated.</param>
+    /// <returns>The LINQ Expression equivalent of the given node.</returns>
+    /// <exception cref="Exception">Thrown when the node type is unrecognized.</exception>
+    public Expression Translate(Context context, Node node)
     {
         if (node is LiteralNode literal)
         {
@@ -103,7 +124,14 @@ public class NodeTranslator
         throw new Exception();
     }
 
-    protected internal Expression ParseLiteralReference(Context context, LiteralNode node)
+    /// <summary>
+    /// Parses a literal reference within a WebQL node.
+    /// </summary>
+    /// <param name="context">The current translation context.</param>
+    /// <param name="node">The literal node to parse.</param>
+    /// <returns>An Expression representing the literal reference.</returns>
+    /// <exception cref="Exception">Thrown if the literal reference is invalid.</exception>
+    protected Expression ParseLiteralReference(Context context, LiteralNode node)
     {
         var propPath = node.Value;
 
@@ -139,7 +167,13 @@ public class NodeTranslator
         return subContext.InputExpression;
     }
 
-    private Expression ParseLiteral(Context context, LiteralNode node)
+    /// <summary>
+    /// Parses a literal node to a corresponding Expression.
+    /// </summary>
+    /// <param name="context">The current translation context.</param>
+    /// <param name="node">The literal node to parse.</param>
+    /// <returns>An Expression representing the literal.</returns>
+    protected Expression ParseLiteral(Context context, LiteralNode node)
     {
         var type = context.InputType;
 
@@ -158,7 +192,13 @@ public class NodeTranslator
         return Expression.Constant(value, type);
     }
 
-    private Expression ParseObject(Context context, ObjectNode node)
+    /// <summary>
+    /// Parses an object node to a corresponding Expression.
+    /// </summary>
+    /// <param name="context">The current translation context.</param>
+    /// <param name="node">The object node to parse.</param>
+    /// <returns>An Expression representing the object.</returns>
+    protected Expression ParseObject(Context context, ObjectNode node)
     {
         var expression = null as Expression;
 
@@ -177,7 +217,13 @@ public class NodeTranslator
         return expression;
     }
 
-    private Expression ParseExpression(Context context, ExpressionNode node)
+    /// <summary>
+    /// Parses an expression node to a corresponding Expression.
+    /// </summary>
+    /// <param name="context">The current translation context.</param>
+    /// <param name="node">The expression node to parse.</param>
+    /// <returns>An Expression representing the expression node.</returns>
+    protected Expression ParseExpression(Context context, ExpressionNode node)
     {
         var lhs = node.Lhs.Value;
         var rhs = node.Rhs.Value;  
@@ -191,7 +237,13 @@ public class NodeTranslator
         return OperatorTranslator.Translate(context, ParseOperatorString(lhs), rhs);
     }
 
-    private Expression ParseMemberAccess(Context context, ExpressionNode node)
+    /// <summary>
+    /// Parses member access within an expression node.
+    /// </summary>
+    /// <param name="context">The current translation context.</param>
+    /// <param name="node">The expression node representing member access.</param>
+    /// <returns>An Expression representing the member access.</returns>
+    protected Expression ParseMemberAccess(Context context, ExpressionNode node)
     {
         var memberName = node.Lhs.Value;
         var subContext = context.AccessProperty(memberName);
@@ -199,7 +251,23 @@ public class NodeTranslator
         return Translate(subContext, node.Rhs.Value);
     }
 
-    private OperatorV2 ParseOperatorString(string value)
+    /// <summary>
+    /// Converts an <see cref="OperatorV2"/> enum value into a string representation.
+    /// </summary>
+    /// <param name="op">The OperatorV2 enum value.</param>
+    /// <returns>The string representation of the operator.</returns>
+    protected string StringifyOperator(OperatorV2 op)
+    {
+        return $"${op.ToString().ToCamelCase()}";
+    }
+
+    /// <summary>
+    /// Converts a string representation of an operator into its corresponding <see cref="OperatorV2"/> enum value.
+    /// </summary>
+    /// <param name="value">The string representation of the operator.</param>
+    /// <returns>The OperatorV2 enum value.</returns>
+    /// <exception cref="GeneratorException">Thrown when the operator string is not recognized.</exception>
+    protected OperatorV2 ParseOperatorString(string value)
     {
         var operators = Enum.GetValues(typeof(OperatorV2));
 
@@ -212,11 +280,6 @@ public class NodeTranslator
         }
 
         throw new GeneratorException($"The operator '{value}' is not recognized or supported. Please ensure it is a valid operator.", null);
-    }
-
-    private string StringifyOperator(OperatorV2 op)
-    {
-        return $"${op.ToString().ToCamelCase()}";
     }
 
 }

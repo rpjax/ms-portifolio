@@ -4,7 +4,7 @@ using System.Reflection;
 namespace ModularSystem.Webql.Analysis;
 
 /// <summary>
-/// Represents the semantic context within the analysis phase of a WebQL query.
+/// Represents the semantic context within the analysis phase of a WebQL query. <br/>
 /// This class holds the contextual information required to understand and interpret each part of the syntax tree.
 /// </summary>
 public class SemanticContext
