@@ -1,4 +1,5 @@
-﻿using ModularSystem.Core;
+﻿using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using ModularSystem.Core;
 using System.Reflection;
 
 namespace ModularSystem.Webql.Analysis;
@@ -45,10 +46,28 @@ public class SemanticContext
     /// <exception cref="Exception">Thrown if the property is not found.</exception>
     public PropertyInfo? GetPropertyInfo(string name)
     {
-        var propertyInfo = Type
-            .GetProperties()
-            .Where(x => x.Name == name || x.Name.ToLower() == name.ToLower())
-            .FirstOrDefault();
+        var propertyInfo = null as PropertyInfo;
+        var context = this;
+
+        while (true)
+        {
+            propertyInfo = Type
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(x => x.Name == name || x.Name.ToLower() == name.ToLower())
+                .FirstOrDefault();
+
+            if (propertyInfo != null)
+            {
+                break;
+            }
+
+            if (context.ParentContext == null)
+            {
+                break;
+            }
+
+            context = context.ParentContext;
+        }
 
         return propertyInfo;
     }

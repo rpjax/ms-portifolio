@@ -84,7 +84,9 @@ public enum OperatorType
     Arithmetic,
     Relational,
     Logical,
-    Array
+    Semantic,
+    Queryable,
+    Aggregation
 }
 
 public enum ArithmeticOperator

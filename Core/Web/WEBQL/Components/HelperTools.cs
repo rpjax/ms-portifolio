@@ -92,68 +92,53 @@ public static class HelperTools
         throw new GeneratorException($"The operator '{value}' is not recognized or supported. Please ensure it is a valid operator.", null);
     }
 
-    public static Type EvaluateOperatorReturnType(OperatorV2 op)
+    public static OperatorType GetOperatorType(OperatorV2 op)
     {
         switch (op)
         {
             case OperatorV2.Add:
-                break;
             case OperatorV2.Subtract:
-                break;
             case OperatorV2.Divide:
-                break;
             case OperatorV2.Multiply:
-                break;
             case OperatorV2.Modulo:
-                break;
+                return OperatorType.Arithmetic;
+
             case OperatorV2.Equals:
-                break;
             case OperatorV2.NotEquals:
-                break;
             case OperatorV2.Less:
-                break;
             case OperatorV2.LessEquals:
-                break;
             case OperatorV2.Greater:
-                break;
             case OperatorV2.GreaterEquals:
-                break;
+                return OperatorType.Relational;
+
             case OperatorV2.Or:
-                break;
             case OperatorV2.And:
-                break;
             case OperatorV2.Not:
-                break;
-            case OperatorV2.Expr:
-                break;
-            case OperatorV2.Literal:
-                break;
-            case OperatorV2.Select:
-                break;
-            case OperatorV2.Filter:
-                break;
-            case OperatorV2.Project:
-                break;
-            case OperatorV2.Limit:
-                break;
-            case OperatorV2.Skip:
-                break;
-            case OperatorV2.Count:
-                break;
-            case OperatorV2.Index:
-                break;
             case OperatorV2.Any:
-                break;
             case OperatorV2.All:
-                break;
+                return OperatorType.Logical;
+
+            case OperatorV2.Expr:
+            case OperatorV2.Literal:
+                return OperatorType.Semantic;
+
+            case OperatorV2.Select:
+            case OperatorV2.Filter:
+            case OperatorV2.Project:
+            case OperatorV2.Limit:
+            case OperatorV2.Skip:
+                return OperatorType.Queryable;
+
+            case OperatorV2.Count:
+            case OperatorV2.Index:
             case OperatorV2.Min:
-                break;
             case OperatorV2.Max:
-                break;
             case OperatorV2.Sum:
-                break;
             case OperatorV2.Average:
-                break;
+                return OperatorType.Aggregation;
+
+            default:
+                throw new Exception();
         }
     }
 

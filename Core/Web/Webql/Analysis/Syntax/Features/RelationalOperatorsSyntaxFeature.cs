@@ -30,18 +30,24 @@ internal class RelationalOperatorsSyntaxFeature : SemanticsVisitor
     [return: NotNullIfNotNull("node")]
     protected override Node? Visit(SemanticContext context, ObjectNode node)
     {
-        var andExpressions = new List<ExpressionNode>();
+        var expressions = new List<ExpressionNode>();
+        var typeEvaluator = new NodeTypeEvaluator();
 
         foreach (var item in node)
         {
             var lhs = item.Lhs.Value;
             var rhs = item.Rhs.Value;
             var op = HelperTools.ParseOperatorString(lhs);
-            var returnType = HelperTools.
+            var opType = HelperTools.GetOperatorType(op);
+
+            if(opType == OperatorType.Logical)
+            {
+                expressions.Add(item);
+            }
         }
 
         var andLhs = new LhsNode(HelperTools.StringifyOperator(OperatorV2.And));
-        var andRhs = new RhsNode(new ArrayNode(andExpressions));
+        var andRhs = new RhsNode(new ArrayNode(expressions));
         var andNode = new ExpressionNode(andLhs, andRhs);
 
         return andNode;
