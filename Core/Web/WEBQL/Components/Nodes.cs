@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core;
+using System.Collections;
 using System.Linq.Expressions;
 using System.Text.Json.Nodes;
 
@@ -35,7 +36,7 @@ public class LiteralNode : Node
     }
 }
 
-public class ArrayNode : Node
+public class ArrayNode : Node, IEnumerable<Node>
 {
     public override NodeType NodeType { get; }
     public Node[] Values { get; }
@@ -62,6 +63,16 @@ public class ArrayNode : Node
         var values = Values.Transform(value => value.ToString());
         var joinedValues = string.Join(", ", values);
         return $"[{joinedValues}]";
+    }
+
+    public IEnumerator<Node> GetEnumerator()
+    {
+        return Values.AsEnumerable().GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return Values.GetEnumerator();
     }
 }
 
@@ -120,7 +131,7 @@ public class ExpressionNode : Node
     }
 }
 
-public class ObjectNode : Node
+public class ObjectNode : Node, IEnumerable<ExpressionNode>
 {
     public override NodeType NodeType { get; }
     public ExpressionNode[] Expressions { get; }
@@ -148,5 +159,15 @@ public class ObjectNode : Node
         var joinedValues = string.Join(separator, values);
         var str = $"{{ {joinedValues} }}";
         return $"{{ {joinedValues} }}";
+    }
+
+    public IEnumerator<ExpressionNode> GetEnumerator()
+    {
+        return Expressions.AsEnumerable().GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return Expressions.GetEnumerator();
     }
 }
