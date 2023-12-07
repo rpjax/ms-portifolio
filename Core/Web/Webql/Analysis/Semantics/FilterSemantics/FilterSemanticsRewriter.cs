@@ -109,11 +109,11 @@ public class FilterSemanticsRewriterVisitor : SemanticsVisitor
         {
             throw new InvalidOperationException("Error in query: For the iterator expression '" + node.Lhs.Value + "', the right-hand side must be a valid scope definition (object).");
         }
+        throw new NotImplementedException();
+        //var array = new ArrayNode(scope);
+        //var rhs = new RhsNode(array);
 
-        var array = new ArrayNode(scope);
-        var rhs = new RhsNode(array);
-
-        return Visit(context, new ExpressionNode(node.Lhs, rhs));
+        //return Visit(context, new ExpressionNode(node.Lhs, rhs));
     }
 
     /// <summary>

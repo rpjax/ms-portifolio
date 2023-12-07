@@ -1,5 +1,4 @@
-﻿using ModularSystem.Webql.Synthesis;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
 namespace ModularSystem.Webql.Analysis;
 
@@ -37,6 +36,8 @@ public class NodeTypeEvaluator : SemanticsVisitor
         {
             return EvaluateLiteralReference(context, node);
         }
+
+        return context.Type;
     }
 
     protected Type EvaluateLiteralReference(SemanticContext context, LiteralNode node)
@@ -91,19 +92,63 @@ public class NodeTypeEvaluator : SemanticsVisitor
 
     protected Type Evaluate(SemanticContext context, ArrayNode node)
     {
-
+        return context.Type;
     }
 
     protected Type Evaluate(SemanticContext context, ExpressionNode node)
     {
-
+        if (node.Lhs.IsOperator)
+        {
+            return EvaluateOperator(context, node);
+        }
+        else
+        {
+            return EvaluateMemberAccess(context, node);
+        }
     }
 
-    protected Expression ParseMemberAccess(Context context, ExpressionNode node)
+    protected Type EvaluateOperator(SemanticContext context, ExpressionNode node)
     {
-        var memberName = node.Lhs.Value;
-        var subContext = context.AccessProperty(memberName);
+        var lhs = node.Lhs.Value;
+        var rhs = node.Rhs.Value;
+        var op = HelperTools.ParseOperatorString(lhs);
+        var opType = HelperTools.GetOperatorType(op);
 
-        return Translate(subContext, node.Rhs.Value);
+        if(opType == OperatorType.Arithmetic)
+        {
+            return Evaluate(context, rhs);
+        }
+
+        if (opType == OperatorType.Relational)
+        {
+            return typeof(bool);
+        }
+        if (opType == OperatorType.Logical)
+        {
+            return typeof(bool);
+        }
+
+        if(opType == OperatorType.Queryable)
+        {
+            if (!context.IsQueryable())
+            {
+                throw new Exception();
+            }
+
+            return context.GetQueryableType()!;
+        }
+
+        if (opType == OperatorType.Aggregation)
+        {
+            return Evaluate(context, rhs);
+        }
+
+        throw new Exception();
+    }
+
+    protected Type EvaluateMemberAccess(SemanticContext context, ExpressionNode node)
+    {
+        var subContext = context.CreateSubContext(node.Lhs.Value, $".{node.Lhs.Value}");
+        return Evaluate(subContext, node.Rhs.Value);
     }
 }

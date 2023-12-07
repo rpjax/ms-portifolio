@@ -2,6 +2,7 @@
 using ModularSystem.Mongo;
 using ModularSystem.Mongo.Webql;
 using ModularSystem.Webql;
+using ModularSystem.Webql.Analysis;
 using ModularSystem.Webql.Synthesis;
 
 namespace ModularSystem.Tester;
@@ -21,15 +22,14 @@ public static class Program
         Initializer.Run(new() { InitConsoleLogger = true });
         var json = "{ \r\n    \"$filter\": { \r\n        \"$and\": [\r\n            { \"cpf\": { \"$equals\": \"11548128988\" } },\r\n            { \"firstName\": { \"$equals\": \"Rodrigo\" } },\r\n            { \r\n                \"surnames\": { \r\n                    \"$any\": { \"$equals\": \"Jacques\" } \r\n                }\r\n            }\r\n        ] \r\n    },\r\n    \"$project\": {\r\n        \"Nome\": { \"$select\": \"$firstName\" },\r\n        \"Sobrenomes\": {\"$select\": \"$surnames\" }\r\n    }\r\n\r\n}";
        
-
-        var parser = new Parser();
-        var syntaxTree = parser.Parse(json);
         var translator = new Translator(new() { LinqProvider = new MongoLinqProvider() });
+        var evaluator = new NodeTypeEvaluator();
+        var foo = evaluator.Evaluate(new SemanticContext(typeof(IEnumerable<MyData>)), SyntaxAnalyser.Parse(json));
 
         using var service = new MyDataService();
         var serviceQueryable = service.AsQueryable();
     
-        var translatedQueryable = translator.TranslateToQueryable(syntaxTree, service.AsQueryable());
+        var translatedQueryable = translator.TranslateToQueryable(json, service.AsQueryable());
 
         var mongoQueryable = new MongoTranslatedQueryable(translatedQueryable);
 

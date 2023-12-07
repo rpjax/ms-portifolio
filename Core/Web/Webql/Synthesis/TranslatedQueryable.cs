@@ -75,6 +75,11 @@ public class TranslatedQueryable : IQueryable<object>
         return (IEnumerable)method.Invoke(null, new object[] { Body })!;
     }
 
+    public virtual IEnumerable<T> AsEnumerable<T>()
+    {
+        return (IEnumerable<T>) AsEnumerable();
+    }
+
     /// <summary>
     /// Converts the queryable object to an <see cref="IQueryable"/> with the <see cref="OutputType"/> as the generic type parameter. <br/>
     /// This method enables the seamless integration of the queryable object with standard LINQ operations.
@@ -89,6 +94,11 @@ public class TranslatedQueryable : IQueryable<object>
             .MakeGenericMethod(OutputType);
 
         return (IQueryable)method.Invoke(null, new[] { Body })!;
+    }
+
+    public virtual IQueryable<T> AsQueryable<T>()
+    {
+        return (IQueryable<T>)AsEnumerable();
     }
 
     /// <inheritdoc/>

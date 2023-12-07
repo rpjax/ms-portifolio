@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using ModularSystem.Core;
+using System.Collections;
 using System.Reflection;
 
 namespace ModularSystem.Webql.Analysis;
@@ -36,6 +37,32 @@ public class SemanticContext
         Type = type;
         ParentContext = parentContext;
         Stack = stack ?? "$";
+    }
+
+    public bool IsQueryable()
+    {
+        return
+            typeof(IEnumerable).IsAssignableFrom(Type)
+            || Type.GetInterfaces().Any(i =>
+               i.IsGenericType &&
+               i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+    }
+
+    public Type? GetQueryableType()
+    {
+        if (IsQueryable())
+        {
+            if (Type!.IsArray)
+            {
+                return Type.GetElementType();
+            }
+            else
+            {
+                return Type.GetGenericArguments().FirstOrDefault();
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
