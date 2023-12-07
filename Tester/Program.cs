@@ -20,15 +20,11 @@ public static class Program
 {
     public static void Main()
     {
-        Initializer.Run();
-        var json = "{\r\n    \"$limit\": 25,\r\n    \"$filter\": {\r\n        \"cpf\": {\r\n            \"$equals\": \"11548128988\"\r\n        }\r\n    }\r\n}";
-        MongoClientSettings settings = MongoClientSettings.FromConnectionString(
-            Environment.GetEnvironmentVariable("ATLAS_URI")
-        );
-        settings.LinqProvider
+        Initializer.Run(new() { InitConsoleLogger = true });
+        var json = "{ \"$filter\": { \"cpf\": { \"$equals\": \"11548128988\" } } }";
+       
         foreach (var item in typeof(MongoQueryable).GetMethods())
         {
-
             Console.WriteLine($"{item.ReturnType.Name} {item.Name}()");
         }
 
@@ -38,12 +34,11 @@ public static class Program
 
         using var service = new MyDataService();
         var serviceQueryable = service.AsQueryable();
-        var exp = serviceQueryable.Where(x => x.Surnames.Min(x => x) == "");
-        var test = exp.ToArray();
+
         var translatedQueryable = generator.TranslateToQueryable(syntaxTree, service.AsQueryable());
         var mongoQueryable = new MongoTranslatedQueryable(translatedQueryable);
 
-        var data = mongoQueryable.ToListAsync().Result;
+        //var data = mongoQueryable.ToListAsync().Result;
 
         Console.WriteLine(JsonSerializerSingleton.Serialize(data));
     }

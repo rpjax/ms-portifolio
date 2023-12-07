@@ -41,8 +41,6 @@ public class TranslatorOptions
 
     public TranslatorOptions()
     {
-        QueryableType = DefaultQueryableType();
-
         WhereProvider = DefaultWhere();
         ProjectProvider = DefaultSelect();
         TakeProvider = DefaultTake();
@@ -62,11 +60,6 @@ public class TranslatorOptions
         FloatAverageProvider = DefaultFloatAverage();
         DoubleAverageProvider = DefaultDoubleAverage();
         DecimalAverageProvider = DefaultDecimalAverage();
-    }
-
-    private static Type DefaultQueryableType()
-    {
-        return typeof(IEnumerable<>);
     }
 
     private static MethodInfo DefaultWhere()
@@ -316,7 +309,7 @@ public class Translator
         NodeParser = new(Options);
     }
 
-    public Expression TranslateToExpression(Node node, Type type, ParameterExpression? parameter = null)
+    public Expression TranslateToQueryableExpression(Node node, Type type, ParameterExpression? parameter = null)
     {
         var queryableType = typeof(IEnumerable<>).MakeGenericType(type);
         parameter ??= Expression.Parameter(queryableType, "root");

@@ -6,22 +6,6 @@ using System.Reflection;
 
 namespace ModularSystem.Mongo.Webql;
 
-public class MongoGeneratorOptions : TranslatorOptions
-{
-    public MongoGeneratorOptions()
-    {
-        TakeProvider = GetTakeProvider();
-    }
-
-
-
-    private MethodInfo GetTakeProvider()
-    {
-        throw new NotImplementedException();
-        //MongoQueryable.Take
-    }
-}
-
 /// <summary>
 /// Represents a WebQL translated queryable object with MongoDB specific logic. <br/>
 /// This class extends the basic WebQL translated queryable functionalities

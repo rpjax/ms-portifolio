@@ -15,7 +15,7 @@ public class LinqProvider
     {
         if (!context.IsQueryable())
         {
-            throw new Exception();
+            throw new Exception("Context must be IQueryable");
         }
         if (context.InputExpression == null)
         {
@@ -42,9 +42,8 @@ public class LinqProvider
         var subExpression = Expression.Lambda(subExpressionBody, subExpressionParameter);
 
         var methodArgs = new Expression[] { context.InputExpression, subExpression };
-        var callExpression = Expression.Call(null, methodInfo, methodArgs);
 
-        return callExpression;
+        return Expression.Call(null, methodInfo, methodArgs);
     }
 
     public virtual Expression TranslateProjectOperator(Context context, NodeTranslator translator, Node node)
