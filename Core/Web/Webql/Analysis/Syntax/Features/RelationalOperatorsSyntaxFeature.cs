@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ModularSystem.Core;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ModularSystem.Webql.Analysis.SyntaxFeatures;
 
@@ -14,43 +10,64 @@ namespace ModularSystem.Webql.Analysis.SyntaxFeatures;
 internal class RelationalOperatorsSyntaxFeature : SemanticsVisitor
 {
     [return: NotNullIfNotNull("node")]
-    protected override ExpressionNode? Visit(SemanticContext context, ExpressionNode node)
-    {
-        var lhs = node.Lhs.Value;
-        var rhs = node.Rhs.Value;
-
-        if(node.Rhs.Value is LiteralNode)
-        {
-
-        }
-
-        return base.Visit(context, node);
-    }
-
-    [return: NotNullIfNotNull("node")]
     protected override Node? Visit(SemanticContext context, ObjectNode node)
     {
         var expressions = new List<ExpressionNode>();
-        var typeEvaluator = new NodeTypeEvaluator();
+        var objects = new List<ObjectNode>();
 
         foreach (var item in node)
         {
-            var lhs = item.Lhs.Value;
-            var rhs = item.Rhs.Value;
-            var op = HelperTools.ParseOperatorString(lhs);
-            var opType = HelperTools.GetOperatorType(op);
+            var visitedItem = Visit(context, item).As<ExpressionNode>();
 
-            if(opType == OperatorType.Logical)
+            expressions.Add(visitedItem);
+
+            if (ExpressionEvaluatesToBool(visitedItem))
             {
-                expressions.Add(item);
+                objects.Add(new(expressions));
+                expressions = new();
             }
         }
 
-        var andLhs = new LhsNode(HelperTools.StringifyOperator(OperatorV2.And));
-        var andRhs = new RhsNode(new ArrayNode(expressions));
-        var andNode = new ExpressionNode(andLhs, andRhs);
+        if(objects.Count <= 1)
+        {
+            return new ObjectNode(objects.SelectMany(x => x.Expressions).Concat(expressions));
+        }
 
-        return andNode;
-        return base.Visit(context, node);
+        var lhs = new LhsNode(HelperTools.StringifyOperator(OperatorV2.And));
+        var rhs = new RhsNode(new ArrayNode(objects));
+        var expression = new ExpressionNode(lhs, rhs);
+
+        return new ObjectNode(expression);
     }
+
+    private bool ExpressionEvaluatesToBool(ExpressionNode node)
+    {
+        while (true)
+        {
+            var lhs = node.Lhs;
+            var rhs = node.Rhs.Value;
+            var isMemberAccess = !lhs.IsOperator;
+
+            if (isMemberAccess)
+            {
+                if(rhs is not ObjectNode objectNode)
+                {
+                    return false;
+                }
+                if (objectNode.IsEmpty())
+                {
+                    return false;
+                }
+
+                node = objectNode.Last();
+                continue;
+            }
+
+            var op = HelperTools.ParseOperatorString(lhs.Value);
+            var opType = HelperTools.GetOperatorType(op);
+
+            return opType == OperatorType.Relational || opType == OperatorType.Logical;
+        }
+    }
+
 }

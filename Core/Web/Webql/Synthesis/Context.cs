@@ -1,148 +1,115 @@
-﻿using System.Collections;
+﻿using ModularSystem.Webql.Analysis;
 using System.Linq.Expressions;
 using System.Reflection;
 
 namespace ModularSystem.Webql.Synthesis;
 
-public class Context
+/// <summary>
+/// Represents the context for a translation process within the WebQL framework.
+/// This class encapsulates information about the current state of translation, including
+/// the type being translated, the current expression, and the hierarchy of translation contexts.
+/// </summary>
+public class TranslationContext : SemanticContext
 {
-    public Type InputType { get; }
-    public Expression InputExpression { get; }
-    public Context? ParentContext { get; }
+    /// <summary>
+    /// Gets the current expression in the translation process.
+    /// </summary>
+    public Expression Expression { get; }
+
+    /// <summary>
+    /// Provides a mechanism for generating variable names within the translation context.
+    /// </summary>
     public VariableNameProvider VariableNameProvider { get; }
 
-    public Context(Type inputType, Expression inputExpression, Context? parentContext = null, VariableNameProvider? variableNameProvider = null)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TranslationContext"/> class.
+    /// </summary>
+    /// <param name="type">The type associated with this context.</param>
+    /// <param name="inputExpression">The current expression in the translation process.</param>
+    /// <param name="parentContext">The parent translation context, if any.</param>
+    /// <param name="variableNameProvider">The provider for generating variable names.</param>
+    /// <param name="stack">A string representing the stack trace of contexts leading to this one.</param>
+    public TranslationContext(
+        Type type,
+        Expression inputExpression,
+        TranslationContext? parentContext = null,
+        VariableNameProvider? variableNameProvider = null,
+        string stack = "translation context->")
+        : base(type, parentContext, stack)
     {
-        InputType = inputType;
-        InputExpression = inputExpression;
-        ParentContext = parentContext;
+        Expression = inputExpression;
         VariableNameProvider = variableNameProvider ?? new();
     }
 
-    public bool IsVoid()
-    {
-        return InputType == typeof(void);
-    }
-
-    public bool IsQueryable()
-    {
-        return 
-            typeof(IEnumerable).IsAssignableFrom(InputType)
-            || InputType.GetInterfaces().Any(i =>
-               i.IsGenericType &&
-               i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
-    }
-
-    public Type? GetQueryableType()
-    {
-        if (IsQueryable())
-        {
-            if (InputType!.IsArray)
-            {
-                return InputType.GetElementType();
-            }
-            else
-            {
-                return InputType.GetGenericArguments().FirstOrDefault();
-            }
-        }
-
-        return null;
-    }
-
-    public PropertyInfo? GetPropertyInfo(string name)
-    {
-        var propertyInfo = null as PropertyInfo;
-        var context = this;
-
-        while (true)
-        {
-            propertyInfo = InputType
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(x => x.Name == name || x.Name.ToLower() == name.ToLower())
-                .FirstOrDefault();
-
-            if (propertyInfo != null)
-            {
-                break;
-            }
-
-            if (context.ParentContext == null)
-            {
-                break;
-            }
-
-            context = context.ParentContext;
-        }
-
-        return propertyInfo;
-    }
-
-    public Expression AsQueryable()
-    {
-        throw new NotImplementedException();
-    }
-
-    public Expression AsEnumerable()
-    {
-        throw new NotImplementedException();
-    }
-
+    /// <summary>
+    /// Creates a standardized parameter name for use in expressions.
+    /// </summary>
+    /// <returns>A string representing a parameter name.</returns>
     public string CreateParameterName()
     {
         return "x";
     }
 
+    /// <summary>
+    /// Creates a new parameter expression based on the current context's type.
+    /// </summary>
+    /// <returns>A new <see cref="ParameterExpression"/>.</returns>
     public ParameterExpression CreateParameterExpression()
     {
-        return Expression.Parameter(InputType);
+        return Expression.Parameter(Type);
     }
 
-    public Context AccessProperty(string propertyName, bool useParentContexts = true)
+    /// <summary>
+    /// Creates a sub-context for translation based on a specified property name, optionally searching parent contexts.
+    /// This method is used to navigate deeper into the object graph of the context's type, creating a new translation context
+    /// for a specific property.
+    /// </summary>
+    /// <param name="propertyName">The property name for which to create a sub-context.</param>
+    /// <param name="useParentContexts">If true, the method will search in parent contexts if the property is not found in the current context.</param>
+    /// <returns>A new <see cref="TranslationContext"/> instance representing the sub-context for the specified property.</returns>
+    /// <exception cref="GeneratorException">Thrown if the specified property is not found within the context hierarchy.</exception>
+    /// <exception cref="Exception">Thrown if an unexpected null context is encountered.</exception>
+    public TranslationContext CreateSubTranslationContext(string propertyName, bool useParentContexts = true)
     {
-        var propertyInfo = null as PropertyInfo;
-        var context = this;
+        PropertyInfo? propertyInfo = null;
+        TranslationContext? context = this;
 
-        while (true)
+        // Iterate through the context hierarchy to find the property.
+        while (context != null)
         {
-            propertyInfo = context.GetPropertyInfo(propertyName);
+            propertyInfo = context.Type
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .FirstOrDefault(x => x.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase));
 
             if (propertyInfo != null)
             {
-                break;
+                break; // Property found.
             }
 
-            if (context.ParentContext == null)
-            {
-                break;
-            }
-
-            if (!useParentContexts)
-            {
-                break;
-            }
-
-            context = context.ParentContext;
+            context = useParentContexts ? context.ParentContext as TranslationContext : null;
         }
 
+        // Throw an exception if the property is not found.
         if (propertyInfo == null)
         {
-            throw new GeneratorException($"Property '{propertyName}' not found in the type '{InputType.FullName}'. Ensure the property name is correct and exists in the specified type.", null);
-        }
-        if (context.InputExpression == null)
-        {
-            throw new Exception();
+            throw new GeneratorException($"Property '{propertyName}' not found in the type '{Type.FullName}'. Ensure the property name is correct and exists in the specified type.", null);
         }
 
+        // Create an expression to access the property.
         var subType = propertyInfo.PropertyType;
-        var expression = Expression.MakeMemberAccess(context.InputExpression, propertyInfo);
+        var expression = Expression.MakeMemberAccess(context!.Expression, propertyInfo);
 
-        return new Context(subType, expression, this);
+        return new TranslationContext(subType, expression, this);
     }
 
 }
 
+/// <summary>
+/// A utility class for providing variable names within the context of translations.
+/// </summary>
 public class VariableNameProvider
 {
-    private static readonly char[] Alfabet = new char[] { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' };
+    private static readonly char[] Alphabet = new char[] { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' };
+
+    // Additional properties and methods related to variable name generation can be added here.
 }

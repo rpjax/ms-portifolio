@@ -90,7 +90,7 @@ public class TranslatedQueryable : IQueryable<object>
     {
         var method = typeof(Queryable)
             .GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .First(m => m.Name == "AsQueryable" && !m.IsGenericMethod)
+            .First(m => m.Name == "AsQueryable" && m.IsGenericMethod)
             .MakeGenericMethod(OutputType);
 
         return (IQueryable)method.Invoke(null, new[] { Body })!;

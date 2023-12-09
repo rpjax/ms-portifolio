@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using ModularSystem.Core;
+﻿using ModularSystem.Core;
 using System.Collections;
 using System.Reflection;
 
@@ -39,6 +38,19 @@ public class SemanticContext
         Stack = stack ?? "$";
     }
 
+    /// <summary>
+    /// Determines if the type of the current context is 'void'.
+    /// </summary>
+    /// <returns>True if the type is void; otherwise, false.</returns>
+    public bool IsVoid()
+    {
+        return Type == typeof(void);
+    }
+
+    /// <summary>
+    /// Determines if the type of the current context is a form of IEnumerable, indicating a queryable type.
+    /// </summary>
+    /// <returns>True if the type is queryable; otherwise, false.</returns>
     public bool IsQueryable()
     {
         return
@@ -48,6 +60,10 @@ public class SemanticContext
                i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
     }
 
+    /// <summary>
+    /// Retrieves the element type of the queryable type of the current context, if applicable.
+    /// </summary>
+    /// <returns>The element type of the queryable, or null if the context is not a queryable type.</returns>
     public Type? GetQueryableType()
     {
         if (IsQueryable())
@@ -67,18 +83,20 @@ public class SemanticContext
 
     /// <summary>
     /// Retrieves the PropertyInfo for a given property name in the current context's type.
+    /// This method searches the type's properties, considering the case-insensitivity of the name.
     /// </summary>
     /// <param name="name">The name of the property to retrieve.</param>
-    /// <returns>The PropertyInfo of the specified property.</returns>
-    /// <exception cref="Exception">Thrown if the property is not found.</exception>
-    public PropertyInfo? GetPropertyInfo(string name)
+    /// <param name="useParentContexts">Indicates whether to search in parent contexts if the property is not found in the current context.</param>
+    /// <returns>The PropertyInfo of the specified property, if found.</returns>
+    /// <exception cref="Exception">Thrown if the property is not found in the current context and parent contexts.</exception>
+    public PropertyInfo? GetPropertyInfo(string name, bool useParentContexts = true)
     {
         var propertyInfo = null as PropertyInfo;
         var context = this;
 
         while (true)
         {
-            propertyInfo = Type
+            propertyInfo = context.Type
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(x => x.Name == name || x.Name.ToLower() == name.ToLower())
                 .FirstOrDefault();
@@ -87,13 +105,14 @@ public class SemanticContext
             {
                 break;
             }
-
-            if (context.ParentContext == null)
+            if (useParentContexts)
+            {
+                context = context.ParentContext;
+            }
+            if (context == null)
             {
                 break;
             }
-
-            context = context.ParentContext;
         }
 
         return propertyInfo;
@@ -101,13 +120,16 @@ public class SemanticContext
 
     /// <summary>
     /// Creates a sub-context based on a specified property name and a sub-stack trace.
+    /// This method is used for navigating deeper into the semantic structure of a context, allowing targeted analysis or modification.
     /// </summary>
     /// <param name="propertyName">The property name to create a sub-context for.</param>
-    /// <param name="subStack">The sub-stack trace for the new context.</param>
+    /// <param name="subStack">The sub-stack trace for the new context, providing additional context for error reporting and analysis.</param>
+    /// <param name="useParents">Indicates whether to use parent contexts to find the property if it's not present in the current context.</param>
     /// <returns>A new SemanticContext instance representing the sub-context.</returns>
-    public SemanticContext CreateSubContext(string propertyName, string subStack)
+    /// <exception cref="SemanticException">Thrown if the specified property is not found within the context hierarchy.</exception>
+    public SemanticContext CreateSubContext(string propertyName, string subStack, bool useParents = true)
     {
-        var propertyInfo = GetPropertyInfo(propertyName);
+        var propertyInfo = GetPropertyInfo(propertyName, useParents);
 
         if (propertyInfo == null)
         {
@@ -117,6 +139,7 @@ public class SemanticContext
         return new SemanticContext(propertyInfo.PropertyType, this, Stack + subStack);
     }
 
+
     /// <summary>
     /// Gets the operator associated with the specified LhsNode.
     /// </summary>
@@ -125,11 +148,11 @@ public class SemanticContext
     /// <exception cref="SemanticException">Thrown if the operator is not recognized or supported.</exception>
     public Operator GetOperatorFromLhs(LhsNode node)
     {
-        var operators = Enum.GetValues(typeof(Operator));
+        var operators = Enum.GetValues(typeof(OperatorV2));
 
-        foreach (Operator op in operators)
+        foreach (OperatorV2 op in operators)
         {
-            if (HelperTools.Stringify(op) == node.Value.ToCamelCase())
+            if (HelperTools.StringifyOperator(op) == node.Value.ToCamelCase())
             {
                 return op.TypeCast<Operator>();
             }
@@ -137,4 +160,10 @@ public class SemanticContext
 
         throw new SemanticException($"The operator '{node.Value}' is not recognized or supported. Please ensure it is a valid operator.", this);
     }
+
+    public string GetStack(string subStack)
+    {
+        return Stack + subStack;
+    }
+
 }

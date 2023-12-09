@@ -37,7 +37,7 @@ public class NodeTranslator
     /// <param name="node">The WebQL node to be translated.</param>
     /// <returns>The LINQ Expression equivalent of the given node.</returns>
     /// <exception cref="Exception">Thrown when the node type is unrecognized.</exception>
-    public Expression Translate(Context context, Node node)
+    public Expression Translate(TranslationContext context, Node node)
     {
         if (node is LiteralNode literal)
         {
@@ -52,7 +52,7 @@ public class NodeTranslator
             return ParseExpression(context, expression);
         }
 
-        throw new Exception();
+        throw new InvalidOperationException($"Unsupported node type encountered: {node.GetType()}. NodeTranslator can only handle LiteralNode, ObjectNode, and ExpressionNode types.");
     }
 
     /// <summary>
@@ -62,21 +62,22 @@ public class NodeTranslator
     /// <param name="node">The literal node to parse.</param>
     /// <returns>An Expression representing the literal reference.</returns>
     /// <exception cref="Exception">Thrown if the literal reference is invalid.</exception>
-    protected Expression ParseLiteralReference(Context context, LiteralNode node)
+    protected Expression ParseLiteralReference(TranslationContext context, LiteralNode node)
     {
         var propPath = node.Value;
 
-        if(propPath == null)
+        if (propPath == null)
         {
-            throw new Exception();
+            throw new ArgumentNullException(nameof(node.Value), "Literal node value cannot be null.");
         }
         if (propPath.Length == 0)
         {
-            throw new Exception();
+            throw new ArgumentException("Literal node value cannot be an empty string.", nameof(node.Value));
         }
+
         if (propPath == "$")
         {
-            return context.InputExpression;
+            return context.Expression;
         }
         if (propPath.StartsWith('"') && propPath.EndsWith('"'))
         {
@@ -88,14 +89,14 @@ public class NodeTranslator
             ? pathSplit.First()
             : propPath;
 
-        var subContext = context.AccessProperty(rootPropertyName);
+        var subContext = context.CreateSubTranslationContext(rootPropertyName);
 
         for (int i = 1; i < pathSplit.Length; i++)
         {
-            subContext = subContext.AccessProperty(pathSplit[i], false);
+            subContext = subContext.CreateSubTranslationContext(pathSplit[i], false);
         }
 
-        return subContext.InputExpression;
+        return subContext.Expression;
     }
 
     /// <summary>
@@ -104,9 +105,9 @@ public class NodeTranslator
     /// <param name="context">The current translation context.</param>
     /// <param name="node">The literal node to parse.</param>
     /// <returns>An Expression representing the literal.</returns>
-    protected Expression ParseLiteral(Context context, LiteralNode node)
+    protected Expression ParseLiteral(TranslationContext context, LiteralNode node)
     {
-        var type = context.InputType;
+        var type = context.Type;
 
         if (node.Value == null)
         {
@@ -129,7 +130,7 @@ public class NodeTranslator
     /// <param name="context">The current translation context.</param>
     /// <param name="node">The object node to parse.</param>
     /// <returns>An Expression representing the object.</returns>
-    protected Expression ParseObject(Context context, ObjectNode node)
+    protected Expression ParseObject(TranslationContext context, ObjectNode node)
     {
         var expression = null as Expression;
 
@@ -137,12 +138,12 @@ public class NodeTranslator
         {
             expression = ParseExpression(context, item);
             var resolvedType = expression.Type;
-            context = new Context(resolvedType, expression, context);
+            context = new TranslationContext(resolvedType, expression, context);
         }
 
         if (expression == null)
         {
-             expression = context.InputExpression;
+             expression = context.Expression;
         }
 
         return expression;
@@ -154,7 +155,7 @@ public class NodeTranslator
     /// <param name="context">The current translation context.</param>
     /// <param name="node">The expression node to parse.</param>
     /// <returns>An Expression representing the expression node.</returns>
-    protected Expression ParseExpression(Context context, ExpressionNode node)
+    protected Expression ParseExpression(TranslationContext context, ExpressionNode node)
     {
         var lhs = node.Lhs.Value;
         var rhs = node.Rhs.Value;  
@@ -174,10 +175,10 @@ public class NodeTranslator
     /// <param name="context">The current translation context.</param>
     /// <param name="node">The expression node representing member access.</param>
     /// <returns>An Expression representing the member access.</returns>
-    protected Expression ParseMemberAccess(Context context, ExpressionNode node)
+    protected Expression ParseMemberAccess(TranslationContext context, ExpressionNode node)
     {
         var memberName = node.Lhs.Value;
-        var subContext = context.AccessProperty(memberName);
+        var subContext = context.CreateSubTranslationContext(memberName);
 
         return Translate(subContext, node.Rhs.Value);
     }

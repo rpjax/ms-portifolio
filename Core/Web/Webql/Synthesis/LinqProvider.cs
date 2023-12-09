@@ -28,13 +28,13 @@ public class LinqProvider
     /// <param name="node">Node representing the filter operation.</param>
     /// <returns>The translated LINQ expression.</returns>
     /// <exception cref="Exception">Thrown if context is not queryable or if queryable type is null.</exception>
-    public virtual Expression TranslateFilterOperator(Context context, NodeTranslator translator, Node node)
+    public virtual Expression TranslateFilterOperator(TranslationContext context, NodeTranslator translator, Node node)
     {
         if (!context.IsQueryable())
         {
             throw new Exception("Context must be IQueryable");
         }
-        if (context.InputExpression == null)
+        if (context.Expression == null)
         {
             throw new Exception();
         }
@@ -54,11 +54,11 @@ public class LinqProvider
         }
 
         var subExpressionParameter = Expression.Parameter(queryableType, "x");
-        var subContext = new Context(queryableType, subExpressionParameter, context);
+        var subContext = new TranslationContext(queryableType, subExpressionParameter, context);
         var subExpressionBody = translator.Translate(subContext, node);
         var subExpression = Expression.Lambda(subExpressionBody, subExpressionParameter);
 
-        var methodArgs = new Expression[] { context.InputExpression, subExpression };
+        var methodArgs = new Expression[] { context.Expression, subExpression };
 
         return Expression.Call(null, methodInfo, methodArgs);
     }
@@ -71,7 +71,7 @@ public class LinqProvider
     /// <param name="node">Node representing the projection operation.</param>
     /// <returns>The translated LINQ expression.</returns>
     /// <exception cref="Exception">Thrown if context is not queryable or if queryable type is null.</exception>
-    public virtual Expression TranslateProjectOperator(Context context, NodeTranslator translator, Node node)
+    public virtual Expression TranslateProjectOperator(TranslationContext context, NodeTranslator translator, Node node)
     {
         //      call expression (IQueryable<T>.Select()) arguments:
         //          constant expression (IEnumerable<T>)
@@ -98,7 +98,7 @@ public class LinqProvider
         }
 
         var subContextParameter = Expression.Parameter(queryableType, context.CreateParameterName());
-        var subContext = new Context(queryableType, subContextParameter, context);
+        var subContext = new TranslationContext(queryableType, subContextParameter, context);
 
         // Cria uma lista para armazenar as associações de propriedades do tipo projetado
         var propertyBindings = new List<MemberBinding>();
@@ -155,7 +155,7 @@ public class LinqProvider
         var selectMethod = GetSelectMethodInfo()
             .MakeGenericMethod(new[] { queryableType, projectedType });
 
-        return Expression.Call(selectMethod, context.InputExpression, lambda);
+        return Expression.Call(selectMethod, context.Expression, lambda);
     }
 
     /// <summary>
@@ -166,7 +166,7 @@ public class LinqProvider
     /// <param name="node">Node representing the limit operation.</param>
     /// <returns>The translated LINQ expression.</returns>
     /// <exception cref="Exception">Thrown if context is not queryable or if queryable type is null.</exception>
-    public virtual Expression TranslateLimitOperator(Context context, NodeTranslator translator, Node node)
+    public virtual Expression TranslateLimitOperator(TranslationContext context, NodeTranslator translator, Node node)
     {
         if (!context.IsQueryable())
         {
@@ -208,7 +208,7 @@ public class LinqProvider
         var methodInfo = GetTakeMethodInfo()
             .MakeGenericMethod(new[] { queryableType });
 
-        return Expression.Call(methodInfo, context.InputExpression, valueExpression);
+        return Expression.Call(methodInfo, context.Expression, valueExpression);
     }
 
     /// <summary>
@@ -219,7 +219,7 @@ public class LinqProvider
     /// <param name="node">Node representing the skip operation.</param>
     /// <returns>The translated LINQ expression.</returns>
     /// <exception cref="Exception">Thrown if context is not queryable or if queryable type is null.</exception>
-    public virtual Expression TranslateSkipOperator(Context context, NodeTranslator translator, Node node)
+    public virtual Expression TranslateSkipOperator(TranslationContext context, NodeTranslator translator, Node node)
     {
         if (!context.IsQueryable())
         {
@@ -261,7 +261,7 @@ public class LinqProvider
         var methodInfo = GetSkipMethodInfo()
             .MakeGenericMethod(new[] { queryableType });
 
-        return Expression.Call(methodInfo, context.InputExpression, valueExpression);
+        return Expression.Call(methodInfo, context.Expression, valueExpression);
     }
 
     /// <summary>
@@ -272,15 +272,11 @@ public class LinqProvider
     /// <param name="node">Node representing the count operation.</param>
     /// <returns>The translated LINQ expression.</returns>
     /// <exception cref="Exception">Thrown if context is not queryable or if queryable type is null.</exception>
-    public virtual Expression TranslateCountOperator(Context context, NodeTranslator translator, Node node)
+    public virtual Expression TranslateCountOperator(TranslationContext context, NodeTranslator translator, Node node)
     {
         if (!context.IsQueryable())
         {
             throw new Exception("Context must be IQueryable");
-        }
-        if (node is not LiteralNode literalNode)
-        {
-            throw new Exception("");
         }
 
         var queryableType = context.GetQueryableType();
@@ -293,7 +289,7 @@ public class LinqProvider
         var methodInfo = GetCountMethodInfo()
             .MakeGenericMethod(new[] { queryableType });
 
-        return Expression.Call(methodInfo, context.InputExpression);
+        return Expression.Call(null, methodInfo, context.Expression);
     }
 
     /// <summary>
@@ -304,7 +300,7 @@ public class LinqProvider
     /// <param name="node">Node representing the 'any' operation.</param>
     /// <returns>The translated LINQ expression.</returns>
     /// <exception cref="Exception">Thrown if context is not queryable or if queryable type is null.</exception>
-    public virtual Expression TranslateAnyOperator(Context context, NodeTranslator translator, Node node)
+    public virtual Expression TranslateAnyOperator(TranslationContext context, NodeTranslator translator, Node node)
     {
         if (!context.IsQueryable())
         {
@@ -319,12 +315,12 @@ public class LinqProvider
         }
 
         var subContextExpression = Expression.Parameter(queryableType, "x");
-        var subContext = new Context(queryableType, subContextExpression, context);
+        var subContext = new TranslationContext(queryableType, subContextExpression, context);
         var lambdaParameter = subContextExpression;
         var lambdaBody = translator.Translate(subContext, node);
         var lambda = Expression.Lambda(lambdaBody, lambdaParameter);
 
-        var args = new Expression[] { context.InputExpression, lambda };
+        var args = new Expression[] { context.Expression, lambda };
 
         var methodInfo = GetAnyMethodInfo()
             .MakeGenericMethod(new[] { queryableType });
@@ -340,7 +336,7 @@ public class LinqProvider
     /// <param name="node">Node representing the 'all' operation.</param>
     /// <returns>The translated LINQ expression.</returns>
     /// <exception cref="Exception">Thrown if context is not queryable or if queryable type is null.</exception>
-    public virtual Expression TranslateAllOperator(Context context, NodeTranslator translator, Node node)
+    public virtual Expression TranslateAllOperator(TranslationContext context, NodeTranslator translator, Node node)
     {
         if (!context.IsQueryable())
         {
@@ -355,12 +351,12 @@ public class LinqProvider
         }
 
         var subContextExpression = Expression.Parameter(queryableType, "x");
-        var subContext = new Context(queryableType, subContextExpression, context);
+        var subContext = new TranslationContext(queryableType, subContextExpression, context);
         var lambdaParameter = subContextExpression;
         var lambdaBody = translator.Translate(subContext, node);
         var lambda = Expression.Lambda(lambdaBody, lambdaParameter);
 
-        var args = new Expression[] { context.InputExpression, lambda };
+        var args = new Expression[] { context.Expression, lambda };
 
         var methodInfo = GetAllMethodInfo()
             .MakeGenericMethod(new[] { queryableType });
@@ -376,13 +372,13 @@ public class LinqProvider
     /// <param name="node">Node representing the 'min' operation.</param>
     /// <returns>The translated LINQ expression.</returns>
     /// <exception cref="Exception">Thrown if context is not queryable or if queryable type is null.</exception>
-    public virtual Expression TranslateMinOperator(Context context, NodeTranslator translator, Node node)
+    public virtual Expression TranslateMinOperator(TranslationContext context, NodeTranslator translator, Node node)
     {
         if (!context.IsQueryable())
         {
             throw new Exception();
         }
-        if (context.InputExpression == null)
+        if (context.Expression == null)
         {
             throw new Exception();
         }
@@ -395,7 +391,7 @@ public class LinqProvider
         }
 
         var subContextExpression = Expression.Parameter(subContextType, "x");
-        var subContext = new Context(subContextType, subContextExpression, context);
+        var subContext = new TranslationContext(subContextType, subContextExpression, context);
         var lambdaParameter = subContextExpression;
         var lambdaBody = translator.Translate(subContext, node);
         var lambda = Expression.Lambda(lambdaBody, lambdaParameter);
@@ -403,7 +399,7 @@ public class LinqProvider
         var methodInfo = GetMinMethodInfo()
             .MakeGenericMethod(subContextType, lambdaBody.Type);
 
-        var methodArgs = new Expression[] { context.InputExpression, lambda };
+        var methodArgs = new Expression[] { context.Expression, lambda };
 
         return Expression.Call(null, methodInfo, methodArgs);
     }
@@ -416,7 +412,7 @@ public class LinqProvider
     /// <param name="node">Node representing the 'max' operation.</param>
     /// <returns>The translated LINQ expression.</returns>
     /// <exception cref="Exception">Thrown if context is not queryable or if queryable type is null.</exception>
-    public virtual Expression TranslateMaxOperator(Context context, NodeTranslator translator, Node node)
+    public virtual Expression TranslateMaxOperator(TranslationContext context, NodeTranslator translator, Node node)
     {
         throw new NotImplementedException();
     }

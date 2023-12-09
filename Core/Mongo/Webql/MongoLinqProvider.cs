@@ -75,16 +75,4 @@ public class MongoLinqProvider : ModularSystem.Webql.Synthesis.LinqProvider
                         m.GetParameters()[1].ParameterType == typeof(int));
     }
 
-    /// <summary>
-    /// Retrieves the 'Count' method info from the MongoDB LINQ provider.
-    /// </summary>
-    /// <returns>MethodInfo for the 'Count' operation in MongoDB.</returns>
-    protected override MethodInfo GetCountMethodInfo()
-    {
-        return typeof(MongoQueryable).GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .First(m => m.Name == "Count" &&
-                        m.IsGenericMethodDefinition &&
-                        m.GetParameters().Length == 1 &&
-                        m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IMongoQueryable<>));
-    }
 }

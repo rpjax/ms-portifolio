@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Webql.Analysis;
+using ModularSystem.Webql.Analysis.SyntaxFeatures;
 using System.Collections;
 using System.Linq.Expressions;
 
@@ -42,11 +43,10 @@ public class Translator
     /// <returns>A LINQ expression that represents the equivalent queryable for the given WebQL query.</returns>
     public Expression TranslateToQueryableExpression(string json, Type type, ParameterExpression? parameter = null)
     {
-        var node = SyntaxAnalyser.Parse(json);
-        var queryableType = typeof(IEnumerable<>).MakeGenericType(type);
-        parameter ??= Expression.Parameter(queryableType, "root");
-        var context = new Context(queryableType, parameter);
-
+        var node = RunSyntaxAnalysis(json, type);
+        var inputType = Options.QueryableType.MakeGenericType(type);
+        parameter ??= Expression.Parameter(inputType, "root");
+        var context = new TranslationContext(inputType, parameter);
         return NodeTranslator.Translate(context, node);
     }
 
@@ -60,12 +60,9 @@ public class Translator
     /// <returns>A TranslatedQueryable object representing the results of the WebQL query.</returns>
     public TranslatedQueryable TranslateToQueryable(string json, Type type, IEnumerable queryable)
     {
-        var node = SyntaxAnalyser.Parse(json);
         var inputType = Options.QueryableType.MakeGenericType(type);
         var parameter = Expression.Parameter(inputType, "root");
-        var context = new Context(inputType, parameter);
-        var expression = NodeTranslator.Translate(context, node);
-
+        var expression = TranslateToQueryableExpression(json, type, parameter);
         var projectedType = expression.Type.GenericTypeArguments[0];
         var outputType = Options.QueryableType.MakeGenericType(projectedType);
         var lambdaExpressionType = typeof(Func<,>).MakeGenericType(inputType, outputType);
@@ -95,4 +92,17 @@ public class Translator
     {
         return TranslateToQueryable(json, typeof(T), queryable);
     }
+
+    private Node RunSyntaxAnalysis(string json, Type type)
+    {
+        var node = SyntaxAnalyser.Parse(json);
+        var context = new SemanticContext(type);
+
+        node = new RelationalOperatorsSyntaxFeature()
+            .Visit(context, node)
+            .As<ObjectNode>();
+
+        return node;
+    }
+
 }

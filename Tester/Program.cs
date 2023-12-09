@@ -20,18 +20,18 @@ public static class Program
     public static void Main()
     {
         Initializer.Run(new() { InitConsoleLogger = true });
-        var json = "{ \r\n    \"$filter\": { \r\n        \"$and\": [\r\n            { \"cpf\": { \"$equals\": \"11548128988\" } },\r\n            { \"firstName\": { \"$equals\": \"Rodrigo\" } },\r\n            { \r\n                \"surnames\": { \r\n                    \"$any\": { \"$equals\": \"Jacques\" } \r\n                }\r\n            }\r\n        ] \r\n    },\r\n    \"$project\": {\r\n        \"Nome\": { \"$select\": \"$firstName\" },\r\n        \"Sobrenomes\": {\"$select\": \"$surnames\" }\r\n    }\r\n\r\n}";
-       
-        var translator = new Translator(new() { LinqProvider = new MongoLinqProvider() });
-        var evaluator = new NodeTypeEvaluator();
-        var foo = evaluator.Evaluate(new SemanticContext(typeof(IEnumerable<MyData>)), SyntaxAnalyser.Parse(json));
 
+        var json = "{\r\n    \"$limit\": 25,\r\n    \"$filter\": {\r\n        \"cpf\": {\r\n            \"$equals\": \"11548128988\"\r\n        },\r\n        \"firstName\": {\r\n            \"$equals\": \"Rodrigo\"\r\n        },\r\n        \"surnames\": {\r\n            \"$any\": {\r\n                \"$or\":[\r\n                    { \"$equals\": \"Jacques\" },\r\n                    { \"$equals\": \"Aamanda\" }\r\n                ]\r\n            },\r\n            \"$count\": {},\r\n            \"$greater\": 1\r\n        }\r\n    }\r\n}";
+
+
+        var translator = new Translator(new() { LinqProvider = new MongoLinqProvider() });
         using var service = new MyDataService();
         var serviceQueryable = service.AsQueryable();
     
         var translatedQueryable = translator.TranslateToQueryable(json, service.AsQueryable());
-
         var mongoQueryable = new MongoTranslatedQueryable(translatedQueryable);
+
+        Console.WriteLine(translatedQueryable.Expression);
 
         var data = mongoQueryable.ToListAsync().Result;
 

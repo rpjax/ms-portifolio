@@ -68,7 +68,7 @@ public class OperatorTranslator
     /// <param name="node">The node associated with the operator.</param>
     /// <returns>The translated LINQ expression.</returns>
     /// <exception cref="Exception">Thrown if the operator is unknown or unsupported.</exception>
-    public Expression Translate(Context context, OperatorV2 @operator, Node node)
+    public Expression Translate(TranslationContext context, OperatorV2 @operator, Node node)
     {
         switch (@operator)
         {
@@ -93,7 +93,7 @@ public class OperatorTranslator
                 return RelationalOperatorsTranslator.TranslateEquals(context, node);
 
             case OperatorV2.NotEquals:
-                return RelationalOperatorsTranslator.TranslateEquals(context, node);
+                return RelationalOperatorsTranslator.TranslateNotEquals(context, node);
 
             case OperatorV2.Less:
                 return RelationalOperatorsTranslator.TranslateLess(context, node);
@@ -177,7 +177,7 @@ public class ArithmeticOperatorsTranslator
         NodeTranslator = nodeTranslator;
     }
 
-    public Expression TranslateAdd(Context context, Node node)
+    public Expression TranslateAdd(TranslationContext context, Node node)
     {
         if (node is ArrayNode arrayNode)
         {
@@ -187,16 +187,16 @@ public class ArithmeticOperatorsTranslator
             }
 
             var elementOne = NodeTranslator.Translate(context, arrayNode[0]);
-            var elementTwoContext = new Context(elementOne.Type, elementOne, context);
+            var elementTwoContext = new TranslationContext(elementOne.Type, elementOne, context);
             var elementTwo = NodeTranslator.Translate(elementTwoContext, arrayNode[1]);
 
             return Expression.Add(elementOne, elementTwo);
         }
 
-        return Expression.Add(context.InputExpression, NodeTranslator.Translate(context, node));
+        return Expression.Add(context.Expression, NodeTranslator.Translate(context, node));
     }
 
-    public Expression TranslateSubtract(Context context, Node node)
+    public Expression TranslateSubtract(TranslationContext context, Node node)
     {
         if (node is ArrayNode arrayNode)
         {
@@ -206,16 +206,16 @@ public class ArithmeticOperatorsTranslator
             }
 
             var elementOne = NodeTranslator.Translate(context, arrayNode[0]);
-            var elementTwoContext = new Context(elementOne.Type, elementOne, context);
+            var elementTwoContext = new TranslationContext(elementOne.Type, elementOne, context);
             var elementTwo = NodeTranslator.Translate(elementTwoContext, arrayNode[1]);
 
             return Expression.Subtract(elementOne, elementTwo);
         }
 
-        return Expression.Subtract(context.InputExpression, NodeTranslator.Translate(context, node));
+        return Expression.Subtract(context.Expression, NodeTranslator.Translate(context, node));
     }
 
-    public Expression TranslateDivide(Context context, Node node)
+    public Expression TranslateDivide(TranslationContext context, Node node)
     {
         if (node is ArrayNode arrayNode)
         {
@@ -225,16 +225,16 @@ public class ArithmeticOperatorsTranslator
             }
 
             var elementOne = NodeTranslator.Translate(context, arrayNode[0]);
-            var elementTwoContext = new Context(elementOne.Type, elementOne, context);
+            var elementTwoContext = new TranslationContext(elementOne.Type, elementOne, context);
             var elementTwo = NodeTranslator.Translate(elementTwoContext, arrayNode[1]);
 
             return Expression.Divide(elementOne, elementTwo);
         }
 
-        return Expression.Divide(context.InputExpression, NodeTranslator.Translate(context, node));
+        return Expression.Divide(context.Expression, NodeTranslator.Translate(context, node));
     }
 
-    public Expression TranslateMultiply(Context context, Node node)
+    public Expression TranslateMultiply(TranslationContext context, Node node)
     {
         if (node is ArrayNode arrayNode)
         {
@@ -244,16 +244,16 @@ public class ArithmeticOperatorsTranslator
             }
 
             var elementOne = NodeTranslator.Translate(context, arrayNode[0]);
-            var elementTwoContext = new Context(elementOne.Type, elementOne, context);
+            var elementTwoContext = new TranslationContext(elementOne.Type, elementOne, context);
             var elementTwo = NodeTranslator.Translate(elementTwoContext, arrayNode[1]);
 
             return Expression.Multiply(elementOne, elementTwo);
         }
 
-        return Expression.Multiply(context.InputExpression, NodeTranslator.Translate(context, node));
+        return Expression.Multiply(context.Expression, NodeTranslator.Translate(context, node));
     }
 
-    public Expression TranslateModulo(Context context, Node node)
+    public Expression TranslateModulo(TranslationContext context, Node node)
     {
         if (node is ArrayNode arrayNode)
         {
@@ -263,13 +263,13 @@ public class ArithmeticOperatorsTranslator
             }
 
             var elementOne = NodeTranslator.Translate(context, arrayNode[0]);
-            var elementTwoContext = new Context(elementOne.Type, elementOne, context);
+            var elementTwoContext = new TranslationContext(elementOne.Type, elementOne, context);
             var elementTwo = NodeTranslator.Translate(elementTwoContext, arrayNode[1]);
 
             return Expression.Modulo(elementOne, elementTwo);
         }
 
-        return Expression.Modulo(context.InputExpression, NodeTranslator.Translate(context, node));
+        return Expression.Modulo(context.Expression, NodeTranslator.Translate(context, node));
     }
 
 }
@@ -285,132 +285,68 @@ public class RelationalOperatorsTranslator
         NodeTranslator = nodeParser;
     }
 
-    public Expression TranslateEquals(Context context, Node node)
+    public Expression TranslateEquals(TranslationContext context, Node node)
     {
         return Expression.Equal(GetLeftSide(context, node), GetRightSide(context, node));
     }
 
-    public Expression TranslateNotEquals(Context context, Node node)
+    public Expression TranslateNotEquals(TranslationContext context, Node node)
     {
         return Expression.NotEqual(GetLeftSide(context, node), GetRightSide(context, node));
     }
 
-    public Expression TranslateLess(Context context, Node node)
+    public Expression TranslateLess(TranslationContext context, Node node)
     {
         return Expression.LessThan(GetLeftSide(context, node), GetRightSide(context, node));
     }
 
-    public Expression TranslateLessEquals(Context context, Node node)
+    public Expression TranslateLessEquals(TranslationContext context, Node node)
     {
         return Expression.LessThanOrEqual(GetLeftSide(context, node), GetRightSide(context, node));
     }
 
-    public Expression TranslateGreater(Context context, Node node)
+    public Expression TranslateGreater(TranslationContext context, Node node)
     {
         return Expression.GreaterThan(GetLeftSide(context, node), GetRightSide(context, node));
     }
 
-    public Expression TranslateGreaterEquals(Context context, Node node)
+    public Expression TranslateGreaterEquals(TranslationContext context, Node node)
     {
         return Expression.GreaterThanOrEqual(GetLeftSide(context, node), GetRightSide(context, node));
     }
 
-    private Expression GetLeftSide(Context context, Node node)
+    private Expression GetLeftSide(TranslationContext context, Node node)
     {
-        if (node is ArrayNode arrayNode)
+        if (node is not ArrayNode arrayNode)
         {
-            if (arrayNode.Length != 2)
-            {
-                throw new Exception();
-            }
-
-            var nodeOne = arrayNode[0];
-            var nodeTwo = arrayNode[1];
-            var refNode = null as Node;
-            var valueNode = null as Node;
-
-            if (refNode == null && nodeOne is LiteralNode nodeOneLiteral)
-            {
-                if (nodeOneLiteral.IsOperator)
-                {
-                    refNode = nodeOne;
-                    valueNode = nodeTwo;
-                }
-            }
-            if (refNode == null && nodeTwo is LiteralNode nodeTwoLiteral)
-            {
-                if (nodeTwoLiteral.IsOperator)
-                {
-                    refNode = nodeTwo;
-                    valueNode = nodeOne;
-                }
-            }
-
-            if (refNode == null)
-            {
-                throw new Exception();
-            }
-            if (valueNode == null)
-            {
-                throw new Exception();
-            }
-
-            return NodeTranslator.Translate(context, refNode);
+            return context.Expression;
         }
 
-        return context.InputExpression;
-    }
-
-    private Expression GetRightSide(Context context, Node node)
-    {
-        if (node is ArrayNode arrayNode)
+        if (arrayNode.Length != 2)
         {
-            if (arrayNode.Length != 2)
-            {
-                throw new Exception();
-            }
-
-            var nodeOne = arrayNode[0];
-            var nodeTwo = arrayNode[1];
-            var refNode = null as Node;
-            var valueNode = null as Node;
-
-            if (refNode == null && nodeOne is LiteralNode nodeOneLiteral)
-            {
-                if (nodeOneLiteral.IsOperator)
-                {
-                    refNode = nodeOne;
-                    valueNode = nodeTwo;
-                }
-            }
-            if (refNode == null && nodeTwo is LiteralNode nodeTwoLiteral)
-            {
-                if (nodeTwoLiteral.IsOperator)
-                {
-                    refNode = nodeTwo;
-                    valueNode = nodeOne;
-                }
-            }
-
-            if (refNode == null)
-            {
-                throw new Exception();
-            }
-            if (valueNode == null)
-            {
-                throw new Exception();
-            }
-
-            var elementOne = NodeTranslator.Translate(context, refNode);
-            var elementTwoContext = new Context(elementOne.Type, elementOne, context);
-            var elementTwo = NodeTranslator.Translate(elementTwoContext, valueNode);
-
-            return elementTwo;
+            throw new Exception();
         }
 
-        return NodeTranslator.Translate(context, node);
+        return NodeTranslator.Translate(context, arrayNode[0]);
     }
 
+    private Expression GetRightSide(TranslationContext context, Node node)
+    {
+        if (node is not ArrayNode arrayNode)
+        {
+            return NodeTranslator.Translate(context, node);
+        }
+
+        if (arrayNode.Length != 2)
+        {
+            throw new Exception();
+        }
+
+        var lhsExpression = GetLeftSide(context, arrayNode);
+        var rhsContext = new TranslationContext(lhsExpression.Type, lhsExpression, context);
+        
+        return NodeTranslator.Translate(rhsContext, arrayNode[1]);
+    }
 
 }
 
@@ -425,7 +361,7 @@ public class LogicalOperatorsTranslator
         NodeTranslator = nodeTranslator;
     }
 
-    public Expression TranslateOr(Context context, Node node)
+    public Expression TranslateOr(TranslationContext context, Node node)
     {
         if (node is not ArrayNode array)
         {
@@ -478,7 +414,7 @@ public class LogicalOperatorsTranslator
         return expression;
     }
 
-    public Expression TranslateAnd(Context context, Node node)
+    public Expression TranslateAnd(TranslationContext context, Node node)
     {
         if (node is not ArrayNode array)
         {
@@ -531,7 +467,7 @@ public class LogicalOperatorsTranslator
         return expression;
     }
 
-    public Expression TranslateNot(Context context, Node node)
+    public Expression TranslateNot(TranslationContext context, Node node)
     {
         var expression = NodeTranslator.Translate(context, node);
 
@@ -556,15 +492,15 @@ public class SemanticOperatorsTranslator
         NodeTranslator = nodeTranslator;
     }
 
-    public Expression TranslateLiteral(Context context, Node node)
+    public Expression TranslateLiteral(TranslationContext context, Node node)
     {
-        var type = context.InputType;
+        var type = context.Type;
         var value = JsonSerializerSingleton.Deserialize(node.ToString(), type);
 
         return Expression.Constant(value, type);
     }
 
-    public Expression TranslateSelect(Context context, Node node)
+    public Expression TranslateSelect(TranslationContext context, Node node)
     {
         if (node is not LiteralNode literal)
         {
@@ -596,42 +532,42 @@ public class QueryableOperatorsTranslator
         NodeTranslator = nodeTranslator;
     }
 
-    public Expression TranslateFilter(Context context, Node node)
+    public Expression TranslateFilter(TranslationContext context, Node node)
     {
         return Options.LinqProvider.TranslateFilterOperator(context, NodeTranslator, node);
     }
 
-    public Expression TranslateProject(Context context, Node node)
+    public Expression TranslateProject(TranslationContext context, Node node)
     {
         return Options.LinqProvider.TranslateProjectOperator(context, NodeTranslator, node);
     }
 
-    public Expression TranslateLimit(Context context, Node node)
+    public Expression TranslateLimit(TranslationContext context, Node node)
     {
         return Options.LinqProvider.TranslateLimitOperator(context, NodeTranslator, node);
     }
 
-    public Expression TranslateSkip(Context context, Node node)
+    public Expression TranslateSkip(TranslationContext context, Node node)
     {
         return Options.LinqProvider.TranslateSkipOperator(context, NodeTranslator, node);
     }
 
-    public Expression TranslateCount(Context context, Node node)
+    public Expression TranslateCount(TranslationContext context, Node node)
     {
         return Options.LinqProvider.TranslateCountOperator(context, NodeTranslator, node);
     }
 
-    public Expression TranslateAny(Context context, Node node)
+    public Expression TranslateAny(TranslationContext context, Node node)
     {
         return Options.LinqProvider.TranslateAnyOperator(context, NodeTranslator, node);
     }
 
-    public Expression TranslateAll(Context context, Node node)
+    public Expression TranslateAll(TranslationContext context, Node node)
     {
         return Options.LinqProvider.TranslateAllOperator(context, NodeTranslator, node);
     }
 
-    public Expression TranslateMin(Context context, Node node)
+    public Expression TranslateMin(TranslationContext context, Node node)
     {
         return Options.LinqProvider.TranslateMinOperator(context, NodeTranslator, node);
     }

@@ -1,46 +1,48 @@
-﻿using System.Linq.Expressions;
-
-namespace ModularSystem.Webql.Analysis;
+﻿namespace ModularSystem.Webql.Analysis;
 
 public class NodeTypeEvaluator : SemanticsVisitor
 {
-    public virtual Type Evaluate(SemanticContext context, Node node)
+    //*
+    // { $filter: { } } => queryable type
+    // { $project: { } }
+    //*
+
+    public Type Evaluate(SemanticContext context, Node node)
     {
-        if (node is LiteralNode literalNode)
+        if (node is LiteralNode literal)
         {
-            return Evaluate(context, literalNode);
+            return EvaluateLiteral(context, literal);
         }
         if (node is ObjectNode objectNode)
         {
-            return Evaluate(context, objectNode);
-        }
-        if (node is ArrayNode arrayNode)
-        {
-            return Evaluate(context, arrayNode);
+            return EvaluateObject(context, objectNode);
         }
         if (node is ExpressionNode expression)
         {
-            return Evaluate(context, expression);
+            return EvaluateExpression(context, expression);
         }
 
         throw new Exception();
     }
 
-    protected Type Evaluate(SemanticContext context, LiteralNode node)
+    protected Type EvaluateLiteral(SemanticContext context, LiteralNode node)
     {
-        if(node.Value == null)
+        var type = context.Type;
+
+        if (node.Value == null)
         {
-            return context.Type;
-        }
-        if (node.Value.StartsWith('$'))
-        {
-            return EvaluateLiteralReference(context, node);
+            return typeof(Nullable);
         }
 
-        return context.Type;
+        if (node.IsOperator)
+        {
+            return EvaluateReference(context, node);
+        }
+
+        return type;
     }
 
-    protected Type EvaluateLiteralReference(SemanticContext context, LiteralNode node)
+    protected Type EvaluateReference(SemanticContext context, LiteralNode node)
     {
         var propPath = node.Value;
 
@@ -66,89 +68,124 @@ public class NodeTypeEvaluator : SemanticsVisitor
             ? pathSplit.First()
             : propPath;
 
-        var subContext = context.CreateSubContext(rootPropertyName, $".{rootPropertyName}");
+        var subContext = context.CreateSubContext(rootPropertyName, rootPropertyName);
 
         for (int i = 1; i < pathSplit.Length; i++)
         {
-            subContext = subContext.CreateSubContext(pathSplit[i], $".{pathSplit[i]}");
+            subContext = subContext.CreateSubContext(pathSplit[i], pathSplit[i], false);
         }
 
         return subContext.Type;
     }
 
-    protected Type Evaluate(SemanticContext context, ObjectNode node)
+    protected Type EvaluateObject(SemanticContext context, ObjectNode node)
     {
-        var evaluatedType = context.Type;
-        var subContext = context;
-        
-        foreach (var item in node)
+        var type = null as Type;
+
+        foreach (var item in node.Expressions)
         {
-            evaluatedType = Evaluate(subContext, item);
-            subContext = new SemanticContext(evaluatedType, subContext, $".{item.Lhs.Value}");
+            type = Evaluate(context, item);
+            context = new SemanticContext(type, context, $".{item.Lhs.Value}");
         }
 
-        return evaluatedType;
-    }
-
-    protected Type Evaluate(SemanticContext context, ArrayNode node)
-    {
-        return context.Type;
-    }
-
-    protected Type Evaluate(SemanticContext context, ExpressionNode node)
-    {
-        if (node.Lhs.IsOperator)
+        if (type == null)
         {
-            return EvaluateOperator(context, node);
+            type = context.Type;
         }
-        else
-        {
-            return EvaluateMemberAccess(context, node);
-        }
+
+        return type;
     }
 
-    protected Type EvaluateOperator(SemanticContext context, ExpressionNode node)
+    /// <summary>
+    /// Parses an expression node to a corresponding Expression.
+    /// </summary>
+    /// <param name="context">The current translation context.</param>
+    /// <param name="node">The expression node to parse.</param>
+    /// <returns>An Expression representing the expression node.</returns>
+    protected Type EvaluateExpression(SemanticContext context, ExpressionNode node)
     {
         var lhs = node.Lhs.Value;
         var rhs = node.Rhs.Value;
-        var op = HelperTools.ParseOperatorString(lhs);
-        var opType = HelperTools.GetOperatorType(op);
+        var isOperator = node.Lhs.IsOperator;
 
-        if(opType == OperatorType.Arithmetic)
+        if (!isOperator)
         {
-            return Evaluate(context, rhs);
+            return EvaluateMemberAccess(context, node);
         }
 
-        if (opType == OperatorType.Relational)
+        switch (HelperTools.ParseOperatorString(lhs))
         {
-            return typeof(bool);
-        }
-        if (opType == OperatorType.Logical)
-        {
-            return typeof(bool);
-        }
+            case OperatorV2.Add:
+            case OperatorV2.Subtract:
+            case OperatorV2.Divide:
+            case OperatorV2.Multiply:
+            case OperatorV2.Modulo:
+                return typeof(decimal);
 
-        if(opType == OperatorType.Queryable)
-        {
-            if (!context.IsQueryable())
-            {
-                throw new Exception();
-            }
+            case OperatorV2.Equals:
+            case OperatorV2.NotEquals:
+            case OperatorV2.Less:
+            case OperatorV2.LessEquals:
+            case OperatorV2.Greater:
+            case OperatorV2.GreaterEquals:
+            case OperatorV2.Or:
+            case OperatorV2.And:
+            case OperatorV2.Not:
+                return typeof(bool);
 
-            return context.GetQueryableType()!;
-        }
+            case OperatorV2.Expr:
+                return Evaluate(context, rhs);
 
-        if (opType == OperatorType.Aggregation)
-        {
-            return Evaluate(context, rhs);
+            case OperatorV2.Literal:
+                return context.Type;
+
+            case OperatorV2.Select:
+            case OperatorV2.Filter:
+            case OperatorV2.Project:
+            case OperatorV2.Limit:
+            case OperatorV2.Skip:
+                return context.Type;
+
+            case OperatorV2.Count:
+                return typeof(int);
+
+            case OperatorV2.Index:
+                return context.GetQueryableType()!;
+
+            case OperatorV2.Any:
+            case OperatorV2.All:
+                return typeof(bool);
+
+            case OperatorV2.Min:
+            case OperatorV2.Max:
+            case OperatorV2.Sum:
+            case OperatorV2.Average:
+                return typeof(void);
         }
 
         throw new Exception();
     }
 
+    /// <summary>
+    /// Parses member access within an expression node.
+    /// </summary>
+    /// <param name="context">The current translation context.</param>
+    /// <param name="node">The expression node representing member access.</param>
+    /// <returns>An Expression representing the member access.</returns>
     protected Type EvaluateMemberAccess(SemanticContext context, ExpressionNode node)
     {
-        var subContext = context.CreateSubContext(node.Lhs.Value, $".{node.Lhs.Value}");
-        return Evaluate(subContext, node.Rhs.Value);
+        var memberName = node.Lhs.Value;
+
+        if (context.IsQueryable())
+        {
+            context = new SemanticContext(context.GetQueryableType()!, context, context.Stack);
+        }
+
+        context = context.CreateSubContext(memberName, $".{memberName}");
+
+        return Evaluate(context, node.Rhs.Value);
     }
+
 }
+
+
