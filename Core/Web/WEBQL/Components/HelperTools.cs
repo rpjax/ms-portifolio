@@ -89,7 +89,7 @@ public static class HelperTools
             }
         }
 
-        throw new GeneratorException($"The operator '{value}' is not recognized or supported. Please ensure it is a valid operator.", null);
+        throw new Exception($"The operator '{value}' is not recognized or supported. Please ensure it is a valid operator.");
     }
 
     public static OperatorType GetOperatorType(Operator op)
@@ -110,6 +110,10 @@ public static class HelperTools
             case Operator.Greater:
             case Operator.GreaterEquals:
                 return OperatorType.Relational;
+
+            case Operator.Like:
+            case Operator.RegexMatch:
+                return OperatorType.PatternRelational;
 
             case Operator.Or:
             case Operator.And:
@@ -140,6 +144,16 @@ public static class HelperTools
             default:
                 throw new Exception();
         }
+    }
+
+    public static bool OperatorEvaluatesToBool(Operator @operator)
+    {
+        var opType = GetOperatorType(@operator);
+
+        return 
+            opType == OperatorType.Relational 
+            || opType == OperatorType.PatternRelational
+            || opType == OperatorType.Logical;
     }
 
 }

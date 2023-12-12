@@ -30,6 +30,11 @@ public class OperatorTranslator
     protected RelationalOperatorsTranslator RelationalOperatorsTranslator { get; }
 
     /// <summary>
+    /// A translator for pattern relational operators.
+    /// </summary>
+    protected PatternRelationalOperatorsTranslator PatternRelationalOperatorsTranslator { get; }
+
+    /// <summary>
     /// A translator for logical operators.
     /// </summary>
     protected LogicalOperatorsTranslator LogicalOperatorTranslator { get; }
@@ -55,6 +60,7 @@ public class OperatorTranslator
         NodeTranslator = nodeParser;
         ArithmeticOperatorsTranslator = new(options, NodeTranslator);
         RelationalOperatorsTranslator = new(options, NodeTranslator);
+        PatternRelationalOperatorsTranslator = new(options, NodeTranslator);
         LogicalOperatorTranslator = new(options, NodeTranslator);
         SemanticOperatorsTranslator = new(options, NodeTranslator);
         QueryableOperatorsTranslator = new(options, NodeTranslator);
@@ -106,6 +112,13 @@ public class OperatorTranslator
 
             case Operator.GreaterEquals:
                 return RelationalOperatorsTranslator.TranslateGreaterEquals(context, node);
+
+            // Pattern Relational Operators
+            case Operator.Like:
+                return PatternRelationalOperatorsTranslator.TranslateLike(context, node);
+
+            case Operator.RegexMatch:
+                return PatternRelationalOperatorsTranslator.TranslateRegexMatch(context, node);
 
             // Logical Operators
             case Operator.Or:
@@ -346,6 +359,29 @@ public class RelationalOperatorsTranslator
         var rhsContext = new TranslationContext(lhsExpression.Type, lhsExpression, context);
 
         return NodeTranslator.Translate(rhsContext, arrayNode[1]);
+    }
+
+}
+
+public class PatternRelationalOperatorsTranslator
+{
+    private TranslatorOptions Options { get; }
+    private NodeTranslator NodeTranslator { get; }
+
+    public PatternRelationalOperatorsTranslator(TranslatorOptions options, NodeTranslator nodeParser)
+    {
+        Options = options;
+        NodeTranslator = nodeParser;
+    }
+
+    public Expression TranslateLike(TranslationContext context, Node node)
+    {
+        return Expression.Equal(GetLeftSide(context, node), GetRightSide(context, node));
+    }
+
+    public Expression TranslateRegexMatch(TranslationContext context, Node node)
+    {
+        return Expression.Equal(GetLeftSide(context, node), GetRightSide(context, node));
     }
 
 }

@@ -82,10 +82,7 @@ internal class ImplicitAndSyntaxFeature : SemanticsVisitor
                 continue;
             }
 
-            var op = HelperTools.ParseOperatorString(lhs.Value);
-            var opType = HelperTools.GetOperatorType(op);
-
-            return opType == OperatorType.Relational || opType == OperatorType.Logical;
+            return HelperTools.OperatorEvaluatesToBool(HelperTools.ParseOperatorString(lhs.Value));
         }
     }
 }

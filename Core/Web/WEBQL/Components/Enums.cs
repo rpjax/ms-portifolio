@@ -51,6 +51,10 @@ public enum Operator
     Greater,
     GreaterEquals,
 
+    // Pattern Relational Operators
+    Like,
+    RegexMatch,
+
     // Logical Operators
     Or,
     And,
@@ -77,6 +81,7 @@ public enum Operator
     Sum,
     Average,
 
+
 }
 
 /// <summary>
@@ -86,6 +91,7 @@ public enum OperatorType
 {
     Arithmetic,
     Relational,
+    PatternRelational,
     Logical,
     Semantic,
     Queryable,
