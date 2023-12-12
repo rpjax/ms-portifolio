@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Infrastructure;
-using System.Text;
+﻿using System.Text;
 
 namespace Core.TextAnalysis;
 
@@ -20,7 +19,7 @@ public class RawToken : LexerToken
 
     public RawToken(string productionString, params LexerToken[] children)
     {
-        InternalProductionString = productionString;  
+        InternalProductionString = productionString;
         Children = children;
     }
 

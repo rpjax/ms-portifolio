@@ -343,7 +343,7 @@ public class SerializableDebugInfoExpression : SerializableExpression
 
 public class SerializableDynamicExpression : SerializableExpression
 {
-  
+
 }
 
 public class SerializableDefaultExpression : SerializableExpression

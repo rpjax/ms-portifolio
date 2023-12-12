@@ -57,10 +57,10 @@ public abstract class TaskRoutine : IDisposable
     /// Initiates the task routine.
     /// </summary>
     public TaskRoutine Start()
-    {   
-        lock(LockObject)
-        {            
-            if(!CanStart)
+    {
+        lock (LockObject)
+        {
+            if (!CanStart)
             {
                 throw new InvalidOperationException("Cannot start the task routine because there is an instance running or that has not exited yet.");
             }
@@ -80,9 +80,9 @@ public abstract class TaskRoutine : IDisposable
     /// </summary>
     public void Stop()
     {
-        lock(LockObject)
+        lock (LockObject)
         {
-            if(!IsRunningInternal)
+            if (!IsRunningInternal)
             {
                 return;
             }

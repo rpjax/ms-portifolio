@@ -3,7 +3,6 @@ using ModularSystem.Core;
 using ModularSystem.Core.Cryptography;
 using ModularSystem.Core.Helpers;
 using ModularSystem.Core.Security;
-using System.Text.Json;
 
 namespace ModularSystem.Web.Authentication;
 

@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace ModularSystem.Core;
+﻿namespace ModularSystem.Core;
 
 /// <summary>
 /// Middleware responsible for enforcing validation logic on entities during various operations.
@@ -57,7 +55,7 @@ internal class ValidationMiddleware<T> : EntityMiddleware<T> where T : IQueryabl
     /// </remarks>
     public override async Task<IEnumerable<T>> BeforeCreateAsync(IEnumerable<T> entities)
     {
-        if(Service.Validator == null)
+        if (Service.Validator == null)
         {
             return await base.BeforeCreateAsync(entities);
         }
@@ -76,7 +74,7 @@ internal class ValidationMiddleware<T> : EntityMiddleware<T> where T : IQueryabl
         {
             return await base.BeforeCreateAsync(entities);
         }
-        if(errors.Length == 1)
+        if (errors.Length == 1)
         {
             throw errors.First();
         }

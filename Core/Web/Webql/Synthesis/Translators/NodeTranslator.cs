@@ -143,7 +143,7 @@ public class NodeTranslator
 
         if (expression == null)
         {
-             expression = context.Expression;
+            expression = context.Expression;
         }
 
         return expression;
@@ -158,7 +158,7 @@ public class NodeTranslator
     protected Expression ParseExpression(TranslationContext context, ExpressionNode node)
     {
         var lhs = node.Lhs.Value;
-        var rhs = node.Rhs.Value;  
+        var rhs = node.Rhs.Value;
         var isOperator = node.Lhs.IsOperator;
 
         if (!isOperator)

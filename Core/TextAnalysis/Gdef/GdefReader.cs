@@ -1,5 +1,4 @@
-﻿using ModularSystem.Core;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace ModularSystem.Core.TextAnalysis.Gdef;
 
@@ -117,7 +116,7 @@ public class GDefReader
             fragments.Add(fragment);
         }
 
-        var patterns= new List<Pattern>();
+        var patterns = new List<Pattern>();
         var pattern = new Pattern();
         var isInsideRepetition = false;
         var count = 0;
@@ -132,7 +131,7 @@ public class GDefReader
             {
                 isInsideRepetition = !isInsideRepetition;
             }
-           
+
             if (!isInsideRepetition && fragment is AlternativeFragment)
             {
                 patterns.Add(pattern);
@@ -142,7 +141,7 @@ public class GDefReader
 
             pattern.Fragments.Add(fragment);
 
-            if(isLast)
+            if (isLast)
             {
                 if (isInsideRepetition)
                 {
@@ -162,11 +161,11 @@ public class GDefReader
         {
             return new AlternativeFragment();
         }
-        if(token == EpsilonOperator)
+        if (token == EpsilonOperator)
         {
             return new EpsilonFragment();
         }
-        if(token == CompilerGenerationOperator)
+        if (token == CompilerGenerationOperator)
         {
             return new CompilerGenFragment();
         }

@@ -154,7 +154,7 @@ public class HttpResponse : IDisposable
     {
         try
         {
-            if(Body == null)
+            if (Body == null)
             {
                 throw new InvalidOperationException("The response body is null. Deserialization cannot proceed without content.");
             }
@@ -184,7 +184,7 @@ public class HttpResponse : IDisposable
     /// <param name="encoding">The encoding used for the response content.</param>
     /// <param name="options">Optional parameters for the JSON deserializer.</param>
     /// <returns>A task representing the asynchronous operation with the deserialized object as the result.</returns>
-    public async Task<T> DeserializeAsJsonAsync<T>(Encoding? encoding = null, JsonSerializerOptions? options = null) 
+    public async Task<T> DeserializeAsJsonAsync<T>(Encoding? encoding = null, JsonSerializerOptions? options = null)
     {
         return (await DeserializeAsJsonAsync(typeof(T), encoding, options))!.TypeCast<T>();
     }

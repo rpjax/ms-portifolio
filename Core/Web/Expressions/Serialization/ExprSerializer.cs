@@ -44,7 +44,7 @@ public class ExprSerializer : ISerializer<Expression>
     /// <returns>The serializable representation of the expression.</returns>
     public SerializableExpression ToSerializable(Expression expression)
     {
-        if(Config.UseClosureUnwrapper)
+        if (Config.UseClosureUnwrapper)
         {
             expression = new ClosureExpressionUnwrapper().Visit(expression);
         }

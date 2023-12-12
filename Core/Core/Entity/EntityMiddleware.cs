@@ -169,7 +169,7 @@ public class EntityExpressionVisitor<T> where T : IQueryableModel
     {
         var tasks = new List<Task>();
 
-        if(query.Filter != null)
+        if (query.Filter != null)
         {
             tasks.Add(Task.Run(async () => query.Filter = await VisitQueryFilter(query.Filter)));
         }

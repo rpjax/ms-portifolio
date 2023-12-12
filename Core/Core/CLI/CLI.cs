@@ -1,7 +1,5 @@
 ﻿using ModularSystem.Core.Cli.Commands;
 using ModularSystem.Core.Logging;
-using MongoDB.Driver;
-using System.Collections.Concurrent;
 using System.Text;
 
 namespace ModularSystem.Core.Cli;
@@ -25,7 +23,7 @@ public class CLI : IDisposable
 
     static int InstanceCounter { get; set; } = 0;
 
-    bool IsRunning { get; set; } 
+    bool IsRunning { get; set; }
     bool ShouldRestoreConsoleLoggerAsStdIo { get; set; }
 
     List<string> InputQueue { get; set; } = new();
@@ -163,13 +161,13 @@ public class CLI : IDisposable
             return;
         }
 
-        lock(PrintQueue)
+        lock (PrintQueue)
         {
             PrintQueue.Add(message);
         }
     }
 
-    public void Print(IEnumerable<string> messages )
+    public void Print(IEnumerable<string> messages)
     {
         lock (PrintQueue)
         {
@@ -287,12 +285,12 @@ public class CLI : IDisposable
 
     void ExecutePrompt(PromptContext promptContext)
     {
-        if(promptContext.Instruction == null)
+        if (promptContext.Instruction == null)
         {
             return;
         }
 
-        if(!FactoryDictionary.TryGetValue(promptContext.Instruction, out var factory))
+        if (!FactoryDictionary.TryGetValue(promptContext.Instruction, out var factory))
         {
             Print($"No handlers for the command '{promptContext.Instruction}' were found.");
             return;
@@ -385,7 +383,7 @@ public class CLI : IDisposable
     }
 
     private class ExecutionContextFactory
-    {      
+    {
         private Type Type { get; }
 
         public ExecutionContextFactory(Type type)

@@ -276,7 +276,7 @@ internal class ExpressionToSerializable : ConverterBase, IConversion<Expression,
         return new()
         {
             NodeType = (ExtendedExpressionType)expression.NodeType,
-            DelegateType = TypeConverter.Convert(expression.Type),            
+            DelegateType = TypeConverter.Convert(expression.Type),
             Parameters = expression.Parameters.Transform(x => Convert(x)).ToArray(),
             Body = Convert(expression.Body)
         };

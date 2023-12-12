@@ -74,10 +74,19 @@ public class SemanticContext
     }
 
     /// <summary>
-    /// Retrieves the element type of the queryable type of the current context, if applicable.
+    /// Attempts to retrieve the element type of the queryable type represented by the current context. <br/>
+    /// This method determines if the context type is queryable and, if so, extracts the relevant element type.
     /// </summary>
-    /// <returns>The element type of the queryable, or null if the context is not a queryable type.</returns>
-    public Type? GetQueryableType()
+    /// <returns>
+    /// The element type of the queryable type if the context is queryable; otherwise, null. 
+    /// </returns>
+    /// <remarks>
+    /// This method checks if the context's type is either an array or implements IEnumerable{T}. <br/>
+    /// If the type is an array, it returns the array's element type. <br/>
+    /// If the type is a generic IEnumerable, it returns the generic argument type. <br/>
+    /// If the context's type is not queryable, it returns null.
+    /// </remarks>
+    public Type? TryGetQueryableType()
     {
         if (IsQueryable())
         {
@@ -92,6 +101,23 @@ public class SemanticContext
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Retrieves the element type of the queryable type of the current context, if applicable.
+    /// </summary>
+    /// <returns>The element type of the queryable.</returns>
+    /// <exception cref="SemanticException">Thrown if the context is not queryable or the queryable type is undefined.</exception>
+    public Type GetQueryableType()
+    {
+        var type = TryGetQueryableType();
+
+        if (type == null)
+        {
+            throw SemanticThrowHelper.ErrorInternalUnknown(this, "The current context does not represent a queryable type or the queryable type is undefined. Ensure that the context is correctly initialized and represents a valid queryable type. This error may indicate a misalignment between the expected and actual types within the context.");
+        }
+
+        return type;
     }
 
     /// <summary>

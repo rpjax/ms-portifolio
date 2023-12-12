@@ -63,11 +63,11 @@ public static class JsonSerializerSingleton
         {
             return Converters.TryAdd(key, converter);
         }
-        if(strategy == ConverterConflictStrategy.UseOldest)
+        if (strategy == ConverterConflictStrategy.UseOldest)
         {
             return false;
         }
-        if(strategy == ConverterConflictStrategy.UseNewest)
+        if (strategy == ConverterConflictStrategy.UseNewest)
         {
             Converters.Remove(key, out _);
             return Converters.TryAdd(key, converter);

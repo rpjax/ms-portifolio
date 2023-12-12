@@ -35,7 +35,7 @@ public class QueryDefinition
 
     public Expression? GetFilterExpression(Type type)
     {
-        if(FilterSyntaxTree == null)
+        if (FilterSyntaxTree == null)
         {
             return null;
         }
@@ -60,7 +60,7 @@ public class QueryDefinition
 
     public OrderDefinition[] GetOrderDefinitions(Type type)
     {
-        if(OrderSyntaxTree == null)
+        if (OrderSyntaxTree == null)
         {
             return Array.Empty<OrderDefinition>();
         }

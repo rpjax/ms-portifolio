@@ -344,7 +344,7 @@ public class RelationalOperatorsTranslator
 
         var lhsExpression = GetLeftSide(context, arrayNode);
         var rhsContext = new TranslationContext(lhsExpression.Type, lhsExpression, context);
-        
+
         return NodeTranslator.Translate(rhsContext, arrayNode[1]);
     }
 

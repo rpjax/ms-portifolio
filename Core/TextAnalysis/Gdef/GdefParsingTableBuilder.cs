@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace ModularSystem.Core.TextAnalysis.Gdef;
+﻿namespace ModularSystem.Core.TextAnalysis.Gdef;
 
 public class GdefParsingTableBuilder
 {
@@ -19,7 +17,7 @@ public class GdefParsingTableBuilder
         foreach (var production in productions)
         {
             if (
-                production.Name != "S" 
+                production.Name != "S"
                 && production.Patterns.Any(p => p.Fragments.Any(f => f is EpsilonFragment)))
             {
 
@@ -27,7 +25,7 @@ public class GdefParsingTableBuilder
 
             foreach (var pattern in production.Patterns)
             {
-                
+
             }
 
         }

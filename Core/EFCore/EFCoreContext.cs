@@ -48,7 +48,7 @@ public class EFCoreContext : DbContext
                 {
                     throw new Exception();
                 }
-                if(elementType != typeof(string))
+                if (elementType != typeof(string))
                 {
                     continue;
                 }
@@ -82,7 +82,7 @@ public class EFCoreContext : DbContext
                 // sets relationship
                 modelBuilder
                     .Entity(entity.ClrType)
-                    .HasMany(elementTableType)  
+                    .HasMany(elementTableType)
                     .WithOne()
                     .HasForeignKey(foreignKeyColumnName); // Substitua pelo nome desejado para a chave estrangeira
             }

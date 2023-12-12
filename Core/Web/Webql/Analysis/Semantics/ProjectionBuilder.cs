@@ -78,7 +78,7 @@ public class ProjectionBuilder
 
                     if (propertyInfo == null)
                     {
-                        throw new Exception();
+                        throw new TranslationException($"Property '{propDefinition.Name}' could not be found in the type '{propertyType.FullName}'. This might indicate an inconsistency in the projection definition.", context);
                     }
 
                     // Cria um binding para a propriedade do novo tipo
@@ -93,6 +93,11 @@ public class ProjectionBuilder
             }
             else
             {
+                if (item.Lhs.IsOperator)
+                {
+                    throw new TranslationException("The projection property '" + lhs + "' contains an operator, which is not allowed in this context. In WebQL projections, each property should either map directly to a field or define a sub-object or expression. For example, 'name': '$username' is a direct field binding, 'address': { 'street': '$streetName' } defines a sub-object, and 'status': { '$select': 'isActive', '$equals': true } is a valid expression. Ensure the property definition adheres to these rules.", context);
+                }
+
                 // Obtém o nome da propriedade e a expressão associada
                 var propertyName = item.Lhs.Value;
                 var propertyExpression = Translator.Translate(context, item.Rhs.Value);
@@ -104,7 +109,7 @@ public class ProjectionBuilder
 
         if (Properties.Count == 0)
         {
-            throw new Exception("The translation failed because the projected object contains no properties. WebQL requires at least one property in a projection expression to create a meaningful translation.");
+            throw new TranslationException("No properties were defined in the projection. A valid projection must contain at least one property. Please review your query structure.", context);
         }
 
         var options = new AnonymousTypeCreationOptions()
@@ -117,7 +122,7 @@ public class ProjectionBuilder
 
         if (ProjectedType == null)
         {
-            throw new Exception();
+            throw new TranslationException("Failed to create projected type: Anonymous type generation encountered an internal error. Review the property definitions for any inconsistencies.", context);
         }
 
         return this;

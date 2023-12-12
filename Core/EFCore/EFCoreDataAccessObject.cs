@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore.Query;
 using ModularSystem.Core;
 using ModularSystem.Core.Expressions;
 using MongoDB.Driver;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -382,7 +381,7 @@ internal class EFCoreUpdateOperation<T> where T : class, IEFModel
         var parameterExpression = Expression.Parameter(typeof(SetPropertyCalls<T>), "s");
         var fluentParameter = parameterExpression as Expression;
         var setCalls = new List<MethodCallExpression>();
-        
+
         foreach (var updateSet in modifications)
         {
             //*
@@ -412,7 +411,7 @@ internal class EFCoreUpdateOperation<T> where T : class, IEFModel
 
             var selectorExpr = updateSet.ToLambda(Expression.Parameter(typeof(T), "x"));
 
-            if(selectorExpr == null)
+            if (selectorExpr == null)
             {
                 throw new Exception("Invalid or insupported UpdateSetExpression expression.");
             }

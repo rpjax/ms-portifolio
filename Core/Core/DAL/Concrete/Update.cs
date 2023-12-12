@@ -157,7 +157,7 @@ public class UpdateWriter<T> : IFactory<Update<T>>
         var analyser = new SelectorExpressionAnalyzer<T, TField>(selector)
             .Execute();
         var valueExpr = Expression.Constant(value, typeof(TField));
-        var modification = 
+        var modification =
             new UpdateSetExpression(analyser.GetFieldName(), analyser.GetFieldType(), selector, valueExpr);
         var reader = new UpdateReader<T>(Update);
 
@@ -166,13 +166,13 @@ public class UpdateWriter<T> : IFactory<Update<T>>
             .Where(x => x.FieldName == modification.FieldName)
             .ToArray();
 
-        if(updatesForSelectedField.IsEmpty())
+        if (updatesForSelectedField.IsEmpty())
         {
             Update.Modifications.Add(modification);
             return this;
         }
-        
-        if(ConflictStrategy == ConflictStrategyType.Throw)
+
+        if (ConflictStrategy == ConflictStrategyType.Throw)
         {
             throw new InvalidOperationException($"A modification for the field '{modification.FieldName}' already exists. To override or skip this conflict, adjust the ConflictStrategy.");
         }
@@ -187,7 +187,7 @@ public class UpdateWriter<T> : IFactory<Update<T>>
         Update.Modifications.Add(modification);
         return this;
     }
-    
+
 }
 
 /// <summary>

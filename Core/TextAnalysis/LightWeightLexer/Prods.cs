@@ -121,8 +121,8 @@ public static class Prods
     {
         public override string[] GetFormationStrings()
         {
-            return new string[] 
-            { 
+            return new string[]
+            {
                 "<number><operator><number>",
                 "<expr><operator><number>",
                 "<expr><operator><expr>",

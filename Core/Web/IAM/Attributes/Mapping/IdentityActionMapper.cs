@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Mvc;
-using System.Reflection;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 using ModularSystem.Core;
+using System.Reflection;
 
 namespace ModularSystem.Web.Attributes;
 
@@ -17,7 +17,7 @@ public class IdentityActionMapper
     /// <returns>An enumerable of <see cref="IdentityActionAttribute"/> associated with action methods.</returns>
     public static IEnumerable<IdentityActionAttribute> GetRouteActionAttributes(Settings? settings = null)
     {
-         settings ??= new Settings();
+        settings ??= new Settings();
 
         foreach (var methodInfo in GetRoutesMethodInfo())
         {

@@ -71,7 +71,7 @@ public class UpdateSetExpression : NotVisitableExpression
     /// <returns>A lambda expression representing the field selector.</returns>
     public LambdaExpression? ToLambda(params ParameterExpression[]? parameters)
     {
-        if(FieldSelector is not LambdaExpression cast)
+        if (FieldSelector is not LambdaExpression cast)
         {
             return null;
         }

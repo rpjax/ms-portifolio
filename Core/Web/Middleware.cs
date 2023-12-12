@@ -64,7 +64,7 @@ public abstract class Middleware
                     throw new InvalidOperationException();
             }
 
-            await AfterNextAsync(context);    
+            await AfterNextAsync(context);
         }
         catch (Exception e)
         {
@@ -230,7 +230,7 @@ public abstract class Middleware
     /// <returns>A task representing the asynchronous operation.</returns>
     protected virtual Task<Strategy> OnExceptionAsync(HttpContext context, Exception exception)
     {
-        return Task.FromResult(Strategy.Continue); 
+        return Task.FromResult(Strategy.Continue);
     }
 
 }

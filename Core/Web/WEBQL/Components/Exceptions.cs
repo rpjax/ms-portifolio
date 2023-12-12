@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Webql.Analysis;
+using ModularSystem.Webql.Synthesis;
 
 namespace ModularSystem.Webql;
 
@@ -79,4 +80,26 @@ public class GeneratorException : ParseException
         return $"Translation Error: {Message}{dot} This error was identified at: {Context.Stack}";
     }
 
+}
+
+public class TranslationException : ParseException
+{
+    public TranslationException(string message, TranslationContext context, Exception? inner = null)
+        : base(message, inner)
+    {
+    }
+
+    private TranslationContext Context { get; }
+
+    public override string GetMessage()
+    {
+        var dot = "";
+
+        if (!Message.EndsWith('.'))
+        {
+            dot = ".";
+        }
+
+        return $"Translation Error: {Message}{dot} This error was identified at: {Context.Name}";
+    }
 }

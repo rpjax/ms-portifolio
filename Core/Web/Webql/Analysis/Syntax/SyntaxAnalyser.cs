@@ -18,7 +18,7 @@ public static class SyntaxAnalyser
         var node = JsonNode.Parse(json);
         var context = new SyntaxContext();
 
-        if(node == null)
+        if (node == null)
         {
             throw new SyntaxException("Failed to parse the JSON string. Ensure the input is a valid JSON format. Check for syntax errors, missing or misplaced brackets, and correct any inconsistencies in the JSON structure.", context);
         }
@@ -89,7 +89,7 @@ public static class SyntaxAnalyser
 
             default:
                 throw new Exception();
-        }       
+        }
     }
 
     private static RhsNode ParseLiteralRhs(SyntaxContext context, JsonValue? jsonValue)

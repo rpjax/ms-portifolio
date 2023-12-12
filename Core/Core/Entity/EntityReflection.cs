@@ -30,7 +30,7 @@ public static class EntityReflection
     /// <returns>The model type argument.</returns>
     public static Type GetModelTypeFromEntityType(Type entityType)
     {
-        if(entityType.BaseType == null)
+        if (entityType.BaseType == null)
         {
             throw new ArgumentException(nameof(entityType));
         }

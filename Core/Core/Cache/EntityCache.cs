@@ -1,5 +1,4 @@
-﻿using ModularSystem.Core.Threading;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 namespace ModularSystem.Core.Caching;
 
@@ -60,7 +59,7 @@ public class EntityCache<T> : IDisposable where T : class
 
     public void Dispose()
     {
-        
+
     }
 
     public EntityCache<T> EmptyCopy(long? maxSize = null)
@@ -132,7 +131,7 @@ public class EntityCache<T> : IDisposable where T : class
             }
         }
 
-        if(record == null)
+        if (record == null)
         {
             record = new CacheRecord(this, key, data, lifetime ?? RecordLifetime);
         }
@@ -173,7 +172,7 @@ public class EntityCache<T> : IDisposable where T : class
         }
     }
 
-    public class CacheRecord 
+    public class CacheRecord
     {
         public string Key { get; set; }
         public T Value { get; set; }
@@ -192,8 +191,8 @@ public class EntityCache<T> : IDisposable where T : class
             CreatedAt = TimeProvider.UtcNow();
             LastUsedAt = TimeProvider.UtcNow();
             Cache = cache;
-            
-            if(cache.InvalidationStrategy != InvalidationStrategyType.None)
+
+            if (cache.InvalidationStrategy != InvalidationStrategyType.None)
             {
                 DeletionTask = new RecordDeletionTask(this, lifetime);
             }

@@ -69,7 +69,7 @@ public class PropertyInfoConverter : ConverterBase, IPropertyInfoConverter
         var type = TypeConverter.Convert(sPropertyInfo.DeclaringType);
         var propertyInfo = type.GetProperty(sPropertyInfo.Name);
 
-        if(propertyInfo == null)
+        if (propertyInfo == null)
         {
             throw PropertyNotFoundException(sPropertyInfo);
         }

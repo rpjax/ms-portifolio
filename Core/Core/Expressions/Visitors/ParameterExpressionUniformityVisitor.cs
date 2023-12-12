@@ -69,7 +69,7 @@ public class ParameterExpressionUniformityVisitor : ExpressionVisitor
 
         public bool IsLhs(Expression expression)
         {
-            Visit(expression); 
+            Visit(expression);
             return isLhs;
         }
 

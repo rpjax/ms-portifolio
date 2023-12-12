@@ -74,7 +74,7 @@ public class SerializableQuery
 
     static Expression? Deserialize(string? serializedExpression)
     {
-        if(serializedExpression == null)
+        if (serializedExpression == null)
         {
             return null;
         }
@@ -115,8 +115,8 @@ public class SerializableUpdate
         return new Update<T>()
         {
             Filter = QueryProtocol.FromSerializable(Filter),
-            Modifications = Modifications == null 
-                ? new() 
+            Modifications = Modifications == null
+                ? new()
                 : Modifications.Transform(x => QueryProtocol.FromSerializable(x)).ToList(),
         };
     }

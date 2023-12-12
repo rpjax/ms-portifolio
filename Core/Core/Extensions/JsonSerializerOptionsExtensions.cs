@@ -50,7 +50,7 @@ public static class JsonSerializerOptionsExtensions
 
     public static JsonSerializerOptions AddConverters(this JsonSerializerOptions self, JsonSerializerOptions? options)
     {
-        if(options == null)
+        if (options == null)
         {
             return self;
         }

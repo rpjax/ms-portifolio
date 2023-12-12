@@ -99,12 +99,12 @@ public static class EntityExtensions
     /// <returns>The retrieved entity or default if not found.</returns>
     public static async Task<T?> TryGetAsync<T>(this EntityService<T> entity, string id) where T : IQueryableModel
     {
-        RunIdFormatValidation(entity,id);
+        RunIdFormatValidation(entity, id);
 
-        var query = CreateQueryWhereIdEquals(entity,id);
+        var query = CreateQueryWhereIdEquals(entity, id);
         var queryResult = await entity.QueryAsync(query);
 
-        if(queryResult == null)
+        if (queryResult == null)
         {
             return default;
         }

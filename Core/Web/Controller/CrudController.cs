@@ -164,7 +164,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
 
             var reader = new ExpressionReader(QueryProtocol.FromSerializable(serializableExpression));
             var affectedRecords = await Service.DeleteAsync(reader.GetPredicate<T>());
-            var dto = new Dto<long?>(affectedRecords);  
+            var dto = new Dto<long?>(affectedRecords);
 
             return Ok(dto);
         }

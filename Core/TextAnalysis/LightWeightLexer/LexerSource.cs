@@ -13,7 +13,7 @@ public abstract class LexerSource : IDisposable
 
     public virtual void Dispose()
     {
-        
+
     }
 }
 

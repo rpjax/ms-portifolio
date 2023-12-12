@@ -63,7 +63,7 @@ public static partial class TypeAddons
                         .GetGenericTypeDefinition()
                         .MakeGenericType(parameter.GenericTypeArguments);
                 }
-                if(methodParameter.IsGenericParameter)
+                if (methodParameter.IsGenericParameter)
                 {
                     methodParameter = parameter;
                 }

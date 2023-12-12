@@ -50,7 +50,7 @@ public static class QueryProtocol
 
             return ExpressionSerializer.FromSerializable(sExpression);
         }
-        catch(ParsingException e)
+        catch (ParsingException e)
         {
             throw e.ToAppException(ExceptionCode.InvalidInput);
         }

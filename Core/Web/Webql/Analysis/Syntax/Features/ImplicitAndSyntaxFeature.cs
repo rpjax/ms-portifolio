@@ -21,7 +21,7 @@ internal class ImplicitAndSyntaxFeature : SemanticsVisitor
     [return: NotNullIfNotNull("node")]
     protected override Node? Visit(SemanticContext context, ObjectNode node)
     {
-        if(!context.EnableImplicitAndSyntax)
+        if (!context.EnableImplicitAndSyntax)
         {
             return node;
         }
@@ -47,7 +47,7 @@ internal class ImplicitAndSyntaxFeature : SemanticsVisitor
             return new ObjectNode(objects.SelectMany(x => x.Expressions).Concat(expressions));
         }
 
-        var lhs = new LhsNode(HelperTools.StringifyOperator(Operator.And));
+        var lhs = new LhsNode(HelperTools.Stringify(Operator.And));
         var rhs = new RhsNode(new ArrayNode(objects));
         var expression = new ExpressionNode(lhs, rhs);
 

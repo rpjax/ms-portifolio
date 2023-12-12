@@ -30,10 +30,10 @@ public class LexerSentense
     public string GetProductionString(string? value = null)
     {
         StringBuilder.Clear();
-        
+
         foreach (var str in Tokens)
         {
-            StringBuilder.Append(str.GetProductionString()); 
+            StringBuilder.Append(str.GetProductionString());
         }
 
         StringBuilder.Append(value);
@@ -53,7 +53,7 @@ public class LexerSentense
 
     public T[] GetTokens<T>() where T : LexerToken
     {
-        return Tokens.Transform(x => (T) x).ToArray();
+        return Tokens.Transform(x => (T)x).ToArray();
     }
 
     public LexerToken TokenAt(int index)
@@ -129,12 +129,12 @@ public class LexerSentense
 
     public void RemoveLast()
     {
-        if(Length == 0)
+        if (Length == 0)
         {
             throw new InvalidOperationException();
         }
 
-        Tokens.RemoveAt(Length - 1);    
+        Tokens.RemoveAt(Length - 1);
     }
 
     public void Add(LexerToken token)

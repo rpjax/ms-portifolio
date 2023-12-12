@@ -60,7 +60,7 @@ public class HelpCmd : CliCommand
     public override string Description()
     {
         return "Lists all available instructions with a description.";
-    } 
+    }
 
     protected override void Execute()
     {
@@ -89,8 +89,8 @@ public class KillCmd : CliCommand
     public override string Description()
     {
         return "Terminates all threads and exits the process execution. Use it with caution.";
-    }   
-    
+    }
+
     protected override void Execute()
     {
         Process.GetCurrentProcess().Kill();
@@ -162,8 +162,8 @@ public class ListRunningContextsCmd : CliCommand
     public override string Description()
     {
         return "Lists all the commands that are executing in the background, in a separeted thread.";
-    }  
-    
+    }
+
     protected override void Execute()
     {
         CliReference.PrintRunningCommands();

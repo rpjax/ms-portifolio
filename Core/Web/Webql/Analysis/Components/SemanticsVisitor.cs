@@ -134,7 +134,7 @@ public class SemanticsVisitor
             else
             {
                 context = new(context.Type, context, stack);
-            }          
+            }
         }
 
         return new ExpressionNode(Visit(context, node.Lhs), Visit(context, node.Rhs));

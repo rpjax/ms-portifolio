@@ -25,6 +25,6 @@ public sealed class Void
     /// </summary>
     public Void()
     {
-        
+
     }
 }

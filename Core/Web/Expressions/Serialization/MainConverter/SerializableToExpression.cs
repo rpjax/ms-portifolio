@@ -36,105 +36,105 @@ internal class SerializableToExpression : ConverterBase, IConversion<Serializabl
 
         switch (nodeType)
         {
-            case ExtendedExpressionType.Add: 
+            case ExtendedExpressionType.Add:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.AddChecked: 
+            case ExtendedExpressionType.AddChecked:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.And: 
+            case ExtendedExpressionType.And:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
             case ExtendedExpressionType.AndAlso:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.ArrayLength: 
+            case ExtendedExpressionType.ArrayLength:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
-            case ExtendedExpressionType.ArrayIndex: 
+            case ExtendedExpressionType.ArrayIndex:
                 return Convert(As<SerializableMethodCallExpression>(sExpression));
-            case ExtendedExpressionType.Call: 
+            case ExtendedExpressionType.Call:
                 return Convert(As<SerializableMethodCallExpression>(sExpression));
-            case ExtendedExpressionType.Coalesce: 
+            case ExtendedExpressionType.Coalesce:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.Conditional: 
+            case ExtendedExpressionType.Conditional:
                 return Convert(As<SerializableConditionalExpression>(sExpression));
-            case ExtendedExpressionType.Constant: 
+            case ExtendedExpressionType.Constant:
                 return Convert(As<SerializableConstantExpression>(sExpression));
-            case ExtendedExpressionType.Convert: 
+            case ExtendedExpressionType.Convert:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
-            case ExtendedExpressionType.ConvertChecked: 
+            case ExtendedExpressionType.ConvertChecked:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
-            case ExtendedExpressionType.Divide: 
+            case ExtendedExpressionType.Divide:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.Equal: 
+            case ExtendedExpressionType.Equal:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.ExclusiveOr: 
+            case ExtendedExpressionType.ExclusiveOr:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.GreaterThan: 
+            case ExtendedExpressionType.GreaterThan:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.GreaterThanOrEqual: 
+            case ExtendedExpressionType.GreaterThanOrEqual:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.Invoke: 
+            case ExtendedExpressionType.Invoke:
                 return Convert(As<SerializableInvocationExpression>(sExpression));
-            case ExtendedExpressionType.Lambda: 
+            case ExtendedExpressionType.Lambda:
                 return Convert(As<SerializableLambdaExpression>(sExpression));
-            case ExtendedExpressionType.LeftShift: 
+            case ExtendedExpressionType.LeftShift:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.LessThan: 
+            case ExtendedExpressionType.LessThan:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.LessThanOrEqual: 
+            case ExtendedExpressionType.LessThanOrEqual:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.ListInit: 
+            case ExtendedExpressionType.ListInit:
                 return Convert(As<SerializableListInitExpression>(sExpression));
-            case ExtendedExpressionType.MemberAccess: 
+            case ExtendedExpressionType.MemberAccess:
                 return Convert(As<SerializableMemberExpression>(sExpression));
-            case ExtendedExpressionType.MemberInit: 
+            case ExtendedExpressionType.MemberInit:
                 return Convert(As<SerializableMemberInitExpression>(sExpression));
-            case ExtendedExpressionType.Modulo: 
+            case ExtendedExpressionType.Modulo:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.Multiply: 
+            case ExtendedExpressionType.Multiply:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.MultiplyChecked: 
+            case ExtendedExpressionType.MultiplyChecked:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.Negate: 
+            case ExtendedExpressionType.Negate:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
-            case ExtendedExpressionType.UnaryPlus: 
+            case ExtendedExpressionType.UnaryPlus:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
-            case ExtendedExpressionType.NegateChecked: 
+            case ExtendedExpressionType.NegateChecked:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
-            case ExtendedExpressionType.New: 
+            case ExtendedExpressionType.New:
                 return Convert(As<SerializableNewExpression>(sExpression));
-            case ExtendedExpressionType.NewArrayInit: 
+            case ExtendedExpressionType.NewArrayInit:
                 return Convert(As<SerializableNewArrayExpression>(sExpression));
-            case ExtendedExpressionType.NewArrayBounds: 
+            case ExtendedExpressionType.NewArrayBounds:
                 return Convert(As<SerializableNewArrayExpression>(sExpression));
-            case ExtendedExpressionType.Not: 
+            case ExtendedExpressionType.Not:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
-            case ExtendedExpressionType.NotEqual: 
+            case ExtendedExpressionType.NotEqual:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.Or: 
+            case ExtendedExpressionType.Or:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.OrElse: 
+            case ExtendedExpressionType.OrElse:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.Parameter: 
+            case ExtendedExpressionType.Parameter:
                 return Convert(As<SerializableParameterExpression>(sExpression));
-            case ExtendedExpressionType.Power: 
+            case ExtendedExpressionType.Power:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.Quote: 
+            case ExtendedExpressionType.Quote:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
-            case ExtendedExpressionType.RightShift: 
+            case ExtendedExpressionType.RightShift:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.Subtract: 
+            case ExtendedExpressionType.Subtract:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.SubtractChecked: 
+            case ExtendedExpressionType.SubtractChecked:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.TypeAs: 
+            case ExtendedExpressionType.TypeAs:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
-            case ExtendedExpressionType.TypeIs: 
+            case ExtendedExpressionType.TypeIs:
                 return Convert(As<SerializableTypeBinaryExpression>(sExpression));
-            case ExtendedExpressionType.Assign: 
+            case ExtendedExpressionType.Assign:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
             case ExtendedExpressionType.Block:
                 throw ExpressionNotSupportedException(nodeType);
             case ExtendedExpressionType.DebugInfo:
                 throw ExpressionNotSupportedException(nodeType);
-            case ExtendedExpressionType.Decrement: 
+            case ExtendedExpressionType.Decrement:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
             case ExtendedExpressionType.Dynamic:
                 throw ExpressionNotSupportedException(nodeType);
@@ -144,9 +144,9 @@ internal class SerializableToExpression : ConverterBase, IConversion<Serializabl
                 throw ExpressionNotSupportedException(nodeType);
             case ExtendedExpressionType.Goto:
                 throw ExpressionNotSupportedException(nodeType);
-            case ExtendedExpressionType.Increment: 
+            case ExtendedExpressionType.Increment:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
-            case ExtendedExpressionType.Index: 
+            case ExtendedExpressionType.Index:
                 return Convert(As<SerializableIndexExpression>(sExpression));
             case ExtendedExpressionType.Label:
                 throw ExpressionNotSupportedException(nodeType);
@@ -162,53 +162,53 @@ internal class SerializableToExpression : ConverterBase, IConversion<Serializabl
                 throw ExpressionNotSupportedException(nodeType);
             case ExtendedExpressionType.Unbox:
                 throw ExpressionNotSupportedException(nodeType);
-            case ExtendedExpressionType.AddAssign: 
+            case ExtendedExpressionType.AddAssign:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.AndAssign: 
+            case ExtendedExpressionType.AndAssign:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.DivideAssign: 
+            case ExtendedExpressionType.DivideAssign:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.ExclusiveOrAssign: 
+            case ExtendedExpressionType.ExclusiveOrAssign:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.LeftShiftAssign: 
+            case ExtendedExpressionType.LeftShiftAssign:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.ModuloAssign: 
+            case ExtendedExpressionType.ModuloAssign:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.MultiplyAssign: 
+            case ExtendedExpressionType.MultiplyAssign:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
             case ExtendedExpressionType.OrAssign:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.PowerAssign: 
+            case ExtendedExpressionType.PowerAssign:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.RightShiftAssign: 
+            case ExtendedExpressionType.RightShiftAssign:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.SubtractAssign: 
+            case ExtendedExpressionType.SubtractAssign:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.AddAssignChecked: 
+            case ExtendedExpressionType.AddAssignChecked:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
             case ExtendedExpressionType.MultiplyAssignChecked:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
-            case ExtendedExpressionType.SubtractAssignChecked: 
+            case ExtendedExpressionType.SubtractAssignChecked:
                 return Convert(As<SerializableBinaryExpression>(sExpression));
             case ExtendedExpressionType.PreIncrementAssign:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
-            case ExtendedExpressionType.PreDecrementAssign: 
+            case ExtendedExpressionType.PreDecrementAssign:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
             case ExtendedExpressionType.PostIncrementAssign:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
-            case ExtendedExpressionType.PostDecrementAssign: 
+            case ExtendedExpressionType.PostDecrementAssign:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
-            case ExtendedExpressionType.TypeEqual: 
+            case ExtendedExpressionType.TypeEqual:
                 return Convert(As<SerializableTypeBinaryExpression>(sExpression));
-            case ExtendedExpressionType.OnesComplement: 
+            case ExtendedExpressionType.OnesComplement:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
-            case ExtendedExpressionType.IsTrue: 
+            case ExtendedExpressionType.IsTrue:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
             case ExtendedExpressionType.IsFalse:
                 return Convert(As<SerializableUnaryExpression>(sExpression));
             case ExtendedExpressionType.UpdateSet:
                 return Convert(As<SerializableUpdateSetExpression>(sExpression));
-            case ExtendedExpressionType.Ordering: 
+            case ExtendedExpressionType.Ordering:
                 return Convert(As<SerializableOrderingExpression>(sExpression));
             case ExtendedExpressionType.ComplexOrdering:
                 return Convert(As<SerializableComplexOrderingExpression>(sExpression));
@@ -324,7 +324,7 @@ internal class SerializableToExpression : ConverterBase, IConversion<Serializabl
             {
                 throw MissingArgumentException(nameof(sExpression.Value));
             }
-           
+
             return Expression.Constant(null, type);
         }
 
@@ -395,7 +395,7 @@ internal class SerializableToExpression : ConverterBase, IConversion<Serializabl
     }
 
     private MemberInitExpression Convert(SerializableMemberInitExpression sExpression)
-   {
+    {
         if (sExpression.NewExpression == null)
         {
             throw MissingArgumentException(nameof(sExpression.NewExpression));

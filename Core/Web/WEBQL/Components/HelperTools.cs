@@ -66,7 +66,7 @@ public static class HelperTools
     /// </summary>
     /// <param name="op">The OperatorV2 enum value.</param>
     /// <returns>The string representation of the operator.</returns>
-    public static string StringifyOperator(Operator op)
+    public static string Stringify(Operator op)
     {
         return $"${op.ToString().ToCamelCase()}";
     }
@@ -83,7 +83,7 @@ public static class HelperTools
 
         foreach (Operator op in operators)
         {
-            if (StringifyOperator(op) == value)
+            if (Stringify(op) == value)
             {
                 return op.TypeCast<Operator>();
             }
@@ -143,3 +143,4 @@ public static class HelperTools
     }
 
 }
+

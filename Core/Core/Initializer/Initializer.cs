@@ -131,7 +131,7 @@ public abstract class Initializer
     {
         if (initializers == null) return;
 
-        foreach(var group in initializers.GroupBy(x => x.Priority))
+        foreach (var group in initializers.GroupBy(x => x.Priority))
         {
             var tasks = new List<Task>();
 

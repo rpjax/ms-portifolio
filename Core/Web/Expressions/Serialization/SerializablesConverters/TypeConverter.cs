@@ -1,5 +1,4 @@
 ﻿using ModularSystem.Core;
-using System.Reflection;
 using System.Text;
 
 namespace ModularSystem.Web.Expressions;
@@ -97,9 +96,9 @@ public class TypeConverter : ConverterBase, ITypeConverter
             IsGenericTypeDefinition = type.IsGenericTypeDefinition,
             Name = type.Name,
             Namespace = type.Namespace,
-            AssemblyQualifiedName = 
-                Strategy == TypeConversionStrategy.UseAssemblyName 
-                ? type.AssemblyQualifiedName 
+            AssemblyQualifiedName =
+                Strategy == TypeConversionStrategy.UseAssemblyName
+                ? type.AssemblyQualifiedName
                 : null,
             GenericTypeArguments = type.GenericTypeArguments.Transform(x => Convert(x)).ToArray(),
         };
@@ -145,12 +144,12 @@ public class TypeConverter : ConverterBase, ITypeConverter
                 throw new InvalidOperationException("Invalid stategy value.");
         }
 
-        if(type == null)
+        if (type == null)
         {
             throw TypeNotFoundException(sType);
         }
 
-        if(sType.IsGenericTypeDefinition)
+        if (sType.IsGenericTypeDefinition)
         {
             type = type.MakeGenericType(sType.GenericTypeArguments.Transform(x => Convert(x)).ToArray());
         }
@@ -160,9 +159,9 @@ public class TypeConverter : ConverterBase, ITypeConverter
 
     string GetQualifiedFullName(SerializableType sType)
     {
-        if(sType.FullName == null)
+        if (sType.FullName == null)
         {
-            throw MissingArgumentException(nameof(sType.FullName)); 
+            throw MissingArgumentException(nameof(sType.FullName));
         }
 
         if (!sType.IsGenericTypeDefinition)
@@ -172,7 +171,7 @@ public class TypeConverter : ConverterBase, ITypeConverter
 
         var split = sType.FullName.Split('`');
 
-        if(split.Length != 2)
+        if (split.Length != 2)
         {
             throw InvalidTypeNameException(sType.FullName);
         }
@@ -180,11 +179,11 @@ public class TypeConverter : ConverterBase, ITypeConverter
         var fullname = split[0];
         var argCountStr = split[1];
 
-        if(!int.TryParse(argCountStr, out var argCount))
+        if (!int.TryParse(argCountStr, out var argCount))
         {
             throw InvalidTypeNameException(sType.FullName);
         }
-        if(argCount != sType.GenericTypeArguments.Length)
+        if (argCount != sType.GenericTypeArguments.Length)
         {
             throw InvalidTypeNameException(sType.FullName);
         }
@@ -210,7 +209,7 @@ public class TypeConverter : ConverterBase, ITypeConverter
             else
             {
                 strBuilder.Append($"[{argName}],");
-            }   
+            }
         }
 
         strBuilder.Append(']');

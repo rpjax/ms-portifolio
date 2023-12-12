@@ -63,7 +63,7 @@ public class OrderingExpression : CustomExpression
     /// <returns>The result of visiting this node.</returns>
     protected override Expression Accept(ExpressionVisitor visitor)
     {
-        if(visitor is CustomExpressionVisitor custom)
+        if (visitor is CustomExpressionVisitor custom)
         {
             return custom.VisitOrdering(this);
         }

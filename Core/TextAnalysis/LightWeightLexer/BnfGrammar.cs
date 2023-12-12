@@ -4,12 +4,12 @@ public class BnfGrammar
 {
     public char[] IgnoredChars { get; set; } = Array.Empty<char>();
     public string[] IgnoredTokens { get; set; } = Array.Empty<string>();
-    public TokenProduction[] Productions { get => GetProductions(); set => SetProductions(value); } 
+    public TokenProduction[] Productions { get => GetProductions(); set => SetProductions(value); }
     public Dictionary<string, TokenProduction> ProductionsMap { get; private set; } = new();
 
     public BnfGrammar()
     {
-       
+
     }
 
     public BnfGrammar Copy()
@@ -23,7 +23,7 @@ public class BnfGrammar
 
     public TokenProduction[] GetProductions()
     {
-        return ProductionsMap.Values.ToArray(); 
+        return ProductionsMap.Values.ToArray();
     }
 
     public void SetProductions(TokenProduction[] productions)
@@ -32,7 +32,7 @@ public class BnfGrammar
 
         foreach (var production in productions)
         {
-            foreach(var formationStr in production.GetFormationStrings())
+            foreach (var formationStr in production.GetFormationStrings())
             {
                 dic.Add(formationStr, production);
             }

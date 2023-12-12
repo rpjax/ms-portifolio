@@ -1,5 +1,4 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Webql.Analysis;
+﻿using ModularSystem.Webql.Analysis;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -87,20 +86,15 @@ public class LinqProvider
 
         if (!context.IsQueryable())
         {
-            throw new Exception("Context must be IQueryable");
+            throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Project);
         }
+
         if (node is not ObjectNode objectNode)
         {
-            throw new Exception("");
+            throw TranslationThrowHelper.WrongNodeType(context, "Expected an ObjectNode for projection operation. Received a node of a different type.");
         }
 
         var queryableType = context.GetQueryableType();
-
-        if (queryableType == null)
-        {
-            throw new Exception();
-        }
-
         var subContextParameter = Expression.Parameter(queryableType, context.CreateParameterName());
         var subContext = new TranslationContext(queryableType, subContextParameter, context);
 
@@ -114,7 +108,7 @@ public class LinqProvider
 
         if (projectedType == null)
         {
-            throw new Exception();
+            throw TranslationThrowHelper.ErrorInternalUnknown(context, "Projection builder failed to construct a valid projected type. This may indicate an issue with the projection expressions or types involved.");
         }
 
         for (int i = 0; i < projectionBuilder.Properties.Count; i++)
@@ -126,7 +120,7 @@ public class LinqProvider
 
             if (propertyInfo == null)
             {
-                throw new Exception();
+                throw new TranslationException($"Property '{propDefinition.Name}' not found in the projected type '{projectedType.Name}'. Ensure the property name is correctly defined in the projection.", context);
             }
 
             // Cria um binding para a propriedade do novo tipo

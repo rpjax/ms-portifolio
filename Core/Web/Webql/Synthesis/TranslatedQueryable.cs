@@ -77,7 +77,7 @@ public class TranslatedQueryable : IQueryable<object>
 
     public virtual IEnumerable<T> AsEnumerable<T>()
     {
-        return (IEnumerable<T>) AsEnumerable();
+        return (IEnumerable<T>)AsEnumerable();
     }
 
     /// <summary>

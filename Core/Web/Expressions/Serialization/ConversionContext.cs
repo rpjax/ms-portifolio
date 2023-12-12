@@ -8,9 +8,9 @@ public abstract class ConversionContext
 
     public ConversionContext(string label, string[]? stack = null)
     {
-        Stack = stack != null 
-            ? new List<string>(stack).FluentAdd(label).ToArray() 
-            : new[] { label }; 
+        Stack = stack != null
+            ? new List<string>(stack).FluentAdd(label).ToArray()
+            : new[] { label };
     }
 
     public override string ToString()
@@ -21,7 +21,7 @@ public abstract class ConversionContext
     public abstract ConversionContext CreateChild(string label);
 
     public abstract T GetDependency<T>();
-    
+
 }
 
 public class DefaultConversionContext : ConversionContext
@@ -34,7 +34,7 @@ public class DefaultConversionContext : ConversionContext
         SetFactories();
     }
 
-    private DefaultConversionContext(DependencyContainerObject dependencyContainer,string label, string[]? stack = null) : this(label, stack)
+    private DefaultConversionContext(DependencyContainerObject dependencyContainer, string label, string[]? stack = null) : this(label, stack)
     {
         DependencyContainer = dependencyContainer;
     }

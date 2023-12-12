@@ -48,7 +48,7 @@ public abstract class DelayedTask
                 throw new InvalidOperationException("The delayed task has already been started.");
             }
 
-            IsStarted = true;    
+            IsStarted = true;
         }
 
         CancellationTokenSource = new();
@@ -69,8 +69,8 @@ public abstract class DelayedTask
         try
         {
             await Task.Delay(Delay, cancellationToken);
-            
-            if(!cancellationToken.IsCancellationRequested)
+
+            if (!cancellationToken.IsCancellationRequested)
             {
                 await OnExecuteAsync(cancellationToken);
             }

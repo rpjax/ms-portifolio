@@ -117,7 +117,7 @@ public class ComplexOrderingReader<T>
     /// <returns>An enumerable of ordering expressions.</returns>
     public IEnumerable<OrderingExpression> GetOrderingExpressions()
     {
-        if(OrderingExpression == null)
+        if (OrderingExpression == null)
         {
             yield break;
         }

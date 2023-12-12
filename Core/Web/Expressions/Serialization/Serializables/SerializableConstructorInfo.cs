@@ -28,10 +28,11 @@ public class SerializableConstructorInfo
     {
         var strBuilder = new StringBuilder();
         var parameters = Parameters.Transform(type
-            => {
-                var name = type.FullName ?? type.Name;
-                return $"{name} {name?.ToCamelCase()}";
-            }
+            =>
+        {
+            var name = type.FullName ?? type.Name;
+            return $"{name} {name?.ToCamelCase()}";
+        }
         ).ToArray();
 
         strBuilder.Append(DeclaringType?.GetFullName());
