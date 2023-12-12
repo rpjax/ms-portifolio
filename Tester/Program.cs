@@ -1,4 +1,5 @@
-﻿using ModularSystem.Core;
+﻿using Microsoft.AspNetCore.Mvc;
+using ModularSystem.Core;
 using ModularSystem.Mongo;
 using ModularSystem.Mongo.Webql;
 using ModularSystem.Web;
@@ -77,6 +78,7 @@ public class MyDataService : MongoEntityService<MyData>
     }
 }
 
+[Route("my-data")]
 public class MyDataController : WebQlController<MyData>
 {
     protected override EntityService<MyData> Service { get; }

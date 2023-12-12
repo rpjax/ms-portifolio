@@ -408,35 +408,18 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
     }
 }
 
-public class MyData : MongoModel
+public abstract class WebQlController<T> : CrudController<T> where T : class, IQueryableModel
 {
-    public string FirstName { get; set; } = "";
-    public string[] Surnames { get; set; } = new string[0];
-    public string Cpf { get; set; } = "";
-    public int Score { get; set; }
-}
-
-public abstract class WebQlController<T> : WebController where T : IQueryableModel
-{
-    protected abstract EntityService<T> Service { get; }
-    
-    private MyData[] Data = new MyData[]
-        {
-            new(){ Cpf = "11709620927", FirstName = "Amanda", Surnames = new[]{ "de", "Lima", "Santos" }, Score = 98 },
-            new(){ Cpf = "11548128988", FirstName = "Rodrigo", Surnames = new[]{ "Pazzini", "Jacques" }, Score = 85 },
-        };
-
-    [HttpPost("query")]
+    [HttpPost("webql-query")]
     public async Task<IActionResult> QueryAsync()
     {
         try
         {
-            using var reader = new StreamReader(Request.Body, Encoding.UTF8);
-            var json = await reader.ReadToEndAsync();
-            var translator = new Translator();
-            var queryable = translator.TranslateToQueryable(json, Data);
-            var data = queryable.ToArray();
-            var count = queryable.Count();
+            var json = await ReadBodyAsStringAsync();
+            var translator = new Translator(GetTranslatorOptions());
+            var queryable = await Service.CreateQueryAsync();
+            var transformedQueryable = translator.TranslateToQueryable(json ?? Translator.EmptyQuery, queryable);
+            var data = transformedQueryable.ToArray();
 
             var result = new QueryResult<object>()
             {
@@ -455,5 +438,14 @@ public abstract class WebQlController<T> : WebController where T : IQueryableMod
             
             return HandleException(e);
         }
+    }
+
+    /// <summary>
+    /// Sets the options used by the translator to interpret WebQL queries.
+    /// </summary>
+    /// <returns></returns>
+    protected TranslatorOptions GetTranslatorOptions()
+    {
+        return new TranslatorOptions();
     }
 }

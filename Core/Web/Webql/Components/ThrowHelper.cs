@@ -15,7 +15,7 @@ public static class SemanticThrowHelper
     /// <param name="message">A detailed message describing the error.</param>
     /// <param name="e">An optional inner exception that caused the current error.</param>
     /// <returns>A SemanticException that encapsulates the error details.</returns>
-    public static Exception ErrorInternalUnknown(SemanticContext context, string message, Exception? e = null)
+    public static Exception ErrorInternalUnknown(SemanticContext context, string? message, Exception? e = null)
     {
         var detailedMessage = string.IsNullOrEmpty(message)
             ? "An unknown internal error occurred during the semantic analysis process."
@@ -41,7 +41,7 @@ public static class TranslationThrowHelper
     /// <param name="message">A detailed message describing the error. If not provided, a default message is used.</param>
     /// <param name="e">An optional inner exception that caused this error, if applicable.</param>
     /// <returns>A TranslationException instance representing the unknown internal error.</returns>
-    public static Exception ErrorInternalUnknown(TranslationContext context, string message, Exception? e = null)
+    public static Exception ErrorInternalUnknown(TranslationContext context, string? message, Exception? e = null)
     {
         var detailedMessage = string.IsNullOrEmpty(message) ? "An unknown internal error occurred." : $"An unknown internal error occurred: {message}.";
         return new TranslationException($"{detailedMessage} Please review the context and stack trace for more details. If the issue persists, consider seeking assistance or reporting this as a bug.", context, e);
@@ -53,7 +53,7 @@ public static class TranslationThrowHelper
     /// <param name="context">The translation context in which the unexpected node type was encountered.</param>
     /// <param name="message">A message providing details about the unexpected node type. A default message is used if none is provided.</param>
     /// <returns>A TranslationException indicating that an unexpected node type was encountered.</returns>
-    public static Exception WrongNodeType(TranslationContext context, string message)
+    public static Exception WrongNodeType(TranslationContext context, string? message)
     {
         var detailedMessage = string.IsNullOrEmpty(message) ? "Encountered an unexpected node type." : $"Encountered an unexpected node type: {message}.";
         return new TranslationException($"{detailedMessage} Ensure that the node structure aligns with the expected format for WebQL queries. Review the query and context for potential mismatches.", context);
@@ -78,4 +78,3 @@ public static class TranslationThrowHelper
     }
 
 }
-

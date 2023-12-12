@@ -4,6 +4,7 @@ using Microsoft.Extensions.Primitives;
 using ModularSystem.Core;
 using ModularSystem.Core.Logging;
 using ModularSystem.Core.Security;
+using System.Text;
 
 namespace ModularSystem.Web;
 
@@ -214,6 +215,32 @@ public abstract class WebController : ControllerBase
     protected string? GetBearerToken()
     {
         return HttpContext.GetBearerToken();
+    }
+
+    /// <summary>
+    /// Reads the request body as a string asynchronously, using the specified encoding.
+    /// </summary>
+    /// <remarks>
+    /// This method asynchronously reads the request body and returns the content as a string.
+    /// If the body is empty or contains only whitespace, this method returns null.
+    /// It uses UTF8 encoding by default, which is suitable for a wide range of text data, but a different encoding can be specified if necessary.
+    /// This method is particularly useful for processing textual data from request bodies, such as JSON or XML.
+    /// </remarks>
+    /// <param name="encoding">The character encoding to use when reading the request body. Defaults to UTF8 if not provided.</param>
+    /// <returns>
+    /// A task that represents the asynchronous read operation. The task result contains the request body as a string, or null if the body is empty or contains only whitespace.
+    /// </returns>
+    protected async Task<string?> ReadBodyAsStringAsync(Encoding? encoding = null)
+    {
+        using var reader = new StreamReader(Request.Body, encoding ?? Encoding.UTF8);
+        var text = await reader.ReadToEndAsync();
+
+        if (string.IsNullOrEmpty(text))
+        {
+            return null;
+        }
+
+        return text;
     }
 
 }

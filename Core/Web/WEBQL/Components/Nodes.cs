@@ -59,7 +59,7 @@ public class LiteralNode : Node
     public LiteralNode(string? value)
     {
         NodeType = NodeType.Literal;
-        IsReference = value.StartsWith("\"$");
+        IsReference = value?.StartsWith("\"$") == true;
         Value = value;
     }
 
@@ -67,6 +67,26 @@ public class LiteralNode : Node
     public override string ToString()
     {
         return Value ?? string.Empty;
+    }
+
+    public string GetReferenceValue()
+    {
+        var value = Value;
+
+        if (value == null)
+        {
+            return string.Empty;
+        }
+        if (value.StartsWith('"'))
+        {
+            value = value[1..^0];
+        }
+        if (value.EndsWith('"'))
+        {
+            value = value[0..^1];
+        }
+
+        return value;
     }
 }
 

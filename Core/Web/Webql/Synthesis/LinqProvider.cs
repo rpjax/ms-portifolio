@@ -1,4 +1,5 @@
-﻿using ModularSystem.Webql.Analysis;
+﻿using ModularSystem.Core;
+using ModularSystem.Webql.Analysis;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -247,7 +248,21 @@ public class LinqProvider
         var methodInfo = GetCountMethodInfo()
             .MakeGenericMethod(new[] { queryableType });
 
-        return Expression.Call(null, methodInfo, context.Expression);
+        var countExpression = Expression.Call(null, methodInfo, context.Expression);
+
+        if(node is not ObjectNode objectNode)
+        {
+            throw TranslationThrowHelper.WrongNodeType(context, "An object node was expected.");
+        }
+
+        if (objectNode.IsEmpty())
+        {
+            return countExpression;
+        }
+
+        var subContext = new TranslationContext(countExpression.Type, countExpression, context);
+
+        return translator.Translate(subContext, objectNode);
     }
 
     /// <summary>

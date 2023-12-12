@@ -56,50 +56,6 @@ public class NodeTranslator
     }
 
     /// <summary>
-    /// Parses a literal reference within a WebQL node.
-    /// </summary>
-    /// <param name="context">The current translation context.</param>
-    /// <param name="node">The literal node to parse.</param>
-    /// <returns>An Expression representing the literal reference.</returns>
-    /// <exception cref="Exception">Thrown if the literal reference is invalid.</exception>
-    protected Expression ParseLiteralReference(TranslationContext context, LiteralNode node)
-    {
-        var propPath = node.Value;
-
-        if (propPath == null)
-        {
-            throw new ArgumentNullException(nameof(node.Value), "Literal node value cannot be null.");
-        }
-        if (propPath.Length <= 0)
-        {
-            throw new ArgumentException("Literal node value cannot be an empty string.", nameof(node.Value));
-        }
-        if (propPath.StartsWith('"') && propPath.EndsWith('"'))
-        {
-            propPath = propPath[2..^1];
-        }
-
-        if (propPath == "$")
-        {
-            return context.Expression;
-        }
-
-        var pathSplit = propPath.Split('.');
-        var rootPropertyName = propPath.Contains('.')
-            ? pathSplit.First()
-            : propPath;
-
-        var subContext = context.CreateSubTranslationContext(rootPropertyName);
-
-        for (int i = 1; i < pathSplit.Length; i++)
-        {
-            subContext = subContext.CreateSubTranslationContext(pathSplit[i], false);
-        }
-
-        return subContext.Expression;
-    }
-
-    /// <summary>
     /// Parses a literal node to a corresponding Expression.
     /// </summary>
     /// <param name="context">The current translation context.</param>
@@ -122,6 +78,44 @@ public class NodeTranslator
         var value = JsonSerializerSingleton.Deserialize(node.Value, type);
 
         return Expression.Constant(value, type);
+    }
+
+    /// <summary>
+    /// Parses a literal reference within a WebQL node.
+    /// </summary>
+    /// <param name="context">The current translation context.</param>
+    /// <param name="node">The literal node to parse.</param>
+    /// <returns>An Expression representing the literal reference.</returns>
+    /// <exception cref="Exception">Thrown if the literal reference is invalid.</exception>
+    protected Expression ParseLiteralReference(TranslationContext context, LiteralNode node)
+    {
+        var propPath = node.GetReferenceValue();
+
+        if (propPath.Length == 0)
+        {
+            throw TranslationThrowHelper.ErrorInternalUnknown(context, "");
+        }
+
+        if (propPath == "$")
+        {
+            return context.Expression;
+        }
+
+        propPath = propPath[1..];
+
+        var pathSplit = propPath.Split('.');
+        var rootPropertyName = propPath.Contains('.')
+            ? pathSplit.First()
+            : propPath;
+
+        var subContext = context.CreateSubTranslationContext(rootPropertyName);
+
+        for (int i = 1; i < pathSplit.Length; i++)
+        {
+            subContext = subContext.CreateSubTranslationContext(pathSplit[i], false);
+        }
+
+        return subContext.Expression;
     }
 
     /// <summary>
@@ -161,14 +155,17 @@ public class NodeTranslator
         var rhs = node.Rhs.Value;
         var isOperator = node.Lhs.IsOperator;
 
-        if(rhs is ObjectNode objectNode && objectNode.IsEmpty())
-        {
-            return context.Expression;
-        }
-
         if (!isOperator)
         {
             return ParseMemberAccess(context, node);
+        }
+
+        var op = HelperTools.ParseOperatorString(lhs);
+        var opType = HelperTools.GetOperatorType(op);
+
+        if (rhs is ObjectNode objectNode && objectNode.IsEmpty() && opType == OperatorType.Queryable)
+        {
+            return context.Expression;
         }
 
         return OperatorTranslator.Translate(context, HelperTools.ParseOperatorString(lhs), rhs);

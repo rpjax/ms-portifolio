@@ -158,10 +158,10 @@ public class OperatorTranslator
             case Operator.Max:
             case Operator.Sum:
             case Operator.Average:
-                throw new Exception("Unknown or unsupported operator.");
+                break;
         }
 
-        throw new Exception("Unknown or unsupported operator.");
+        throw new TranslationException("The operator encountered during translation is either unknown or not supported. Please verify the operator used in the query and ensure it aligns with the supported operators in WebQL.", context);
     }
 
 }

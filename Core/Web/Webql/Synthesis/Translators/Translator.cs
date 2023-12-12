@@ -11,6 +11,11 @@ namespace ModularSystem.Webql.Synthesis;
 public class Translator
 {
     /// <summary>
+    /// Represents an empty query.
+    /// </summary>
+    public const string EmptyQuery = "{}";
+
+    /// <summary>
     /// Options for controlling the translation process. These options define the behavior and capabilities of the translation.
     /// </summary>
     private TranslatorOptions Options { get; }
