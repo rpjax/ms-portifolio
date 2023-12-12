@@ -70,18 +70,18 @@ public class NodeTranslator
         {
             throw new ArgumentNullException(nameof(node.Value), "Literal node value cannot be null.");
         }
-        if (propPath.Length == 0)
+        if (propPath.Length <= 0)
         {
             throw new ArgumentException("Literal node value cannot be an empty string.", nameof(node.Value));
+        }
+        if (propPath.StartsWith('"') && propPath.EndsWith('"'))
+        {
+            propPath = propPath[2..^1];
         }
 
         if (propPath == "$")
         {
             return context.Expression;
-        }
-        if (propPath.StartsWith('"') && propPath.EndsWith('"'))
-        {
-            propPath = propPath[2..^1];
         }
 
         var pathSplit = propPath.Split('.');
@@ -143,7 +143,7 @@ public class NodeTranslator
 
         if (expression == null)
         {
-            expression = context.Expression;
+            throw TranslationThrowHelper.ErrorInternalUnknown(context, "Could not evaluate the query.");
         }
 
         return expression;
@@ -160,6 +160,11 @@ public class NodeTranslator
         var lhs = node.Lhs.Value;
         var rhs = node.Rhs.Value;
         var isOperator = node.Lhs.IsOperator;
+
+        if(rhs is ObjectNode objectNode && objectNode.IsEmpty())
+        {
+            return context.Expression;
+        }
 
         if (!isOperator)
         {

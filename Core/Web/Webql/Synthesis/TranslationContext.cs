@@ -34,7 +34,7 @@ public class TranslationContext : SemanticContext
         Expression inputExpression,
         TranslationContext? parentContext = null,
         VariableNameProvider? variableNameProvider = null,
-        string stack = "translation context->")
+        string stack = "translation context")
         : base(type, parentContext, stack)
     {
         Expression = inputExpression;
@@ -92,7 +92,7 @@ public class TranslationContext : SemanticContext
         // Throw an exception if the property is not found.
         if (propertyInfo == null)
         {
-            throw new GeneratorException($"Property '{propertyName}' not found in the type '{Type.FullName}'. Ensure the property name is correct and exists in the specified type.", null);
+            throw new TranslationException($"Property '{propertyName}' not found in the type '{Type.FullName}'. Ensure the property name is correct and exists in the specified type.", this);
         }
 
         // Create an expression to access the property.

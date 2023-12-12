@@ -32,7 +32,7 @@ public class LinqProvider
     {
         if (!context.IsQueryable())
         {
-            throw new Exception("Context must be IQueryable");
+            throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Project);
         }
         if (context.Expression == null)
         {
@@ -40,19 +40,7 @@ public class LinqProvider
         }
 
         var queryableType = context.GetQueryableType();
-
-        if (queryableType == null)
-        {
-            throw new Exception();
-        }
-
         var methodInfo = GetWhereMethodInfo().MakeGenericMethod(queryableType);
-
-        if (methodInfo == null)
-        {
-            throw new InvalidOperationException();
-        }
-
         var subExpressionParameter = Expression.Parameter(queryableType, "x");
         var subContext = new TranslationContext(queryableType, subExpressionParameter, context);
         var subExpressionBody = translator.Translate(subContext, node);
@@ -152,7 +140,7 @@ public class LinqProvider
     {
         if (!context.IsQueryable())
         {
-            throw new Exception("Context must be IQueryable");
+            throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Project);
         }
         if (node is not LiteralNode literalNode)
         {
@@ -205,20 +193,14 @@ public class LinqProvider
     {
         if (!context.IsQueryable())
         {
-            throw new Exception("Context must be IQueryable");
+            throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Project);
         }
         if (node is not LiteralNode literalNode)
         {
-            throw new Exception("");
+            throw TranslationThrowHelper.WrongNodeType(context, "Expected n LiteralNode for skip operation. Received a node of a different type.");
         }
 
         var queryableType = context.GetQueryableType();
-
-        if (queryableType == null)
-        {
-            throw new Exception();
-        }
-
         var valueExpression = null as Expression;
 
         if (translator.Options.SkipSupportsInt64)
@@ -258,16 +240,10 @@ public class LinqProvider
     {
         if (!context.IsQueryable())
         {
-            throw new Exception("Context must be IQueryable");
+            throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Project);
         }
 
         var queryableType = context.GetQueryableType();
-
-        if (queryableType == null)
-        {
-            throw new Exception();
-        }
-
         var methodInfo = GetCountMethodInfo()
             .MakeGenericMethod(new[] { queryableType });
 
@@ -286,16 +262,10 @@ public class LinqProvider
     {
         if (!context.IsQueryable())
         {
-            throw new Exception();
+            throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Project);
         }
 
         var queryableType = context.GetQueryableType();
-
-        if (queryableType == null)
-        {
-            throw new Exception();
-        }
-
         var subContextExpression = Expression.Parameter(queryableType, "x");
         var subContext = new TranslationContext(queryableType, subContextExpression, context);
         var lambdaParameter = subContextExpression;
@@ -322,16 +292,10 @@ public class LinqProvider
     {
         if (!context.IsQueryable())
         {
-            throw new Exception();
+            throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Project);
         }
 
         var queryableType = context.GetQueryableType();
-
-        if (queryableType == null)
-        {
-            throw new Exception();
-        }
-
         var subContextExpression = Expression.Parameter(queryableType, "x");
         var subContext = new TranslationContext(queryableType, subContextExpression, context);
         var lambdaParameter = subContextExpression;
@@ -358,7 +322,7 @@ public class LinqProvider
     {
         if (!context.IsQueryable())
         {
-            throw new Exception();
+            throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Project);
         }
         if (context.Expression == null)
         {
@@ -366,12 +330,6 @@ public class LinqProvider
         }
 
         var subContextType = context.GetQueryableType();
-
-        if (subContextType == null)
-        {
-            throw new Exception();
-        }
-
         var subContextExpression = Expression.Parameter(subContextType, "x");
         var subContext = new TranslationContext(subContextType, subContextExpression, context);
         var lambdaParameter = subContextExpression;

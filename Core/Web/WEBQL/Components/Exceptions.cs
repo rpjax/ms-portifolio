@@ -87,6 +87,7 @@ public class TranslationException : ParseException
     public TranslationException(string message, TranslationContext context, Exception? inner = null)
         : base(message, inner)
     {
+        Context = context;
     }
 
     private TranslationContext Context { get; }

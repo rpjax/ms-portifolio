@@ -63,7 +63,7 @@ public class Translator
     {
         var inputType = Options.QueryableType.MakeGenericType(type);
         var parameter = Expression.Parameter(inputType, "root");
-        var expression = TranslateToExpression(json, type, parameter);
+        var expression = TranslateToExpression(json, inputType, parameter);
         var projectedType = expression.Type.GenericTypeArguments[0];
         var outputType = Options.QueryableType.MakeGenericType(projectedType);
         var lambdaExpressionType = typeof(Func<,>).MakeGenericType(inputType, outputType);

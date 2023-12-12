@@ -3,9 +3,12 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using ModularSystem.Core;
 using ModularSystem.Core.Expressions;
 using ModularSystem.Core.Security;
+using ModularSystem.Mongo;
 using ModularSystem.Web.Expressions;
+using ModularSystem.Webql;
 using ModularSystem.Webql.Synthesis;
 using System.Text;
+using System.Xml.Linq;
 
 namespace ModularSystem.Web;
 
@@ -405,9 +408,23 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
     }
 }
 
+public class MyData : MongoModel
+{
+    public string FirstName { get; set; } = "";
+    public string[] Surnames { get; set; } = new string[0];
+    public string Cpf { get; set; } = "";
+    public int Score { get; set; }
+}
+
 public abstract class WebQlController<T> : WebController where T : IQueryableModel
 {
     protected abstract EntityService<T> Service { get; }
+    
+    private MyData[] Data = new MyData[]
+        {
+            new(){ Cpf = "11709620927", FirstName = "Amanda", Surnames = new[]{ "de", "Lima", "Santos" }, Score = 98 },
+            new(){ Cpf = "11548128988", FirstName = "Rodrigo", Surnames = new[]{ "Pazzini", "Jacques" }, Score = 85 },
+        };
 
     [HttpPost("query")]
     public async Task<IActionResult> QueryAsync()
@@ -417,12 +434,25 @@ public abstract class WebQlController<T> : WebController where T : IQueryableMod
             using var reader = new StreamReader(Request.Body, Encoding.UTF8);
             var json = await reader.ReadToEndAsync();
             var translator = new Translator();
-            var expression = translator.TranslateToExpression(json, typeof(IEnumerable<T>));
+            var queryable = translator.TranslateToQueryable(json, Data);
+            var data = queryable.ToArray();
+            var count = queryable.Count();
 
-            return Ok(expression.ToString());
+            var result = new QueryResult<object>()
+            {
+                Data = data,
+                Pagination = new()
+            };
+
+            return Ok(result);
         }
         catch (Exception e)
         {
+            if(e is ParseException parseException)
+            {
+                return HandleException(new AppException(parseException.GetMessage(), ExceptionCode.InvalidInput));
+            }
+            
             return HandleException(e);
         }
     }
