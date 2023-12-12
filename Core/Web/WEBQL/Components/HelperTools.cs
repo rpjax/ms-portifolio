@@ -4,14 +4,14 @@ namespace ModularSystem.Webql;
 
 public static class HelperTools
 {
-    public static string Stringify(Operator op)
+    public static string Stringify(OperatorOld op)
     {
         return $"${op.ToString().ToCamelCase()}";
     }
 
-    public static bool OperatorIsIterator(Operator op)
+    public static bool OperatorIsIterator(OperatorOld op)
     {
-        return op == Operator.Any || op == Operator.All;
+        return op == OperatorOld.Any || op == OperatorOld.All;
     }
 
     public static bool TypeIsEnumerable(Type type)
@@ -62,79 +62,79 @@ public static class HelperTools
     }
 
     /// <summary>
-    /// Converts an <see cref="OperatorV2"/> enum value into a string representation.
+    /// Converts an <see cref="Operator"/> enum value into a string representation.
     /// </summary>
     /// <param name="op">The OperatorV2 enum value.</param>
     /// <returns>The string representation of the operator.</returns>
-    public static string StringifyOperator(OperatorV2 op)
+    public static string StringifyOperator(Operator op)
     {
         return $"${op.ToString().ToCamelCase()}";
     }
 
     /// <summary>
-    /// Converts a string representation of an operator into its corresponding <see cref="OperatorV2"/> enum value.
+    /// Converts a string representation of an operator into its corresponding <see cref="Operator"/> enum value.
     /// </summary>
     /// <param name="value">The string representation of the operator.</param>
     /// <returns>The OperatorV2 enum value.</returns>
     /// <exception cref="GeneratorException">Thrown when the operator string is not recognized.</exception>
-    public static OperatorV2 ParseOperatorString(string value)
+    public static Operator ParseOperatorString(string value)
     {
-        var operators = Enum.GetValues(typeof(OperatorV2));
+        var operators = Enum.GetValues(typeof(Operator));
 
-        foreach (OperatorV2 op in operators)
+        foreach (Operator op in operators)
         {
             if (StringifyOperator(op) == value)
             {
-                return op.TypeCast<OperatorV2>();
+                return op.TypeCast<Operator>();
             }
         }
 
         throw new GeneratorException($"The operator '{value}' is not recognized or supported. Please ensure it is a valid operator.", null);
     }
 
-    public static OperatorType GetOperatorType(OperatorV2 op)
+    public static OperatorType GetOperatorType(Operator op)
     {
         switch (op)
         {
-            case OperatorV2.Add:
-            case OperatorV2.Subtract:
-            case OperatorV2.Divide:
-            case OperatorV2.Multiply:
-            case OperatorV2.Modulo:
+            case Operator.Add:
+            case Operator.Subtract:
+            case Operator.Divide:
+            case Operator.Multiply:
+            case Operator.Modulo:
                 return OperatorType.Arithmetic;
 
-            case OperatorV2.Equals:
-            case OperatorV2.NotEquals:
-            case OperatorV2.Less:
-            case OperatorV2.LessEquals:
-            case OperatorV2.Greater:
-            case OperatorV2.GreaterEquals:
+            case Operator.Equals:
+            case Operator.NotEquals:
+            case Operator.Less:
+            case Operator.LessEquals:
+            case Operator.Greater:
+            case Operator.GreaterEquals:
                 return OperatorType.Relational;
 
-            case OperatorV2.Or:
-            case OperatorV2.And:
-            case OperatorV2.Not:
-            case OperatorV2.Any:
-            case OperatorV2.All:
+            case Operator.Or:
+            case Operator.And:
+            case Operator.Not:
+            case Operator.Any:
+            case Operator.All:
                 return OperatorType.Logical;
 
-            case OperatorV2.Expr:
-            case OperatorV2.Literal:
+            case Operator.Expr:
+            case Operator.Literal:
                 return OperatorType.Semantic;
 
-            case OperatorV2.Select:
-            case OperatorV2.Filter:
-            case OperatorV2.Project:
-            case OperatorV2.Limit:
-            case OperatorV2.Skip:
+            case Operator.Select:
+            case Operator.Filter:
+            case Operator.Project:
+            case Operator.Limit:
+            case Operator.Skip:
                 return OperatorType.Queryable;
 
-            case OperatorV2.Count:
-            case OperatorV2.Index:
-            case OperatorV2.Min:
-            case OperatorV2.Max:
-            case OperatorV2.Sum:
-            case OperatorV2.Average:
+            case Operator.Count:
+            case Operator.Index:
+            case Operator.Min:
+            case Operator.Max:
+            case Operator.Sum:
+            case Operator.Average:
                 return OperatorType.Aggregation;
 
             default:

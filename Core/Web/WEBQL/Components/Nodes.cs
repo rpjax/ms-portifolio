@@ -50,7 +50,7 @@ public class LiteralNode : Node
     /// <summary>
     /// Indicates whether the node represents an operator.
     /// </summary>
-    public bool IsOperator { get; }
+    public bool IsReference { get; }
 
     /// <summary>
     /// Initializes a new instance of the LiteralNode class with a given value.
@@ -59,7 +59,7 @@ public class LiteralNode : Node
     public LiteralNode(string? value)
     {
         NodeType = NodeType.Literal;
-        IsOperator = value.StartsWith("\"$");
+        IsReference = value.StartsWith("\"$");
         Value = value;
     }
 
@@ -158,6 +158,11 @@ public class LhsNode : Node
     public bool IsOperator { get; }
 
     /// <summary>
+    /// Indicates whether the node represents a symbol reference.
+    /// </summary>
+    public bool IsReference { get; }
+
+    /// <summary>
     /// Gets the value of the LHS node.
     /// </summary>
     public string Value { get; }
@@ -170,6 +175,7 @@ public class LhsNode : Node
     {
         NodeType = NodeType.LeftHandSide;
         IsOperator = value.StartsWith('$');
+        IsReference = !IsOperator;
         Value = value;
     }
 

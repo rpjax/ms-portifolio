@@ -17,8 +17,9 @@ public class FilterSemanticsRewriterVisitor : SemanticsVisitor
 
         if (node.Lhs.IsOperator)
         {
-            var op = context.GetOperatorFromLhs(node.Lhs);
-            var opIsIterator = HelperTools.OperatorIsIterator(op);
+            var op = HelperTools.ParseOperatorString(node.Lhs.Value);
+            var opType = HelperTools.GetOperatorType(op);
+            var opIsIterator = opType == OperatorType.Queryable;
 
             if (rhsIsArray && !opIsIterator)
             {
@@ -82,7 +83,7 @@ public class FilterSemanticsRewriterVisitor : SemanticsVisitor
             .Transform(x => new ObjectNode(x))
             .ToArray();
 
-        var anyLhs = new LhsNode(HelperTools.Stringify(Operator.Any));
+        var anyLhs = new LhsNode(HelperTools.Stringify(OperatorOld.Any));
         var anyRhs = new RhsNode(new ArrayNode(innerScopes));
 
         return Visit(context, new ExpressionNode(anyLhs, anyRhs));
@@ -134,7 +135,7 @@ public class FilterSemanticsRewriterVisitor : SemanticsVisitor
             throw new InvalidOperationException("Error in query: The right-hand side of the member expression '" + node.Lhs.Value + "' must be a literal value.");
         }
 
-        var innerLhs = new LhsNode(HelperTools.Stringify(Operator.Equals));
+        var innerLhs = new LhsNode(HelperTools.Stringify(OperatorOld.Equals));
         var innerRhs = new RhsNode(literal);
         var innerExpression = new ExpressionNode(innerLhs, innerRhs);
         var innerScope = new ObjectNode(new[] { innerExpression });
@@ -176,7 +177,7 @@ public class FilterSemanticsRewriterVisitor : SemanticsVisitor
                 throw new SemanticException("Error in query: Each item in the list for property '" + node.Lhs.Value + "' must be a value or a nested expression. Found an unsupported structure.", context);
             }
 
-            var _lhs = new LhsNode(HelperTools.Stringify(Operator.Equals));
+            var _lhs = new LhsNode(HelperTools.Stringify(OperatorOld.Equals));
             var _rhs = new RhsNode(item);
 
             expressions.Add(new(_lhs, _rhs));
@@ -186,7 +187,7 @@ public class FilterSemanticsRewriterVisitor : SemanticsVisitor
             .Transform(x => new ObjectNode(new[] { x }))
             .ToArray();
 
-        var anyExpressionLhs = new LhsNode(HelperTools.Stringify(Operator.Any));
+        var anyExpressionLhs = new LhsNode(HelperTools.Stringify(OperatorOld.Any));
         var anyExpressionRhs = new RhsNode(new ArrayNode(scopes));
         var anyExpression = new ExpressionNode(anyExpressionLhs, anyExpressionRhs);
 

@@ -54,7 +54,7 @@ public class SemanticException : ParseException
             dot = ".";
         }
 
-        return $"Semantic Error: {Message}{dot} This error was identified at: {Context.Stack}";
+        return $"Semantic Error: {Message}{dot} This error was identified at: {Context.Name}";
     }
 }
 

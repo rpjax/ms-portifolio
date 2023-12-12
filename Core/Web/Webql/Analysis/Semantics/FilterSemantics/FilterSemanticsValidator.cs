@@ -20,10 +20,10 @@ public class FilterSemanticsValidatorVisitor : SemanticsVisitor
 
     protected ExpressionNode VisitOperatorExpression(SemanticContext context, ExpressionNode node)
     {
-        var operators = Enum.GetValues(typeof(Operator));
+        var operators = Enum.GetValues(typeof(OperatorOld));
         var opFound = false;
 
-        foreach (Operator op in operators)
+        foreach (OperatorOld op in operators)
         {
             if (HelperTools.Stringify(op) == node.Lhs.Value.ToCamelCase())
             {

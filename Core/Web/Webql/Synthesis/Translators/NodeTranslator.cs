@@ -114,7 +114,7 @@ public class NodeTranslator
             return Expression.Constant(null, type);
         }
 
-        if (node.IsOperator)
+        if (node.IsReference)
         {
             return ParseLiteralReference(context, node);
         }

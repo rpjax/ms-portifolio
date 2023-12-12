@@ -68,96 +68,96 @@ public class OperatorTranslator
     /// <param name="node">The node associated with the operator.</param>
     /// <returns>The translated LINQ expression.</returns>
     /// <exception cref="Exception">Thrown if the operator is unknown or unsupported.</exception>
-    public Expression Translate(TranslationContext context, OperatorV2 @operator, Node node)
+    public Expression Translate(TranslationContext context, Operator @operator, Node node)
     {
         switch (@operator)
         {
             // Arithmetic Operators
-            case OperatorV2.Add:
+            case Operator.Add:
                 return ArithmeticOperatorsTranslator.TranslateAdd(context, node);
 
-            case OperatorV2.Subtract:
+            case Operator.Subtract:
                 return ArithmeticOperatorsTranslator.TranslateSubtract(context, node);
 
-            case OperatorV2.Divide:
+            case Operator.Divide:
                 return ArithmeticOperatorsTranslator.TranslateDivide(context, node);
 
-            case OperatorV2.Multiply:
+            case Operator.Multiply:
                 return ArithmeticOperatorsTranslator.TranslateMultiply(context, node);
 
-            case OperatorV2.Modulo:
+            case Operator.Modulo:
                 return ArithmeticOperatorsTranslator.TranslateModulo(context, node);
 
             // Relational Operators
-            case OperatorV2.Equals:
+            case Operator.Equals:
                 return RelationalOperatorsTranslator.TranslateEquals(context, node);
 
-            case OperatorV2.NotEquals:
+            case Operator.NotEquals:
                 return RelationalOperatorsTranslator.TranslateNotEquals(context, node);
 
-            case OperatorV2.Less:
+            case Operator.Less:
                 return RelationalOperatorsTranslator.TranslateLess(context, node);
 
-            case OperatorV2.LessEquals:
+            case Operator.LessEquals:
                 return RelationalOperatorsTranslator.TranslateLessEquals(context, node);
 
-            case OperatorV2.Greater:
+            case Operator.Greater:
                 return RelationalOperatorsTranslator.TranslateGreater(context, node);
 
-            case OperatorV2.GreaterEquals:
+            case Operator.GreaterEquals:
                 return RelationalOperatorsTranslator.TranslateGreaterEquals(context, node);
 
             // Logical Operators
-            case OperatorV2.Or:
+            case Operator.Or:
                 return LogicalOperatorTranslator.TranslateOr(context, node);
 
-            case OperatorV2.And:
+            case Operator.And:
                 return LogicalOperatorTranslator.TranslateAnd(context, node);
 
-            case OperatorV2.Not:
+            case Operator.Not:
                 return LogicalOperatorTranslator.TranslateNot(context, node);
 
             // Semantic Operators
-            case OperatorV2.Expr:
+            case Operator.Expr:
                 break;
 
-            case OperatorV2.Literal:
+            case Operator.Literal:
                 return SemanticOperatorsTranslator.TranslateLiteral(context, node);
 
-            case OperatorV2.Select:
+            case Operator.Select:
                 return SemanticOperatorsTranslator.TranslateSelect(context, node);
 
             // Queryable Operators
-            case OperatorV2.Filter:
+            case Operator.Filter:
                 return QueryableOperatorsTranslator.TranslateFilter(context, node);
 
-            case OperatorV2.Project:
+            case Operator.Project:
                 return QueryableOperatorsTranslator.TranslateProject(context, node);
 
-            case OperatorV2.Limit:
+            case Operator.Limit:
                 return QueryableOperatorsTranslator.TranslateLimit(context, node);
 
-            case OperatorV2.Skip:
+            case Operator.Skip:
                 return QueryableOperatorsTranslator.TranslateSkip(context, node);
 
-            case OperatorV2.Count:
+            case Operator.Count:
                 return QueryableOperatorsTranslator.TranslateCount(context, node);
 
-            case OperatorV2.Index:
+            case Operator.Index:
                 break;
 
-            case OperatorV2.Any:
+            case Operator.Any:
                 return QueryableOperatorsTranslator.TranslateAny(context, node);
 
-            case OperatorV2.All:
+            case Operator.All:
                 return QueryableOperatorsTranslator.TranslateAll(context, node);
 
             // TODO:
             // Aggregation Operators 
-            case OperatorV2.Min:
-            case OperatorV2.Max:
-            case OperatorV2.Sum:
-            case OperatorV2.Average:
+            case Operator.Min:
+            case Operator.Max:
+            case Operator.Sum:
+            case Operator.Average:
                 throw new Exception("Unknown or unsupported operator.");
         }
 
@@ -511,7 +511,7 @@ public class SemanticOperatorsTranslator
         {
             throw new Exception();
         }
-        if (!literal.IsOperator)
+        if (!literal.IsReference)
         {
             throw new Exception();
         }

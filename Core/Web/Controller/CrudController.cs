@@ -4,6 +4,8 @@ using ModularSystem.Core;
 using ModularSystem.Core.Expressions;
 using ModularSystem.Core.Security;
 using ModularSystem.Web.Expressions;
+using ModularSystem.Webql.Synthesis;
+using System.Text;
 
 namespace ModularSystem.Web;
 
@@ -400,5 +402,28 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
     private LayerAdapter<TEntity, TPresented> CreateAdapter()
     {
         return new LayerAdapter<TEntity, TPresented>(Adapter);
+    }
+}
+
+public abstract class WebQlController<T> : WebController where T : IQueryableModel
+{
+    protected abstract EntityService<T> Service { get; }
+
+    [HttpPost("query")]
+    public async Task<IActionResult> QueryAsync()
+    {
+        try
+        {
+            using var reader = new StreamReader(Request.Body, Encoding.UTF8);
+            var json = await reader.ReadToEndAsync();
+            var translator = new Translator();
+            var expression = translator.TranslateToExpression(json, typeof(IEnumerable<T>));
+
+            return Ok(expression.ToString());
+        }
+        catch (Exception e)
+        {
+            return HandleException(e);
+        }
     }
 }

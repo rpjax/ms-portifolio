@@ -1,5 +1,4 @@
 ﻿using ModularSystem.Webql.Analysis;
-using ModularSystem.Webql.Analysis.SyntaxFeatures;
 using System.Collections;
 using System.Linq.Expressions;
 
@@ -34,20 +33,22 @@ public class Translator
     }
 
     /// <summary>
-    /// Translates a WebQL query, represented as a JSON string, into a LINQ queryable expression. <br/>
-    /// This method forms the bridge between JSON-based WebQL queries and LINQ expressions.
+    /// Translates a WebQL query, represented as a JSON string, into a LINQ expression. <br/>
+    /// This method decodes the JSON-based WebQL query into a syntax tree and then translates it into a corresponding LINQ expression.
+    /// It provides a direct way to transform WebQL queries into executable expressions without creating an IQueryable interface.
     /// </summary>
     /// <param name="json">The JSON representation of the WebQL query.</param>
-    /// <param name="type">The type of elements in the resulting queryable.</param>
-    /// <param name="parameter">An optional parameter expression serving as the root of the queryable expression tree.</param>
-    /// <returns>A LINQ expression that represents the equivalent queryable for the given WebQL query.</returns>
-    public Expression TranslateToQueryableExpression(string json, Type type, ParameterExpression? parameter = null)
+    /// <param name="type">The type of elements that the query operates on.</param>
+    /// <param name="rootParameter">An optional parameter expression serving as the root of the queryable expression tree.</param>
+    /// <returns>A LINQ Expression representing the equivalent query logic for the given WebQL query.</returns>
+    /// <exception cref="Exception">Thrown if the translation fails due to issues in syntax analysis or expression generation.</exception>
+    public Expression TranslateToExpression(string json, Type type, ParameterExpression? rootParameter = null)
     {
-        var node = RunSyntaxAnalysis(json, type);
-        var inputType = Options.QueryableType.MakeGenericType(type);
-        parameter ??= Expression.Parameter(inputType, "root");
-        var context = new TranslationContext(inputType, parameter);
-        return NodeTranslator.Translate(context, node);
+        var syntaxTree = RunAnalysis(json, type);
+        var exprParameter = rootParameter ?? Expression.Parameter(type, "x");
+        var context = new TranslationContext(type, exprParameter);
+
+        return NodeTranslator.Translate(context, syntaxTree);
     }
 
     /// <summary>
@@ -62,7 +63,7 @@ public class Translator
     {
         var inputType = Options.QueryableType.MakeGenericType(type);
         var parameter = Expression.Parameter(inputType, "root");
-        var expression = TranslateToQueryableExpression(json, type, parameter);
+        var expression = TranslateToExpression(json, type, parameter);
         var projectedType = expression.Type.GenericTypeArguments[0];
         var outputType = Options.QueryableType.MakeGenericType(projectedType);
         var lambdaExpressionType = typeof(Func<,>).MakeGenericType(inputType, outputType);
@@ -93,16 +94,9 @@ public class Translator
         return TranslateToQueryable(json, typeof(T), queryable);
     }
 
-    private Node RunSyntaxAnalysis(string json, Type type)
+    private Node RunAnalysis(string json, Type type)
     {
-        var node = SyntaxAnalyser.Parse(json);
-        var context = new SemanticContext(type);
-
-        node = new RelationalOperatorsSyntaxFeature()
-            .Visit(context, node)
-            .As<ObjectNode>();
-
-        return node;
+        return AnalysisPipeline.Run(json, type);
     }
 
 }

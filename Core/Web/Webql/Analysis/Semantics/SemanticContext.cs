@@ -1,5 +1,4 @@
-﻿using ModularSystem.Core;
-using System.Collections;
+﻿using System.Collections;
 using System.Reflection;
 
 namespace ModularSystem.Webql.Analysis;
@@ -23,19 +22,33 @@ public class SemanticContext
     /// <summary>
     /// Gets the stack trace of the context for debugging and tracing purposes.
     /// </summary>
-    public string Stack { get; }
+    public string Name { get; }
+
+    /// <summary>
+    /// Indicates whether navigation through nested properties and contexts is enabled in the semantic context. <br/>
+    /// When true, the analysis process can navigate through properties of the objects within the context.
+    /// </summary>
+    public bool EnableNavigation { get; private set; }
+
+    /// <summary>
+    /// Indicates whether the implicit 'and' syntax is enabled in the semantic context. <br/>
+    /// When true, the analysis process considers implicit logical 'and' operations within the syntax tree.
+    /// </summary>
+    public bool EnableImplicitAndSyntax { get; private set; }
 
     /// <summary>
     /// Initializes a new instance of the SemanticContext class.
     /// </summary>
     /// <param name="type">The type associated with this context.</param>
     /// <param name="parentContext">The parent semantic context, if any.</param>
-    /// <param name="stack">The stack trace for the context.</param>
-    public SemanticContext(Type type, SemanticContext? parentContext = null, string? stack = null)
+    /// <param name="name">The stack trace for the context.</param>
+    public SemanticContext(Type type, SemanticContext? parentContext = null, string? name = null)
     {
         Type = type;
         ParentContext = parentContext;
-        Stack = stack ?? "$";
+        Name = name ?? "$";
+        EnableNavigation = parentContext?.EnableNavigation ?? true;
+        EnableImplicitAndSyntax = parentContext?.EnableImplicitAndSyntax ?? true;
     }
 
     /// <summary>
@@ -119,51 +132,80 @@ public class SemanticContext
     }
 
     /// <summary>
+    /// Enables navigation within the semantic context. 
+    /// When enabled, navigation through nested properties and contexts is allowed.
+    /// </summary>
+    /// <returns>The current SemanticContext instance with navigation enabled.</returns>
+    public SemanticContext SetNavigationEnabled()
+    {
+        EnableNavigation = true;
+        return this;
+    }
+
+    /// <summary>
+    /// Disables navigation within the semantic context.
+    /// When disabled, navigation through nested properties and contexts is restricted.
+    /// </summary>
+    /// <returns>The current SemanticContext instance with navigation disabled.</returns>
+    public SemanticContext SetNavigationDisabled()
+    {
+        EnableNavigation = false;
+        return this;
+    }
+
+    /// <summary>
+    /// Enables the implicit 'and' syntax within the semantic context. 
+    /// When enabled, implicit logical 'and' operations are considered in the analysis.
+    /// </summary>
+    /// <returns>The current SemanticContext instance with implicit 'and' syntax enabled.</returns>
+    public SemanticContext SetImplicitAndSyntaxEnabled()
+    {
+        EnableImplicitAndSyntax = true;
+        return this;
+    }
+
+    /// <summary>
+    /// Disables the implicit 'and' syntax within the semantic context.
+    /// When disabled, implicit logical 'and' operations are not considered in the analysis.
+    /// </summary>
+    /// <returns>The current SemanticContext instance with implicit 'and' syntax disabled.</returns>
+    public SemanticContext SetImplicitAndSyntaxDisabled()
+    {
+        EnableImplicitAndSyntax = false;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the semantic context to projection semantics.
+    /// This method disables navigation and implicit 'and' syntax, adapting the context for projection operations.
+    /// </summary>
+    /// <returns>The current SemanticContext instance set to projection semantics.</returns>
+    public SemanticContext SetToProjectionSematics()
+    {
+        SetNavigationDisabled();
+        SetImplicitAndSyntaxDisabled();
+        return this;
+    }
+
+    /// <summary>
     /// Creates a sub-context based on a specified property name and a sub-stack trace.
     /// This method is used for navigating deeper into the semantic structure of a context, allowing targeted analysis or modification.
     /// </summary>
-    /// <param name="propertyName">The property name to create a sub-context for.</param>
-    /// <param name="subStack">The sub-stack trace for the new context, providing additional context for error reporting and analysis.</param>
+    /// <param name="identifier">The property name to create a sub-context for.</param>
+    /// <param name="name">The sub-stack trace for the new context, providing additional context for error reporting and analysis.</param>
     /// <param name="useParents">Indicates whether to use parent contexts to find the property if it's not present in the current context.</param>
     /// <returns>A new SemanticContext instance representing the sub-context.</returns>
     /// <exception cref="SemanticException">Thrown if the specified property is not found within the context hierarchy.</exception>
-    public SemanticContext CreateSubContext(string propertyName, string subStack, bool useParents = true)
+    public SemanticContext GetReference(string identifier, string name, bool useParents = true)
     {
-        var propertyInfo = GetPropertyInfo(propertyName, useParents);
+        var propertyInfo = GetPropertyInfo(identifier, useParents);
 
         if (propertyInfo == null)
         {
-            throw new SemanticException($"Property '{propertyName}' not found in the current context. Ensure the property name is correct and exists in the context type {Type.FullName}.", this);
+            throw new SemanticException($"Reference '{identifier}' not found in the current context. Ensure the reference name is correct and exists in the context type {Name}.", this);
         }
 
-        return new SemanticContext(propertyInfo.PropertyType, this, Stack + subStack);
-    }
-
-
-    /// <summary>
-    /// Gets the operator associated with the specified LhsNode.
-    /// </summary>
-    /// <param name="node">The LhsNode representing the operator.</param>
-    /// <returns>The Operator corresponding to the LhsNode.</returns>
-    /// <exception cref="SemanticException">Thrown if the operator is not recognized or supported.</exception>
-    public Operator GetOperatorFromLhs(LhsNode node)
-    {
-        var operators = Enum.GetValues(typeof(OperatorV2));
-
-        foreach (OperatorV2 op in operators)
-        {
-            if (HelperTools.StringifyOperator(op) == node.Value.ToCamelCase())
-            {
-                return op.TypeCast<Operator>();
-            }
-        }
-
-        throw new SemanticException($"The operator '{node.Value}' is not recognized or supported. Please ensure it is a valid operator.", this);
-    }
-
-    public string GetStack(string subStack)
-    {
-        return Stack + subStack;
+        return new SemanticContext(propertyInfo.PropertyType, this, $"{Name}{name}");
     }
 
 }

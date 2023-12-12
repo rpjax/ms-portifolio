@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core;
+using ModularSystem.Webql.Analysis;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -73,6 +74,8 @@ public class LinqProvider
     /// <exception cref="Exception">Thrown if context is not queryable or if queryable type is null.</exception>
     public virtual Expression TranslateProjectOperator(TranslationContext context, NodeTranslator translator, Node node)
     {
+        //*
+        // DEV NOTES:
         //      call expression (IQueryable<T>.Select()) arguments:
         //          constant expression (IEnumerable<T>)
         //          quoat expression operand:
@@ -80,6 +83,7 @@ public class LinqProvider
         //                  new expression:
         //                      members: in order, the lhs of the assignments.
         //                      arguments: in order, the rhs of the assignments.
+        //*
 
         if (!context.IsQueryable())
         {
@@ -103,36 +107,20 @@ public class LinqProvider
         // Cria uma lista para armazenar as associações de propriedades do tipo projetado
         var propertyBindings = new List<MemberBinding>();
 
-        var anonymousTypeProperties = new List<AnonymousPropertyDefinition>(objectNode.Expressions.Length);
-        var propertySelectorExpressions = new List<Expression>(objectNode.Expressions.Length);
+        var projectionBuilder = new ProjectionBuilder(translator)
+            .Run(subContext, objectNode);
 
-        // Itera sobre cada propriedade na expressão de projeção
-        foreach (var projectionExpression in objectNode.Expressions)
-        {
-            // Obtém o nome da propriedade e a expressão associada
-            var propertyName = projectionExpression.Lhs.Value;
-            var propertyExpression = translator.Translate(subContext, projectionExpression.Rhs.Value);
-
-            anonymousTypeProperties.Add(new(propertyName, propertyExpression.Type));
-            propertySelectorExpressions.Add(propertyExpression);
-        }
-
-        var typeCreationOptions = new AnonymousTypeCreationOptions()
-        {
-            CreateDefaultConstructor = true,
-            CreateSetters = true
-        };
-        var projectedType = TypeHelper.CreateAnonymousType(anonymousTypeProperties.ToArray(), typeCreationOptions);
+        var projectedType = projectionBuilder.ProjectedType;
 
         if (projectedType == null)
         {
             throw new Exception();
         }
 
-        for (int i = 0; i < anonymousTypeProperties.Count; i++)
+        for (int i = 0; i < projectionBuilder.Properties.Count; i++)
         {
-            var propDefinition = anonymousTypeProperties[i];
-            var propertyExpression = propertySelectorExpressions[i];
+            var propDefinition = projectionBuilder.Properties[i];
+            var propertyExpression = projectionBuilder.Expressions[i];
 
             var propertyInfo = projectedType.GetProperty(propDefinition.Name);
 
@@ -441,7 +429,7 @@ public class LinqProvider
     /// <returns>MethodInfo for the 'Select' method.</returns>
     protected virtual MethodInfo GetSelectMethodInfo()
     {
-        return typeof(Queryable).GetMethods()
+        return typeof(Enumerable).GetMethods()
                 .Where(m => m.Name == "Select" && m.IsGenericMethodDefinition)
                 .Select(m => new
                 {
@@ -450,11 +438,11 @@ public class LinqProvider
                     Args = m.GetGenericArguments()
                 })
                 .Where(x => x.Params.Length == 2
-                            && x.Args.Length == 2
-                            && x.Params[0].ParameterType == typeof(IQueryable<>).MakeGenericType(x.Args[0])
-                            && x.Params[1].ParameterType == typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(x.Args[0], x.Args[1])))
+                            && x.Args.Length == 2  // 'Select' for IEnumerable<T> has two generic arguments
+                            && x.Params[0].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>)
+                            && x.Params[1].ParameterType.GetGenericTypeDefinition() == typeof(Func<,>))
                 .Select(x => x.Method)
-                .Single();
+                .First(m => m != null);
     }
 
     /// <summary>

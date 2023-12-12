@@ -8,15 +8,15 @@ namespace ModularSystem.Webql.Synthesis;
 //*
 public static partial class FilterGenerator
 {
-    public static Operator GetOperatorFromLhs(GeneratorContext context, LhsNode node)
+    public static OperatorOld GetOperatorFromLhs(GeneratorContext context, LhsNode node)
     {
-        var operators = Enum.GetValues(typeof(Operator));
+        var operators = Enum.GetValues(typeof(OperatorOld));
 
-        foreach (Operator op in operators)
+        foreach (OperatorOld op in operators)
         {
             if (HelperTools.Stringify(op) == node.Value.ToCamelCase())
             {
-                return op.TypeCast<Operator>();
+                return op.TypeCast<OperatorOld>();
             }
         }
 
@@ -167,31 +167,31 @@ public static partial class FilterGenerator
     {
         switch (GetOperatorFromLhs(context, node.Lhs))
         {
-            case Operator.Equals:
+            case OperatorOld.Equals:
                 return TranslateEqualsExpression(context, node);
 
-            case Operator.Not:
+            case OperatorOld.Not:
                 return TranslateNotEqualsExpression(context, node);
 
-            case Operator.Less:
+            case OperatorOld.Less:
                 return TranslateLesserExpression(context, node);
 
-            case Operator.LesserEquals:
+            case OperatorOld.LesserEquals:
                 return TranslateLesserEqualsExpression(context, node);
 
-            case Operator.Greater:
+            case OperatorOld.Greater:
                 return TranslateGreaterExpression(context, node);
 
-            case Operator.GreaterEquals:
+            case OperatorOld.GreaterEquals:
                 return TranslateGreaterEqualsExpression(context, node);
 
-            case Operator.Like:
+            case OperatorOld.Like:
                 return TranslateLikeExpression(context, node);
 
-            case Operator.Any:
+            case OperatorOld.Any:
                 return TranslateAnyExpression(context, node);
 
-            case Operator.All:
+            case OperatorOld.All:
                 return TranslateAllExpression(context, node);
 
             default:
@@ -231,7 +231,7 @@ public static partial class FilterGenerator
 
         if (rhs is not LiteralNode literal)
         {
-            throw new GeneratorException($"The right-hand side of an '{HelperTools.Stringify(Operator.Equals)}' expression must be a literal value.", context);
+            throw new GeneratorException($"The right-hand side of an '{HelperTools.Stringify(OperatorOld.Equals)}' expression must be a literal value.", context);
         }
 
         return Expression.Equal(context.Expression, TranslateLiteral(context, literal));
@@ -243,7 +243,7 @@ public static partial class FilterGenerator
 
         if (rhs is not LiteralNode literal)
         {
-            throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(Operator.Not)}' expression must be a literal value.", context);
+            throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(OperatorOld.Not)}' expression must be a literal value.", context);
         }
 
         return Expression.NotEqual(context.Expression, TranslateLiteral(context, literal));
@@ -255,7 +255,7 @@ public static partial class FilterGenerator
 
         if (rhs is not LiteralNode literal)
         {
-            throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(Operator.Less)}' expression must be a literal value.", context);
+            throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(OperatorOld.Less)}' expression must be a literal value.", context);
         }
 
         return Expression.LessThan(context.Expression, TranslateLiteral(context, literal));
@@ -267,7 +267,7 @@ public static partial class FilterGenerator
 
         if (rhs is not LiteralNode literal)
         {
-            throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(Operator.LesserEquals)}' expression must be a literal value.", context);
+            throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(OperatorOld.LesserEquals)}' expression must be a literal value.", context);
         }
 
         return Expression.LessThanOrEqual(context.Expression, TranslateLiteral(context, literal));
@@ -279,7 +279,7 @@ public static partial class FilterGenerator
 
         if (rhs is not LiteralNode literal)
         {
-            throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(Operator.Greater)}' expression must be a literal value.", context);
+            throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(OperatorOld.Greater)}' expression must be a literal value.", context);
         }
 
         return Expression.GreaterThan(context.Expression, TranslateLiteral(context, literal));
@@ -291,7 +291,7 @@ public static partial class FilterGenerator
 
         if (rhs is not LiteralNode literal)
         {
-            throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(Operator.GreaterEquals)}' expression must be a literal value.", context);
+            throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(OperatorOld.GreaterEquals)}' expression must be a literal value.", context);
         }
 
         var literalExpression = TranslateLiteral(context, literal);
@@ -308,7 +308,7 @@ public static partial class FilterGenerator
 
         if (rhs is not LiteralNode literal)
         {
-            throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(Operator.Like)}' expression must be a literal value.", context);
+            throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(OperatorOld.Like)}' expression must be a literal value.", context);
         }
 
         var toLowerMethod = typeof(string).GetMethod("ToLower", new Type[] { });
@@ -325,7 +325,7 @@ public static partial class FilterGenerator
 
         if (str == null)
         {
-            throw new GeneratorException($"The string value in the '{HelperTools.Stringify(Operator.Like)}' expression is invalid or cannot be processed.", context);
+            throw new GeneratorException($"The string value in the '{HelperTools.Stringify(OperatorOld.Like)}' expression is invalid or cannot be processed.", context);
         }
 
         var containsArgs = new[] { Expression.Constant(str.ToLower(), typeof(string)) };
@@ -352,7 +352,7 @@ public static partial class FilterGenerator
     {
         if (node.Rhs.Value is not ArrayNode array)
         {
-            throw new GeneratorException($"The right-hand side of a {HelperTools.Stringify(Operator.Any)} expression must be an array of conditions.", context);
+            throw new GeneratorException($"The right-hand side of a {HelperTools.Stringify(OperatorOld.Any)} expression must be an array of conditions.", context);
         }
 
         var enumType = HelperTools.GetEnumerableType(context.Type);
@@ -399,7 +399,7 @@ public static partial class FilterGenerator
     {
         if (node.Rhs.Value is not ArrayNode array)
         {
-            throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(Operator.All)}' expression must be an array of conditions for an enumerable type.", context);
+            throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(OperatorOld.All)}' expression must be an array of conditions for an enumerable type.", context);
         }
 
         var enumType = HelperTools.GetEnumerableType(context.Type);
@@ -421,7 +421,7 @@ public static partial class FilterGenerator
     {
         if (node.Rhs.Value is not ArrayNode array)
         {
-            throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(Operator.All)}' expression must be an array of conditions for a non-enumerable type.", context);
+            throw new GeneratorException($"The right-hand side of a '{HelperTools.Stringify(OperatorOld.All)}' expression must be an array of conditions for a non-enumerable type.", context);
         }
 
         return TranslateArray(context, array, LogicalOperator.And);

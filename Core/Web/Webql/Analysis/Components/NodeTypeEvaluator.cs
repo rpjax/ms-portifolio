@@ -34,7 +34,7 @@ public class NodeTypeEvaluator : SemanticsVisitor
             return typeof(Nullable);
         }
 
-        if (node.IsOperator)
+        if (node.IsReference)
         {
             return EvaluateReference(context, node);
         }
@@ -68,11 +68,11 @@ public class NodeTypeEvaluator : SemanticsVisitor
             ? pathSplit.First()
             : propPath;
 
-        var subContext = context.CreateSubContext(rootPropertyName, rootPropertyName);
+        var subContext = context.GetReference(rootPropertyName, rootPropertyName);
 
         for (int i = 1; i < pathSplit.Length; i++)
         {
-            subContext = subContext.CreateSubContext(pathSplit[i], pathSplit[i], false);
+            subContext = subContext.GetReference(pathSplit[i], pathSplit[i], false);
         }
 
         return subContext.Type;
@@ -115,51 +115,51 @@ public class NodeTypeEvaluator : SemanticsVisitor
 
         switch (HelperTools.ParseOperatorString(lhs))
         {
-            case OperatorV2.Add:
-            case OperatorV2.Subtract:
-            case OperatorV2.Divide:
-            case OperatorV2.Multiply:
-            case OperatorV2.Modulo:
+            case Operator.Add:
+            case Operator.Subtract:
+            case Operator.Divide:
+            case Operator.Multiply:
+            case Operator.Modulo:
                 return typeof(decimal);
 
-            case OperatorV2.Equals:
-            case OperatorV2.NotEquals:
-            case OperatorV2.Less:
-            case OperatorV2.LessEquals:
-            case OperatorV2.Greater:
-            case OperatorV2.GreaterEquals:
-            case OperatorV2.Or:
-            case OperatorV2.And:
-            case OperatorV2.Not:
+            case Operator.Equals:
+            case Operator.NotEquals:
+            case Operator.Less:
+            case Operator.LessEquals:
+            case Operator.Greater:
+            case Operator.GreaterEquals:
+            case Operator.Or:
+            case Operator.And:
+            case Operator.Not:
                 return typeof(bool);
 
-            case OperatorV2.Expr:
+            case Operator.Expr:
                 return Evaluate(context, rhs);
 
-            case OperatorV2.Literal:
+            case Operator.Literal:
                 return context.Type;
 
-            case OperatorV2.Select:
-            case OperatorV2.Filter:
-            case OperatorV2.Project:
-            case OperatorV2.Limit:
-            case OperatorV2.Skip:
+            case Operator.Select:
+            case Operator.Filter:
+            case Operator.Project:
+            case Operator.Limit:
+            case Operator.Skip:
                 return context.Type;
 
-            case OperatorV2.Count:
+            case Operator.Count:
                 return typeof(int);
 
-            case OperatorV2.Index:
+            case Operator.Index:
                 return context.GetQueryableType()!;
 
-            case OperatorV2.Any:
-            case OperatorV2.All:
+            case Operator.Any:
+            case Operator.All:
                 return typeof(bool);
 
-            case OperatorV2.Min:
-            case OperatorV2.Max:
-            case OperatorV2.Sum:
-            case OperatorV2.Average:
+            case Operator.Min:
+            case Operator.Max:
+            case Operator.Sum:
+            case Operator.Average:
                 return typeof(void);
         }
 
@@ -178,10 +178,10 @@ public class NodeTypeEvaluator : SemanticsVisitor
 
         if (context.IsQueryable())
         {
-            context = new SemanticContext(context.GetQueryableType()!, context, context.Stack);
+            context = new SemanticContext(context.GetQueryableType()!, context, context.Name);
         }
 
-        context = context.CreateSubContext(memberName, $".{memberName}");
+        context = context.GetReference(memberName, $".{memberName}");
 
         return Evaluate(context, node.Rhs.Value);
     }

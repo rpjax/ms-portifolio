@@ -68,7 +68,7 @@ public class SemanticsVisitor
     [return: NotNullIfNotNull("node")]
     protected virtual Node? Visit(SemanticContext context, ArrayNode node)
     {
-        var baseStack = context.Stack;
+        var baseStack = context.Name;
 
         for (int i = 0; i < node.Values.Length; i++)
         {
@@ -82,46 +82,62 @@ public class SemanticsVisitor
     }
 
     /// <summary>
-    /// Visits an ExpressionNode within a given semantic context.
+    /// Visits an ExpressionNode within a specific semantic context.
     /// </summary>
     /// <remarks>
-    /// Modifies the ExpressionNode based on the semantic context, considering the type and properties of the context.
+    /// This method adapts the ExpressionNode based on the provided semantic context. <br/>
+    /// It evaluates and modifies the node in consideration of the context's type and properties, <br/>
+    /// thus aligning it with the applicable semantic rules.
     /// </remarks>
-    /// <param name="context">The semantic context for the ExpressionNode.</param>
-    /// <param name="node">The ExpressionNode to visit.</param>
-    /// <returns>The visited ExpressionNode, potentially modified based on semantic rules.</returns>
+    /// <param name="context">The semantic context in which to evaluate the ExpressionNode.</param>
+    /// <param name="node">The ExpressionNode to be visited and potentially transformed.</param>
+    /// <returns>The modified ExpressionNode after applying semantic context-based rules.</returns>
     [return: NotNullIfNotNull("node")]
     protected virtual ExpressionNode? Visit(SemanticContext context, ExpressionNode node)
     {
-        var baseStack = context.Stack;
+        var baseStack = context.Name;
         var subStack = $".{node.Lhs.Value}";
         var stack = $"{baseStack}{subStack}";
 
-        //*
-        // { where: { foo: { } } }
-        // $where.foo.$any[]
-        //*
-        if (!node.Lhs.IsOperator)
+        if (!context.EnableNavigation && node.Lhs.IsReference)
         {
-            context = context.CreateSubContext(node.Lhs.Value, subStack);
+            return new ExpressionNode(Visit(context, node.Lhs), Visit(context, node.Rhs));
         }
-        else
-        {
-            var op = context.GetOperatorFromLhs(node.Lhs);
-            var opIsIterator = HelperTools.OperatorIsIterator(op);
-            var contextIsEnumerable = HelperTools.TypeIsEnumerable(context.Type);
 
-            if (opIsIterator && contextIsEnumerable)
+        if (node.Lhs.IsReference)
+        {
+            context = context.GetReference(node.Lhs.Value, subStack);
+        }
+
+        if (node.Lhs.IsOperator)
+        {
+            var op = HelperTools.ParseOperatorString(node.Lhs.Value);
+            var opType = HelperTools.GetOperatorType(op);
+            var operatorIsQueryable = opType == OperatorType.Queryable;
+            var contextIsQueryable = context.IsQueryable();
+
+            if (op == Operator.Project)
+            {
+                //*
+                // Disables specific analysis features when entering a projection context via "$project" operator. 
+                // This adjustment is crucial as the query semantics shift in a projection context. 
+                // Without this change to projection semantics, analysis could incorrectly handle 
+                // member access expressions and implicit syntax, leading to potential failures.
+                //*
+                context.SetToProjectionSematics();
+            }
+
+            if (operatorIsQueryable && contextIsQueryable)
             {
                 context = new(HelperTools.GetEnumerableType(context.Type), context, stack);
             }
             else
             {
                 context = new(context.Type, context, stack);
-            }
+            }          
         }
 
-        return new ExpressionNode(Visit(context, node.Lhs).As<LhsNode>(), Visit(context, node.Rhs).As<RhsNode>());
+        return new ExpressionNode(Visit(context, node.Lhs), Visit(context, node.Rhs));
     }
 
     /// <summary>
@@ -131,7 +147,7 @@ public class SemanticsVisitor
     /// <param name="node">The LhsNode to visit.</param>
     /// <returns>The visited LhsNode, unchanged as LhsNodes typically do not require semantic modifications.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual Node? Visit(SemanticContext context, LhsNode node)
+    protected virtual LhsNode? Visit(SemanticContext context, LhsNode node)
     {
         return node;
     }
@@ -143,7 +159,7 @@ public class SemanticsVisitor
     /// <param name="node">The RhsNode to visit.</param>
     /// <returns>The visited RhsNode, potentially modified based on the context.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual Node? Visit(SemanticContext context, RhsNode node)
+    protected virtual RhsNode? Visit(SemanticContext context, RhsNode node)
     {
         return new RhsNode(Visit(context, node.Value));
     }

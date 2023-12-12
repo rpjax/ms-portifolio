@@ -20,7 +20,7 @@ public enum RhsType
     Array
 }
 
-public enum Operator
+public enum OperatorOld
 {
     Invalid,
     Equals,
@@ -34,7 +34,7 @@ public enum Operator
     All
 }
 
-public enum OperatorV2
+public enum Operator
 {
     // Arithmetic operators
     Add,
@@ -79,6 +79,9 @@ public enum OperatorV2
 
 }
 
+/// <summary>
+/// All operators that accept and return a queryable.
+/// </summary>
 public enum OperatorType
 {
     Arithmetic,

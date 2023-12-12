@@ -1,6 +1,7 @@
 ﻿using ModularSystem.Core;
 using ModularSystem.Mongo;
 using ModularSystem.Mongo.Webql;
+using ModularSystem.Web;
 using ModularSystem.Webql;
 using ModularSystem.Webql.Analysis;
 using ModularSystem.Webql.Synthesis;
@@ -21,13 +22,16 @@ public static class Program
     {
         Initializer.Run(new() { InitConsoleLogger = true });
 
+        WebApplicationServer.StartSingleton();
+        return;
+
         var json = "{\r\n    \"$limit\": 25,\r\n    \"$filter\": {\r\n        \"cpf\": {\r\n            \"$equals\": \"11548128988\"\r\n        },\r\n        \"firstName\": {\r\n            \"$equals\": \"Rodrigo\"\r\n        },\r\n        \"surnames\": {\r\n            \"$any\": {\r\n                \"$or\":[\r\n                    { \"$equals\": \"Jacques\" },\r\n                    { \"$equals\": \"Aamanda\" }\r\n                ]\r\n            },\r\n            \"$count\": {},\r\n            \"$greater\": 1\r\n        }\r\n    }\r\n}";
 
 
         var translator = new Translator(new() { LinqProvider = new MongoLinqProvider() });
         using var service = new MyDataService();
         var serviceQueryable = service.AsQueryable();
-    
+
         var translatedQueryable = translator.TranslateToQueryable(json, service.AsQueryable());
         var mongoQueryable = new MongoTranslatedQueryable(translatedQueryable);
 
@@ -71,4 +75,15 @@ public class MyDataService : MongoEntityService<MyData>
     {
         return new MongoDataAccessObject<MyData>(MongoDb.GetCollection<MyData>("my_data_temp"));
     }
+}
+
+public class MyDataController : WebQlController<MyData>
+{
+    protected override EntityService<MyData> Service { get; }
+
+    public MyDataController()
+    {
+        Service = new MyDataService();
+    }
+
 }
