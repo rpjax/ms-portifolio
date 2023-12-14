@@ -37,9 +37,20 @@ public class Query<T> : IQuery<T>
         Pagination = query.Pagination;
     }
 
-    public Query<TNew> TypeConvert<TNew>()
+    /// <summary>
+    /// Converts the current query to a query of a different type.
+    /// </summary>
+    /// <typeparam name="TConverted">The new type to which the query is being converted.</typeparam>
+    /// <returns>A new <see cref="Query{TNew}"/> instance with the same configuration as the current query, but typed for <typeparamref name="TConverted"/>.</returns>
+    /// <remarks>
+    /// This method is useful when needing to change the type context of a query, 
+    /// while preserving the existing filter, ordering, and pagination settings. 
+    /// It creates a new <see cref="Query{TNew}"/> instance and copies the settings from the current query. 
+    /// Note that type conversion does not transform the data; it merely changes the type parameter of the query.
+    /// </remarks>
+    public Query<TConverted> TypeConvert<TConverted>()
     {
-        return new Query<TNew>
+        return new Query<TConverted>
         {
             Filter = Filter,
             Ordering = Ordering,
