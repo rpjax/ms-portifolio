@@ -23,7 +23,7 @@ public static class TypeHelper
     /// Utilizes <see cref="System.Reflection.Emit.AssemblyBuilder"/> and <see cref="System.Reflection.Emit.ModuleBuilder"/>
     /// to create a type at runtime, resembling C# compiler-created anonymous types with added flexibility.
     /// </remarks>
-    public static Type CreateAnonymousType(AnonymousPropertyDefinition[] properties, AnonymousTypeCreationOptions options = null)
+    public static Type CreateAnonymousType(AnonymousPropertyDefinition[] properties, AnonymousTypeCreationOptions? options = null)
     {
         options ??= new();
 
@@ -114,9 +114,64 @@ public static class TypeHelper
     /// <param name="properties">An enumerable of <see cref="AnonymousPropertyDefinition"/> for defining the properties of the anonymous type.</param>
     /// <param name="options">Optional settings for creating the anonymous type, such as name, setters, and constructor.</param>
     /// <returns>A new dynamically created type that represents the defined anonymous type.</returns>
-    public static Type CreateAnonymousType(IEnumerable<AnonymousPropertyDefinition> properties, AnonymousTypeCreationOptions options = null)
+    public static Type CreateAnonymousType(IEnumerable<AnonymousPropertyDefinition> properties, AnonymousTypeCreationOptions? options = null)
     {
         return CreateAnonymousType(properties.ToArray(), options);
     }
 
 }
+
+/// <summary>
+/// Represents a definition of a property for dynamic anonymous type creation.
+/// </summary>
+public class AnonymousPropertyDefinition
+{
+    /// <summary>
+    /// Gets the name of the property.
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// Gets the type of the property.
+    /// </summary>
+    public Type Type { get; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AnonymousPropertyDefinition"/> class.
+    /// </summary>
+    /// <param name="name">The name of the property.</param>
+    /// <param name="type">The type of the property.</param>
+    public AnonymousPropertyDefinition(string name, Type type)
+    {
+        Name = name;
+        Type = type;
+    }
+}
+
+/// <summary>
+/// Provides options for customizing the creation of dynamic anonymous types.
+/// </summary>
+public class AnonymousTypeCreationOptions
+{
+    /// <summary>
+    /// Gets or sets the name to be used for the dynamically created anonymous type.
+    /// </summary>
+    /// <remarks>
+    /// Defaults to a generic anonymous type name if not set.
+    /// </remarks>
+    public string Name { get; set; } = "<>f__AnonymousType";
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to include a default constructor in the anonymous type.
+    /// </summary>
+    public bool CreateDefaultConstructor { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to create setters for the properties of the anonymous type.
+    /// </summary>
+    /// <remarks>
+    /// Setters allow for modification of the property values after the object has been instantiated.
+    /// </remarks>
+    public bool CreateSetters { get; set; } = false;
+}
+

@@ -41,6 +41,8 @@ public class SerializableType
     /// </summary>
     public string? QualifiedFullName => GetQualifiedFullName();
 
+    public SerializableType? GenericTypeDefinition { get; set; }
+
     /// <summary>
     /// Gets or sets the array of generic type arguments if the type is a generic type.
     /// </summary>
@@ -105,7 +107,7 @@ public class SerializableType
             throw new ArgumentException(nameof(FullName));
         }
 
-        if (!IsGenericTypeDefinition)
+        if (!IsGenericType)
         {
             return FullName;
         }

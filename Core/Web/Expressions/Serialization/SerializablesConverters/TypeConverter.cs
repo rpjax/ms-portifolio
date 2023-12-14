@@ -87,6 +87,13 @@ public class TypeConverter : ConverterBase, ITypeConverter
     /// <returns>The serializable representation of the type.</returns>
     public SerializableType Convert(Type type)
     {
+        var genericTypeDefinition = type.TryGetGenericTypeDefinition();
+
+        if(genericTypeDefinition == type)
+        {
+            genericTypeDefinition = null;
+        }
+
         return new SerializableType()
         {
             IsGenericMethodParameter = type.IsGenericMethodParameter,
@@ -100,7 +107,13 @@ public class TypeConverter : ConverterBase, ITypeConverter
                 Strategy == TypeConversionStrategy.UseAssemblyName
                 ? type.AssemblyQualifiedName
                 : null,
-            GenericTypeArguments = type.GenericTypeArguments.Transform(x => Convert(x)).ToArray(),
+            GenericTypeArguments = type.GenericTypeArguments
+                .Transform(x => Convert(x))
+                .ToArray(),
+            GenericTypeDefinition = 
+                genericTypeDefinition != null 
+                ? Convert(genericTypeDefinition) 
+                : null,
         };
     }
 
@@ -116,6 +129,21 @@ public class TypeConverter : ConverterBase, ITypeConverter
         if (!isDeserializable)
         {
             throw new InvalidOperationException($"The serialized type does not have enough information to be deserialized. '{sType.GetFullName()}'.");
+        }
+
+        if (sType.IsGenericType)
+        {
+            if (sType.GenericTypeDefinition == null)
+            {
+                throw new Exception();
+            }
+
+            var genericTypeDefinition = Convert(sType.GenericTypeDefinition);
+            var genericTypeArgs = sType.GenericTypeArguments
+                .Transform(x => Convert(x))
+                .ToArray();
+
+            return genericTypeDefinition.MakeGenericType(genericTypeArgs);
         }
 
         Type? type = null;
@@ -149,16 +177,22 @@ public class TypeConverter : ConverterBase, ITypeConverter
 
     private Type? GetTypeUsingAssemblyName(SerializableType sType)
     {
-        if (sType.IsGenericType)
-        {
-            Console.WriteLine();
-        }
         if (sType.AssemblyQualifiedName == null)
         {
             throw MissingArgumentException(nameof(sType.AssemblyQualifiedName));
         }
 
         return Type.GetType(sType.AssemblyQualifiedName);
+    }
+
+    private SerializableType? InternalConvert(Type? type)
+    {
+        if(type == null)
+        {
+            return null;
+        }
+
+        return Convert(type);
     }
 
     private Type? GetTypeUsingFullName(SerializableType sType)

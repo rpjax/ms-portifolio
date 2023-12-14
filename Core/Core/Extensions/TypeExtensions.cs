@@ -175,23 +175,15 @@ public static class TypeExtensions
 
         return methods[0];
     }
-}
 
-public class AnonymousPropertyDefinition
-{
-    public string Name { get; }
-    public Type Type { get; }
-
-    public AnonymousPropertyDefinition(string name, Type type)
+    public static Type? TryGetGenericTypeDefinition(this Type type)
     {
-        Name = name;
-        Type = type;
-    }
-}
+        if (!type.IsGenericType)
+        {
+            return null;
+        }
 
-public class AnonymousTypeCreationOptions
-{
-    public string Name { get; set; } = "<>f__AnonymousType";
-    public bool CreateDefaultConstructor { get; set; } = false;
-    public bool CreateSetters { get; set; } = false;
+        return type.GetGenericTypeDefinition();
+    }
+
 }
