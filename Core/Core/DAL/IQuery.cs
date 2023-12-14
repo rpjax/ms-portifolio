@@ -17,22 +17,6 @@ public interface IQuery<T>
     Expression? Filter { get; set; }
 
     /// <summary>
-    /// Defines how data is grouped.
-    /// </summary>
-    /// <remarks>
-    /// Group the data based on certain criteria.
-    /// </remarks>
-    Expression? Grouping { get; set; }
-
-    /// <summary>
-    /// Gets or sets the projection (or selection) expression to transform or select certain fields of the data.
-    /// </summary>
-    /// <remarks>
-    /// Project or transform the data after filtering and grouping. Determines which fields or transformed values are included in the result set.
-    /// </remarks>
-    Expression? Projection { get; set; }
-
-    /// <summary>
     /// Gets or sets the sorting expression that should be applied to the data.
     /// </summary>
     /// <remarks>

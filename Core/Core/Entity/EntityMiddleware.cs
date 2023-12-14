@@ -174,16 +174,6 @@ public class EntityExpressionVisitor<T> where T : IQueryableModel
             tasks.Add(Task.Run(async () => query.Filter = await VisitQueryFilter(query.Filter)));
         }
 
-        if (query.Grouping != null)
-        {
-            tasks.Add(Task.Run(async () => query.Grouping = await VisitQueryGrouping(query.Grouping)));
-        }
-
-        if (query.Projection != null)
-        {
-            tasks.Add(Task.Run(async () => query.Projection = await VisitQueryProjection(query.Projection)));
-        }
-
         if (query.Ordering != null)
         {
             tasks.Add(Task.Run(async () => query.Ordering = await VisitQueryOrdering(query.Ordering)));
@@ -202,26 +192,6 @@ public class EntityExpressionVisitor<T> where T : IQueryableModel
     /// <param name="expression">The filter expression to be visited.</param>
     /// <returns>The original or a potentially modified expression.</returns>
     public virtual Task<Expression> VisitQueryFilter(Expression expression)
-    {
-        return VisitExpressionAsync(expression);
-    }
-
-    /// <summary>
-    /// Visits a query's groupping expression.
-    /// </summary>
-    /// <param name="expression">The aggregation expression to be visited.</param>
-    /// <returns>The original or a potentially modified expression.</returns>
-    public virtual Task<Expression> VisitQueryGrouping(Expression expression)
-    {
-        return VisitExpressionAsync(expression);
-    }
-
-    /// <summary>
-    /// Visits a query's projection expression.
-    /// </summary>
-    /// <param name="expression">The projection expression to be visited.</param>
-    /// <returns>The original or a potentially modified expression.</returns>
-    public virtual Task<Expression> VisitQueryProjection(Expression expression)
     {
         return VisitExpressionAsync(expression);
     }

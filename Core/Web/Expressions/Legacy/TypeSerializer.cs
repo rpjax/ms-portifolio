@@ -95,25 +95,24 @@ public class TypeMapper : IMapper<SerializableType, Type> // pre serialization m
     }
 }
 
+public class TypeSerializerOptions
+{
+    public bool UseAssemblyName { get; set; }
+    public bool UseFullName { get; set; }
+    public TypeMapper? Mapper { get; set; }
+}
+
 public class TypeSerializer
 {
-    public class Options
+    private TypeSerializerOptions Options { get; }
+    private TypeMapper Mapper { get; }
+
+    public TypeSerializer(TypeSerializerOptions? options = null)
     {
-        public bool UseAssemblyName { get; set; }
-        public bool UseFullName { get; set; }
-        public TypeMapper? Mapper { get; set; }
-    }
+        Options = options ?? DefaultOptions();
+        Mapper = Options.Mapper ?? new TypeMapper();
 
-    Options options;
-    TypeMapper mapper;
-
-    public TypeSerializer(Options? options = null)
-    {
-        options = options ?? DefaultOptions();
-        this.options = options;
-        mapper = options.Mapper ?? new TypeMapper();
-
-        mapper.SetTypeSerializer(this);
+        Mapper.SetTypeSerializer(this);
     }
 
     public virtual SerializableType Serialize(Type type)
@@ -140,7 +139,7 @@ public class TypeSerializer
             types.AddRange(assembly.GetTypes());
         }
 
-        var mapperValue = mapper.Get(serializedType);
+        var mapperValue = Mapper.Get(serializedType);
         var isDeserializable = serializedType.FullNameIsAvailable() || serializedType.AssemblyNameIsAvailable();
 
         if (mapperValue != null)
@@ -153,12 +152,12 @@ public class TypeSerializer
             throw new InvalidOperationException($"The serialized type does not have enough information to be deserialized. '{serializedType.GetFullName()}'.");
         }
 
-        if (deserializedType == null && serializedType.AssemblyNameIsAvailable() && options.UseAssemblyName)
+        if (deserializedType == null && serializedType.AssemblyNameIsAvailable() && Options.UseAssemblyName)
         {
             deserializedType = Type.GetType(serializedType.AssemblyQualifiedName!);
         }
 
-        if (deserializedType == null && serializedType.FullNameIsAvailable() && options.UseFullName)
+        if (deserializedType == null && serializedType.FullNameIsAvailable() && Options.UseFullName)
         {
             deserializedType = Type.GetType(serializedType.GetFullName());
         }
@@ -176,9 +175,9 @@ public class TypeSerializer
         return deserializedType;
     }
 
-    public static Options DefaultOptions()
+    public static TypeSerializerOptions DefaultOptions()
     {
-        return new Options()
+        return new TypeSerializerOptions()
         {
             UseAssemblyName = false,
             UseFullName = true,

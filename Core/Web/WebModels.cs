@@ -65,8 +65,6 @@ public class SerializableQuery
         return new Query<T>()
         {
             Filter = QueryProtocol.FromSerializable(Filter),
-            Grouping = QueryProtocol.FromSerializable(Grouping),
-            Projection = QueryProtocol.FromSerializable(Projection),
             Ordering = QueryProtocol.FromSerializable(Ordering),
             Pagination = Pagination,
         };

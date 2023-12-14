@@ -14,12 +14,6 @@ public class Query<T> : IQuery<T>
     public Expression? Filter { get; set; }
 
     /// <inheritdoc/>
-    public Expression? Grouping { get; set; }
-
-    /// <inheritdoc/>
-    public Expression? Projection { get; set; }
-
-    /// <inheritdoc/>
     public Expression? Ordering { get; set; }
 
     /// <inheritdoc/>
@@ -39,8 +33,6 @@ public class Query<T> : IQuery<T>
     public Query(IQuery<T> query)
     {
         Filter = query.Filter;
-        Grouping = query.Grouping;
-        Projection = query.Projection;
         Ordering = query.Ordering;
         Pagination = query.Pagination;
     }
@@ -50,8 +42,6 @@ public class Query<T> : IQuery<T>
         return new Query<TNew>
         {
             Filter = Filter,
-            Grouping = Grouping,
-            Projection = Projection,
             Ordering = Ordering,
             Pagination = Pagination,
         };
@@ -66,8 +56,6 @@ public class Query<T> : IQuery<T>
         return new()
         {
             Filter = QueryProtocol.ToSerializable(Filter),
-            Grouping = QueryProtocol.ToSerializable(Grouping),
-            Projection = QueryProtocol.ToSerializable(Projection),
             Ordering = QueryProtocol.ToSerializable(Ordering),
             Pagination = Pagination
         };

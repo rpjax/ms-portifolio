@@ -693,7 +693,7 @@ public partial class ExpressionSerializer
 
     public class Configs
     {
-        public TypeSerializer.Options? TypeSerializerOptions { get; set; }
+        public TypeSerializerOptions? TypeSerializerOptions { get; set; }
         public MethodInfoSerializer.Options? MethodInfoSerializerOptions { get; set; }
         public JsonSerializer? JsonSerializer { get; set; }
     }

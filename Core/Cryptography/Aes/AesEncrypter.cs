@@ -63,7 +63,7 @@ public class AesEncrypter : Encrypter
     /// </summary>
     /// <param name="keySize">The size of the AES key. Defaults to 128 bits.</param>
     /// <returns>A random AES key.</returns>
-    public static byte[] RandomKey(AesKeySize keySize = AesKeySize.bits128)
+    public static byte[] RandomKey(AesKeySize keySize = AesKeySize.bits256)
     {
         return CryptographyUtils.GenerateAesKey(keySize);
     }

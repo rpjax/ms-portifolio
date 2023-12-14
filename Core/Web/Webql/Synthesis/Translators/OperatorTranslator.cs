@@ -376,12 +376,14 @@ public class PatternRelationalOperatorsTranslator
 
     public Expression TranslateLike(TranslationContext context, Node node)
     {
-        return Expression.Equal(GetLeftSide(context, node), GetRightSide(context, node));
+        throw new NotImplementedException();
+        //return Expression.Equal(GetLeftSide(context, node), GetRightSide(context, node));
     }
 
     public Expression TranslateRegexMatch(TranslationContext context, Node node)
     {
-        return Expression.Equal(GetLeftSide(context, node), GetRightSide(context, node));
+        throw new NotImplementedException();
+        //return Expression.Equal(GetLeftSide(context, node), GetRightSide(context, node));
     }
 
 }

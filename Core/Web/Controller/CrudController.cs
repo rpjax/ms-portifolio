@@ -6,6 +6,7 @@ using ModularSystem.Core.Security;
 using ModularSystem.Web.Expressions;
 using ModularSystem.Webql;
 using ModularSystem.Webql.Synthesis;
+using System.Linq.Expressions;
 
 namespace ModularSystem.Web;
 
@@ -405,19 +406,24 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
     }
 }
 
-public abstract class WebQlController<T> : CrudController<T> where T : class, IQueryableModel
+public abstract class QueryableController<T> : CrudController<T> where T : class, IQueryableModel
 {
     [HttpPost("webql-query")]
     public async Task<IActionResult> QueryAsync()
     {
         try
         {
-            var json = await ReadBodyAsStringAsync();
+            var json = (await ReadBodyAsStringAsync()) ?? Translator.EmptyQuery;
             var translator = new Translator(GetTranslatorOptions());
             var queryable = await Service.CreateQueryAsync();
-            var transformedQueryable = translator.TranslateToQueryable(json ?? Translator.EmptyQuery, queryable);
+            var transformedQueryable = translator.TranslateToQueryable(json, queryable);
             var data = transformedQueryable.ToArray();
-
+            
+            var queryableType = translator.Options.CreateGenericQueryable(typeof(T));
+            var expression = translator.TranslateToExpression(json, queryableType);
+            var expressionJson = QueryProtocol.ToJson(expression);
+            var deserializedExpression = QueryProtocol.FromJson(expressionJson);
+           
             var result = new QueryResult<object>()
             {
                 Data = data,
@@ -444,5 +450,33 @@ public abstract class WebQlController<T> : CrudController<T> where T : class, IQ
     protected TranslatorOptions GetTranslatorOptions()
     {
         return new TranslatorOptions();
+    }
+}
+
+public class SerializableBuilderQueryable
+{
+    public SerializableExpression? Expression { get; set; }
+
+    public IQueryable<object> CreateQueryable<T>(IQueryable<T> source)
+    {
+        if(Expression == null)
+        {
+            throw new InvalidOperationException("");
+        }
+
+        var expression = QueryProtocol.ExpressionSerializer
+            .FromSerializable(Expression)
+            .TypeCast<Expression<Func<IQueryable<T>, IQueryable<object>>>>();
+
+        var compiled = expression.Compile();
+
+        var transformedQueryable = compiled.DynamicInvoke(source);
+
+        if(transformedQueryable == null)
+        {
+            throw new Exception();
+        }
+
+        return transformedQueryable.TypeCast<IQueryable<object>>();
     }
 }

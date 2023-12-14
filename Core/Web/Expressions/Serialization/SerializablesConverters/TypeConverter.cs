@@ -123,21 +123,11 @@ public class TypeConverter : ConverterBase, ITypeConverter
         switch (Strategy)
         {
             case TypeConversionStrategy.UseAssemblyName:
-                if (sType.AssemblyQualifiedName == null)
-                {
-                    throw MissingArgumentException(nameof(sType.AssemblyQualifiedName));
-                }
-
-                type = Type.GetType(sType.AssemblyQualifiedName);
+                type = GetTypeUsingAssemblyName(sType);
                 break;
 
             case TypeConversionStrategy.UseFullName:
-                if (sType.FullName == null)
-                {
-                    throw MissingArgumentException(nameof(sType.FullName));
-                }
-
-                type = Type.GetType(sType.FullName);
+                type = GetTypeUsingFullName(sType);
                 break;
 
             default:
@@ -155,6 +145,30 @@ public class TypeConverter : ConverterBase, ITypeConverter
         }
 
         return type;
+    }
+
+    private Type? GetTypeUsingAssemblyName(SerializableType sType)
+    {
+        if (sType.IsGenericType)
+        {
+            Console.WriteLine();
+        }
+        if (sType.AssemblyQualifiedName == null)
+        {
+            throw MissingArgumentException(nameof(sType.AssemblyQualifiedName));
+        }
+
+        return Type.GetType(sType.AssemblyQualifiedName);
+    }
+
+    private Type? GetTypeUsingFullName(SerializableType sType)
+    {
+        if (sType.FullName == null)
+        {
+            throw MissingArgumentException(nameof(sType.FullName));
+        }
+
+        return Type.GetType(sType.FullName);
     }
 
     string GetQualifiedFullName(SerializableType sType)

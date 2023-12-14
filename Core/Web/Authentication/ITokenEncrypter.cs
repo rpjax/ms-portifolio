@@ -1,7 +1,5 @@
 ﻿using ModularSystem.Core;
 using ModularSystem.Core.Cryptography;
-using System.Net;
-using System.Text;
 
 namespace ModularSystem.Web.Authentication;
 
@@ -40,7 +38,7 @@ public interface ITokenEncrypter : IDisposable
 /// </summary>
 public class TokenEncrypter : ITokenEncrypter
 {
-    private IEncrypter Encrypter { get; }
+    private TextEncrypter Encrypter { get; }
 
     /// <summary>
     /// Constructs an instance with a specific underlying encrypter.
@@ -48,7 +46,7 @@ public class TokenEncrypter : ITokenEncrypter
     /// <param name="encrypter">The encrypter to use.</param>
     public TokenEncrypter(IEncrypter encrypter)
     {
-        Encrypter = encrypter ?? throw new ArgumentNullException(nameof(encrypter));
+        Encrypter = new TextEncrypter(encrypter) ?? throw new ArgumentNullException(nameof(encrypter));
     }
 
     /// <summary>
@@ -62,23 +60,15 @@ public class TokenEncrypter : ITokenEncrypter
     /// <inheritdoc/>
     public virtual string Encrypt(IToken token)
     {
-        var json = JsonSerializerSingleton.Serialize(token);
-        var bytes = Encoding.UTF8.GetBytes(json);
-        var encryptedBytes = Encrypter.Encrypt(bytes);
-        var base64Encoded = Convert.ToBase64String(encryptedBytes);
-
-        return WebUtility.UrlEncode(base64Encoded);
+        return Encrypter.Encrypt(JsonSerializerSingleton.Serialize(token));
     }
 
     /// <inheritdoc/>
     public virtual IToken Decrypt(string encryptedToken)
     {
-        // URL decode the encrypted token
-        var base64Decoded = WebUtility.UrlDecode(encryptedToken);
-        var bytes = Convert.FromBase64String(base64Decoded);
-        var json = Encoding.UTF8.GetString(Encrypter.Decrypt(bytes));
-
-        return JsonSerializerSingleton.Deserialize<Token>(json) ?? throw new InvalidDataException("Failed to deserialize decrypted data.");
+        return 
+            JsonSerializerSingleton.Deserialize<Token>(Encrypter.Decrypt(encryptedToken)) 
+            ?? throw new InvalidDataException("Failed to deserialize decrypted data.");
     }
 
     /// <inheritdoc/>
@@ -86,8 +76,7 @@ public class TokenEncrypter : ITokenEncrypter
     {
         try
         {
-            var base64Decoded = WebUtility.UrlDecode(encryptedToken);
-            return Encrypter.Verify(Convert.FromBase64String(base64Decoded));
+            return Encrypter.Verify(encryptedToken);
         }
         catch
         {

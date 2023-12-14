@@ -79,13 +79,14 @@ public class MyDataService : MongoEntityService<MyData>
 }
 
 [Route("my-data")]
-public class MyDataController : WebQlController<MyData>
+public class MyDataController : QueryableController<MyData>
 {
     protected override EntityService<MyData> Service { get; }
 
     public MyDataController()
     {
         Service = new MyDataService();
+        
     }
 
 }

@@ -106,18 +106,6 @@ public partial class QueryReader<T>
     }
 }
 
-// partial dedicated to grouping.
-public partial class QueryReader<T>
-{
-    // TODO...
-}
-
-// partial dedicated to projection.
-public partial class QueryReader<T>
-{
-    // TODO...
-}
-
 // partial dedicated to ordering.
 public partial class QueryReader<T>
 {

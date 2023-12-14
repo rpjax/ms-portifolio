@@ -18,7 +18,7 @@ public class Translator
     /// <summary>
     /// Options for controlling the translation process. These options define the behavior and capabilities of the translation.
     /// </summary>
-    private TranslatorOptions Options { get; }
+    public TranslatorOptions Options { get; }
 
     /// <summary>
     /// The translator used for converting individual nodes to LINQ expressions. <br/>

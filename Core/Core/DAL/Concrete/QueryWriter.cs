@@ -35,8 +35,6 @@ public partial class QueryWriter<T> : IFactory<Query<T>>
         if (query != null)
         {
             Query.Filter = query.Filter;
-            Query.Grouping = query.Grouping;
-            Query.Projection = query.Projection;
             Query.Ordering = query.Ordering;
             Query.Pagination = query.Pagination;
         }
@@ -55,8 +53,6 @@ public partial class QueryWriter<T> : IFactory<Query<T>>
         return new Query<T>
         {
             Filter = Query.Filter,
-            Grouping = Query.Grouping,
-            Projection = Query.Projection,
             Ordering = OrderingWriter.Create(),
             Pagination = Query.Pagination,
         };
@@ -213,28 +209,6 @@ public partial class QueryWriter<T>
         return this;
     }
 
-}
-
-// partial dedicated to grouping 
-public partial class QueryWriter<T>
-{
-    // TODO...
-}
-
-// partial dedicated to projection 
-public partial class QueryWriter<T>
-{
-    /// <summary>
-    /// Sets the projection expression for the query, determining which fields or properties of the entity should be included in the result set.
-    /// </summary>
-    /// <typeparam name="TProjection">The type of the projection result.</typeparam>
-    /// <param name="expression">The projection expression to set.</param>
-    /// <returns>The current instance of the writer.</returns>
-    public QueryWriter<T> SetProjection<TProjection>(Expression<Func<T, TProjection>> expression)
-    {
-        Query.Projection = expression;
-        return this;
-    }
 }
 
 // partial dedicated to ordering 

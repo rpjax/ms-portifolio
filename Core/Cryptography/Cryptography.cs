@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using ModularSystem.Web;
+using System.Net;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
@@ -59,14 +60,17 @@ public abstract class Encrypter : IEncrypter
 public class TextEncrypter : ITextEncrypter
 {
     private IEncrypter Encrypter { get; }
+    private Encoding Encoding { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TextEncrypter"/> class with a specified encrypter.
     /// </summary>
     /// <param name="encrypter">The underlying byte-based encrypter.</param>
-    public TextEncrypter(IEncrypter encrypter)
+    /// <param name="encoding">The encoding to be used.</param>
+    public TextEncrypter(IEncrypter encrypter, Encoding? encoding = null)
     {
         Encrypter = encrypter;
+        Encoding = encoding ?? Encoding.UTF8;
     }
 
     /// <summary>
@@ -84,11 +88,10 @@ public class TextEncrypter : ITextEncrypter
     /// <returns>A Base64 encoded string of the encrypted text.</returns>
     public virtual string Encrypt(string data)
     {
-        var bytes = Encoding.UTF8.GetBytes(data);
+        var bytes = Encoding.GetBytes(data);
         var encryptedBytes = Encrypter.Encrypt(bytes);
-        var base64Encoded = Convert.ToBase64String(encryptedBytes);
 
-        return WebUtility.UrlEncode(base64Encoded);
+        return WebHelper.ToUrlBase64(encryptedBytes);
     }
 
     /// <summary>
@@ -98,11 +101,10 @@ public class TextEncrypter : ITextEncrypter
     /// <returns>The original content of the text, after decryption.</returns>
     public virtual string Decrypt(string encryptedData)
     {
-        var base64Decoded = WebUtility.UrlDecode(encryptedData);
-        var encryptedBytes = Convert.FromBase64String(base64Decoded);
+        var encryptedBytes = WebHelper.FromUrlBase64(encryptedData);
         var bytes = Encrypter.Decrypt(encryptedBytes);
 
-        return Encoding.UTF8.GetString(bytes);
+        return Encoding.GetString(bytes);
     }
 
     /// <inheritdoc/>
@@ -110,8 +112,7 @@ public class TextEncrypter : ITextEncrypter
     {
         try
         {
-            var base64Decoded = WebUtility.UrlDecode(encryptedData);
-            var encryptedBytes = Convert.FromBase64String(base64Decoded);
+            var encryptedBytes = WebHelper.FromUrlBase64(encryptedData);
 
             return Encrypter.Verify(encryptedBytes);
         }
