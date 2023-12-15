@@ -29,11 +29,11 @@ public class MemberBindingConverter : ConverterBase, IMemberBindingConverter
     /// <summary>
     /// Initializes a new instance of the <see cref="MemberBindingConverter"/> class.
     /// </summary>
-    /// <param name="parentContext">The parsing context.</param>
-    public MemberBindingConverter(ConversionContext parentContext)
+    /// <param name="context">The parsing context.</param>
+    public MemberBindingConverter(ConversionContext context)
     {
-        Context = parentContext.CreateChild("Member Binding Conversion");
-        MemberInfoConverter = Context.GetDependency<IMemberInfoConverter>();
+        Context = context;
+        MemberInfoConverter = context.MemberInfoConverter;
     }
 
     /// <summary>

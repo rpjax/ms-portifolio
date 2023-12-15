@@ -122,7 +122,7 @@ public class ExprSerializer : ISerializer<Expression>
         /// <summary>
         /// Gets or sets the expression converter used for converting between LINQ Expressions and their serializable counterparts.
         /// </summary>
-        public IExpressionConverter ExpressionConverter { get; set; } = new ExpressionConverter(new DefaultConversionContext("Root Expression Converter"));
+        public IExpressionConverter ExpressionConverter { get; set; } = new ExpressionConverter();
 
         /// <summary>
         /// Gets or sets the underlying serializer used for string serialization.

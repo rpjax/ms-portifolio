@@ -152,7 +152,7 @@ public abstract class ConverterBase
     /// <returns>An exception indicating the type was not found.</returns>
     protected Exception TypeNotFoundException(SerializableType type)
     {
-        return ParsingException($"Failed to locate the type '{type.GetQualifiedFullName()}' within the current running assembly. Please verify the type's existence and its accessibility.");
+        return ParsingException($"Failed to locate the type '{type.GetFullName()}' within the current running assembly. Please verify the type's existence and its accessibility.");
     }
 
     /// <summary>

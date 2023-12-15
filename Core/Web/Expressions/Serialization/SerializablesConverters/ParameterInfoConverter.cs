@@ -30,12 +30,12 @@ public class ParameterInfoConverter : ConverterBase, IParameterInfoConverter
     /// <summary>
     /// Initializes a new instance of the <see cref="MethodInfoConverter"/> class.
     /// </summary>
-    /// <param name="parentContext">The parsing context.</param>
-    public ParameterInfoConverter(ConversionContext parentContext)
+    /// <param name="context">The parsing context.</param>
+    public ParameterInfoConverter(ConversionContext context)
     {
-        Context = parentContext.CreateChild("Parameter Info Conversion");
-        TypeConverter = Context.GetDependency<ITypeConverter>();
-        MethodInfoConverter = Context.GetDependency<IMethodInfoConverter>();
+        Context = context;
+        TypeConverter = context.TypeConverter;
+        MethodInfoConverter = context.MethodInfoConverter;
     }
 
     /// <summary>

@@ -7,6 +7,8 @@ namespace ModularSystem.Web.Expressions;
 
 internal class ExpressionToSerializable : ConverterBase, IConversion<Expression, SerializableExpression>
 {
+    protected override ConversionContext Context { get; }
+
     private ITypeConverter TypeConverter { get; }
     private IMemberInfoConverter MemberInfoConverter { get; }
     private IMethodInfoConverter MethodInfoConverter { get; }
@@ -16,19 +18,17 @@ internal class ExpressionToSerializable : ConverterBase, IConversion<Expression,
     private IElementInitConverter ElementInitConverter { get; }
     private ISerializer Serializer { get; }
 
-    protected override ConversionContext Context { get; }
-
-    public ExpressionToSerializable(ConversionContext parentContext)
+    public ExpressionToSerializable(ConversionContext context)
     {
-        Context = parentContext.CreateChild("Expression To Serializable Conversion");
-        TypeConverter = Context.GetDependency<ITypeConverter>();
-        MemberInfoConverter = Context.GetDependency<IMemberInfoConverter>();
-        MethodInfoConverter = Context.GetDependency<IMethodInfoConverter>();
-        PropertyInfoConverter = Context.GetDependency<IPropertyInfoConverter>();
-        ConstructorInfoConverter = Context.GetDependency<IConstructorInfoConverter>();
-        MemberBindingConverter = Context.GetDependency<IMemberBindingConverter>();
-        ElementInitConverter = Context.GetDependency<IElementInitConverter>();
-        Serializer = Context.GetDependency<ISerializer>();
+        Context = context;
+        TypeConverter = Context.TypeConverter;
+        MemberInfoConverter = Context.MemberInfoConverter;
+        MethodInfoConverter = Context.MethodInfoConverter;
+        PropertyInfoConverter = Context.PropertyInfoConverter;
+        ConstructorInfoConverter = Context.ConstructorInfoConverter;
+        MemberBindingConverter = Context.MemberBindingConverter;
+        ElementInitConverter = Context.ElementInitConverter;
+        Serializer = Context.Serializer;
     }
 
     public SerializableExpression Convert(Expression expression)
@@ -336,6 +336,8 @@ internal class ExpressionToSerializable : ConverterBase, IConversion<Expression,
 
     private SerializableParameterExpression Convert(ParameterExpression expression)
     {
+        var refString = Context.GetExpressionReferenceString(expression);
+
         return new()
         {
             NodeType = (ExtendedExpressionType)expression.NodeType,

@@ -27,11 +27,11 @@ public class MemberInfoConverter : ConverterBase, IMemberInfoConverter
     /// <summary>
     /// Constructs a new instance of <see cref="MemberInfoConverter"/>, initialized with the given context and configuration.
     /// </summary>
-    /// <param name="parentContext">The parsing context to be used during conversion.</param>
-    public MemberInfoConverter(ConversionContext parentContext)
+    /// <param name="context">The parsing context to be used during conversion.</param>
+    public MemberInfoConverter(ConversionContext context)
     {
-        Context = parentContext.CreateChild("Member Info Conversion");
-        TypeConverter = Context.GetDependency<ITypeConverter>();
+        Context = context;
+        TypeConverter = context.TypeConverter;
     }
 
     /// <summary>

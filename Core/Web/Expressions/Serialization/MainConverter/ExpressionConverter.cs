@@ -34,11 +34,11 @@ public class ExpressionConverter : ConverterBase, IExpressionConverter
     /// Initializes a new instance of the <see cref="ExpressionConverter"/> class.
     /// </summary>
     /// <param name="context">The parsing context.</param>
-    public ExpressionConverter(ConversionContext context)
+    public ExpressionConverter(ConversionContext? context = null)
     {
-        Context = context;
-        ExpressionToNodeConversion = new ExpressionToSerializable(context);
-        NodeToExpressionConversion = new SerializableToExpression(context);
+        Context = context ?? new();
+        ExpressionToNodeConversion = new ExpressionToSerializable(Context);
+        NodeToExpressionConversion = new SerializableToExpression(Context);
     }
 
     /// <summary>

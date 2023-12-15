@@ -6,7 +6,9 @@ using ModularSystem.Core.Security;
 using ModularSystem.Web.Expressions;
 using ModularSystem.Webql;
 using ModularSystem.Webql.Synthesis;
+using System.Collections;
 using System.Linq.Expressions;
+using System.Text.Json.Serialization;
 
 namespace ModularSystem.Web;
 
@@ -421,9 +423,11 @@ public abstract class QueryableController<T> : CrudController<T> where T : class
             
             var queryableType = translator.Options.CreateGenericQueryable(typeof(T));
             var expression = translator.TranslateToExpression(json, queryableType);
-            var expressionJson = QueryProtocol.ToJson(expression);
-            var deserializedExpression = QueryProtocol.FromJson(expressionJson);
-           
+            var builder = new SerializableQueryableBuilder(QueryProtocol.ToSerializable(expression));
+
+            var test = builder.TranslateToQueryable(queryable);
+            var data2 = test.ToArray();
+
             var result = new QueryResult<object>()
             {
                 Data = data,
@@ -453,30 +457,36 @@ public abstract class QueryableController<T> : CrudController<T> where T : class
     }
 }
 
-public class SerializableBuilderQueryable
+public class SerializableQueryableBuilder
 {
     public SerializableExpression? Expression { get; set; }
 
-    public IQueryable<object> CreateQueryable<T>(IQueryable<T> source)
+    [JsonConstructor]
+    public SerializableQueryableBuilder()
+    {
+
+    }
+
+    public SerializableQueryableBuilder(SerializableExpression? expression)
+    {
+        Expression = expression;
+    }
+
+    public TranslatedQueryable TranslateToQueryable(Type genericType, IEnumerable queryable, Translator? translator = null)
     {
         if(Expression == null)
         {
-            throw new InvalidOperationException("");
+            return new TranslatedQueryable(genericType, genericType, queryable);
         }
 
-        var expression = QueryProtocol.ExpressionSerializer
-            .FromSerializable(Expression)
-            .TypeCast<Expression<Func<IQueryable<T>, IQueryable<object>>>>();
+        var expression = QueryProtocol.FromSerializable(Expression);
 
-        var compiled = expression.Compile();
-
-        var transformedQueryable = compiled.DynamicInvoke(source);
-
-        if(transformedQueryable == null)
-        {
-            throw new Exception();
-        }
-
-        return transformedQueryable.TypeCast<IQueryable<object>>();
+        return (translator ?? new()).TranslateToQueryable(expression, genericType, queryable);
     }
+
+    public TranslatedQueryable TranslateToQueryable<T>(IEnumerable<T> queryable, Translator? translator = null)
+    {
+        return TranslateToQueryable(typeof(T), queryable, translator);
+    }
+
 }

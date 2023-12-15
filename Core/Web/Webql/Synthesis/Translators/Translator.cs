@@ -1,4 +1,6 @@
-﻿using ModularSystem.Webql.Analysis;
+﻿using ModularSystem.Core;
+using ModularSystem.Core.Expressions;
+using ModularSystem.Webql.Analysis;
 using System.Collections;
 using System.Linq.Expressions;
 
@@ -80,7 +82,7 @@ public class Translator
 
         if (transformedQueryable == null)
         {
-            throw new Exception("Failed to transform queryable.");
+            throw QueryableTransformationFailedException();
         }
 
         return new TranslatedQueryable(inputType.GenericTypeArguments.First(), outputType.GenericTypeArguments.Last(), transformedQueryable);
@@ -99,9 +101,40 @@ public class Translator
         return TranslateToQueryable(json, typeof(T), queryable);
     }
 
+    public TranslatedQueryable TranslateToQueryable(Expression expression, Type genericType, IEnumerable queryable)
+    {
+        var visitor = new ParameterExpressionUniformityVisitor();
+      
+        var inputType = Options.QueryableType.MakeGenericType(genericType);
+        var parameter = Expression.Parameter(inputType, "root");
+        var projectedType = expression.Type.GenericTypeArguments[0];
+        var outputType = Options.QueryableType.MakeGenericType(projectedType);
+        var lambdaExpressionType = typeof(Func<,>).MakeGenericType(inputType, outputType);
+
+        var lambdaExpression = visitor
+            .Visit(Expression.Lambda(lambdaExpressionType, expression, parameter))
+            .TypeCast<LambdaExpression>();
+
+        var lambda = lambdaExpression.Compile();
+
+        var transformedQueryable = lambda.DynamicInvoke(queryable);
+
+        if (transformedQueryable == null)
+        {
+            throw QueryableTransformationFailedException();
+        }
+
+        return new TranslatedQueryable(inputType.GenericTypeArguments.First(), outputType.GenericTypeArguments.Last(), transformedQueryable);
+    }
+
     private Node RunAnalysis(string json, Type type)
     {
         return AnalysisPipeline.Run(json, type);
+    }
+
+    private Exception QueryableTransformationFailedException(string? message = null)
+    {
+        return new Exception($"Failed to transform queryable. {message}");
     }
 
 }

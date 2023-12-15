@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core;
+using ModularSystem.Core.Reflection;
 using ModularSystem.Webql.Synthesis;
 using System.Linq.Expressions;
 
@@ -118,7 +119,7 @@ public class ProjectionBuilder
             CreateSetters = true
         };
 
-        ProjectedType = TypeHelper.CreateAnonymousType(Properties, options);
+        ProjectedType = TypeCreator.CreateAnonymousType(Properties, options);
 
         if (ProjectedType == null)
         {

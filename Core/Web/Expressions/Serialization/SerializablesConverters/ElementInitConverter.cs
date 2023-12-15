@@ -29,16 +29,17 @@ public class ElementInitConverter : ConverterBase, IElementInitConverter
     /// <summary>
     /// Gets the expression converter used for expression conversions.
     /// </summary>
-    private IExpressionConverter ExpressionConverter => Context.GetDependency<IExpressionConverter>();
+    private IExpressionConverter ExpressionConverter { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ElementInitConverter"/> class.
     /// </summary>
-    /// <param name="parentContext">The parsing context.</param>
-    public ElementInitConverter(ConversionContext parentContext)
+    /// <param name="context">The parsing context.</param>
+    public ElementInitConverter(ConversionContext context)
     {
-        Context = parentContext.CreateChild("Element Init Conversion");
-        MethodInfoConverter = Context.GetDependency<IMethodInfoConverter>();
+        Context = context;
+        ExpressionConverter = context.ExpressionConverter;
+        MethodInfoConverter = context.MethodInfoConverter;
     }
 
     /// <summary>

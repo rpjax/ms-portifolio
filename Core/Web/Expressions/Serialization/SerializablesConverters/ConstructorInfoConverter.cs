@@ -29,11 +29,11 @@ public class ConstructorInfoConverter : ConverterBase, IConstructorInfoConverter
     /// <summary>
     /// Initializes a new instance of the <see cref="ConstructorInfoConverter"/> class.
     /// </summary>
-    /// <param name="parentContext">The parsing context.</param>
-    public ConstructorInfoConverter(ConversionContext parentContext)
+    /// <param name="context">The parsing context.</param>
+    public ConstructorInfoConverter(ConversionContext context)
     {
-        Context = parentContext.CreateChild("Constructor Info Conversion");
-        TypeConverter = Context.GetDependency<ITypeConverter>();
+        Context = context;
+        TypeConverter = Context.TypeConverter;
     }
 
     /// <summary>

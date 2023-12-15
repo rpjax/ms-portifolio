@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ModularSystem.Core;
+using ModularSystem.Core.Reflection;
 
 namespace ModularSystem.EntityFramework;
 
@@ -60,7 +60,7 @@ public class EFCoreContext : DbContext
                     new(foreignKeyColumnName, typeof(long)),
                     new("Value", elementType)
                 };
-                var elementTableType = TypeHelper.CreateAnonymousType(elementTableTypeProps);
+                var elementTableType = TypeCreator.CreateAnonymousType(elementTableTypeProps);
 
                 // Criar uma tabela para a coleção
                 modelBuilder

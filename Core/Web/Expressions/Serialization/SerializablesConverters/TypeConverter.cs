@@ -1,5 +1,5 @@
 ﻿using ModularSystem.Core;
-using System.Text;
+using ModularSystem.Core.Reflection;
 
 namespace ModularSystem.Web.Expressions;
 
@@ -63,11 +63,11 @@ public class TypeConverter : ConverterBase, ITypeConverter
     /// <summary>
     /// Constructs a new instance of the <see cref="TypeConverter"/>.
     /// </summary>
-    /// <param name="parentContext">The parsing context.</param>
+    /// <param name="context">The parsing context.</param>
     /// <param name="strategy">The strategy for this converter.</param>
-    public TypeConverter(ConversionContext parentContext, TypeConversionStrategy strategy)
+    public TypeConverter(ConversionContext context, TypeConversionStrategy strategy)
     {
-        Context = parentContext.CreateChild("Type Conversion");
+        Context = context;
         Strategy = strategy;
     }
 
@@ -94,6 +94,16 @@ public class TypeConverter : ConverterBase, ITypeConverter
             genericTypeDefinition = null;
         }
 
+        var isAnonymous = type.IsAnonymous();
+
+        var anonymousPropertiesDefinitions =
+            isAnonymous
+            ? type
+                .GetProperties()
+                .Transform(x => new SerializablePropertyDefinition(x.Name, Convert(x.PropertyType)))
+                .ToArray()
+            : Array.Empty<SerializablePropertyDefinition>();
+
         return new SerializableType()
         {
             IsGenericMethodParameter = type.IsGenericMethodParameter,
@@ -101,19 +111,21 @@ public class TypeConverter : ConverterBase, ITypeConverter
             IsGenericType = type.IsGenericType,
             IsGenericTypeParameter = type.IsGenericTypeParameter,
             IsGenericTypeDefinition = type.IsGenericTypeDefinition,
+            IsAnonymousType = isAnonymous,
             Name = type.Name,
             Namespace = type.Namespace,
             AssemblyQualifiedName =
                 Strategy == TypeConversionStrategy.UseAssemblyName
-                ? type.AssemblyQualifiedName
+                ? type.GetQualifiedFullName()
                 : null,
             GenericTypeArguments = type.GenericTypeArguments
                 .Transform(x => Convert(x))
                 .ToArray(),
-            GenericTypeDefinition = 
-                genericTypeDefinition != null 
-                ? Convert(genericTypeDefinition) 
+            GenericTypeDefinition =
+                genericTypeDefinition != null
+                ? Convert(genericTypeDefinition)
                 : null,
+            AnonymousPropertyDefinitions = anonymousPropertiesDefinitions
         };
     }
 
@@ -131,19 +143,9 @@ public class TypeConverter : ConverterBase, ITypeConverter
             throw new InvalidOperationException($"The serialized type does not have enough information to be deserialized. '{sType.GetFullName()}'.");
         }
 
-        if (sType.IsGenericType)
+        if (sType.IsAnonymousType)
         {
-            if (sType.GenericTypeDefinition == null)
-            {
-                throw new Exception();
-            }
-
-            var genericTypeDefinition = Convert(sType.GenericTypeDefinition);
-            var genericTypeArgs = sType.GenericTypeArguments
-                .Transform(x => Convert(x))
-                .ToArray();
-
-            return genericTypeDefinition.MakeGenericType(genericTypeArgs);
+            return CreateAnonymousType(sType);
         }
 
         Type? type = null;
@@ -151,11 +153,13 @@ public class TypeConverter : ConverterBase, ITypeConverter
         switch (Strategy)
         {
             case TypeConversionStrategy.UseAssemblyName:
-                type = GetTypeUsingAssemblyName(sType);
+
+                type = CreateTypeUsingAssemblyName(sType);
                 break;
 
             case TypeConversionStrategy.UseFullName:
-                type = GetTypeUsingFullName(sType);
+
+                type = CreateTypeUsingFullName(sType);
                 break;
 
             default:
@@ -175,92 +179,90 @@ public class TypeConverter : ConverterBase, ITypeConverter
         return type;
     }
 
-    private Type? GetTypeUsingAssemblyName(SerializableType sType)
+    private Type? CreateTypeUsingAssemblyName(SerializableType sType)
     {
-        if (sType.AssemblyQualifiedName == null)
+        if (string.IsNullOrEmpty(sType.AssemblyQualifiedName))
         {
             throw MissingArgumentException(nameof(sType.AssemblyQualifiedName));
+        }
+
+        if (sType.IsGenericType)
+        {
+            var genericTypeDefinition = Type.GetType(sType.AssemblyQualifiedName);
+
+            if(genericTypeDefinition == null)
+            {
+                throw TypeNotFoundException(sType.AssemblyQualifiedName);
+            }
+
+            var genericTypeArgs = sType.GenericTypeArguments
+                .Transform(x => Convert(x))
+                .ToArray();
+
+            return genericTypeDefinition.MakeGenericType(genericTypeArgs);
         }
 
         return Type.GetType(sType.AssemblyQualifiedName);
     }
 
-    private SerializableType? InternalConvert(Type? type)
+    private Type? CreateTypeUsingFullName(SerializableType sType)
     {
-        if(type == null)
-        {
-            return null;
-        }
-
-        return Convert(type);
-    }
-
-    private Type? GetTypeUsingFullName(SerializableType sType)
-    {
-        if (sType.FullName == null)
+        if (string.IsNullOrEmpty(sType.FullName))
         {
             throw MissingArgumentException(nameof(sType.FullName));
+        }
+
+        if (sType.IsGenericType)
+        {
+            var genericTypeDefinition = Type.GetType(sType.FullName);
+
+            if (genericTypeDefinition == null)
+            {
+                throw TypeNotFoundException(sType.FullName);
+            }
+
+            var genericTypeArgs = sType.GenericTypeArguments
+                .Transform(x => Convert(x))
+                .ToArray();
+
+            return genericTypeDefinition.MakeGenericType(genericTypeArgs);
         }
 
         return Type.GetType(sType.FullName);
     }
 
-    string GetQualifiedFullName(SerializableType sType)
+    private Type CreateAnonymousType(SerializableType sType)
     {
-        if (sType.FullName == null)
+        if (sType.AnonymousPropertyDefinitions.IsEmpty())
         {
-            throw MissingArgumentException(nameof(sType.FullName));
+            throw new Exception();
         }
 
-        if (!sType.IsGenericTypeDefinition)
+        var properties = new List<AnonymousPropertyDefinition>(sType.AnonymousPropertyDefinitions.Length);
+
+        foreach (var item in sType.AnonymousPropertyDefinitions)
         {
-            return sType.FullName;
-        }
-
-        var split = sType.FullName.Split('`');
-
-        if (split.Length != 2)
-        {
-            throw InvalidTypeNameException(sType.FullName);
-        }
-
-        var fullname = split[0];
-        var argCountStr = split[1];
-
-        if (!int.TryParse(argCountStr, out var argCount))
-        {
-            throw InvalidTypeNameException(sType.FullName);
-        }
-        if (argCount != sType.GenericTypeArguments.Length)
-        {
-            throw InvalidTypeNameException(sType.FullName);
-        }
-
-        var argNames = sType.GenericTypeArguments.Select(x => x.FullName).ToArray();
-        var strBuilder = new StringBuilder();
-
-        strBuilder.Append($"{fullname}`{argCount}[");
-
-        for (int i = 0; i < argNames.Length; i++)
-        {
-            var argName = argNames[i];
-            var isLast = argNames.Length - 1 == i;
-
-            if (argName == null)
+            if(item.Name == null)
             {
-                throw InvalidTypeNameException(sType.FullName);
+                throw new Exception();
             }
-            if (isLast)
+            if(item.Type == null)
             {
-                strBuilder.Append($"[{argName}]");
+                throw new Exception();
             }
-            else
-            {
-                strBuilder.Append($"[{argName}],");
-            }
+
+            properties.Add(new AnonymousPropertyDefinition(item.Name, Convert(item.Type)));
         }
 
-        strBuilder.Append(']');
-        return strBuilder.ToString();
+        var options = new AnonymousTypeCreationOptions()
+        {
+            CreateDefaultConstructor = true,
+            CreateSetters = true
+        };
+        var anonymousType = TypeCreator
+            .CreateAnonymousType(properties, options);
+        
+        return anonymousType;
     }
+
 }

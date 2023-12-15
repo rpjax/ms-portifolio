@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace ModularSystem.Core;
+﻿namespace ModularSystem.Core;
 
 /// <summary>
 /// Provides extension methods for the .NET System.Type class, offering useful functionalities for working with types and type hierarchies at runtime.
@@ -72,16 +70,6 @@ public static class TypeExtensions
     }
 
     /// <summary>
-    /// Generic version of IsSubtypeOf, facilitating checks against a specific parent type.
-    /// </summary>
-    /// <param name="childType">The type that might be a subtype.</param>
-    /// <returns>True if the childType is a subtype of T, otherwise false.</returns>
-    public static bool IsSubtypeOf<T>(this Type childType)
-    {
-        return IsSubtypeOf(childType, typeof(T));
-    }
-
-    /// <summary>
     /// Checks if the source type is an instance of a generic type matching the target type.
     /// </summary>
     /// <param name="source">The source type to check.</param>
@@ -112,68 +100,9 @@ public static class TypeExtensions
         return source.IsInstanceOfGenericType(typeof(T));
     }
 
-    public static int? InheritanceDistance(this Type baseType, Type derivedType)
-    {
-        int distance = 0;
-
-        Type? targetType = derivedType;
-
-        while (targetType != null && targetType != baseType)
-        {
-            targetType = targetType.BaseType;
-            distance++;
-        }
-
-        if (derivedType == baseType)
-        {
-            return distance;
-        }
-
-        return null; // means derivedType is not derived from baseType
-    }
-
     public static bool IsNullable(this Type type)
     {
         return Nullable.GetUnderlyingType(type) != null;
-    }
-
-    /// <summary>
-    /// Retrieves a specific method from a type based on the given method name, parameter types, and return type.
-    /// </summary>
-    /// <param name="self">The type from which to retrieve the method.</param>
-    /// <param name="name">The name of the method to retrieve.</param>
-    /// <param name="parameters">An array of types representing the parameters of the method.</param>
-    /// <param name="outputType">The return type of the method.</param>
-    /// <returns>
-    /// The <see cref="MethodInfo"/> object representing the method that matches the specified criteria;
-    /// returns null if no such method is found.
-    /// </returns>
-    /// <exception cref="AmbiguousMatchException">
-    /// Thrown when multiple methods match the specified criteria, making the method call ambiguous.
-    /// </exception>
-    /// <remarks>
-    /// This method is useful for retrieving methods in cases where multiple overloads may exist,
-    /// and a specific method needs to be obtained based on its signature.
-    /// </remarks>
-    public static MethodInfo? GetMethod(this Type self, string name, Type[] parameters, Type outputType)
-    {
-        var methods = self
-            .GetMethods()
-            .Where(x => x.Name == name)
-            .Where(x => x.ReturnType == outputType)
-            .Where(x => parameters.All(paramType => x.GetParameters().Any(methodParam => methodParam.ParameterType == paramType)))
-            .ToArray();
-
-        if (methods.Length == 0)
-        {
-            return null;
-        }
-        if (methods.Length > 1)
-        {
-            throw new AmbiguousMatchException($"Multiple methods found matching the name '{name}', parameter types, and return type. Please specify more distinct criteria.");
-        }
-
-        return methods[0];
     }
 
     public static Type? TryGetGenericTypeDefinition(this Type type)
@@ -186,4 +115,64 @@ public static class TypeExtensions
         return type.GetGenericTypeDefinition();
     }
 
+    /// <summary>
+    /// Retrieves the fully qualified name of a type, with special handling for generic types.
+    /// </summary>
+    /// <param name="type">The type for which the fully qualified name is being retrieved.</param>
+    /// <returns>The fully qualified name of the type.</returns>
+    /// <exception cref="ArgumentException">Thrown when the full name of the type is null.</exception>
+    public static string GetQualifiedFullName(this Type type)
+    {
+        var fullname = type.AssemblyQualifiedName;
+
+        if (fullname == null)
+        {
+            throw new ArgumentException(nameof(fullname));
+        }
+
+        if (type.IsGenericType)
+        {
+            var genericTypeDefinition = type.GetGenericTypeDefinition();
+            var genericTypeName = genericTypeDefinition.AssemblyQualifiedName;
+
+            if(genericTypeName == null)
+            {
+                throw new Exception();
+            }
+
+            return genericTypeName;
+        }
+
+        return fullname;
+    }
+
+}
+
+/// <summary>
+/// Provides methods for comparing type instances, including support for generic type comparisons.
+/// </summary>
+public static class TypeComparer
+{
+    /// <summary>
+    /// Compares two types, considering generic type definitions.
+    /// </summary>
+    /// <param name="type1">The first type to compare.</param>
+    /// <param name="type2">The second type to compare.</param>
+    /// <returns>
+    /// True if both types are the same or if they are generic types with the same generic type definition;
+    /// otherwise, false.
+    /// </returns>
+    /// <remarks>
+    /// This method is particularly useful for comparing types where the specific type arguments of generic types
+    /// are not of interest, but rather the generic type definitions themselves.
+    /// </remarks>
+    public static bool GenericCompare(Type type1, Type type2)
+    {
+        if (type1.IsGenericType && type2.IsGenericType)
+        {
+            return type1.GetGenericTypeDefinition() == type2.GetGenericTypeDefinition();
+        }
+
+        return type1 == type2;
+    }
 }

@@ -1,156 +1,124 @@
 ﻿using ModularSystem.Core;
+using System.Linq.Expressions;
 
 namespace ModularSystem.Web.Expressions;
 
-public abstract class ConversionContext
+public class ConversionContext
 {
-    public string[] Stack { get; }
+    public IExpressionConverter ExpressionConverter { get; }
+    public ITypeConverter TypeConverter { get; }
+    public IParameterInfoConverter ParameterInfoConverter { get; }
+    public IMemberInfoConverter MemberInfoConverter { get; }
+    public IPropertyInfoConverter PropertyInfoConverter { get; }
+    public IMethodInfoConverter MethodInfoConverter { get; }
+    public IConstructorInfoConverter ConstructorInfoConverter { get; }
+    public IMemberBindingConverter MemberBindingConverter { get; }
+    public IElementInitConverter ElementInitConverter { get; }
+    public ISerializer Serializer { get; }
 
-    public ConversionContext(string label, string[]? stack = null)
+    private ConversionContext? Parent { get; }
+    private ReferenceTable ReferenceTable { get; }
+
+    public ConversionContext(ConversionContext? parent = null)
     {
-        Stack = stack != null
-            ? new List<string>(stack).FluentAdd(label).ToArray()
-            : new[] { label };
+        ExpressionConverter = CreateExpressionConverter();
+        TypeConverter = CreateTypeConverter();
+        ParameterInfoConverter = CreateParameterInfoConverter();
+        MemberInfoConverter = CreateMemberInfoConverter();
+        PropertyInfoConverter = CreatePropertyInfoConverter();
+        MethodInfoConverter = CreateMethodInfoConverter();
+        ConstructorInfoConverter = CreateConstructorInfoConverter();
+        MemberBindingConverter = CreateMemberBindingConverter();
+        ElementInitConverter = CreateElementInitConverter();
+        Serializer = CreateSerializer();
+        Parent = parent;
     }
 
-    public override string ToString()
+    public  ConversionContext CreateChild()
     {
-        return string.Join("->", Stack);
+        return new ConversionContext(this);
     }
 
-    public abstract ConversionContext CreateChild(string label);
+    private Dictionary<string, Expression> RefTable { get; } = new();
+    private int Counter { get; set; } = 0;
 
-    public abstract T GetDependency<T>();
-
-}
-
-public class DefaultConversionContext : ConversionContext
-{
-    private DependencyContainerObject DependencyContainer { get; init; }
-
-    public DefaultConversionContext(string label, string[]? stack = null) : base(label, stack)
+    public string GetExpressionReferenceString(Expression expression)
     {
-        DependencyContainer = new();
-        SetFactories();
-    }
+        var hash = expression.GetHashCode().ToString();
 
-    private DefaultConversionContext(DependencyContainerObject dependencyContainer, string label, string[]? stack = null) : this(label, stack)
-    {
-        DependencyContainer = dependencyContainer;
-    }
-
-    public override ConversionContext CreateChild(string label)
-    {
-        return new DefaultConversionContext(DependencyContainer, label, Stack);
-    }
-
-    public override T GetDependency<T>()
-    {
-        var factory = DependencyContainer.TryGet<IStrategy<ConversionContext, T>>();
-
-        if (factory == null)
+        if(RefTable.TryGetValue(hash, out var value))
         {
-            throw new Exception($"Missing parsing dependency factory for type '{typeof(T).FullName}'.");
+            return
         }
 
-        var dependency = factory.Execute(this);
-
-        if (dependency == null)
-        {
-            throw new Exception($"The parsing factory failed do build a dependency of type '{typeof(T).FullName}'.");
-        }
-
-        return dependency;
+        return "";
     }
 
-    public ConversionContext SetDependency<T>(IStrategy<ConversionContext, T> factory)
+    protected virtual IExpressionConverter CreateExpressionConverter()
     {
-        DependencyContainer.Register(factory);
-        return this;
+        return new ExpressionConverter(this);
     }
 
-    private void SetFactories()
+    protected virtual ITypeConverter CreateTypeConverter()
     {
-        SetDependency(new LambdaStrategy<IExpressionConverter>(x => CreateExpressionConverter(x)));
-        SetDependency(new LambdaStrategy<ITypeConverter>(x => CreateTypeConverter(x)));
-        SetDependency(new LambdaStrategy<IParameterInfoConverter>(x => CreateParameterInfoConverter(x)));
-        SetDependency(new LambdaStrategy<IMemberInfoConverter>(x => CreateMemberInfoConverter(x)));
-        SetDependency(new LambdaStrategy<IPropertyInfoConverter>(x => CreatePropertyInfoConverter(x)));
-        SetDependency(new LambdaStrategy<IMethodInfoConverter>(x => CreateMethodInfoConverter(x)));
-        SetDependency(new LambdaStrategy<IConstructorInfoConverter>(x => CreateConstructorInfoConverter(x)));
-        SetDependency(new LambdaStrategy<IMemberBindingConverter>(x => GetMemberBindingConverter(x)));
-        SetDependency(new LambdaStrategy<IElementInitConverter>(x => GetElementInitConverter(x)));
-        SetDependency(new LambdaStrategy<ISerializer>(x => GetSerializer(x)));
+        return new TypeConverter(this, Expressions.TypeConverter.TypeConversionStrategy.UseAssemblyName);
     }
 
-    protected virtual IExpressionConverter CreateExpressionConverter(ConversionContext context)
+    protected virtual IParameterInfoConverter CreateParameterInfoConverter()
     {
-        return new ExpressionConverter(context);
+        return new ParameterInfoConverter(this);
     }
 
-    protected virtual ITypeConverter CreateTypeConverter(ConversionContext context)
+    protected virtual IMemberInfoConverter CreateMemberInfoConverter()
     {
-        return new TypeConverter(context, TypeConverter.TypeConversionStrategy.UseAssemblyName);
+        return new MemberInfoConverter(this);
     }
 
-    protected virtual IParameterInfoConverter CreateParameterInfoConverter(ConversionContext context)
+    protected virtual IPropertyInfoConverter CreatePropertyInfoConverter()
     {
-        return new ParameterInfoConverter(context);
+        return new PropertyInfoConverter(this);
     }
 
-    protected virtual IMemberInfoConverter CreateMemberInfoConverter(ConversionContext context)
+    protected virtual IMethodInfoConverter CreateMethodInfoConverter()
     {
-        return new MemberInfoConverter(context);
+        return new MethodInfoConverter(this);
     }
 
-    protected virtual IPropertyInfoConverter CreatePropertyInfoConverter(ConversionContext context)
+    protected virtual IConstructorInfoConverter CreateConstructorInfoConverter()
     {
-        return new PropertyInfoConverter(context);
+        return new ConstructorInfoConverter(this);
     }
 
-    protected virtual IMethodInfoConverter CreateMethodInfoConverter(ConversionContext context)
+    protected virtual IMemberBindingConverter CreateMemberBindingConverter()
     {
-        return new MethodInfoConverter(context);
+        return new MemberBindingConverter(this);
     }
 
-    protected virtual IConstructorInfoConverter CreateConstructorInfoConverter(ConversionContext context)
+    protected virtual IElementInitConverter CreateElementInitConverter()
     {
-        return new ConstructorInfoConverter(context);
+        return new ElementInitConverter(this);
     }
 
-    protected virtual IMemberBindingConverter GetMemberBindingConverter(ConversionContext context)
-    {
-        return new MemberBindingConverter(context);
-    }
-
-    protected virtual IElementInitConverter GetElementInitConverter(ConversionContext context)
-    {
-        return new ElementInitConverter(context);
-    }
-
-    protected virtual ISerializer GetSerializer(ConversionContext context)
+    protected virtual ISerializer CreateSerializer()
     {
         return new ExprJsonSerializer();
     }
 
 }
 
-internal class LambdaStrategy<T> : IStrategy<ConversionContext, T>
+public class ReferenceTable
 {
-    private readonly Func<ConversionContext, T> lambda;
+    private int Counter { get; set; } = 0;
+    private Dictionary<string, Expression> Table { get; } = new();
 
-    public LambdaStrategy(Func<ConversionContext, T> lambda)
+    public string CreateKey()
     {
-        this.lambda = lambda;
-    }
 
-    public T? Execute(ConversionContext? input)
-    {
-        if (input == null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        return lambda.Invoke(input);
     }
+}
+
+public class ReferenceRecord
+{
+    public string Hash { get; set; }
+    public Expression Expression { get; set; }
 }

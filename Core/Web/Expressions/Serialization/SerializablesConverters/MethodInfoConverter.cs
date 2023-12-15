@@ -29,11 +29,11 @@ public class MethodInfoConverter : ConverterBase, IMethodInfoConverter
     /// <summary>
     /// Initializes a new instance of the <see cref="MethodInfoConverter"/> class.
     /// </summary>
-    /// <param name="parentContext">The parsing context.</param>
-    public MethodInfoConverter(ConversionContext parentContext)
+    /// <param name="context">The parsing context.</param>
+    public MethodInfoConverter(ConversionContext context)
     {
-        Context = parentContext.CreateChild("Method Info Conversion");
-        TypeConverter = Context.GetDependency<ITypeConverter>();
+        Context = context;
+        TypeConverter = context.TypeConverter;
     }
 
     /// <summary>
@@ -97,7 +97,7 @@ public class MethodInfoConverter : ConverterBase, IMethodInfoConverter
         {
             throw AmbiguousMethodException(sMethodInfo);
         }
-
+        
         var methodInfo = methodInfos.First();
 
         if (sMethodInfo.IsGenericMethod)

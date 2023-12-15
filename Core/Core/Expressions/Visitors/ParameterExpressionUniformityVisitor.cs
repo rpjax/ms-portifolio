@@ -38,6 +38,11 @@ public class ParameterExpressionUniformityVisitor : ExpressionVisitor
             return base.VisitLambda(node);
         }
 
+        if(RootParameterExpression != null)
+        {
+            return new ParameterExpressionUniformityVisitor().Visit(node);
+        }
+
         var lambdaExpression = node.TypeCast<LambdaExpression>();
 
         RootParameterExpression = lambdaExpression.Parameters.First();

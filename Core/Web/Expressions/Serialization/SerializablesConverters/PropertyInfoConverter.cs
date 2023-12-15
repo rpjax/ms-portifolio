@@ -29,11 +29,11 @@ public class PropertyInfoConverter : ConverterBase, IPropertyInfoConverter
     /// <summary>
     /// Initializes a new instance of the <see cref="PropertyInfoConverter"/> class.
     /// </summary>
-    /// <param name="parentContext">The parsing context.</param>
-    public PropertyInfoConverter(ConversionContext parentContext)
+    /// <param name="context">The parsing context.</param>
+    public PropertyInfoConverter(ConversionContext context)
     {
-        Context = parentContext.CreateChild("Property Info Conversion");
-        TypeConverter = Context.GetDependency<ITypeConverter>();
+        Context = context;
+        TypeConverter = context.TypeConverter;
     }
 
     /// <summary>

@@ -1,15 +1,28 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Text;
 
-namespace ModularSystem.Core;
+namespace ModularSystem.Core.Reflection;
 
 /// <summary>
 /// Provides functionalities for dynamic type creation, including the generation of anonymous types.
 /// </summary>
-public static class TypeHelper
+public static class TypeCreator
 {
+    /// <summary>
+    /// The default prefix used for naming dynamically created anonymous types.
+    /// </summary>
+    /// <remarks>
+    /// This prefix is utilized when a specific name is not provided for the anonymous type.
+    /// It follows the naming convention used by the C# compiler for generated anonymous types.
+    /// </remarks>
+    public const string AnonymousTypePrefix = "<>f__AnonymousType";
+
+    private static ConcurrentDictionary<string, Type> Cache = new();
+
     /// <summary>
     /// Dynamically creates an anonymous type based on the provided properties. 
     /// This method allows for the creation of types with customizable properties, 
@@ -26,6 +39,13 @@ public static class TypeHelper
     public static Type CreateAnonymousType(AnonymousPropertyDefinition[] properties, AnonymousTypeCreationOptions? options = null)
     {
         options ??= new();
+
+        var signatureKey = CreateSignatureKey(properties);
+
+        if (options.UseCache && Cache.ContainsKey(signatureKey))
+        {
+            return Cache[signatureKey];
+        }
 
         var name = options.Name;
         var createSetters = options.CreateSetters;
@@ -104,7 +124,19 @@ public static class TypeHelper
         }
 
         // Cria o tipo
-        return typeBuilder.CreateType()!;
+        var type = typeBuilder.CreateType();
+
+        if(type == null)
+        {
+            throw new Exception();
+        }
+
+        if (options.UseCache)
+        {
+            Cache.AddOrUpdate(signatureKey, type, (key, current) => type);
+        }
+
+        return type;
     }
 
     /// <summary>
@@ -119,10 +151,25 @@ public static class TypeHelper
         return CreateAnonymousType(properties.ToArray(), options);
     }
 
+    private static string CreateSignatureKey(AnonymousPropertyDefinition[] propertyDefinitions)
+    {
+        var keyBuilder = new StringBuilder();
+
+        foreach (var propertyDefinition in propertyDefinitions)
+        {
+            keyBuilder.Append('[');
+            keyBuilder.Append(propertyDefinition.Name);
+            keyBuilder.Append(propertyDefinition.Type.GetQualifiedFullName());
+            keyBuilder.Append(']');
+        }
+
+        return keyBuilder.ToString();
+    }
+
 }
 
 /// <summary>
-/// Represents a definition of a property for dynamic anonymous type creation.
+/// Represents options for creating dynamic anonymous types with additional caching feature.
 /// </summary>
 public class AnonymousPropertyDefinition
 {
@@ -159,7 +206,17 @@ public class AnonymousTypeCreationOptions
     /// <remarks>
     /// Defaults to a generic anonymous type name if not set.
     /// </remarks>
-    public string Name { get; set; } = "<>f__AnonymousType";
+    public string Name { get; set; } = TypeCreator.AnonymousTypePrefix;
+
+    /// <summary>
+    /// Indicates whether to use a cache for storing and reusing dynamically created types. 
+    /// When set to true, types with the same structure are retrieved from cache instead of being recreated, 
+    /// optimizing performance for repeated type creations.
+    /// </summary>
+    /// <remarks>
+    /// Caching is particularly beneficial when similar anonymous types are created multiple times throughout the application lifecycle.
+    /// </remarks>
+    public bool UseCache { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether to include a default constructor in the anonymous type.

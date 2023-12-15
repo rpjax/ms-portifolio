@@ -7,23 +7,6 @@ public static class AppExceptionPresenter
 {
     public const string DefaultInternalMessage = "An unexpected error has occurred in the server.";
 
-    public static ExceptionCode GetExceptionCodeFrom(int code)
-    {
-        switch (code)
-        {
-            case 400:
-                return ExceptionCode.BadRequest;
-            case 422:
-                return ExceptionCode.InvalidInput;
-            case 401:
-                return ExceptionCode.Unauthorized;
-            case 403:
-                return ExceptionCode.Forbidden;
-            default:
-                return ExceptionCode.Internal;
-        }
-    }
-
     public static int GetStatusCodeFrom(AppException e)
     {
         switch (e.Code)

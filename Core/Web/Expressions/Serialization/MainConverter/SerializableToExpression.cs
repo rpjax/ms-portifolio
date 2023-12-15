@@ -7,6 +7,8 @@ namespace ModularSystem.Web.Expressions;
 
 internal class SerializableToExpression : ConverterBase, IConversion<SerializableExpression, Expression>
 {
+    protected override ConversionContext Context { get; }
+
     private ITypeConverter TypeConverter { get; }
     private IMemberInfoConverter MemberInfoConverter { get; }
     private IMethodInfoConverter MethodInfoConverter { get; }
@@ -15,19 +17,18 @@ internal class SerializableToExpression : ConverterBase, IConversion<Serializabl
     private IMemberBindingConverter MemberBindingConverter { get; }
     private IElementInitConverter ElementInitConverter { get; }
     private ISerializer Serializer { get; }
-    protected override ConversionContext Context { get; }
 
-    public SerializableToExpression(ConversionContext parentContext)
+    public SerializableToExpression(ConversionContext context)
     {
-        Context = parentContext.CreateChild("Serializable To Expression Conversion");
-        TypeConverter = Context.GetDependency<ITypeConverter>();
-        MemberInfoConverter = Context.GetDependency<IMemberInfoConverter>();
-        MethodInfoConverter = Context.GetDependency<IMethodInfoConverter>();
-        PropertyInfoConverter = Context.GetDependency<IPropertyInfoConverter>();
-        ConstructorInfoConverter = Context.GetDependency<IConstructorInfoConverter>();
-        MemberBindingConverter = Context.GetDependency<IMemberBindingConverter>();
-        ElementInitConverter = Context.GetDependency<IElementInitConverter>();
-        Serializer = Context.GetDependency<ISerializer>();
+        Context = context;
+        TypeConverter = Context.TypeConverter;
+        MemberInfoConverter = Context.MemberInfoConverter;
+        MethodInfoConverter = Context.MethodInfoConverter;
+        PropertyInfoConverter = Context.PropertyInfoConverter;
+        ConstructorInfoConverter = Context.ConstructorInfoConverter;
+        MemberBindingConverter = Context.MemberBindingConverter;
+        ElementInitConverter = Context.ElementInitConverter;
+        Serializer = Context.Serializer;
     }
 
     public Expression Convert(SerializableExpression sExpression)
