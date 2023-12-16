@@ -72,6 +72,15 @@ public class MongoTranslatedQueryable : TranslatedQueryable
     }
 
     /// <summary>
+    /// Asynchronously converts the query results to an array.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation. The task result contains an array of the query results.</returns>
+    public override async Task<object[]> ToArrayAsync()
+    {
+        return (await ToListAsync()).ToArray();
+    }
+
+    /// <summary>
     /// Asynchronously counts the number of elements in the query results.
     /// </summary>
     /// <returns>A task that represents the asynchronous operation. The task result contains the number of elements.</returns>

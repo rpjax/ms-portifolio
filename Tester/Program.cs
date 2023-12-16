@@ -2,8 +2,6 @@
 using ModularSystem.Core;
 using ModularSystem.Mongo;
 using ModularSystem.Web;
-using ModularSystem.Web.Expressions;
-using System.Linq.Expressions;
 
 namespace ModularSystem.Tester;
 
@@ -41,7 +39,7 @@ public class MyDataService : MongoEntityService<MyData>
 }
 
 [Route("my-data")]
-public class MyDataController : QueryableController<MyData>
+public class MyDataController : WebqlCrudController<MyData>
 {
     protected override EntityService<MyData> Service { get; }
 
@@ -50,6 +48,5 @@ public class MyDataController : QueryableController<MyData>
         Service = new MyDataService();
         
     }
-
 
 }

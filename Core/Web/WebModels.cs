@@ -1,6 +1,9 @@
 using ModularSystem.Core;
 using ModularSystem.Web.Expressions;
+using ModularSystem.Webql.Synthesis;
+using System.Collections;
 using System.Linq.Expressions;
+using System.Text.Json.Serialization;
 
 namespace ModularSystem.Web;
 
@@ -119,4 +122,64 @@ public class SerializableUpdate
         };
     }
 
+}
+
+/// <summary>
+/// Represents a builder for constructing a <see cref="TranslatedQueryable"/> from a serialized query expression. <br/>
+/// This class provides the functionality to convert a serialized query expression into a <see cref="TranslatedQueryable"/>, enabling query execution and manipulation.
+/// </summary>
+public class SerializableQueryableBuilder
+{
+    /// <summary>
+    /// Gets or sets the serialized query expression.
+    /// </summary>
+    public SerializableExpression? Expression { get; set; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SerializableQueryableBuilder"/> class.
+    /// </summary>
+    [JsonConstructor]
+    public SerializableQueryableBuilder()
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SerializableQueryableBuilder"/> class with a specified serialized expression.
+    /// </summary>
+    /// <param name="expression">The serialized expression to use for query construction.</param>
+    public SerializableQueryableBuilder(SerializableExpression? expression)
+    {
+        Expression = expression;
+    }
+
+    /// <summary>
+    /// Translates the serialized expression into a <see cref="TranslatedQueryable"/> for a specific generic type.
+    /// </summary>
+    /// <param name="genericType">The type of the elements in the <see cref="TranslatedQueryable"/>.</param>
+    /// <param name="queryable">The underlying queryable object.</param>
+    /// <param name="translator">An optional translator to convert expressions into a format suitable for the underlying data source (default is null).</param>
+    /// <returns>A <see cref="TranslatedQueryable"/> that represents the translated query.</returns>
+    public TranslatedQueryable TranslateToQueryable(Type genericType, IEnumerable queryable, Translator? translator = null)
+    {
+        if (Expression == null)
+        {
+            return new TranslatedQueryable(genericType, genericType, queryable);
+        }
+
+        var expression = QueryProtocol.FromSerializable(Expression);
+
+        return (translator ?? new()).TranslateToQueryable(expression, genericType, queryable);
+    }
+
+    /// <summary>
+    /// Translates the serialized expression into a <see cref="TranslatedQueryable"/> for a specific generic type <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in the <see cref="TranslatedQueryable"/>.</typeparam>
+    /// <param name="queryable">The underlying queryable object of type <typeparamref name="T"/>.</param>
+    /// <param name="translator">An optional translator to convert expressions into a format suitable for the underlying data source (default is null).</param>
+    /// <returns>A <see cref="TranslatedQueryable"/> that represents the translated query.</returns>
+    public TranslatedQueryable TranslateToQueryable<T>(IEnumerable<T> queryable, Translator? translator = null)
+    {
+        return TranslateToQueryable(typeof(T), queryable, translator);
+    }
 }

@@ -101,6 +101,15 @@ public class Translator
         return TranslateToQueryable(json, typeof(T), queryable);
     }
 
+    /// <summary>
+    /// Translates a WebQL query string into a queryable object. <br/>
+    /// This method provides an integration point for executing WebQL queries against various data sources.
+    /// </summary>
+    /// <param name="expression">The expression tree representing the WebQL query logic.</param>
+    /// <param name="genericType">The generic type argument of the queryable.</param>
+    /// <param name="queryable">The initial queryable object to which the WebQL query is applied.</param>
+    /// <returns>A TranslatedQueryable object representing the results of the WebQL query.</returns>
+    /// <exception cref="Exception">Thrown if the transformation of the queryable fails.</exception>
     public TranslatedQueryable TranslateToQueryable(Expression expression, Type genericType, IEnumerable queryable)
     {
         var visitor = new ParameterExpressionReferenceBinder();
@@ -127,11 +136,22 @@ public class Translator
         return new TranslatedQueryable(inputType.GenericTypeArguments.First(), outputType.GenericTypeArguments.Last(), transformedQueryable);
     }
 
+    /// <summary>
+    /// Analyzes a JSON string representing a WebQL query and converts it into a syntax tree.
+    /// </summary>
+    /// <param name="json">The JSON string representing the WebQL query.</param>
+    /// <param name="type">The type of the root element in the query.</param>
+    /// <returns>A Node representing the syntax tree of the query.</returns>
     private Node RunAnalysis(string json, Type type)
     {
         return AnalysisPipeline.Run(json, type);
     }
 
+    /// <summary>
+    /// Creates an exception to be thrown when the transformation of a queryable object fails.
+    /// </summary>
+    /// <param name="message">An optional message providing more details about the failure (default is null).</param>
+    /// <returns>An Exception instance to be thrown.</returns>
     private Exception QueryableTransformationFailedException(string? message = null)
     {
         return new Exception($"Failed to transform queryable. {message}");

@@ -75,6 +75,12 @@ public class TranslatedQueryable : IQueryable<object>
         return (IEnumerable)method.Invoke(null, new object[] { Body })!;
     }
 
+    /// <summary>
+    /// Converts the queryable object to an <see cref="IEnumerable{T}"/>. This generic method enables the conversion of the queryable object into an enumerable collection of a specific type, <br/>
+    /// allowing for enumeration and iteration over the query results with the specified type.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the enumerable collection.</typeparam>
+    /// <returns>An <see cref="IEnumerable{T}"/> representation of the query, allowing for enumeration and iteration over the query results of the specified type.</returns>
     public virtual IEnumerable<T> AsEnumerable<T>()
     {
         return (IEnumerable<T>)AsEnumerable();
@@ -96,6 +102,12 @@ public class TranslatedQueryable : IQueryable<object>
         return (IQueryable)method.Invoke(null, new[] { Body })!;
     }
 
+    /// <summary>
+    /// Converts the queryable object to a typed <see cref="IQueryable{T}"/>. <br/>
+    /// This generic method enables the seamless integration of the queryable object with standard LINQ operations for a specific type.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the queryable collection.</typeparam>
+    /// <returns>An <see cref="IQueryable{T}"/> representation of the query, enabling standard LINQ query operations for the specified type.</returns>
     public virtual IQueryable<T> AsQueryable<T>()
     {
         return (IQueryable<T>)AsEnumerable();
@@ -126,6 +138,15 @@ public class TranslatedQueryable : IQueryable<object>
         }
 
         return array;
+    }
+
+    /// <summary>
+    /// Converts the query results to an array asynchronously.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation. The task result contains an array of the query results.</returns>
+    public virtual Task<object[]> ToArrayAsync()
+    {
+        return Task.FromResult(ToArray());
     }
 
     /// <summary>

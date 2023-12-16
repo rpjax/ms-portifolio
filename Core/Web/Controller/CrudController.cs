@@ -6,8 +6,6 @@ using ModularSystem.Core.Security;
 using ModularSystem.Web.Expressions;
 using ModularSystem.Webql;
 using ModularSystem.Webql.Synthesis;
-using System.Collections;
-using System.Text.Json.Serialization;
 
 namespace ModularSystem.Web;
 
@@ -220,6 +218,90 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
 }
 
 /// <summary>
+/// Extends the basic CRUD controller functionality to handle queryable data. <br/>
+/// This controller supports querying operations using a queryable builder, allowing for complex querying logic on data sets.
+/// </summary>
+/// <typeparam name="T">The type of the entity that the controller manages. This type must implement <see cref="IQueryableModel"/>.</typeparam>
+public abstract class QueryableCrudController<T> : CrudController<T> where T : class, IQueryableModel
+{
+    /// <summary>
+    /// Handles an incoming query request and returns the result of the query. <br/>
+    /// This method processes a query defined by a <see cref="SerializableQueryableBuilder"/>, allowing for dynamic querying capabilities.
+    /// </summary>
+    /// <param name="queryableBuilder">The queryable builder that defines the query logic.</param>
+    /// <returns>An IActionResult containing the query results or an error message.</returns>
+    [HttpPost("queryable-query")]
+    public async Task<IActionResult> QueryAsync([FromBody] SerializableQueryableBuilder queryableBuilder)
+    {
+        try
+        {
+            var queryable = await Service.CreateQueryAsync();
+            var transformedQueryable = VisitTranslatedQueryable(queryableBuilder.TranslateToQueryable(typeof(T), queryable));
+            var data = await transformedQueryable.ToArrayAsync();
+
+            return Ok(data);
+        }
+        catch (Exception e)
+        {
+            return HandleException(e);
+        }
+    }
+
+    /// <summary>
+    /// Provides an extension point to modify or inspect the TranslatedQueryable object before it is executed. <br/>
+    /// Override this method in derived classes to customize the query execution process.
+    /// </summary>
+    /// <param name="queryable">The translated queryable object to visit.</param>
+    /// <returns>The potentially modified TranslatedQueryable object.</returns>
+    protected virtual TranslatedQueryable VisitTranslatedQueryable(TranslatedQueryable queryable)
+    {
+        return queryable;
+    }
+}
+
+/// <summary>
+/// Provides CRUD operations for WebQL queries. <br/>
+/// This controller extends the basic CRUD functionalities to support WebQL query processing, allowing clients to query data using WebQL syntax.
+/// </summary>
+/// <typeparam name="T">The type of the entity that the controller manages. This type must implement <see cref="IQueryableModel"/>.</typeparam>
+public abstract class WebqlCrudController<T> : QueryableCrudController<T> where T : class, IQueryableModel
+{
+    [HttpPost("webql-query")]
+    public async Task<IActionResult> QueryAsync()
+    {
+        try
+        {
+            var json = (await ReadBodyAsStringAsync()) ?? Translator.EmptyQuery;
+            var translator = new Translator(GetTranslatorOptions());
+            var queryable = await Service.CreateQueryAsync();
+            var transformedQueryable = VisitTranslatedQueryable(translator.TranslateToQueryable(json, queryable));
+            var data = await transformedQueryable.ToArrayAsync();
+
+            return Ok(data);
+        }
+        catch (Exception e)
+        {
+            if (e is ParseException parseException)
+            {
+                return HandleException(new AppException(parseException.GetMessage(), ExceptionCode.InvalidInput));
+            }
+
+            return HandleException(e);
+        }
+    }
+
+    /// <summary>
+    /// Sets the options used by the translator to interpret WebQL queries.
+    /// </summary>
+    /// <returns></returns>
+    protected TranslatorOptions GetTranslatorOptions()
+    {
+        return new TranslatorOptions();
+    }
+
+}
+
+/// <summary>
 /// Generates a basic crud based on the modular system RESTful CRUD API specification with an adapter layer.<br></br>
 /// It uses the <see cref="IEntityService{T}"/> interface.
 /// </summary>
@@ -405,90 +487,4 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
     {
         return new LayerAdapter<TEntity, TPresented>(Adapter);
     }
-}
-
-public abstract class QueryableController<T> : CrudController<T> where T : class, IQueryableModel
-{
-    [HttpPost("webql-query")]
-    public async Task<IActionResult> QueryAsync()
-    {
-        try
-        {
-            var json = (await ReadBodyAsStringAsync()) ?? Translator.EmptyQuery;
-            var translator = new Translator(GetTranslatorOptions());
-            var queryable = await Service.CreateQueryAsync();
-            var transformedQueryable = translator.TranslateToQueryable(json, queryable);
-            var data = transformedQueryable.ToArray();
-
-            var queryableType = translator.Options.CreateGenericQueryable(typeof(T));
-            var expression = translator.TranslateToExpression(json, queryableType);
-
-            var serialized = QueryProtocol.ToSerializable(expression);
-            var deserialized = QueryProtocol.FromSerializable(serialized);
-            var builder = new SerializableQueryableBuilder(serialized);
-
-            var test = builder.TranslateToQueryable(queryable);
-            var data2 = test.ToArray();
-
-            var result = new QueryResult<object>()
-            {
-                Data = data,
-                Pagination = new()
-            };
-
-            return Ok(result);
-        }
-        catch (Exception e)
-        {
-            if (e is ParseException parseException)
-            {
-                return HandleException(new AppException(parseException.GetMessage(), ExceptionCode.InvalidInput));
-            }
-
-            return HandleException(e);
-        }
-    }
-
-    /// <summary>
-    /// Sets the options used by the translator to interpret WebQL queries.
-    /// </summary>
-    /// <returns></returns>
-    protected TranslatorOptions GetTranslatorOptions()
-    {
-        return new TranslatorOptions();
-    }
-}
-
-public class SerializableQueryableBuilder
-{
-    public SerializableExpression? Expression { get; set; }
-
-    [JsonConstructor]
-    public SerializableQueryableBuilder()
-    {
-
-    }
-
-    public SerializableQueryableBuilder(SerializableExpression? expression)
-    {
-        Expression = expression;
-    }
-
-    public TranslatedQueryable TranslateToQueryable(Type genericType, IEnumerable queryable, Translator? translator = null)
-    {
-        if (Expression == null)
-        {
-            return new TranslatedQueryable(genericType, genericType, queryable);
-        }
-
-        var expression = QueryProtocol.FromSerializable(Expression);
-
-        return (translator ?? new()).TranslateToQueryable(expression, genericType, queryable);
-    }
-
-    public TranslatedQueryable TranslateToQueryable<T>(IEnumerable<T> queryable, Translator? translator = null)
-    {
-        return TranslateToQueryable(typeof(T), queryable, translator);
-    }
-
 }
