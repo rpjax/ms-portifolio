@@ -50,7 +50,7 @@ public static class QueryProtocol
 
             return ExpressionSerializer.FromSerializable(sExpression);
         }
-        catch (ParsingException e)
+        catch (ConversionException e)
         {
             throw e.ToAppException(ExceptionCode.InvalidInput);
         }
@@ -99,7 +99,7 @@ public static class QueryProtocol
 
             return serializer.Deserialize(json);
         }
-        catch (ParsingException e)
+        catch (ConversionException e)
         {
             throw e.ToAppException(ExceptionCode.InvalidInput);
         }

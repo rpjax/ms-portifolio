@@ -9,7 +9,7 @@ namespace ModularSystem.Web.Expressions;
 /// <remarks>
 /// This exception is used to indicate issues related to malformed serialized expressions that cannot be translated into their corresponding runtime expression types.
 /// </remarks>
-public class ParsingException : Exception
+public class ConversionException : Exception
 {
     /// <summary>
     /// Gets the detailed error message for this exception.
@@ -24,13 +24,13 @@ public class ParsingException : Exception
     private readonly string _message;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ParsingException"/> class with a specified error message, conversion context, and a reference to the inner exception that is the cause of this exception.
+    /// Initializes a new instance of the <see cref="ConversionException"/> class with a specified error message, conversion context, and a reference to the inner exception that is the cause of this exception.
     /// </summary>
     /// <param name="message">The error message that explains the reason for the exception.</param>
     /// <param name="context">The context in which the conversion error occurred.</param>
     /// <param name="innerException">The exception that is the cause of the current exception, or a null reference if no inner exception is specified.</param>
     /// <param name="additionalData">Additional data related to the exception context.</param>
-    public ParsingException(string message, ConversionContext context, Exception? innerException, object? additionalData = null)
+    public ConversionException(string message, ConversionContext context, Exception? innerException, object? additionalData = null)
         : base(message, innerException)
     {
         ParseContext = context;

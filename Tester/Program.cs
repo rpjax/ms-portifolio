@@ -20,16 +20,7 @@ public static class Program
     public static void Main()
     {
         Initializer.Run(new() { InitConsoleLogger = true });
-        var foo = Expression.Parameter(typeof(int), "x");
-        var bar = Expression.Parameter(typeof(int), "x");
-
-        var fooHash = foo.GetHashCode();
-        var barHash = bar.GetHashCode();
-
-        Console.WriteLine($"foo equals bar: {fooHash == barHash}");
-
         WebApplicationServer.StartSingleton();
-        return;
     }
 
 }

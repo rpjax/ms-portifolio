@@ -209,8 +209,8 @@ public class AnonymousTypeCreationOptions
     public string Name { get; set; } = TypeCreator.AnonymousTypePrefix;
 
     /// <summary>
-    /// Indicates whether to use a cache for storing and reusing dynamically created types. 
-    /// When set to true, types with the same structure are retrieved from cache instead of being recreated, 
+    /// Indicates whether to use a cache for storing and reusing dynamically created types. <br/>
+    /// When set to true, types with the same structure are retrieved from cache instead of being recreated, <br/>
     /// optimizing performance for repeated type creations.
     /// </summary>
     /// <remarks>

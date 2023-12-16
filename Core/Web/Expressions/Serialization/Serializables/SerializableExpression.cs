@@ -11,6 +11,8 @@ public abstract class SerializableExpression
     /// </summary>
     public ExtendedExpressionType NodeType { get; set; }
 
+    public string? ReferenceId { get; set; } = null;
+
     public static Type GetConcreteType(ExtendedExpressionType type)
     {
         switch (type)

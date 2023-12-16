@@ -33,7 +33,7 @@ public class ExprSerializer : ISerializer<Expression>
     {
         config ??= new();
         Config = config;
-        Converter = config.ExpressionConverter;
+        Converter = new ExpressionConverter();
         Serializer = config.Serializer;
     }
 
@@ -49,7 +49,7 @@ public class ExprSerializer : ISerializer<Expression>
             expression = new ClosureExpressionUnwrapper().Visit(expression);
         }
 
-        return Converter.Convert(expression);
+        return Converter.Convert(new(), expression);
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public class ExprSerializer : ISerializer<Expression>
     /// <returns>The LINQ Expression.</returns>
     public Expression FromSerializable(SerializableExpression serializableExpression)
     {
-        var expression = Converter.Convert(serializableExpression);
+        var expression = Converter.Convert(new(), serializableExpression);
 
         if (Config.UseParameterUniformityVisitor)
         {
@@ -119,11 +119,6 @@ public class ExprSerializer : ISerializer<Expression>
     /// </summary>
     public class Configs
     {
-        /// <summary>
-        /// Gets or sets the expression converter used for converting between LINQ Expressions and their serializable counterparts.
-        /// </summary>
-        public IExpressionConverter ExpressionConverter { get; set; } = new ExpressionConverter();
-
         /// <summary>
         /// Gets or sets the underlying serializer used for string serialization.
         /// </summary>

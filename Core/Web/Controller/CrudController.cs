@@ -423,7 +423,10 @@ public abstract class QueryableController<T> : CrudController<T> where T : class
             
             var queryableType = translator.Options.CreateGenericQueryable(typeof(T));
             var expression = translator.TranslateToExpression(json, queryableType);
-            var builder = new SerializableQueryableBuilder(QueryProtocol.ToSerializable(expression));
+
+            var serialized = QueryProtocol.ToSerializable(expression);
+            var deserialized = QueryProtocol.FromSerializable(serialized);
+            var builder = new SerializableQueryableBuilder(serialized);
 
             var test = builder.TranslateToQueryable(queryable);
             var data2 = test.ToArray();

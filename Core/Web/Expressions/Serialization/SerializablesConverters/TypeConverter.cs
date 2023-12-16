@@ -4,88 +4,59 @@ using ModularSystem.Core.Reflection;
 namespace ModularSystem.Web.Expressions;
 
 /// <summary>
-/// Defines a contract for converting between <see cref="Type"/> and <see cref="SerializableType"/>.
+/// Specifies the strategies available for converting types.
 /// </summary>
-public interface ITypeConverter : IBidirectionalConverter<Type, SerializableType>
+public enum TypeConversionStrategy
+{
+    /// <summary>
+    /// Uses the assembly-qualified name for type conversion, including the type name, 
+    /// assembly name, version, culture, and public key token.
+    /// </summary>
+    UseAssemblyName,
+
+    /// <summary>
+    /// Uses the full name of the type for conversion, which includes the namespace and type name,
+    /// but excludes the assembly information.
+    /// </summary>
+    UseFullName
+}
+
+/// <summary>
+/// Defines a contract for converting between <see cref="Type"/> and <see cref="SerializableType"/>. <br/>
+/// Utilizes a <see cref="ConversionContext"/> to maintain state and context during conversion.
+/// </summary>
+public interface ITypeConverter : IBidirectionalConverter<Type, SerializableType, ConversionContext>
 {
 }
 
-///// <summary>
-///// Responsible for initializing the type converter.
-///// </summary>
-//internal class TypeConverterInitializer : Initializer
-//{
-//    /// <summary>
-//    /// Performs internal initialization tasks for the type converter.
-//    /// </summary>
-//    /// <param name="options">Initialization options.</param>
-//    /// <returns>A task representing the asynchronous operation.</returns>
-//    public override Task InternalInitAsync(Options options)
-//    {
-//        //_ = TypeConverter.InitCache();
-//        return base.InternalInitAsync(options);
-//    }
-//}
-
 /// <summary>
-/// Provides functionality to convert between <see cref="Type"/> and <see cref="SerializableType"/>.
+/// Provides functionality to convert between <see cref="Type"/> and <see cref="SerializableType"/>. <br/>
+/// Handles different strategies for type conversion and manages generic types and anonymous types.
 /// </summary>
 public class TypeConverter : ConverterBase, ITypeConverter
 {
-    /// <summary>
-    /// Specifies the strategies available for converting types.
-    /// </summary>
-    public enum TypeConversionStrategy
-    {
-        /// <summary>
-        /// Indicates that the type conversion should utilize the assembly-qualified name.
-        /// This includes the type name, assembly name, version, culture, and public key token.
-        /// </summary>
-        UseAssemblyName,
-
-        /// <summary>
-        /// Indicates that the type conversion should utilize the full name of the type.
-        /// This includes the namespace and the type name, but not the assembly information.
-        /// </summary>
-        UseFullName
-    }
-
-    /// <summary>
-    /// Gets the parsing context associated with this converter.
-    /// </summary>
-    protected override ConversionContext Context { get; }
-
     /// <summary>
     /// The strategy used for type conversion.
     /// </summary>
     private TypeConversionStrategy Strategy { get; }
 
     /// <summary>
-    /// Constructs a new instance of the <see cref="TypeConverter"/>.
+    /// Initializes a new instance of the <see cref="TypeConverter"/> class with the specified provider and strategy.
     /// </summary>
-    /// <param name="context">The parsing context.</param>
-    /// <param name="strategy">The strategy for this converter.</param>
-    public TypeConverter(ConversionContext context, TypeConversionStrategy strategy)
+    /// <param name="strategy">The strategy to use for type conversion.</param>
+    public TypeConverter(TypeConversionStrategy strategy)
     {
-        Context = context;
         Strategy = strategy;
     }
 
-    ///// <summary>
-    ///// Initializes the cache of assemblies.
-    ///// </summary>
-    ///// <returns>A queryable collection of assemblies.</returns>
-    //public static IQueryable<Assembly> InitCache()
-    //{
-    //    return Assemblies;
-    //}
-
     /// <summary>
-    /// Converts a <see cref="Type"/> to its serializable representation.
+    /// Converts a <see cref="Type"/> to its serializable representation, <see cref="SerializableType"/>. <br/>
+    /// Handles generic types, anonymous types, and respects the selected conversion strategy.
     /// </summary>
+    /// <param name="context">The conversion context.</param>
     /// <param name="type">The type to convert.</param>
     /// <returns>The serializable representation of the type.</returns>
-    public SerializableType Convert(Type type)
+    public SerializableType Convert(ConversionContext context, Type type)
     {
         var genericTypeDefinition = type.TryGetGenericTypeDefinition();
 
@@ -100,7 +71,7 @@ public class TypeConverter : ConverterBase, ITypeConverter
             isAnonymous
             ? type
                 .GetProperties()
-                .Transform(x => new SerializablePropertyDefinition(x.Name, Convert(x.PropertyType)))
+                .Transform(x => new SerializablePropertyDefinition(x.Name, Convert(context, x.PropertyType)))
                 .ToArray()
             : Array.Empty<SerializablePropertyDefinition>();
 
@@ -119,22 +90,24 @@ public class TypeConverter : ConverterBase, ITypeConverter
                 ? type.GetQualifiedFullName()
                 : null,
             GenericTypeArguments = type.GenericTypeArguments
-                .Transform(x => Convert(x))
+                .Transform(x => Convert(context, x))
                 .ToArray(),
             GenericTypeDefinition =
                 genericTypeDefinition != null
-                ? Convert(genericTypeDefinition)
+                ? Convert(context, genericTypeDefinition)
                 : null,
             AnonymousPropertyDefinitions = anonymousPropertiesDefinitions
         };
     }
 
     /// <summary>
-    /// Converts a <see cref="SerializableType"/> back to its original <see cref="Type"/>.
+    /// Converts a <see cref="SerializableType"/> back to its original <see cref="Type"/>. <br/>
+    /// Handles deserialization considering the strategy used and manages generic and anonymous types.
     /// </summary>
-    /// <param name="sType">The serializable type to convert.</param>
-    /// <returns>The original type.</returns>
-    public Type Convert(SerializableType sType)
+    /// <param name="context">The conversion context.</param>
+    /// <param name="sType">The serializable type to convert back to a <see cref="Type"/>.</param>
+    /// <returns>The original <see cref="Type"/>.</returns>
+    public Type Convert(ConversionContext context, SerializableType sType)
     {
         var isDeserializable = sType.FullNameIsAvailable() || sType.AssemblyNameIsAvailable();
 
@@ -145,7 +118,7 @@ public class TypeConverter : ConverterBase, ITypeConverter
 
         if (sType.IsAnonymousType)
         {
-            return CreateAnonymousType(sType);
+            return CreateAnonymousType(context, sType);
         }
 
         Type? type = null;
@@ -154,12 +127,12 @@ public class TypeConverter : ConverterBase, ITypeConverter
         {
             case TypeConversionStrategy.UseAssemblyName:
 
-                type = CreateTypeUsingAssemblyName(sType);
+                type = CreateTypeUsingAssemblyName(context, sType);
                 break;
 
             case TypeConversionStrategy.UseFullName:
 
-                type = CreateTypeUsingFullName(sType);
+                type = CreateTypeUsingFullName(context, sType);
                 break;
 
             default:
@@ -168,22 +141,22 @@ public class TypeConverter : ConverterBase, ITypeConverter
 
         if (type == null)
         {
-            throw TypeNotFoundException(sType);
+            throw TypeNotFoundException(context, sType);
         }
 
         if (sType.IsGenericTypeDefinition)
         {
-            type = type.MakeGenericType(sType.GenericTypeArguments.Transform(x => Convert(x)).ToArray());
+            type = type.MakeGenericType(sType.GenericTypeArguments.Transform(x => Convert(context, x)).ToArray());
         }
 
         return type;
     }
 
-    private Type? CreateTypeUsingAssemblyName(SerializableType sType)
+    private Type? CreateTypeUsingAssemblyName(ConversionContext context, SerializableType sType)
     {
         if (string.IsNullOrEmpty(sType.AssemblyQualifiedName))
         {
-            throw MissingArgumentException(nameof(sType.AssemblyQualifiedName));
+            throw MissingArgumentException(context, nameof(sType.AssemblyQualifiedName));
         }
 
         if (sType.IsGenericType)
@@ -192,11 +165,11 @@ public class TypeConverter : ConverterBase, ITypeConverter
 
             if(genericTypeDefinition == null)
             {
-                throw TypeNotFoundException(sType.AssemblyQualifiedName);
+                throw TypeNotFoundException(context, sType.AssemblyQualifiedName);
             }
 
             var genericTypeArgs = sType.GenericTypeArguments
-                .Transform(x => Convert(x))
+                .Transform(x => Convert(context, x))
                 .ToArray();
 
             return genericTypeDefinition.MakeGenericType(genericTypeArgs);
@@ -205,11 +178,11 @@ public class TypeConverter : ConverterBase, ITypeConverter
         return Type.GetType(sType.AssemblyQualifiedName);
     }
 
-    private Type? CreateTypeUsingFullName(SerializableType sType)
+    private Type? CreateTypeUsingFullName(ConversionContext context, SerializableType sType)
     {
         if (string.IsNullOrEmpty(sType.FullName))
         {
-            throw MissingArgumentException(nameof(sType.FullName));
+            throw MissingArgumentException(context, nameof(sType.FullName));
         }
 
         if (sType.IsGenericType)
@@ -218,11 +191,11 @@ public class TypeConverter : ConverterBase, ITypeConverter
 
             if (genericTypeDefinition == null)
             {
-                throw TypeNotFoundException(sType.FullName);
+                throw TypeNotFoundException(context, sType.FullName);
             }
 
             var genericTypeArgs = sType.GenericTypeArguments
-                .Transform(x => Convert(x))
+                .Transform(x => Convert(context, x))
                 .ToArray();
 
             return genericTypeDefinition.MakeGenericType(genericTypeArgs);
@@ -231,33 +204,36 @@ public class TypeConverter : ConverterBase, ITypeConverter
         return Type.GetType(sType.FullName);
     }
 
-    private Type CreateAnonymousType(SerializableType sType)
+    private Type CreateAnonymousType(ConversionContext context, SerializableType sType)
     {
         if (sType.AnonymousPropertyDefinitions.IsEmpty())
         {
-            throw new Exception();
+            throw MissingArgumentException(context, nameof(sType.AnonymousPropertyDefinitions));
         }
 
         var properties = new List<AnonymousPropertyDefinition>(sType.AnonymousPropertyDefinitions.Length);
+        var counter = 0;
 
         foreach (var item in sType.AnonymousPropertyDefinitions)
         {
             if(item.Name == null)
             {
-                throw new Exception();
+                throw MissingArgumentException(context, $"{nameof(sType.AnonymousPropertyDefinitions)}[{counter}].{nameof(item.Name)}");
             }
             if(item.Type == null)
             {
-                throw new Exception();
+                throw MissingArgumentException(context, $"{nameof(sType.AnonymousPropertyDefinitions)}[{counter}].{nameof(item.Type)}");
             }
 
-            properties.Add(new AnonymousPropertyDefinition(item.Name, Convert(item.Type)));
+            properties.Add(new AnonymousPropertyDefinition(item.Name, Convert(context, item.Type)));
+            counter++;
         }
 
         var options = new AnonymousTypeCreationOptions()
         {
             CreateDefaultConstructor = true,
-            CreateSetters = true
+            CreateSetters = true,
+            UseCache = true
         };
         var anonymousType = TypeCreator
             .CreateAnonymousType(properties, options);
