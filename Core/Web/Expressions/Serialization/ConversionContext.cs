@@ -13,7 +13,7 @@ public class ConversionContext
         ReferenceTable = new();
     }
 
-    public  ConversionContext CreateChild()
+    public ConversionContext CreateChild()
     {
         return new ConversionContext(this);
     }
@@ -27,7 +27,7 @@ public class ConversionContext
     {
         var id = GetExpressionReferenceId(expression);
 
-        if(ReferenceTable.HashMap.TryGetValue(id, out var value))
+        if (ReferenceTable.HashMap.TryGetValue(id, out var value))
         {
             return value;
         }

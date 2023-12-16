@@ -1,87 +1,162 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
 namespace ModularSystem.Core.Expressions;
 
 /// <summary>
-/// A helper class designed to ensure that all parameter expressions within filter expressions refer to the same root parameter. <br/>
-/// This is essential for combining multiple expressions seamlessly.
+/// A specialized expression visitor that binds parameter expressions to existing references. <br/>
 /// </summary>
-public class ParameterExpressionUniformityVisitor : ExpressionVisitor
+public class ParameterExpressionReferenceBinder : CustomExpressionVisitor
 {
     /// <summary>
-    /// Gets the root parameter expression identified during the visitation process.
+    /// Stores a reference table of parameter expressions.
     /// </summary>
-    private ParameterExpression? RootParameterExpression { get; set; } = null;
+    private ExpressionReferenceTable ReferenceTable { get; set; } = new();
 
     /// <summary>
-    /// This is a helper method that creates an instance of <see cref="ParameterExpressionUniformityVisitor"/> and call the visit method.
+    /// Visits and potentially modifies a lambda expression, managing parameter references.
     /// </summary>
-    /// <param name="expression"></param>
-    /// <returns></returns>
-    [return: NotNullIfNotNull("expression")]
-    public static Expression? Run(Expression? expression)
-    {
-        return new ParameterExpressionUniformityVisitor().Visit(expression);
-    }
-
-    /// <summary>
-    /// Visits and potentially modifies a lambda expression.
-    /// </summary>
-    /// <typeparam name="TDelegate">The type of delegate of the lambda expression.</typeparam>
+    /// <typeparam name="T">The type of delegate of the lambda expression.</typeparam>
     /// <param name="node">The lambda expression to visit.</param>
-    /// <returns>The modified lambda expression.</returns>
-    protected override Expression VisitLambda<TDelegate>(Expression<TDelegate> node)
+    /// <returns>The modified lambda expression, with parameter references handled.</returns>
+    protected override Expression VisitLambda<T>(Expression<T> node)
     {
         if (node.NodeType != ExpressionType.Lambda)
         {
-            return base.VisitLambda(node);
+            return node;
         }
 
-        if(RootParameterExpression != null)
+        var lambda = node.TypeCast<LambdaExpression>();
+        var parameters = lambda.Parameters;
+
+        ReferenceTable = new(ReferenceTable);
+
+        foreach (var item in parameters)
         {
-            return new ParameterExpressionUniformityVisitor().Visit(node);
+            if (ReferenceTable.Contains(item))
+            {
+                continue;
+            }
+
+            ReferenceTable.Add(item);
         }
-
-        var lambdaExpression = node.TypeCast<LambdaExpression>();
-
-        RootParameterExpression = lambdaExpression.Parameters.First();
 
         return base.VisitLambda(node);
     }
 
     /// <summary>
-    /// Visits and potentially modifies a member access expression.
+    /// Visits and potentially replaces a parameter expression with a referenced one from the reference table.
     /// </summary>
-    /// <param name="node">The member access expression to visit.</param>
-    /// <returns>The modified member access expression.</returns>
-    protected override Expression VisitMember(MemberExpression node)
+    /// <param name="node">The parameter expression to visit.</param>
+    /// <returns>The referenced parameter expression if it exists in the table, otherwise the original expression.</returns>
+    protected override Expression VisitParameter(ParameterExpression node)
     {
-        var helper = new Helper();
-        var isLhs = helper.IsLhs(node);
+        var reference = ReferenceTable.GetReference(node);
 
-        if (node.Expression?.Type == RootParameterExpression?.Type && isLhs)
+        if (reference != null)
         {
-            return Expression.MakeMemberAccess(RootParameterExpression, node.Member);
+            return reference;
         }
 
-        return base.VisitMember(node);
+        return base.VisitParameter(node);
     }
 
-    private class Helper : ExpressionVisitor
+    /// <summary>
+    /// An internal class that manages a table of parameter expressions, allowing for reference lookup and management within a given scope.
+    /// </summary>
+    internal class ExpressionReferenceTable
     {
-        bool isLhs = true;
+        /// <summary>
+        /// Optional parent scope to enable hierarchical scope management.
+        /// </summary>
+        private ExpressionReferenceTable? ParentScope { get; }
 
-        public bool IsLhs(Expression expression)
+        /// <summary>
+        /// A list of parameter expressions within the current scope.
+        /// </summary>
+        private List<ParameterExpression> Parameters { get; } = new();
+
+        /// <summary>
+        /// Constructs a new instance of ExpressionReferenceTable, optionally with a parent scope.
+        /// </summary>
+        /// <param name="parentScope">The parent scope for nested scope management (optional).</param>
+        public ExpressionReferenceTable(ExpressionReferenceTable? parentScope = null)
         {
-            Visit(expression);
-            return isLhs;
+            ParentScope = parentScope;
+            Parameters = new();
         }
 
-        protected override Expression VisitConstant(ConstantExpression node)
+        /// <summary>
+        /// Retrieves a matching reference for a given parameter expression from the table, considering name and type.
+        /// </summary>
+        /// <param name="expression">The parameter expression to find a reference for.</param>
+        /// <returns>The referenced parameter expression if a match is found, otherwise null.</returns>
+        public ParameterExpression? GetReference(ParameterExpression expression)
         {
-            isLhs = false;
-            return base.VisitConstant(node);
+            var scope = this;
+
+            while (true)
+            {
+                var fullMatch = scope.Parameters
+                .Where(x => x.Name == expression.Name && x.Type == expression.Type)
+                .ToArray();
+
+                if (fullMatch.IsNotEmpty())
+                {
+                    if (fullMatch.Length > 1)
+                    {
+                        throw new Exception();
+                    }
+
+                    return fullMatch.First();
+                }
+
+                var typeMatch = scope.Parameters
+                    .Where(x => x.Type == expression.Type)
+                    .ToArray();
+
+                if (typeMatch.IsNotEmpty())
+                {
+                    if (typeMatch.Length > 1)
+                    {
+                        throw new Exception();
+                    }
+
+                    return typeMatch.First();
+                }
+
+                if (scope.ParentScope == null)
+                {
+                    break;
+                }
+
+                scope = scope.ParentScope;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Checks if a given parameter expression is already contained within the reference table.
+        /// </summary>
+        /// <param name="expression">The parameter expression to check for.</param>
+        /// <returns>True if the expression is contained within the table, false otherwise.</returns>
+        public bool Contains(ParameterExpression expression)
+        {
+            return GetReference(expression) != null;
+        }
+
+        /// <summary>
+        /// Adds a new parameter expression to the reference table.
+        /// </summary>
+        /// <param name="value">The parameter expression to add.</param>
+        public void Add(ParameterExpression value)
+        {
+            if (Parameters.Contains(value))
+            {
+                throw new Exception();
+            }
+
+            Parameters.Add(value);
         }
     }
 }

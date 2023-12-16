@@ -158,7 +158,7 @@ public class Parser
             var body = FilterGenerator.Translate(context, syntaxTree);
             var expression = Expression.Lambda(body, parameters);
 
-            var visitor = new ParameterExpressionUniformityVisitor();
+            var visitor = new ParameterExpressionReferenceBinder();
 
             return visitor.Visit(expression);
         }

@@ -135,7 +135,7 @@ public static class TypeExtensions
             var genericTypeDefinition = type.GetGenericTypeDefinition();
             var genericTypeName = genericTypeDefinition.AssemblyQualifiedName;
 
-            if(genericTypeName == null)
+            if (genericTypeName == null)
             {
                 throw new Exception();
             }

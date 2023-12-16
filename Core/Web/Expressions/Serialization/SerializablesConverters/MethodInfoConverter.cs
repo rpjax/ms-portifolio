@@ -95,7 +95,7 @@ public class MethodInfoConverter : ConverterBase, IMethodInfoConverter
         {
             throw AmbiguousMethodException(context, sMethodInfo);
         }
-        
+
         var methodInfo = methodInfos.First();
 
         if (sMethodInfo.IsGenericMethod)

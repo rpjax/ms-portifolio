@@ -428,7 +428,7 @@ internal class EFCoreUpdateOperation<T> where T : class, IEFModel
         var lambdaExpression = Expression
             .Lambda<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>>(fluentParameter, parameterExpression);
 
-        var visitor = new ParameterExpressionUniformityVisitor();
+        var visitor = new ParameterExpressionReferenceBinder();
 
         lambdaExpression = visitor.VisitAndConvert(lambdaExpression, "VisitLambda");
 

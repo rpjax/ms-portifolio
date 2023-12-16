@@ -250,7 +250,7 @@ public class LinqProvider
 
         var countExpression = Expression.Call(null, methodInfo, context.Expression);
 
-        if(node is not ObjectNode objectNode)
+        if (node is not ObjectNode objectNode)
         {
             throw TranslationThrowHelper.WrongNodeType(context, "An object node was expected.");
         }

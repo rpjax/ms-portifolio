@@ -103,8 +103,8 @@ public class Translator
 
     public TranslatedQueryable TranslateToQueryable(Expression expression, Type genericType, IEnumerable queryable)
     {
-        var visitor = new ParameterExpressionUniformityVisitor();
-      
+        var visitor = new ParameterExpressionReferenceBinder();
+
         var inputType = Options.QueryableType.MakeGenericType(genericType);
         var parameter = Expression.Parameter(inputType, "root");
         var projectedType = expression.Type.GenericTypeArguments[0];

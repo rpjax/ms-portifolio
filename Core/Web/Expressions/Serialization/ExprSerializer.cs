@@ -46,7 +46,8 @@ public class ExprSerializer : ISerializer<Expression>
     {
         if (Config.UseClosureUnwrapper)
         {
-            expression = new ClosureExpressionUnwrapper().Visit(expression);
+            expression = new ClosureExpressionUnwrapper()
+                .Visit(expression);
         }
 
         return Converter.Convert(new(), expression);
@@ -63,7 +64,8 @@ public class ExprSerializer : ISerializer<Expression>
 
         if (Config.UseParameterUniformityVisitor)
         {
-            expression = new ParameterExpressionUniformityVisitor().Visit(expression);
+            expression = new ParameterExpressionReferenceBinder()
+                .Visit(expression);
         }
 
         return expression;
@@ -130,7 +132,7 @@ public class ExprSerializer : ISerializer<Expression>
         /// <remarks>
         /// This visitor ensures that parameters with the same name in the expression tree are represented by the same object instance.
         /// </remarks>
-        public bool UseParameterUniformityVisitor { get; set; } = true;
+        public bool UseParameterUniformityVisitor { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether the <see cref="ClosureExpressionUnwrapper"/> should be used during serialization.

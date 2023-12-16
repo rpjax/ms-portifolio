@@ -7,7 +7,6 @@ using ModularSystem.Web.Expressions;
 using ModularSystem.Webql;
 using ModularSystem.Webql.Synthesis;
 using System.Collections;
-using System.Linq.Expressions;
 using System.Text.Json.Serialization;
 
 namespace ModularSystem.Web;
@@ -420,7 +419,7 @@ public abstract class QueryableController<T> : CrudController<T> where T : class
             var queryable = await Service.CreateQueryAsync();
             var transformedQueryable = translator.TranslateToQueryable(json, queryable);
             var data = transformedQueryable.ToArray();
-            
+
             var queryableType = translator.Options.CreateGenericQueryable(typeof(T));
             var expression = translator.TranslateToExpression(json, queryableType);
 
@@ -441,11 +440,11 @@ public abstract class QueryableController<T> : CrudController<T> where T : class
         }
         catch (Exception e)
         {
-            if(e is ParseException parseException)
+            if (e is ParseException parseException)
             {
                 return HandleException(new AppException(parseException.GetMessage(), ExceptionCode.InvalidInput));
             }
-            
+
             return HandleException(e);
         }
     }
@@ -477,7 +476,7 @@ public class SerializableQueryableBuilder
 
     public TranslatedQueryable TranslateToQueryable(Type genericType, IEnumerable queryable, Translator? translator = null)
     {
-        if(Expression == null)
+        if (Expression == null)
         {
             return new TranslatedQueryable(genericType, genericType, queryable);
         }

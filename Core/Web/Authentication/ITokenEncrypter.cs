@@ -66,8 +66,8 @@ public class TokenEncrypter : ITokenEncrypter
     /// <inheritdoc/>
     public virtual IToken Decrypt(string encryptedToken)
     {
-        return 
-            JsonSerializerSingleton.Deserialize<Token>(Encrypter.Decrypt(encryptedToken)) 
+        return
+            JsonSerializerSingleton.Deserialize<Token>(Encrypter.Decrypt(encryptedToken))
             ?? throw new InvalidDataException("Failed to deserialize decrypted data.");
     }
 

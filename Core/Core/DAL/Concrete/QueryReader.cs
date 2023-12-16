@@ -55,7 +55,7 @@ public partial class QueryReader<T>
     /// <returns>A newly created expression visitor.</returns>
     protected ExpressionVisitor CreateExpressionVisitor()
     {
-        return new ParameterExpressionUniformityVisitor();
+        return new ParameterExpressionReferenceBinder();
     }
 
     /// <summary>

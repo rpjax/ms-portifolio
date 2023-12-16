@@ -34,7 +34,7 @@ public class TranslatorOptions
 
     public Type CreateGenericQueryable(Type genericType)
     {
-        if(!QueryableType.IsGenericTypeDefinition)
+        if (!QueryableType.IsGenericTypeDefinition)
         {
             throw new Exception();
         }

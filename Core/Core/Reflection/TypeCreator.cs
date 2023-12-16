@@ -126,7 +126,7 @@ public static class TypeCreator
         // Cria o tipo
         var type = typeBuilder.CreateType();
 
-        if(type == null)
+        if (type == null)
         {
             throw new Exception();
         }

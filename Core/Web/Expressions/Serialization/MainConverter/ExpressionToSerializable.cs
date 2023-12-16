@@ -51,191 +51,191 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         switch (nodeType)
         {
             case ExtendedExpressionType.Add:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.AddChecked:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.And:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.AndAlso:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.ArrayLength:
-                serializable = ConvertUnaryExpression(context, As<UnaryExpression>(expression));
+                serializable = ConvertUnary(context, As<UnaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.ArrayIndex:
-                serializable = ConvertMethodCallExpression(context, As<MethodCallExpression>(expression));
+                serializable = ConvertMethodCall(context, As<MethodCallExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Call:
-                serializable = ConvertMethodCallExpression(context, As<MethodCallExpression>(expression));
+                serializable = ConvertMethodCall(context, As<MethodCallExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Coalesce:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Conditional:
-                serializable = ConvertConditionalExpression(context, As<ConditionalExpression>(expression));
+                serializable = ConvertConditional(context, As<ConditionalExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Constant:
-                serializable = ConvertConstantExpression(context, As<ConstantExpression>(expression));
+                serializable = ConvertConstant(context, As<ConstantExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Convert:
-                serializable = ConvertUnaryExpression(context, As<UnaryExpression>(expression));
+                serializable = ConvertUnary(context, As<UnaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.ConvertChecked:
-                serializable = ConvertUnaryExpression(context, As<UnaryExpression>(expression));
+                serializable = ConvertUnary(context, As<UnaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Divide:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Equal:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.ExclusiveOr:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.GreaterThan:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.GreaterThanOrEqual:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Invoke:
-                serializable = ConvertInvocationExpression(context, As<InvocationExpression>(expression));
+                serializable = ConvertInvocation(context, As<InvocationExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Lambda:
-                serializable = ConvertLambdaExpression(context, As<LambdaExpression>(expression));
+                serializable = ConvertLambda(context, As<LambdaExpression>(expression));
                 break;
 
             case ExtendedExpressionType.LeftShift:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.LessThan:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.LessThanOrEqual:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.ListInit:
-                serializable = ConvertListInitExpression(context, As<ListInitExpression>(expression));
+                serializable = ConvertListInit(context, As<ListInitExpression>(expression));
                 break;
 
             case ExtendedExpressionType.MemberAccess:
-                serializable = ConvertMemberExpression(context, As<MemberExpression>(expression));
+                serializable = ConvertMember(context, As<MemberExpression>(expression));
                 break;
 
             case ExtendedExpressionType.MemberInit:
-                serializable = ConvertMemberInitExpression(context, As<MemberInitExpression>(expression));
+                serializable = ConvertMemberInit(context, As<MemberInitExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Modulo:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Multiply:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.MultiplyChecked:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Negate:
-                serializable = ConvertUnaryExpression(context, As<UnaryExpression>(expression));
+                serializable = ConvertUnary(context, As<UnaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.UnaryPlus:
-                serializable = ConvertUnaryExpression(context, As<UnaryExpression>(expression));
+                serializable = ConvertUnary(context, As<UnaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.NegateChecked:
-                serializable = ConvertUnaryExpression(context, As<UnaryExpression>(expression));
+                serializable = ConvertUnary(context, As<UnaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.New:
-                serializable = ConvertNewExpression(context, As<NewExpression>(expression));
+                serializable = ConvertNew(context, As<NewExpression>(expression));
                 break;
 
             case ExtendedExpressionType.NewArrayInit:
-                serializable = ConvertNewArrayExpression(context, As<NewArrayExpression>(expression));
+                serializable = ConvertNewArray(context, As<NewArrayExpression>(expression));
                 break;
 
             case ExtendedExpressionType.NewArrayBounds:
-                serializable = ConvertNewArrayExpression(context, As<NewArrayExpression>(expression));
+                serializable = ConvertNewArray(context, As<NewArrayExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Not:
-                serializable = ConvertUnaryExpression(context, As<UnaryExpression>(expression));
+                serializable = ConvertUnary(context, As<UnaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.NotEqual:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Or:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.OrElse:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Parameter:
-                serializable = ConvertParameterExpression(context, As<ParameterExpression>(expression));
+                serializable = ConvertParameter(context, As<ParameterExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Power:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Quote:
-                serializable = ConvertUnaryExpression(context, As<UnaryExpression>(expression));
+                serializable = ConvertUnary(context, As<UnaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.RightShift:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Subtract:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.SubtractChecked:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.TypeAs:
-                serializable = ConvertUnaryExpression(context, As<UnaryExpression>(expression));
+                serializable = ConvertUnary(context, As<UnaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.TypeIs:
-                serializable = ConvertTypeBinaryExpression(context, As<TypeBinaryExpression>(expression));
+                serializable = ConvertTypeBinary(context, As<TypeBinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Assign:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Block:
@@ -251,106 +251,106 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
             case ExtendedExpressionType.Throw:
             case ExtendedExpressionType.Try:
             case ExtendedExpressionType.Unbox:
-                break; 
+                break;
 
             case ExtendedExpressionType.AddAssign:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.AndAssign:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.DivideAssign:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.ExclusiveOrAssign:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.LeftShiftAssign:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.ModuloAssign:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.MultiplyAssign:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.OrAssign:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.PowerAssign:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.RightShiftAssign:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.SubtractAssign:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.AddAssignChecked:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.MultiplyAssignChecked:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.SubtractAssignChecked:
-                serializable = ConvertBinaryExpression(context, As<BinaryExpression>(expression));
+                serializable = ConvertBinary(context, As<BinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.PreIncrementAssign:
-                serializable = ConvertUnaryExpression(context, As<UnaryExpression>(expression));
+                serializable = ConvertUnary(context, As<UnaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.PreDecrementAssign:
-                serializable = ConvertUnaryExpression(context, As<UnaryExpression>(expression));
+                serializable = ConvertUnary(context, As<UnaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.PostIncrementAssign:
-                serializable = ConvertUnaryExpression(context, As<UnaryExpression>(expression));
+                serializable = ConvertUnary(context, As<UnaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.PostDecrementAssign:
-                serializable = ConvertUnaryExpression(context, As<UnaryExpression>(expression));
+                serializable = ConvertUnary(context, As<UnaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.TypeEqual:
-                serializable = ConvertTypeBinaryExpression(context, As<TypeBinaryExpression>(expression));
+                serializable = ConvertTypeBinary(context, As<TypeBinaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.OnesComplement:
-                serializable = ConvertUnaryExpression(context, As<UnaryExpression>(expression));
+                serializable = ConvertUnary(context, As<UnaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.IsTrue:
-                serializable = ConvertUnaryExpression(context, As<UnaryExpression>(expression));
+                serializable = ConvertUnary(context, As<UnaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.IsFalse:
-                serializable = ConvertUnaryExpression(context, As<UnaryExpression>(expression));
+                serializable = ConvertUnary(context, As<UnaryExpression>(expression));
                 break;
 
             case ExtendedExpressionType.UpdateSet:
-                serializable = ConvertUpdateSetExpression(context, As<UpdateSetExpression>(expression));
+                serializable = ConvertUpdateSet(context, As<UpdateSetExpression>(expression));
                 break;
 
             case ExtendedExpressionType.Ordering:
-                serializable = ConvertOrderingExpression(context, As<OrderingExpression>(expression));
+                serializable = ConvertOrdering(context, As<OrderingExpression>(expression));
                 break;
 
             case ExtendedExpressionType.ComplexOrdering:
-                serializable = ConvertComplexOrderingExpression(context, As<ComplexOrderingExpression>(expression));
+                serializable = ConvertComplexOrdering(context, As<ComplexOrderingExpression>(expression));
                 break;
 
             default:
@@ -382,7 +382,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
     {
         if (IsAnnonymousClassMemberAccess(expression))
         {
-            return VisitClosureExpression(expression.TypeCast<MemberExpression>());
+            return VisitClosure(expression.TypeCast<MemberExpression>());
         }
 
         return expression;
@@ -401,7 +401,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         return expression.TypeCast<T>();
     }
 
-    private static ConstantExpression VisitClosureExpression(MemberExpression expression)
+    private static ConstantExpression VisitClosure(MemberExpression expression)
     {
         if (expression.Expression == null)
         {
@@ -439,7 +439,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         return Expression.Constant(capturedValue, expression.Type);
     }
 
-    private SerializableBinaryExpression ConvertBinaryExpression(ConversionContext context, BinaryExpression expression)
+    private SerializableBinaryExpression ConvertBinary(ConversionContext context, BinaryExpression expression)
     {
         return new()
         {
@@ -451,7 +451,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableUnaryExpression ConvertUnaryExpression(ConversionContext context, UnaryExpression expression)
+    private SerializableUnaryExpression ConvertUnary(ConversionContext context, UnaryExpression expression)
     {
         return new()
         {
@@ -461,7 +461,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableMethodCallExpression ConvertMethodCallExpression(ConversionContext context, MethodCallExpression expression)
+    private SerializableMethodCallExpression ConvertMethodCall(ConversionContext context, MethodCallExpression expression)
     {
         return new()
         {
@@ -475,7 +475,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableConditionalExpression ConvertConditionalExpression(ConversionContext context, ConditionalExpression expression)
+    private SerializableConditionalExpression ConvertConditional(ConversionContext context, ConditionalExpression expression)
     {
         return new()
         {
@@ -486,7 +486,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableConstantExpression ConvertConstantExpression(ConversionContext context, ConstantExpression expression)
+    private SerializableConstantExpression ConvertConstant(ConversionContext context, ConstantExpression expression)
     {
         return new()
         {
@@ -496,7 +496,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableInvocationExpression ConvertInvocationExpression(ConversionContext context, InvocationExpression expression)
+    private SerializableInvocationExpression ConvertInvocation(ConversionContext context, InvocationExpression expression)
     {
         return new()
         {
@@ -506,7 +506,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableLambdaExpression ConvertLambdaExpression(ConversionContext context, LambdaExpression expression)
+    private SerializableLambdaExpression ConvertLambda(ConversionContext context, LambdaExpression expression)
     {
         return new()
         {
@@ -519,7 +519,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableListInitExpression ConvertListInitExpression(ConversionContext context, ListInitExpression expression)
+    private SerializableListInitExpression ConvertListInit(ConversionContext context, ListInitExpression expression)
     {
         return new()
         {
@@ -529,7 +529,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableMemberExpression ConvertMemberExpression(ConversionContext context, MemberExpression expression)
+    private SerializableMemberExpression ConvertMember(ConversionContext context, MemberExpression expression)
     {
         return new()
         {
@@ -539,7 +539,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableMemberInitExpression ConvertMemberInitExpression(ConversionContext context, MemberInitExpression expression)
+    private SerializableMemberInitExpression ConvertMemberInit(ConversionContext context, MemberInitExpression expression)
     {
         var debug = expression.Bindings
             .Select(x => x.GetType().FullName)
@@ -556,7 +556,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableNewExpression ConvertNewExpression(ConversionContext context, NewExpression expression)
+    private SerializableNewExpression ConvertNew(ConversionContext context, NewExpression expression)
     {
         return new()
         {
@@ -565,7 +565,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableNewArrayExpression ConvertNewArrayExpression(ConversionContext context, NewArrayExpression expression)
+    private SerializableNewArrayExpression ConvertNewArray(ConversionContext context, NewArrayExpression expression)
     {
         return new()
         {
@@ -575,7 +575,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableParameterExpression ConvertParameterExpression(ConversionContext context, ParameterExpression expression)
+    private SerializableParameterExpression ConvertParameter(ConversionContext context, ParameterExpression expression)
     {
         return new()
         {
@@ -586,7 +586,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableTypeBinaryExpression ConvertTypeBinaryExpression(ConversionContext context, TypeBinaryExpression expression)
+    private SerializableTypeBinaryExpression ConvertTypeBinary(ConversionContext context, TypeBinaryExpression expression)
     {
         return new()
         {
@@ -596,7 +596,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableIndexExpression ConvertIndexExpression(ConversionContext context, IndexExpression expression)
+    private SerializableIndexExpression ConvertIndex(ConversionContext context, IndexExpression expression)
     {
         return new()
         {
@@ -607,7 +607,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableUpdateSetExpression ConvertUpdateSetExpression(ConversionContext context, UpdateSetExpression expression)
+    private SerializableUpdateSetExpression ConvertUpdateSet(ConversionContext context, UpdateSetExpression expression)
     {
         return new()
         {
@@ -619,7 +619,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableOrderingExpression ConvertOrderingExpression(ConversionContext context, OrderingExpression expression)
+    private SerializableOrderingExpression ConvertOrdering(ConversionContext context, OrderingExpression expression)
     {
         return new()
         {
@@ -631,7 +631,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         };
     }
 
-    private SerializableComplexOrderingExpression ConvertComplexOrderingExpression(ConversionContext context, ComplexOrderingExpression expression)
+    private SerializableComplexOrderingExpression ConvertComplexOrdering(ConversionContext context, ComplexOrderingExpression expression)
     {
         return new()
         {

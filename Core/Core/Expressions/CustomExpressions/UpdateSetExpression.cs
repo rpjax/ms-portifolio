@@ -76,7 +76,7 @@ public class UpdateSetExpression : NotVisitableExpression
             return null;
         }
 
-        return new ParameterExpressionUniformityVisitor()
+        return new ParameterExpressionReferenceBinder()
             .Visit(Lambda(cast.Body, parameters))
             .TypeCast<LambdaExpression>();
     }

@@ -150,8 +150,8 @@ public static class HelperTools
     {
         var opType = GetOperatorType(@operator);
 
-        return 
-            opType == OperatorType.Relational 
+        return
+            opType == OperatorType.Relational
             || opType == OperatorType.PatternRelational
             || opType == OperatorType.Logical;
     }

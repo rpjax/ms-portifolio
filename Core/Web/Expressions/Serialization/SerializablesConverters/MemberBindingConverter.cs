@@ -30,7 +30,7 @@ public class MemberBindingConverter : ConverterBase, IMemberBindingConverter
     /// <param name="memberInfoConverter">The converter used for member info within member bindings.</param>
     /// <param name="elementInitConverter">The converter used for element initializers within list bindings.</param>
     public MemberBindingConverter(
-        IExpressionConverter expressionConverter, 
+        IExpressionConverter expressionConverter,
         IMemberInfoConverter memberInfoConverter,
         IElementInitConverter elementInitConverter
     )
@@ -48,17 +48,17 @@ public class MemberBindingConverter : ConverterBase, IMemberBindingConverter
     /// <returns>The serializable representation of the member binding.</returns>
     public SerializableMemberBinding Convert(ConversionContext context, MemberBinding instance)
     {
-        if(instance is MemberAssignment assignment)
+        if (instance is MemberAssignment assignment)
         {
             return ConvertMemberAssignment(context, assignment);
         }
 
-        if(instance is MemberMemberBinding memberMemberBinding)
+        if (instance is MemberMemberBinding memberMemberBinding)
         {
             return ConvertMemberMemberBinding(context, memberMemberBinding);
         }
 
-        if(instance is MemberListBinding memberListBinding)
+        if (instance is MemberListBinding memberListBinding)
         {
             return ConvertMemberListBinding(context, memberListBinding);
         }
@@ -128,7 +128,7 @@ public class MemberBindingConverter : ConverterBase, IMemberBindingConverter
                 .ToArray()
         };
     }
-    
+
     //*
     // serializable converions
     //

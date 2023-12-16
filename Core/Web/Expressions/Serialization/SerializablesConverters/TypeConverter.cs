@@ -60,7 +60,7 @@ public class TypeConverter : ConverterBase, ITypeConverter
     {
         var genericTypeDefinition = type.TryGetGenericTypeDefinition();
 
-        if(genericTypeDefinition == type)
+        if (genericTypeDefinition == type)
         {
             genericTypeDefinition = null;
         }
@@ -163,7 +163,7 @@ public class TypeConverter : ConverterBase, ITypeConverter
         {
             var genericTypeDefinition = Type.GetType(sType.AssemblyQualifiedName);
 
-            if(genericTypeDefinition == null)
+            if (genericTypeDefinition == null)
             {
                 throw TypeNotFoundException(context, sType.AssemblyQualifiedName);
             }
@@ -216,11 +216,11 @@ public class TypeConverter : ConverterBase, ITypeConverter
 
         foreach (var item in sType.AnonymousPropertyDefinitions)
         {
-            if(item.Name == null)
+            if (item.Name == null)
             {
                 throw MissingArgumentException(context, $"{nameof(sType.AnonymousPropertyDefinitions)}[{counter}].{nameof(item.Name)}");
             }
-            if(item.Type == null)
+            if (item.Type == null)
             {
                 throw MissingArgumentException(context, $"{nameof(sType.AnonymousPropertyDefinitions)}[{counter}].{nameof(item.Type)}");
             }
@@ -237,7 +237,7 @@ public class TypeConverter : ConverterBase, ITypeConverter
         };
         var anonymousType = TypeCreator
             .CreateAnonymousType(properties, options);
-        
+
         return anonymousType;
     }
 
