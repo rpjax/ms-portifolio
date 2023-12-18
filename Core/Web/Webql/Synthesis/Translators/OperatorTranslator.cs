@@ -132,7 +132,7 @@ public class OperatorTranslator
 
             // Semantic Operators
             case Operator.Expr:
-                break;
+                return SemanticOperatorsTranslator.TranslateExpr(context, node);
 
             case Operator.Literal:
                 return SemanticOperatorsTranslator.TranslateLiteral(context, node);
@@ -300,32 +300,152 @@ public class RelationalOperatorsTranslator
 
     public Expression TranslateEquals(TranslationContext context, Node node)
     {
-        return Expression.Equal(GetLeftSide(context, node), GetRightSide(context, node));
+        var lhs = null as Expression;
+        var rhs = null as Expression;
+
+        if (node is not ArrayNode arrayNode)
+        {
+            lhs = context.Expression;
+            rhs = NodeTranslator.Translate(context, node);
+        }
+        else
+        {
+            if (arrayNode.Length != 2)
+            {
+                throw TranslationThrowHelper.ArraySyntaxWrongBinaryArgumentsCount(context, null);
+            }
+
+            lhs = NodeTranslator.Translate(context, arrayNode[0]);
+            var rhsContext = new TranslationContext(lhs.Type, lhs, context);
+            rhs = NodeTranslator.Translate(rhsContext, arrayNode[1]);
+        }
+
+        return Expression.Equal(lhs, rhs);
     }
 
     public Expression TranslateNotEquals(TranslationContext context, Node node)
     {
-        return Expression.NotEqual(GetLeftSide(context, node), GetRightSide(context, node));
+        var lhs = null as Expression;
+        var rhs = null as Expression;
+
+        if (node is not ArrayNode arrayNode)
+        {
+            lhs = context.Expression;
+            rhs = NodeTranslator.Translate(context, node);
+        }
+        else
+        {
+            if (arrayNode.Length != 2)
+            {
+                throw TranslationThrowHelper.ArraySyntaxWrongBinaryArgumentsCount(context, null);
+            }
+
+            lhs = NodeTranslator.Translate(context, arrayNode[0]);
+            var rhsContext = new TranslationContext(lhs.Type, lhs, context);
+            rhs = NodeTranslator.Translate(rhsContext, arrayNode[1]);
+        }
+
+        return Expression.NotEqual(lhs, rhs);
     }
 
     public Expression TranslateLess(TranslationContext context, Node node)
     {
-        return Expression.LessThan(GetLeftSide(context, node), GetRightSide(context, node));
+        var lhs = null as Expression;
+        var rhs = null as Expression;
+
+        if (node is not ArrayNode arrayNode)
+        {
+            lhs = context.Expression;
+            rhs = NodeTranslator.Translate(context, node);
+        }
+        else
+        {
+            if (arrayNode.Length != 2)
+            {
+                throw TranslationThrowHelper.ArraySyntaxWrongBinaryArgumentsCount(context, null);
+            }
+
+            lhs = NodeTranslator.Translate(context, arrayNode[0]);
+            var rhsContext = new TranslationContext(lhs.Type, lhs, context);
+            rhs = NodeTranslator.Translate(rhsContext, arrayNode[1]);
+        }
+
+        return Expression.LessThan(lhs, rhs);
     }
 
     public Expression TranslateLessEquals(TranslationContext context, Node node)
     {
-        return Expression.LessThanOrEqual(GetLeftSide(context, node), GetRightSide(context, node));
+        var lhs = null as Expression;
+        var rhs = null as Expression;
+
+        if (node is not ArrayNode arrayNode)
+        {
+            lhs = context.Expression;
+            rhs = NodeTranslator.Translate(context, node);
+        }
+        else
+        {
+            if (arrayNode.Length != 2)
+            {
+                throw TranslationThrowHelper.ArraySyntaxWrongBinaryArgumentsCount(context, null);
+            }
+
+            lhs = NodeTranslator.Translate(context, arrayNode[0]);
+            var rhsContext = new TranslationContext(lhs.Type, lhs, context);
+            rhs = NodeTranslator.Translate(rhsContext, arrayNode[1]);
+        }
+
+        return Expression.LessThanOrEqual(lhs, rhs);
     }
 
     public Expression TranslateGreater(TranslationContext context, Node node)
     {
-        return Expression.GreaterThan(GetLeftSide(context, node), GetRightSide(context, node));
+        var lhs = null as Expression;
+        var rhs = null as Expression;
+
+        if (node is not ArrayNode arrayNode)
+        {
+            lhs = context.Expression;
+            rhs = NodeTranslator.Translate(context, node);
+        }
+        else
+        {
+            if (arrayNode.Length != 2)
+            {
+                throw TranslationThrowHelper.ArraySyntaxWrongBinaryArgumentsCount(context, null);
+            }
+
+            lhs = NodeTranslator.Translate(context, arrayNode[0]);
+            var rhsContext = new TranslationContext(lhs.Type, lhs, context);
+            rhs = NodeTranslator.Translate(rhsContext, arrayNode[1]);
+        }
+
+        return Expression.GreaterThan(lhs, rhs);
     }
 
     public Expression TranslateGreaterEquals(TranslationContext context, Node node)
     {
-        return Expression.GreaterThanOrEqual(GetLeftSide(context, node), GetRightSide(context, node));
+        var lhs = null as Expression;
+        var rhs = null as Expression;
+
+        if (node is not ArrayNode arrayNode)
+        {
+            lhs = context.Expression;
+            rhs = NodeTranslator.Translate(context, node);
+        }
+        else
+        {
+            if (arrayNode.Length != 2)
+            {
+                throw TranslationThrowHelper.ArraySyntaxWrongBinaryArgumentsCount(context, null);
+            }
+
+            lhs = NodeTranslator.Translate(context, arrayNode[0]);
+            var rhsContext = new TranslationContext(lhs.Type, lhs, context);
+            rhs = NodeTranslator.Translate(rhsContext, arrayNode[1]);
+        }
+
+        return Expression.GreaterThanOrEqual(lhs, rhs);
     }
 
     private Expression GetLeftSide(TranslationContext context, Node node)
@@ -376,8 +496,7 @@ public class PatternRelationalOperatorsTranslator
 
     public Expression TranslateLike(TranslationContext context, Node node)
     {
-        throw new NotImplementedException();
-        //return Expression.Equal(GetLeftSide(context, node), GetRightSide(context, node));
+        return Options.LinqProvider.TranslateLikeExpression(context, NodeTranslator, node);
     }
 
     public Expression TranslateRegexMatch(TranslationContext context, Node node)
@@ -555,6 +674,11 @@ public class SemanticOperatorsTranslator
         }
 
         return NodeTranslator.Translate(context, literal);
+    }
+
+    public Expression TranslateExpr(TranslationContext context, Node node)
+    {
+        return NodeTranslator.Translate(context.CreateChildContext(), node);
     }
 
 }

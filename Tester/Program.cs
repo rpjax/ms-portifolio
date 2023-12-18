@@ -2,6 +2,9 @@
 using ModularSystem.Core;
 using ModularSystem.Mongo;
 using ModularSystem.Web;
+using ModularSystem.Webql;
+using ModularSystem.Webql.Synthesis;
+using MongoDB.Driver.Linq;
 
 namespace ModularSystem.Tester;
 
@@ -46,7 +49,28 @@ public class MyDataController : WebqlCrudController<MyData>
     public MyDataController()
     {
         Service = new MyDataService();
-        
     }
 
+    [HttpPost("webql-debug")]
+    public async Task<IActionResult> DebugQuery()
+    {
+        try
+        {
+            var json = (await ReadBodyAsStringAsync()) ?? Translator.EmptyQuery;
+            var translator = new Translator(GetTranslatorOptions());
+            var syntaxTree = translator.RunAnalysis(json, typeof(IEnumerable<MyData>));
+            //var expression = translator.TranslateToExpression(json, typeof(IEnumerable<MyData>));
+
+            return Ok(syntaxTree.ToString());
+        }
+        catch (Exception e)
+        {
+            if (e is ParseException parseException)
+            {
+                return HandleException(new AppException(parseException.GetMessage(), ExceptionCode.InvalidInput));
+            }
+
+            return HandleException(e);
+        }
+    }
 }

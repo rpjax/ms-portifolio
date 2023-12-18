@@ -61,28 +61,35 @@ internal class ImplicitAndSyntaxFeature : SemanticsVisitor
     /// <returns>True if the node evaluates to a boolean; otherwise, false.</returns>
     private bool ExpressionEvaluatesToBool(ExpressionNode node)
     {
+        var lastExpression = null as ExpressionNode;
+        var workingExpression = node;
+
         while (true)
         {
-            var lhs = node.Lhs;
-            var rhs = node.Rhs.Value;
-            var isMemberAccess = !lhs.IsOperator;
-
-            if (isMemberAccess)
+            if(workingExpression.Rhs.Value is not ObjectNode objectNode)
             {
-                if (rhs is not ObjectNode objectNode)
-                {
-                    return false;
-                }
-                if (objectNode.IsEmpty())
-                {
-                    return false;
-                }
-
-                node = objectNode.Last();
-                continue;
+                break;
             }
 
-            return HelperTools.OperatorEvaluatesToBool(HelperTools.ParseOperatorString(lhs.Value));
+            if (objectNode.IsEmpty())
+            {
+                break;
+            }
+
+            lastExpression = objectNode.Last();
+            workingExpression = objectNode.Last();
         }
+
+        if(lastExpression == null)
+        {
+            return false;
+        }
+
+        if(lastExpression.Lhs.IsReference)
+        {
+            return false;
+        }
+
+        return HelperTools.OperatorEvaluatesToBool(HelperTools.ParseOperatorString(lastExpression.Lhs.Value));
     }
 }

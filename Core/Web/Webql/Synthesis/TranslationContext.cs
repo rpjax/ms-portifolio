@@ -17,28 +17,20 @@ public class TranslationContext : SemanticContext
     public Expression Expression { get; }
 
     /// <summary>
-    /// Provides a mechanism for generating variable names within the translation context.
-    /// </summary>
-    public VariableNameProvider VariableNameProvider { get; }
-
-    /// <summary>
     /// Initializes a new instance of the <see cref="TranslationContext"/> class.
     /// </summary>
     /// <param name="type">The type associated with this context.</param>
     /// <param name="inputExpression">The current expression in the translation process.</param>
     /// <param name="parentContext">The parent translation context, if any.</param>
-    /// <param name="variableNameProvider">The provider for generating variable names.</param>
     /// <param name="stack">A string representing the stack trace of contexts leading to this one.</param>
     public TranslationContext(
         Type type,
         Expression inputExpression,
         TranslationContext? parentContext = null,
-        VariableNameProvider? variableNameProvider = null,
         string stack = "translation context")
         : base(type, parentContext, stack)
     {
         Expression = inputExpression;
-        VariableNameProvider = variableNameProvider ?? new();
     }
 
     /// <summary>
@@ -60,6 +52,15 @@ public class TranslationContext : SemanticContext
     }
 
     /// <summary>
+    /// Creates a child context.
+    /// </summary>
+    /// <returns>A new <see cref="TranslationContext"/> instance representing the child context.</returns>
+    public TranslationContext CreateChildContext()
+    {
+        return new(Type, Expression, this);
+    }
+
+    /// <summary>
     /// Creates a sub-context for translation based on a specified property name, optionally searching parent contexts.
     /// This method is used to navigate deeper into the object graph of the context's type, creating a new translation context
     /// for a specific property.
@@ -69,7 +70,7 @@ public class TranslationContext : SemanticContext
     /// <returns>A new <see cref="TranslationContext"/> instance representing the sub-context for the specified property.</returns>
     /// <exception cref="GeneratorException">Thrown if the specified property is not found within the context hierarchy.</exception>
     /// <exception cref="Exception">Thrown if an unexpected null context is encountered.</exception>
-    public TranslationContext CreateSubTranslationContext(string propertyName, bool useParentContexts = true)
+    public TranslationContext CreateChildContext(string propertyName, bool useParentContexts = true)
     {
         PropertyInfo? propertyInfo = null;
         TranslationContext? context = this;

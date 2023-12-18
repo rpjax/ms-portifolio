@@ -108,11 +108,11 @@ public class NodeTranslator
             ? pathSplit.First()
             : propPath;
 
-        var subContext = context.CreateSubTranslationContext(rootPropertyName);
+        var subContext = context.CreateChildContext(rootPropertyName);
 
         for (int i = 1; i < pathSplit.Length; i++)
         {
-            subContext = subContext.CreateSubTranslationContext(pathSplit[i], false);
+            subContext = subContext.CreateChildContext(pathSplit[i], false);
         }
 
         return subContext.Expression;
@@ -137,7 +137,8 @@ public class NodeTranslator
 
         if (expression == null)
         {
-            throw TranslationThrowHelper.ErrorInternalUnknown(context, "Could not evaluate the query.");
+            return context.Expression;
+            //throw TranslationThrowHelper.ErrorInternalUnknown(context, "Could not evaluate the query.");
         }
 
         return expression;
@@ -180,7 +181,7 @@ public class NodeTranslator
     protected Expression ParseMemberAccess(TranslationContext context, ExpressionNode node)
     {
         var memberName = node.Lhs.Value;
-        var subContext = context.CreateSubTranslationContext(memberName);
+        var subContext = context.CreateChildContext(memberName);
 
         return Translate(subContext, node.Rhs.Value);
     }

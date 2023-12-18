@@ -45,15 +45,15 @@ public class Translator
     /// It provides a direct way to transform WebQL queries into executable expressions without creating an IQueryable interface.
     /// </summary>
     /// <param name="json">The JSON representation of the WebQL query.</param>
-    /// <param name="type">The type of elements that the query operates on.</param>
+    /// <param name="queryableType">The enumerable type that the query operates on.</param>
     /// <param name="rootParameter">An optional parameter expression serving as the root of the queryable expression tree.</param>
     /// <returns>A LINQ Expression representing the equivalent query logic for the given WebQL query.</returns>
     /// <exception cref="Exception">Thrown if the translation fails due to issues in syntax analysis or expression generation.</exception>
-    public Expression TranslateToExpression(string json, Type type, ParameterExpression? rootParameter = null)
+    public Expression TranslateToExpression(string json, Type queryableType, ParameterExpression? rootParameter = null)
     {
-        var syntaxTree = RunAnalysis(json, type);
-        var exprParameter = rootParameter ?? Expression.Parameter(type, "x");
-        var context = new TranslationContext(type, exprParameter);
+        var syntaxTree = RunAnalysis(json, queryableType);
+        var exprParameter = rootParameter ?? Expression.Parameter(queryableType, "x");
+        var context = new TranslationContext(queryableType, exprParameter);
 
         return NodeTranslator.Translate(context, syntaxTree);
     }
@@ -63,17 +63,17 @@ public class Translator
     /// This method provides an integration point for executing WebQL queries against various data sources.
     /// </summary>
     /// <param name="json">The WebQL query string in JSON format.</param>
-    /// <param name="type">The type of elements in the queryable.</param>
+    /// <param name="genericType">The type of elements in the queryable.</param>
     /// <param name="queryable">The initial queryable object to which the WebQL query is applied.</param>
     /// <returns>A TranslatedQueryable object representing the results of the WebQL query.</returns>
-    public TranslatedQueryable TranslateToQueryable(string json, Type type, IEnumerable queryable)
+    public TranslatedQueryable TranslateToQueryable(string json, Type genericType, IEnumerable queryable)
     {
-        var inputType = Options.QueryableType.MakeGenericType(type);
-        var parameter = Expression.Parameter(inputType, "root");
-        var expression = TranslateToExpression(json, inputType, parameter);
+        var queryableType = Options.QueryableType.MakeGenericType(genericType);
+        var parameter = Expression.Parameter(queryableType, "root");
+        var expression = TranslateToExpression(json, queryableType, parameter);
         var projectedType = expression.Type.GenericTypeArguments[0];
         var outputType = Options.QueryableType.MakeGenericType(projectedType);
-        var lambdaExpressionType = typeof(Func<,>).MakeGenericType(inputType, outputType);
+        var lambdaExpressionType = typeof(Func<,>).MakeGenericType(queryableType, outputType);
 
         var lambdaExpression = Expression.Lambda(lambdaExpressionType, expression, parameter);
         var lambda = lambdaExpression.Compile();
@@ -85,7 +85,7 @@ public class Translator
             throw QueryableTransformationFailedException();
         }
 
-        return new TranslatedQueryable(inputType.GenericTypeArguments.First(), outputType.GenericTypeArguments.Last(), transformedQueryable);
+        return new TranslatedQueryable(queryableType.GenericTypeArguments.First(), outputType.GenericTypeArguments.Last(), transformedQueryable);
     }
 
     /// <summary>
@@ -140,11 +140,11 @@ public class Translator
     /// Analyzes a JSON string representing a WebQL query and converts it into a syntax tree.
     /// </summary>
     /// <param name="json">The JSON string representing the WebQL query.</param>
-    /// <param name="type">The type of the root element in the query.</param>
+    /// <param name="queryableType">The type of the root element in the query.</param>
     /// <returns>A Node representing the syntax tree of the query.</returns>
-    private Node RunAnalysis(string json, Type type)
+    public Node RunAnalysis(string json, Type queryableType)
     {
-        return AnalysisPipeline.Run(json, type);
+        return AnalysisPipeline.Run(json, queryableType);
     }
 
     /// <summary>

@@ -17,35 +17,28 @@ public static class AnalysisPipeline
     public static Node Run(string json, Type type)
     {
         var node = SyntaxAnalyser.Parse(json) as Node;
-        var context = new SemanticContext(type);
 
         //*
         // Runs the phases of analysis that are based on the syntax tree.
         //*
-        node = RunSemanticFeaturesPhase(context, node);
-        node = RunSemanticValidationPhase(context, node);
+        node = RunSemanticFeaturesPhase(type, node);
+        node = RunSemanticValidationPhase(type, node);
 
         return node;
     }
 
-    /// <summary>
-    /// Executes the semantic features phase of the analysis pipeline.
-    /// This phase processes the node using semantic features like relational operators,
-    /// adapting the structure to conform to WebQL syntax rules.
-    /// </summary>
-    /// <param name="context">The semantic context for analysis.</param>
-    /// <param name="node">The node to be processed with semantic features.</param>
-    /// <returns>The node transformed by the semantic features phase.</returns>
-    private static Node RunSemanticFeaturesPhase(SemanticContext context, Node node)
+    private static Node RunSemanticFeaturesPhase(Type type, Node node)
     {
+        node = new ImplicitEqualsSyntaxFeature()
+            .Visit(new(type), node);
+
         node = new ImplicitAndSyntaxFeature()
-           .Visit(context, node)
-           .As<ObjectNode>();
+           .Visit(new(type), node);
 
         return node;
     }
 
-    private static Node RunSemanticValidationPhase(SemanticContext context, Node node)
+    private static Node RunSemanticValidationPhase(Type type, Node node)
     {
         return node;
     }

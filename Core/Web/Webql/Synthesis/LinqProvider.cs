@@ -22,7 +22,55 @@ public class LinqProvider
     }
 
     /// <summary>
-    /// Translates a filter operator node into a LINQ 'Where' expression.
+    /// Translates a '$like' operator node into a LINQ 'string.ToLower().Contains($value)' expression.
+    /// </summary>
+    /// <param name="context">Context in which the expression is being translated.</param>
+    /// <param name="translator">Translator for handling node transformations.</param>
+    /// <param name="node">Node representing the filter operation.</param>
+    /// <returns>The translated LINQ expression.</returns>
+    /// <exception cref="Exception">Thrown if context is not queryable or if queryable type is null.</exception>
+    public virtual Expression TranslateLikeExpression(TranslationContext context, NodeTranslator translator, Node node)
+    {
+        var lhs = null as Expression;
+        var rhs = null as Expression;
+
+        if(node is not ArrayNode arrayNode)
+        {
+            lhs = context.Expression;
+            rhs = translator.Translate(context, node);
+        }
+        else
+        {
+            if(arrayNode.Length != 2)
+            {
+                throw TranslationThrowHelper.ArraySyntaxWrongBinaryArgumentsCount(context, null);
+            }
+
+            lhs = translator.Translate(context, arrayNode[0]);
+            var rhsContext = new TranslationContext(lhs.Type, lhs, context);
+            rhs = translator.Translate(rhsContext, arrayNode[1]);
+        }
+
+        if (lhs.Type != typeof(string))
+        {
+            throw TranslationThrowHelper.WrongArgumentType(context, "Left-hand side (LHS) expression is expected to be of type 'string'. Found type: " + lhs.Type);
+        }
+        if (rhs.Type != typeof(string))
+        {
+            throw TranslationThrowHelper.WrongArgumentType(context, "Right-hand side (RHS) expression is expected to be of type 'string'. Found type: " + rhs.Type);
+        }
+
+        var toLowerMethod = typeof(string).GetMethod("ToLower", new Type[] { })!;
+        var tolowerExpression = Expression.Call(lhs, toLowerMethod);
+
+        var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) });
+        var containsArgs = new[] { rhs };
+
+        return Expression.Call(tolowerExpression, containsMethod!, containsArgs);
+    }
+
+    /// <summary>
+    /// Translates a '$filter' operator node into a LINQ 'Where' expression.
     /// </summary>
     /// <param name="context">Context in which the expression is being translated.</param>
     /// <param name="translator">Translator for handling node transformations.</param>
@@ -53,7 +101,7 @@ public class LinqProvider
     }
 
     /// <summary>
-    /// Translates a projection operator node into a LINQ 'Select' expression.
+    /// Translates a '$project' operator node into a LINQ 'Select' expression.
     /// </summary>
     /// <param name="context">Context in which the expression is being translated.</param>
     /// <param name="translator">Translator for handling node transformations.</param>
@@ -183,7 +231,7 @@ public class LinqProvider
     }
 
     /// <summary>
-    /// Translates a skip operator node into a LINQ 'Skip' expression.
+    /// Translates a '$skip' operator node into a LINQ 'Skip' expression.
     /// </summary>
     /// <param name="context">Context in which the expression is being translated.</param>
     /// <param name="translator">Translator for handling node transformations.</param>
@@ -230,7 +278,7 @@ public class LinqProvider
     }
 
     /// <summary>
-    /// Translates a count operator node into a LINQ 'Count' expression.
+    /// Translates a '$count' operator node into a LINQ 'Count' expression.
     /// </summary>
     /// <param name="context">Context in which the expression is being translated.</param>
     /// <param name="translator">Translator for handling node transformations.</param>
@@ -266,7 +314,7 @@ public class LinqProvider
     }
 
     /// <summary>
-    /// Translates an 'any' operator node into a LINQ 'Any' expression.
+    /// Translates an '$any' operator node into a LINQ 'Any' expression.
     /// </summary>
     /// <param name="context">Context in which the expression is being translated.</param>
     /// <param name="translator">Translator for handling node transformations.</param>
@@ -296,7 +344,7 @@ public class LinqProvider
     }
 
     /// <summary>
-    /// Translates an 'all' operator node into a LINQ 'All' expression.
+    /// Translates an '$all' operator node into a LINQ 'All' expression.
     /// </summary>
     /// <param name="context">Context in which the expression is being translated.</param>
     /// <param name="translator">Translator for handling node transformations.</param>

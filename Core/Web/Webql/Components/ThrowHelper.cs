@@ -77,4 +77,49 @@ public static class TranslationThrowHelper
         return new TranslationException($"The '{operatorName}' operator is exclusive to queryable contexts and cannot be used in the current context. Ensure that this operator is applied in a part of the query where it can operate on a collection or queryable data type.", context);
     }
 
+    /// <summary>
+    /// Generates a TranslationException when an incorrect number of arguments are passed to an operator.
+    /// This method assists in enforcing argument count constraints in the translation process.
+    /// </summary>
+    /// <param name="context">The translation context, providing relevant details about where the error occurred.</param>
+    /// <param name="message">An optional message providing additional details about the error. If not provided, a default message is used.</param>
+    /// <returns>A TranslationException indicating the issue with the argument count.</returns>
+    public static Exception WrongArgumentsCount(TranslationContext context, string? message)
+    {
+        var detailedMessage = string.IsNullOrEmpty(message)
+            ? "An invalid number of arguments were passed to an operator."
+            : $"An invalid number of arguments were passed to an operator: {message}.";
+        return new TranslationException($"{detailedMessage} Ensure that the correct number of arguments are used as per the operator's definition.", context);
+    }
+
+    /// <summary>
+    /// Generates a TranslationException for incorrect argument counts in array syntax with binary operators.
+    /// This method is specifically aimed at handling errors in binary operator usage within array contexts.
+    /// </summary>
+    /// <param name="context">The translation context, providing context-specific details for the error.</param>
+    /// <param name="message">An optional message providing more details about the error. If not provided, a default message is used.</param>
+    /// <returns>A TranslationException highlighting the improper use of binary operators in array syntax.</returns>
+    public static Exception ArraySyntaxWrongBinaryArgumentsCount(TranslationContext context, string? message)
+    {
+        var detailedMessage = string.IsNullOrEmpty(message)
+            ? "An invalid number of arguments were passed to a binary operator within an array syntax."
+            : $"An invalid number of arguments were passed to a binary operator within an array syntax: {message}.";
+        return new TranslationException($"{detailedMessage} The correct syntax for binary operators within arrays should follow the format: {{ $operator: [<arg1>, <arg2>] }}", context);
+    }
+
+    /// <summary>
+    /// Generates a TranslationException when an operator receives an argument of an incorrect or unexpected type.
+    /// This method helps to enforce argument type constraints in the translation process.
+    /// </summary>
+    /// <param name="context">The translation context, providing relevant details about where the error occurred.</param>
+    /// <param name="message">An optional message providing additional details about the error. If not provided, a default message is used.</param>
+    /// <returns>A TranslationException indicating the issue with the argument type.</returns>
+    public static Exception WrongArgumentType(TranslationContext context, string? message)
+    {
+        var detailedMessage = string.IsNullOrEmpty(message)
+            ? "An argument of an incorrect or unexpected type was passed to an operator."
+            : $"An argument of an incorrect or unexpected type was passed to an operator: {message}.";
+        return new TranslationException($"{detailedMessage} Ensure that all arguments match the expected types as per the operator's definition.", context);
+    }
+
 }
