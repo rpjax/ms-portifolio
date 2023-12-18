@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ModularSystem.Core;
 using ModularSystem.Mongo;
+using ModularSystem.Mongo.Webql;
 using ModularSystem.Web;
 using ModularSystem.Webql;
 using ModularSystem.Webql.Synthesis;
@@ -59,7 +60,6 @@ public class MyDataController : WebqlCrudController<MyData>
             var json = (await ReadBodyAsStringAsync()) ?? Translator.EmptyQuery;
             var translator = new Translator(GetTranslatorOptions());
             var syntaxTree = translator.RunAnalysis(json, typeof(IEnumerable<MyData>));
-            //var expression = translator.TranslateToExpression(json, typeof(IEnumerable<MyData>));
 
             return Ok(syntaxTree.ToString());
         }
@@ -72,5 +72,18 @@ public class MyDataController : WebqlCrudController<MyData>
 
             return HandleException(e);
         }
+    }
+
+    protected override TranslatorOptions GetTranslatorOptions()
+    {
+        return new TranslatorOptions()
+        {
+            LinqProvider = new MongoLinqProvider(),
+        };
+    }
+
+    protected override TranslatedQueryable VisitTranslatedQueryable(TranslatedQueryable queryable)
+    {
+        return new MongoTranslatedQueryable(queryable);
     }
 }

@@ -113,7 +113,7 @@ public class NodeTypeEvaluator : SemanticsVisitor
             return EvaluateMemberAccess(context, node);
         }
 
-        switch (HelperTools.ParseOperatorString(lhs))
+        switch (ParseOperatorString(context, lhs))
         {
             case Operator.Add:
             case Operator.Subtract:
@@ -161,6 +161,10 @@ public class NodeTypeEvaluator : SemanticsVisitor
             case Operator.Sum:
             case Operator.Average:
                 return typeof(void);
+
+            case Operator.Like:
+            case Operator.RegexMatch:
+                return typeof(bool);
         }
 
         throw new Exception();

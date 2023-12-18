@@ -17,7 +17,7 @@ public class FilterSemanticsRewriterVisitor : SemanticsVisitor
 
         if (node.Lhs.IsOperator)
         {
-            var op = HelperTools.ParseOperatorString(node.Lhs.Value);
+            var op = ParseOperatorString(context, node.Lhs.Value);
             var opType = HelperTools.GetOperatorType(op);
             var opIsIterator = opType == OperatorType.Queryable;
 

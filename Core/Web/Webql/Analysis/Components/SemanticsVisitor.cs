@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ModularSystem.Webql.Analysis;
 
@@ -112,7 +113,23 @@ public class SemanticsVisitor
         if (node.Lhs.IsOperator)
         {
             var op = HelperTools.ParseOperatorString(node.Lhs.Value);
-            var opType = HelperTools.GetOperatorType(op);
+
+            if(op == null)
+            {
+                //*
+                // The decision to not throw an exception here is intentional and serves a specific purpose. 
+                // The "$Expr" operator, which comes into play in this scenario, is designed to create a new expression scope 
+                // without altering the semantic context. It effectively isolates expressions or contexts, allowing for 
+                // independent evaluation and interpretation within the established semantic rules. 
+                // This approach avoids introducing implicit behavior or validation that might be unintended in derived classes.
+                // In essence, the "$Expr" operator serves as a means to compartmentalize and isolate parts of the syntax tree,
+                // ensuring that each segment is processed in its own right, without unintended interference or assumptions.
+                // This is crucial for maintaining the integrity and modularity of the semantic analysis process.
+                //*
+                op = Operator.Expr;
+            }
+
+            var opType = HelperTools.GetOperatorType(op.Value);
             var operatorIsQueryable = opType == OperatorType.Queryable;
             var contextIsQueryable = context.IsQueryable();
 
@@ -174,6 +191,29 @@ public class SemanticsVisitor
     protected virtual Node? Visit(SemanticContext context, LiteralNode node)
     {
         return node;
+    }
+
+    //*
+    // Helper Methods Section
+    //*
+
+    /// <summary>
+    /// Converts a string representation of an operator into its corresponding <see cref="Operator"/> enum value.
+    /// </summary>
+    /// <param name="context">The semantic context for the operator parsing.</param>
+    /// <param name="value">The string representation of the operator.</param>
+    /// <returns>The Operator enum value.</returns>
+    /// <exception cref="SemanticException">Thrown when the operator string is not recognized.</exception>
+    protected Operator ParseOperatorString(SemanticContext context, string value)
+    {
+        var op = HelperTools.ParseOperatorString(value);
+
+        if (op == null)
+        {
+            throw SemanticThrowHelper.UnknownOrUnsupportedOperator(context, value);
+        }
+
+        return op.Value;
     }
 
 }

@@ -56,7 +56,7 @@ public class MongoTranslatedQueryable : TranslatedQueryable
             .MakeGenericMethod(OutputType);
 
         var token = default(CancellationToken);
-        var task = (Task)method.Invoke(null, new object[] { AsQueryable(), token })!;
+        var task = (Task)method.Invoke(null, new object[] { AsMongoQueryable(), token })!;
 
         await task;
 

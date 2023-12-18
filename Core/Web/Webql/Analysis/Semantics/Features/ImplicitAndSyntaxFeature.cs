@@ -35,7 +35,7 @@ internal class ImplicitAndSyntaxFeature : SemanticsVisitor
 
             expressions.Add(visitedItem);
 
-            if (ExpressionEvaluatesToBool(visitedItem) && context.EnableNavigation)
+            if (ExpressionEvaluatesToBool(context, visitedItem) && context.EnableNavigation)
             {
                 objects.Add(new(expressions));
                 expressions = new List<ExpressionNode>();
@@ -57,9 +57,10 @@ internal class ImplicitAndSyntaxFeature : SemanticsVisitor
     /// <summary>
     /// Determines if an expression node evaluates to a boolean value.
     /// </summary>
+    /// <param name="context">The current semantic context.</param>
     /// <param name="node">The ExpressionNode to evaluate.</param>
     /// <returns>True if the node evaluates to a boolean; otherwise, false.</returns>
-    private bool ExpressionEvaluatesToBool(ExpressionNode node)
+    private bool ExpressionEvaluatesToBool(SemanticContext context, ExpressionNode node)
     {
         var lastExpression = null as ExpressionNode;
         var workingExpression = node;
@@ -90,6 +91,6 @@ internal class ImplicitAndSyntaxFeature : SemanticsVisitor
             return false;
         }
 
-        return HelperTools.OperatorEvaluatesToBool(HelperTools.ParseOperatorString(lastExpression.Lhs.Value));
+        return HelperTools.OperatorEvaluatesToBool(ParseOperatorString(context, lastExpression.Lhs.Value));
     }
 }

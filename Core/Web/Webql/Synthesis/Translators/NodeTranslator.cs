@@ -162,14 +162,20 @@ public class NodeTranslator
         }
 
         var op = HelperTools.ParseOperatorString(lhs);
-        var opType = HelperTools.GetOperatorType(op);
+
+        if(op == null)
+        {
+            throw TranslationThrowHelper.UnknownOrUnsupportedOperator(context, lhs);
+        }
+
+        var opType = HelperTools.GetOperatorType(op.Value);
 
         if (rhs is ObjectNode objectNode && objectNode.IsEmpty() && opType == OperatorType.Queryable)
         {
             return context.Expression;
         }
 
-        return OperatorTranslator.Translate(context, HelperTools.ParseOperatorString(lhs), rhs);
+        return OperatorTranslator.Translate(context, op.Value, rhs);
     }
 
     /// <summary>

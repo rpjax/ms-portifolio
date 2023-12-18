@@ -24,8 +24,23 @@ public static class SemanticThrowHelper
         return new SemanticException($"{detailedMessage} Please review the context and stack trace for more details. If the issue persists, consider seeking assistance or reporting this as a bug.", context, e);
     }
 
-    // Additional helper methods can be added here to handle specific types of semantic exceptions.
-    // For example, methods to handle invalid type references, syntax errors, or unsupported operations.
+    /// <summary>
+    /// Generates a SemanticException for cases where an operator is either unknown or unsupported within the semantic context.
+    /// </summary>
+    /// <param name="context">The semantic context in which the operator is being used.</param>
+    /// <param name="operatorName">The name of the operator that is unrecognized or unsupported.</param>
+    /// <returns>A SemanticException indicating the problem with the operator.</returns>
+    /// <remarks>
+    /// This method is useful for scenarios where an operator might be misspelled, misused, or simply not applicable within the current context. <br/>
+    /// It provides a clear indication that the operator in question does not align with the semantic rules or expectations of the context.
+    /// </remarks>
+    public static Exception UnknownOrUnsupportedOperator(SemanticContext context, string operatorName)
+    {
+        var detailedMessage = $"The operator '{operatorName}' is either unknown or unsupported in the current semantic context.";
+        return new SemanticException($"{detailedMessage} Ensure that the operator is valid and applicable within the specific context of the query. If the operator name is correct, verify that the context supports its usage.", context);
+    }
+
+
 }
 
 /// <summary>
@@ -120,6 +135,23 @@ public static class TranslationThrowHelper
             ? "An argument of an incorrect or unexpected type was passed to an operator."
             : $"An argument of an incorrect or unexpected type was passed to an operator: {message}.";
         return new TranslationException($"{detailedMessage} Ensure that all arguments match the expected types as per the operator's definition.", context);
+    }
+
+    /// <summary>
+    /// Generates a TranslationException when an operator is either unknown or not supported in the translation context.
+    /// </summary>
+    /// <param name="context">The current translation context in which the error occurred.</param>
+    /// <param name="operatorName">The name of the operator causing the issue.</param>
+    /// <returns>A TranslationException indicating the operator's incompatibility or non-existence in the context.</returns>
+    /// <remarks>
+    /// This method addresses issues related to operator validity in the translation process. <br/>
+    /// It's particularly helpful for detecting and informing about operators that are either incorrectly identified <br/>
+    /// or not suitable for the given translation context, thus aiding in debugging and query refinement.
+    /// </remarks>
+    public static Exception UnknownOrUnsupportedOperator(TranslationContext context, string operatorName)
+    {
+        var detailedMessage = $"The operator '{operatorName}' is either unknown or unsupported in the current translation context.";
+        return new TranslationException($"{detailedMessage} Check the operator's validity and ensure it's appropriate for the translation context. Review the query and the operator's applicability to the types and structures involved.", context);
     }
 
 }

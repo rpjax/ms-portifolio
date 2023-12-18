@@ -270,9 +270,9 @@ public abstract class WebqlCrudController<T> : QueryableCrudController<T> where 
     public async Task<IActionResult> QueryAsync()
     {
         try
-        {
+        {     
             var json = (await ReadBodyAsStringAsync()) ?? Translator.EmptyQuery;
-            var translator = new Translator(GetTranslatorOptions());
+            var translator = GetTranslator();
             var queryable = await Service.CreateQueryAsync();
             var transformedQueryable = VisitTranslatedQueryable(translator.TranslateToQueryable(json, queryable));
             var data = await transformedQueryable.ToArrayAsync();
@@ -291,10 +291,19 @@ public abstract class WebqlCrudController<T> : QueryableCrudController<T> where 
     }
 
     /// <summary>
+    /// Gets the WebQL translator to translate queries.
+    /// </summary>
+    /// <returns></returns>
+    protected virtual Translator GetTranslator()
+    {
+        return new Translator(GetTranslatorOptions());
+    }
+
+    /// <summary>
     /// Sets the options used by the translator to interpret WebQL queries.
     /// </summary>
     /// <returns></returns>
-    protected TranslatorOptions GetTranslatorOptions()
+    protected virtual TranslatorOptions GetTranslatorOptions()
     {
         return new TranslatorOptions();
     }

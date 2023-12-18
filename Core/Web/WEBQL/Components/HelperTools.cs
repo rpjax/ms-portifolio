@@ -77,7 +77,7 @@ public static class HelperTools
     /// <param name="value">The string representation of the operator.</param>
     /// <returns>The OperatorV2 enum value.</returns>
     /// <exception cref="GeneratorException">Thrown when the operator string is not recognized.</exception>
-    public static Operator ParseOperatorString(string value)
+    public static Operator? ParseOperatorString(string value)
     {
         var operators = Enum.GetValues(typeof(Operator));
 
@@ -89,7 +89,7 @@ public static class HelperTools
             }
         }
 
-        throw new Exception($"The operator '{value}' is not recognized or supported. Please ensure it is a valid operator.");
+        return null;
     }
 
     public static OperatorType GetOperatorType(Operator op)
@@ -142,7 +142,7 @@ public static class HelperTools
                 return OperatorType.Aggregation;
 
             default:
-                throw new Exception();
+                throw new InvalidOperationException();
         }
     }
 
