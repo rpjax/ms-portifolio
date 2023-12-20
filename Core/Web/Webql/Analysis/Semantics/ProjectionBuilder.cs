@@ -8,8 +8,9 @@ namespace ModularSystem.Webql.Analysis;
 /// <summary>
 /// Constructs a projection for a WebQL query by building an anonymous type. <br/>
 /// This class is responsible for interpreting projection expressions within a WebQL query <br/> 
-/// and translating them into an anonymous type with corresponding properties and expressions.
+/// and translating them into an anonymous type with corresponding properties and expressions. 
 /// </summary>
+/// <remarks>This is a translation/synthesis tool.</remarks>
 public class ProjectionBuilder
 {
     /// <summary>

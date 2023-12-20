@@ -64,9 +64,9 @@ public class Translator
     /// </summary>
     /// <param name="json">The WebQL query string in JSON format.</param>
     /// <param name="genericType">The type of elements in the queryable.</param>
-    /// <param name="queryable">The initial queryable object to which the WebQL query is applied.</param>
+    /// <param name="source">The initial queryable object to which the WebQL query is applied.</param>
     /// <returns>A TranslatedQueryable object representing the results of the WebQL query.</returns>
-    public TranslatedQueryable TranslateToQueryable(string json, Type genericType, IEnumerable queryable)
+    public WebqlQueryable TranslateToQueryable(string json, Type genericType, IQueryable source)
     {
         var queryableType = Options.QueryableType.MakeGenericType(genericType);
         var parameter = Expression.Parameter(queryableType, "root");
@@ -78,14 +78,14 @@ public class Translator
         var lambdaExpression = Expression.Lambda(lambdaExpressionType, expression, parameter);
         var lambda = lambdaExpression.Compile();
 
-        var transformedQueryable = lambda.DynamicInvoke(queryable);
+        var transformedQueryable = lambda.DynamicInvoke(source);
 
         if (transformedQueryable == null)
         {
             throw QueryableTransformationFailedException();
         }
 
-        return new TranslatedQueryable(queryableType.GenericTypeArguments.First(), outputType.GenericTypeArguments.Last(), transformedQueryable);
+        return new WebqlQueryable(queryableType.GenericTypeArguments.First(), outputType.GenericTypeArguments.Last(), transformedQueryable);
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ public class Translator
     /// <param name="json">The WebQL query string in JSON format.</param>
     /// <param name="queryable">The initial queryable object of type T.</param>
     /// <returns>A TranslatedQueryable object representing the results of the WebQL query for the specified type.</returns>
-    public TranslatedQueryable TranslateToQueryable<T>(string json, IEnumerable<T> queryable)
+    public WebqlQueryable TranslateToQueryable<T>(string json, IQueryable<T> queryable)
     {
         return TranslateToQueryable(json, typeof(T), queryable);
     }
@@ -107,10 +107,10 @@ public class Translator
     /// </summary>
     /// <param name="expression">The expression tree representing the WebQL query logic.</param>
     /// <param name="genericType">The generic type argument of the queryable.</param>
-    /// <param name="queryable">The initial queryable object to which the WebQL query is applied.</param>
+    /// <param name="source">The initial queryable object to which the WebQL query is applied.</param>
     /// <returns>A TranslatedQueryable object representing the results of the WebQL query.</returns>
     /// <exception cref="Exception">Thrown if the transformation of the queryable fails.</exception>
-    public TranslatedQueryable TranslateToQueryable(Expression expression, Type genericType, IEnumerable queryable)
+    public WebqlQueryable TranslateToQueryable(Expression expression, Type genericType, IQueryable source)
     {
         var visitor = new ParameterExpressionReferenceBinder();
 
@@ -126,14 +126,27 @@ public class Translator
 
         var lambda = lambdaExpression.Compile();
 
-        var transformedQueryable = lambda.DynamicInvoke(queryable);
+        var transformedQueryable = lambda.DynamicInvoke(source);
 
         if (transformedQueryable == null)
         {
             throw QueryableTransformationFailedException();
         }
 
-        return new TranslatedQueryable(inputType.GenericTypeArguments.First(), outputType.GenericTypeArguments.Last(), transformedQueryable);
+        return new WebqlQueryable(inputType.GenericTypeArguments.First(), outputType.GenericTypeArguments.Last(), transformedQueryable);
+    }
+
+    /// <summary>
+    /// Translates a WebQL query string into a queryable object. <br/>
+    /// This method provides an integration point for executing WebQL queries against various data sources.
+    /// </summary>
+    /// <param name="expression">The expression tree representing the WebQL query logic.</param>
+    /// <param name="source">The initial queryable object to which the WebQL query is applied.</param>
+    /// <returns>A TranslatedQueryable object representing the results of the WebQL query.</returns>
+    /// <exception cref="Exception">Thrown if the transformation of the queryable fails.</exception>
+    public WebqlQueryable TranslateToQueryable<T>(Expression expression, IQueryable<T> source)
+    {
+        return TranslateToQueryable(expression, typeof(T), source);
     }
 
     /// <summary>

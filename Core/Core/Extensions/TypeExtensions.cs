@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Core;
+﻿using System.Collections;
+
+namespace ModularSystem.Core;
 
 /// <summary>
 /// Provides extension methods for the .NET System.Type class, offering useful functionalities for working with types and type hierarchies at runtime.
@@ -146,6 +148,32 @@ public static class TypeExtensions
         return fullname;
     }
 
+    public static bool IsEnumerable(this Type type)
+    {
+        return
+            typeof(IEnumerable).IsAssignableFrom(type)
+            || type.GetInterfaces().Any(i =>
+               i.IsGenericType &&
+               i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+    }
+
+    public static Type? TryGetEnumerableType(this Type type)
+    {
+        if (type.IsEnumerable())
+        {
+            if (type!.IsArray)
+            {
+                return type.GetElementType();
+            }
+            else
+            {
+                return type.GetGenericArguments().FirstOrDefault();
+            }
+        }
+
+        return null;
+    }
+
 }
 
 /// <summary>
@@ -169,8 +197,36 @@ public static class TypeComparer
     public static bool GenericCompare(Type type1, Type type2)
     {
         if (type1.IsGenericType && type2.IsGenericType)
-        {
-            return type1.GetGenericTypeDefinition() == type2.GetGenericTypeDefinition();
+        {           
+            var genericType1 = type1.GetGenericTypeDefinition();
+            var genericType2 = type2.GetGenericTypeDefinition();
+
+            var genericArgs1 = type1.GetGenericArguments();
+            var genericArgs2 = type2.GetGenericArguments();
+
+            if(genericType1 != genericType2)
+            {
+                return false;
+            }
+            if (genericArgs1.Length != genericArgs2.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < genericArgs1.Length; i++)
+            {
+                if(genericArgs1[i].IsGenericParameter || genericArgs2[i].IsGenericParameter)
+                {
+                    continue;
+                }
+
+                if (!GenericCompare(genericArgs1[i], genericArgs2[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;     
         }
 
         return type1 == type2;

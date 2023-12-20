@@ -24,6 +24,7 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
     /// <summary>
     /// Disposes the associated entity.
     /// </summary>
+    [NonAction]
     public virtual void Dispose()
     {
         Service.Dispose();
@@ -222,22 +223,22 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
 /// This controller supports querying operations using a queryable builder, allowing for complex querying logic on data sets.
 /// </summary>
 /// <typeparam name="T">The type of the entity that the controller manages. This type must implement <see cref="IQueryableModel"/>.</typeparam>
-public abstract class QueryableCrudController<T> : CrudController<T> where T : class, IQueryableModel
+public abstract class QueryableController<T> : WebController where T : class, IQueryableModel
 {
     /// <summary>
     /// Handles an incoming query request and returns the result of the query. <br/>
-    /// This method processes a query defined by a <see cref="SerializableQueryableBuilder"/>, allowing for dynamic querying capabilities.
+    /// This method processes a query defined by a <see cref="SerializableQueryable"/>, allowing for dynamic querying capabilities.
     /// </summary>
-    /// <param name="queryableBuilder">The queryable builder that defines the query logic.</param>
+    /// <param name="request">The serialized queryable that defines the query logic.</param>
     /// <returns>An IActionResult containing the query results or an error message.</returns>
     [HttpPost("queryable-query")]
-    public async Task<IActionResult> QueryAsync([FromBody] SerializableQueryableBuilder queryableBuilder)
+    public async Task<IActionResult> QueryAsync([FromBody] SerializableQueryable request)
     {
         try
         {
-            var queryable = await Service.CreateQueryAsync();
-            var transformedQueryable = VisitTranslatedQueryable(queryableBuilder.TranslateToQueryable(typeof(T), queryable));
-            var data = await transformedQueryable.ToArrayAsync();
+            var source = await Service.CreateQueryAsync();
+            var queryable = VisitQueryable(request.ToQueryable(source));
+            var data = await queryable.ToArrayAsync();
 
             return Ok(data);
         }
@@ -248,12 +249,27 @@ public abstract class QueryableCrudController<T> : CrudController<T> where T : c
     }
 
     /// <summary>
+    /// Disposes the associated entity.
+    /// </summary>
+    [NonAction]
+    public virtual void Dispose()
+    {
+        Service.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Gets the associated service instance for CRUD operations.
+    /// </summary>
+    protected abstract EntityService<T> Service { get; }
+
+    /// <summary>
     /// Provides an extension point to modify or inspect the TranslatedQueryable object before it is executed. <br/>
     /// Override this method in derived classes to customize the query execution process.
     /// </summary>
     /// <param name="queryable">The translated queryable object to visit.</param>
     /// <returns>The potentially modified TranslatedQueryable object.</returns>
-    protected virtual TranslatedQueryable VisitTranslatedQueryable(TranslatedQueryable queryable)
+    protected virtual WebqlQueryable VisitQueryable(WebqlQueryable queryable)
     {
         return queryable;
     }
@@ -264,31 +280,31 @@ public abstract class QueryableCrudController<T> : CrudController<T> where T : c
 /// This controller extends the basic CRUD functionalities to support WebQL query processing, allowing clients to query data using WebQL syntax.
 /// </summary>
 /// <typeparam name="T">The type of the entity that the controller manages. This type must implement <see cref="IQueryableModel"/>.</typeparam>
-public abstract class WebqlCrudController<T> : QueryableCrudController<T> where T : class, IQueryableModel
+public abstract class WebqlController<T> : WebController where T : class, IQueryableModel
 {
-    [HttpPost("webql-query")]
-    public async Task<IActionResult> QueryAsync()
-    {
-        try
-        {     
-            var json = (await ReadBodyAsStringAsync()) ?? Translator.EmptyQuery;
-            var translator = GetTranslator();
-            var queryable = await Service.CreateQueryAsync();
-            var transformedQueryable = VisitTranslatedQueryable(translator.TranslateToQueryable(json, queryable));
-            var data = await transformedQueryable.ToArrayAsync();
+    //[HttpPost("webql-query")]
+    //public async Task<IActionResult> QueryAsync()
+    //{
+    //    try
+    //    {     
+    //        var json = (await ReadBodyAsStringAsync()) ?? Translator.EmptyQuery;
+    //        var translator = GetTranslator();
+    //        var queryable = await Service.CreateQueryAsync();
+    //        var transformedQueryable = VisitTranslatedQueryable(translator.TranslateToQueryable(json, queryable));
+    //        var data = await transformedQueryable.ToArrayAsync();
 
-            return Ok(data);
-        }
-        catch (Exception e)
-        {
-            if (e is ParseException parseException)
-            {
-                return HandleException(new AppException(parseException.GetMessage(), ExceptionCode.InvalidInput));
-            }
+    //        return Ok(data);
+    //    }
+    //    catch (Exception e)
+    //    {
+    //        if (e is ParseException parseException)
+    //        {
+    //            return HandleException(new AppException(parseException.GetMessage(), ExceptionCode.InvalidInput));
+    //        }
 
-            return HandleException(e);
-        }
-    }
+    //        return HandleException(e);
+    //    }
+    //}
 
     /// <summary>
     /// Gets the WebQL translator to translate queries.

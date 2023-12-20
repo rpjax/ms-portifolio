@@ -1,6 +1,7 @@
 using ModularSystem.Core;
 using ModularSystem.Web.Expressions;
 using ModularSystem.Web.Http;
+using System.Text.Json;
 
 namespace ModularSystem.Web.Client;
 
@@ -61,6 +62,31 @@ internal class QueryEndpoint<T> : EndpointBase<SerializableQuery, QueryResult<T>
     {
         return new HttpRequest(RequestUri.AppendPath("query"), HttpMethod.Post)
             .SetJsonBody(input);
+    }
+}
+
+internal class QueryableEndpoint : EndpointBase<SerializableQueryable, object>
+{
+    public QueryableEndpoint(Http.Uri uri) : base(uri)
+    {
+
+    }
+
+    protected override HttpRequest CreateRequest(SerializableQueryable input)
+    {
+        var req = new HttpRequest(RequestUri.AppendPath("queryable-query"), HttpMethod.Post)
+            .SetJsonBody(input);
+        return req;
+    }
+
+    protected override Task<Exception> HandleExceptionAsync(Exception e, HttpRequest? request, HttpResponse? response)
+    {
+        return base.HandleExceptionAsync(e, request, response);
+    }
+
+    protected override Task<Exception> HandleFailureResponseAsync(HttpResponse response)
+    {
+        return base.HandleFailureResponseAsync(response);
     }
 }
 

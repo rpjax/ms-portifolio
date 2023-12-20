@@ -62,7 +62,7 @@ public static partial class TypeAddons
                 if (!TypeComparer.GenericCompare(parameter, methodParameter))
                 {
                     continueParent = true;
-                    continue;
+                    break; ;
                 }
             }
 

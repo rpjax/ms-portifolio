@@ -11,7 +11,7 @@ namespace ModularSystem.Mongo.Webql;
 /// This class extends the basic WebQL translated queryable functionalities
 /// to support MongoDB's asynchronous operations.
 /// </summary>
-public class MongoTranslatedQueryable : TranslatedQueryable
+public class MongoTranslatedQueryable : WebqlQueryable
 {
     /// <summary>
     /// Initializes a new instance of the MongoTranslatedQueryable class with specified types and query body.
@@ -28,7 +28,7 @@ public class MongoTranslatedQueryable : TranslatedQueryable
     /// Initializes a new instance of the MongoTranslatedQueryable class based on an existing TranslatedQueryable instance.
     /// </summary>
     /// <param name="queryable">The existing TranslatedQueryable instance to base this instance on.</param>
-    public MongoTranslatedQueryable(TranslatedQueryable queryable) : base(queryable)
+    public MongoTranslatedQueryable(WebqlQueryable queryable) : base(queryable)
     {
     }
 

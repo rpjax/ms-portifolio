@@ -187,3 +187,29 @@ public class CrudClient<T> : WebClient where T : class
         return dto.Value;
     }
 }
+
+public class QueryableClient : WebClient
+{
+    public QueryableClient(EndpointConfiguration config) : base(config)
+    {
+    }
+
+    /// <summary>
+    /// Asynchronously queries instances of type <typeparamref name="T"/> based on a search query.
+    /// </summary>
+    /// <param name="query">The serializable query for the search.</param>
+    /// <returns>A task representing the asynchronous operation, with a result of the query.</returns>
+    public async Task<IQueryable<object>> QueryAsync(SerializableQueryable query)
+    {
+        var data = await new QueryableEndpoint(CopyUri())
+            .RunAsync(query);
+
+        return (IQueryable<object>)data;
+    }
+
+}
+
+public class QueryableReader
+{
+
+}

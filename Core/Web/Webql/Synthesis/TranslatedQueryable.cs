@@ -10,7 +10,7 @@ namespace ModularSystem.Webql.Synthesis;
 /// This class provides the capability to interact with query results as both IQueryable and IEnumerable, <br/>
 /// supporting operations like enumeration, conversion to array, and count operations.
 /// </summary>
-public class TranslatedQueryable : IQueryable<object>
+public class WebqlQueryable : IQueryable<object>
 {
     /// <summary>
     /// Gets the input type of the query.
@@ -42,7 +42,7 @@ public class TranslatedQueryable : IQueryable<object>
     /// <param name="inputType">The type of input data for the query.</param>
     /// <param name="outputType">The type of output data from the query.</param>
     /// <param name="body">The query body.</param>
-    public TranslatedQueryable(Type inputType, Type outputType, object body)
+    public WebqlQueryable(Type inputType, Type outputType, object body)
     {
         InputType = inputType;
         OutputType = outputType;
@@ -53,7 +53,7 @@ public class TranslatedQueryable : IQueryable<object>
     /// Constructs a new instance of TranslatedQueryable based on an existing instance.
     /// </summary>
     /// <param name="queryable">The existing TranslatedQueryable instance to clone.</param>
-    public TranslatedQueryable(TranslatedQueryable queryable)
+    public WebqlQueryable(WebqlQueryable queryable)
     {
         InputType = queryable.InputType;
         OutputType = queryable.OutputType;

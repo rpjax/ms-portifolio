@@ -32,8 +32,36 @@ public class ExpressionConverter : ConverterBase, IExpressionConverter
     /// </summary>
     public ExpressionConverter()
     {
-        ToSerializableConverter = GetToSerializableConverter();
-        ToExpressionConverter = GetToExpressionConverter();
+        var typeConverter = new TypeConverter(TypeConversionStrategy.UseAssemblyName);
+        var memberInfoConverter = new MemberInfoConverter(typeConverter);
+        var methodInfoConverter = new MethodInfoConverter(typeConverter);
+        var propertyInfoConverter = new PropertyInfoConverter(typeConverter);
+        var constructorInfoConverter = new ConstructorInfoConverter(typeConverter);
+        var elementInitConverter = new ElementInitConverter(methodInfoConverter, this);
+        var memberBindingConverter = new MemberBindingConverter(this, memberInfoConverter, elementInitConverter);
+        var serializer = new ExprJsonSerializer();
+
+        ToSerializableConverter = new ExpressionToSerializable(
+            typeConverter,
+            memberInfoConverter,
+            methodInfoConverter,
+            propertyInfoConverter,
+            constructorInfoConverter,
+            memberBindingConverter,
+            elementInitConverter,
+            serializer
+        );
+
+        ToExpressionConverter = new SerializableToExpression(
+            typeConverter,
+            memberInfoConverter,
+            methodInfoConverter,
+            propertyInfoConverter,
+            constructorInfoConverter,
+            memberBindingConverter,
+            elementInitConverter,
+            serializer
+        );
     }
 
     /// <summary>

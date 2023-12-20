@@ -18,7 +18,7 @@ public class LinqProvider
     /// <returns>Type representing a queryable data source.</returns>
     public virtual Type GetQueryableType()
     {
-        return typeof(IEnumerable<>);
+        return typeof(IQueryable<>);
     }
 
     /// <summary>
@@ -34,14 +34,14 @@ public class LinqProvider
         var lhs = null as Expression;
         var rhs = null as Expression;
 
-        if(node is not ArrayNode arrayNode)
+        if (node is not ArrayNode arrayNode)
         {
             lhs = context.Expression;
             rhs = translator.Translate(context, node);
         }
         else
         {
-            if(arrayNode.Length != 2)
+            if (arrayNode.Length != 2)
             {
                 throw TranslationThrowHelper.ArraySyntaxWrongBinaryArgumentsCount(context, null);
             }
@@ -82,10 +82,6 @@ public class LinqProvider
         if (!context.IsQueryable())
         {
             throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Project);
-        }
-        if (context.Expression == null)
-        {
-            throw new Exception();
         }
 
         var queryableType = context.GetQueryableType();
@@ -193,7 +189,7 @@ public class LinqProvider
         }
         if (node is not LiteralNode literalNode)
         {
-            throw new Exception("");
+            throw TranslationThrowHelper.WrongNodeType(context, "Expected a LiteralNode for limit operation. Received a node of a different type.");
         }
 
         var queryableType = context.GetQueryableType();
@@ -246,7 +242,7 @@ public class LinqProvider
         }
         if (node is not LiteralNode literalNode)
         {
-            throw TranslationThrowHelper.WrongNodeType(context, "Expected n LiteralNode for skip operation. Received a node of a different type.");
+            throw TranslationThrowHelper.WrongNodeType(context, "Expected a LiteralNode for skip operation. Received a node of a different type.");
         }
 
         var queryableType = context.GetQueryableType();
@@ -387,10 +383,6 @@ public class LinqProvider
         {
             throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Project);
         }
-        if (context.Expression == null)
-        {
-            throw new Exception();
-        }
 
         var subContextType = context.GetQueryableType();
         var subContextExpression = Expression.Parameter(subContextType, "x");
@@ -421,6 +413,10 @@ public class LinqProvider
     }
 
     //*
+    // TODO: add methods for translating the missing operators.
+    //*
+
+    //*
     // MethodInfo section. 
     //*
 
@@ -430,12 +426,12 @@ public class LinqProvider
     /// <returns>MethodInfo for the 'Where' method.</returns>
     protected virtual MethodInfo GetWhereMethodInfo()
     {
-        return typeof(Enumerable).GetMethods(BindingFlags.Static | BindingFlags.Public)
-        .First(m => m.Name == "Where" &&
+        return typeof(Queryable).GetMethods(BindingFlags.Static | BindingFlags.Public)
+            .First(m => m.Name == "Where" &&
                     m.IsGenericMethodDefinition &&
                     m.GetParameters().Length == 2 &&
-                    m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
-                    m.GetParameters()[1].ParameterType.GetGenericTypeDefinition() == typeof(Func<,>));
+                    m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IQueryable<>) &&
+                    m.GetParameters()[1].ParameterType.GetGenericTypeDefinition() == typeof(Expression<>));
     }
 
     /// <summary>
@@ -444,20 +440,21 @@ public class LinqProvider
     /// <returns>MethodInfo for the 'Select' method.</returns>
     protected virtual MethodInfo GetSelectMethodInfo()
     {
-        return typeof(Enumerable).GetMethods()
-                .Where(m => m.Name == "Select" && m.IsGenericMethodDefinition)
-                .Select(m => new
-                {
-                    Method = m,
-                    Params = m.GetParameters(),
-                    Args = m.GetGenericArguments()
-                })
-                .Where(x => x.Params.Length == 2
-                            && x.Args.Length == 2  // 'Select' for IEnumerable<T> has two generic arguments
-                            && x.Params[0].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>)
-                            && x.Params[1].ParameterType.GetGenericTypeDefinition() == typeof(Func<,>))
-                .Select(x => x.Method)
-                .First(m => m != null);
+        return typeof(Queryable)
+            .GetMethods()
+            .Where(m => m.Name == "Select" && m.IsGenericMethodDefinition)
+            .Select(m => new
+            {
+                Method = m,
+                Params = m.GetParameters(),
+                Args = m.GetGenericArguments()
+            })
+            .Where(x => x.Params.Length == 2
+                && x.Args.Length == 2  
+                && x.Params[0].ParameterType.GetGenericTypeDefinition() == typeof(IQueryable<>)
+                && x.Params[1].ParameterType.GetGenericTypeDefinition() == typeof(Expression<>))
+            .Select(x => x.Method)
+            .First(m => m != null);
     }
 
     /// <summary>
@@ -466,12 +463,13 @@ public class LinqProvider
     /// <returns>MethodInfo for the 'Take' method.</returns>
     protected virtual MethodInfo GetTakeMethodInfo()
     {
-        return typeof(Enumerable).GetMethods()
-                .First(m => m.Name == "Take" &&
-                            m.IsGenericMethodDefinition &&
-                            m.GetParameters().Length == 2 &&
-                            m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
-                            m.GetParameters()[1].ParameterType == typeof(int));
+        return typeof(Queryable)
+            .GetMethods()
+            .First(m => m.Name == "Take" &&
+                m.IsGenericMethodDefinition &&
+                m.GetParameters().Length == 2 &&
+                m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IQueryable<>) &&
+                m.GetParameters()[1].ParameterType == typeof(int));
     }
 
     /// <summary>
@@ -480,12 +478,13 @@ public class LinqProvider
     /// <returns>MethodInfo for the 'Skip' method.</returns>
     protected virtual MethodInfo GetSkipMethodInfo()
     {
-        return typeof(Enumerable).GetMethods()
-                .First(m => m.Name == "Skip" &&
-                            m.IsGenericMethodDefinition &&
-                            m.GetParameters().Length == 2 &&
-                            m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
-                            m.GetParameters()[1].ParameterType == typeof(int));
+        return typeof(Queryable)
+            .GetMethods()
+            .First(m => m.Name == "Skip" &&
+                m.IsGenericMethodDefinition &&
+                m.GetParameters().Length == 2 &&
+                m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IQueryable<>) &&
+                m.GetParameters()[1].ParameterType == typeof(int));
     }
 
     /// <summary>
@@ -494,11 +493,12 @@ public class LinqProvider
     /// <returns>MethodInfo for the 'Count' method.</returns>
     protected virtual MethodInfo GetCountMethodInfo()
     {
-        return typeof(Enumerable).GetMethods()
-                .First(m => m.Name == "Count" &&
-                            m.IsGenericMethodDefinition &&
-                            m.GetParameters().Length == 1 &&
-                            m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+        return typeof(Queryable)
+            .GetMethods()
+            .First(m => m.Name == "Count" &&
+                m.IsGenericMethodDefinition &&
+                m.GetParameters().Length == 1 &&
+                m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IQueryable<>));
     }
 
     /// <summary>
@@ -507,12 +507,13 @@ public class LinqProvider
     /// <returns>MethodInfo for the 'Any' method.</returns>
     protected virtual MethodInfo GetAnyMethodInfo()
     {
-        return typeof(Enumerable).GetMethods()
-                .First(m => m.Name == "Any" &&
-                            m.IsGenericMethodDefinition &&
-                            m.GetParameters().Length == 2 &&
-                            m.GetParameters()[1].ParameterType.GetGenericTypeDefinition() == typeof(Func<,>) &&
-                            m.GetParameters()[1].ParameterType.GetGenericArguments()[1] == typeof(bool));
+        return typeof(Queryable)
+            .GetMethods(BindingFlags.Static | BindingFlags.Public)
+            .First(m => m.Name == "Any" &&
+                m.IsGenericMethodDefinition &&
+                m.GetParameters().Length == 2 &&
+                m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IQueryable<>) &&
+                m.GetParameters()[1].ParameterType.GetGenericTypeDefinition() == typeof(Expression<>));
     }
 
     /// <summary>
@@ -521,12 +522,13 @@ public class LinqProvider
     /// <returns>MethodInfo for the 'All' method.</returns>
     protected virtual MethodInfo GetAllMethodInfo()
     {
-        return typeof(Enumerable).GetMethods()
-                .First(m => m.Name == "All" &&
-                            m.IsGenericMethodDefinition &&
-                            m.GetParameters().Length == 2 &&
-                            m.GetParameters()[1].ParameterType.GetGenericTypeDefinition() == typeof(Func<,>) &&
-                            m.GetParameters()[1].ParameterType.GetGenericArguments()[1] == typeof(bool));
+        return typeof(Queryable)
+            .GetMethods(BindingFlags.Static | BindingFlags.Public)
+            .First(m => m.Name == "All" &&
+                m.IsGenericMethodDefinition &&
+                m.GetParameters().Length == 2 &&
+                m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IQueryable<>) &&
+                m.GetParameters()[1].ParameterType.GetGenericTypeDefinition() == typeof(Expression<>));
     }
 
     /// <summary>
@@ -535,11 +537,11 @@ public class LinqProvider
     /// <returns>MethodInfo for the 'Min' method.</returns>
     protected virtual MethodInfo GetMinMethodInfo()
     {
-        return typeof(Enumerable).GetMethods()
-                .First(m => m.Name == "Min" &&
-                            m.IsGenericMethodDefinition &&
-                            m.GetParameters().Length == 1 &&
-                            m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+        return typeof(Queryable).GetMethods()
+            .First(m => m.Name == "Min" &&
+                m.IsGenericMethodDefinition &&
+                m.GetParameters().Length == 1 &&
+                m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IQueryable<>));
     }
 
     /// <summary>
@@ -548,11 +550,11 @@ public class LinqProvider
     /// <returns>MethodInfo for the 'Max' method.</returns>
     protected virtual MethodInfo GetMaxMethodInfo()
     {
-        return typeof(Enumerable).GetMethods()
-                .First(m => m.Name == "Max" &&
-                            m.IsGenericMethodDefinition &&
-                            m.GetParameters().Length == 1 &&
-                            m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+        return typeof(Queryable).GetMethods()
+            .First(m => m.Name == "Max" &&
+                m.IsGenericMethodDefinition &&
+                m.GetParameters().Length == 1 &&
+                m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IQueryable<>));
     }
 
     /// <summary>
@@ -562,12 +564,18 @@ public class LinqProvider
     /// <returns>MethodInfo for the 'Sum' method with the specified return type.</returns>
     protected virtual MethodInfo FindSumMethod(Type returnType)
     {
-        return typeof(Enumerable).GetMethods()
-                .First(m => m.Name == "Sum" &&
-                            m.IsGenericMethodDefinition &&
-                            m.ReturnType == returnType &&
-                            m.GetParameters().Length == 1 &&
-                            m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+        return typeof(Queryable)
+            .GetMethods(BindingFlags.Static | BindingFlags.Public)
+            .First(m => m.Name == "Sum" &&
+                m.IsGenericMethodDefinition &&
+                m.GetParameters().Length == 2 &&
+                m.GetParameters()[0].ParameterType.IsGenericType &&
+                m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IQueryable<>) &&
+                m.GetParameters()[1].ParameterType.IsGenericType &&
+                m.GetParameters()[1].ParameterType.GetGenericTypeDefinition() == typeof(Expression<>) &&
+                m.GetParameters()[1].ParameterType.GetGenericArguments()[0].IsGenericType &&
+                m.GetParameters()[1].ParameterType.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(Func<,>) &&
+                m.GetParameters()[1].ParameterType.GetGenericArguments()[0].GetGenericArguments()[1] == returnType);
     }
 
     /// <summary>
@@ -622,12 +630,18 @@ public class LinqProvider
     /// <returns>MethodInfo for the 'Average' method with the specified return type.</returns>
     protected virtual MethodInfo FindAverageMethod(Type returnType)
     {
-        return typeof(Enumerable).GetMethods()
-                .First(m => m.Name == "Average" &&
-                            m.IsGenericMethodDefinition &&
-                            m.ReturnType == returnType &&
-                            m.GetParameters().Length == 1 &&
-                            m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+        return typeof(Queryable)
+            .GetMethods(BindingFlags.Static | BindingFlags.Public)
+            .First(m => m.Name == "Average" &&
+                m.IsGenericMethodDefinition &&
+                m.GetParameters().Length == 2 &&
+                m.GetParameters()[0].ParameterType.IsGenericType &&
+                m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IQueryable<>) &&
+                m.GetParameters()[1].ParameterType.IsGenericType &&
+                m.GetParameters()[1].ParameterType.GetGenericTypeDefinition() == typeof(Expression<>) &&
+                m.GetParameters()[1].ParameterType.GetGenericArguments()[0].IsGenericType &&
+                m.GetParameters()[1].ParameterType.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(Func<,>) &&
+                m.GetParameters()[1].ParameterType.GetGenericArguments()[0].GetGenericArguments()[1] == returnType);
     }
 
     /// <summary>
