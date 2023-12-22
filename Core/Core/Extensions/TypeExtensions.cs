@@ -123,15 +123,8 @@ public static class TypeExtensions
     /// <param name="type">The type for which the fully qualified name is being retrieved.</param>
     /// <returns>The fully qualified name of the type.</returns>
     /// <exception cref="ArgumentException">Thrown when the full name of the type is null.</exception>
-    public static string GetQualifiedFullName(this Type type)
+    public static string GetQualifiedAssemblyName(this Type type)
     {
-        var fullname = type.AssemblyQualifiedName;
-
-        if (fullname == null)
-        {
-            throw new ArgumentException(nameof(fullname));
-        }
-
         if (type.IsGenericType)
         {
             var genericTypeDefinition = type.GetGenericTypeDefinition();
@@ -139,13 +132,18 @@ public static class TypeExtensions
 
             if (genericTypeName == null)
             {
-                throw new Exception();
+                throw new ArgumentException($"Missing argument: {nameof(Type)}.{nameof(Type.AssemblyQualifiedName)}");
             }
 
             return genericTypeName;
         }
 
-        return fullname;
+        if (type.AssemblyQualifiedName == null)
+        {
+            throw new ArgumentException($"Missing argument: {nameof(Type)}.{nameof(Type.AssemblyQualifiedName)}");
+        }
+
+        return type.AssemblyQualifiedName;
     }
 
     public static bool IsEnumerable(this Type type)

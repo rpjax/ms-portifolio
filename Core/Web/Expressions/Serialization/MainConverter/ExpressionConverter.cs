@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Web.Expressions;
@@ -68,11 +69,19 @@ public class ExpressionConverter : ConverterBase, IExpressionConverter
     /// Converts an <see cref="Expression"/> instance to its serializable counterpart.
     /// </summary>
     /// <param name="context">The conversion context.</param>
-    /// <param name="instance">The expression instance to convert.</param>
+    /// <param name="expression">The expression instance to convert.</param>
     /// <returns>The serializable representation of the expression.</returns>
-    public SerializableExpression Convert(ConversionContext context, Expression instance)
+    public SerializableExpression Convert(ConversionContext context, Expression expression)
     {
-        return ToSerializableConverter.Convert(context, instance);
+        var serializable = ToSerializableConverter.Convert(context, expression);
+
+        //*
+        // Runs the visitor pipeline. Fix are required for webql.
+        //*
+        serializable = new AnonymousNewFix()
+            .Visit(serializable);
+
+        return serializable;
     }
 
     /// <summary>
@@ -130,6 +139,70 @@ public class ExpressionConverter : ConverterBase, IExpressionConverter
             elementInitConverter,
             serializer
         );
+    }
+
+}
+
+internal class AnonymousNewFix : SerializableExpressionVisitor
+{
+    protected override SerializableExpression VisitMemberInit(SerializableMemberInitExpression node)
+    {
+        if(node.NewExpression != null)
+        {
+            node.NewExpression.IsChildToMemberInit = true;
+        }
+
+        return base.VisitMemberInit(node);
+    }
+
+    protected override SerializableExpression VisitNew(SerializableNewExpression node)
+    {
+        if (node.IsChildToMemberInit)
+        {
+            return node;
+        }
+
+        var constructorInfo = node.ConstructorInfo;
+
+        if(constructorInfo == null)
+        {
+            return node;
+        }
+
+        var constructedType = constructorInfo.DeclaringType;
+
+        if (constructedType == null || !constructedType.IsAnonymousType)
+        {
+            return node;
+        }
+
+        var constructorParams = constructorInfo.Parameters;
+        var arguments = node.Arguments;
+        var members = node.Members!;
+        var propertyBindings = new List<SerializableMemberBinding>();
+
+        for (int i = 0; i < constructorParams.Length; i++)
+        {
+            var memberInfo = members[i];
+            var binding = new SerializableMemberBinding()
+            {
+                BindingType = MemberBindingType.Assignment,
+                Expression = arguments[i],
+                MemberInfo = memberInfo
+            };
+
+            propertyBindings.Add(binding);
+        }
+
+        var memberInit = new SerializableMemberInitExpression()
+        {
+            NewExpression = node,
+            Bindings = propertyBindings.ToArray(),
+        };
+
+        node.IsChildToMemberInit = true;
+
+        return memberInit;
     }
 
 }

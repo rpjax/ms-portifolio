@@ -5,11 +5,18 @@ using System.Linq.Expressions;
 
 namespace ModularSystem.Web.Expressions;
 
+/// <summary>
+/// Defines an interface for converting <see cref="Expression"/> objects to <see cref="SerializableExpression"/> objects within a given <see cref="ConversionContext"/>.
+/// </summary>
 public interface IExpressionToSerializableConverter : IConverter<Expression, SerializableExpression, ConversionContext>
 {
 
 }
 
+/// <summary>
+/// Converts <see cref="Expression"/> objects to <see cref="SerializableExpression"/> objects. <br/>
+/// This class handles the conversion of various expression types, ensuring they are transformed into a format suitable for serialization.
+/// </summary>
 public class ExpressionToSerializable : ConverterBase, IExpressionToSerializableConverter
 {
     private ITypeConverter TypeConverter { get; }
@@ -21,6 +28,17 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
     private IElementInitConverter ElementInitConverter { get; }
     private ISerializer Serializer { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the ExpressionToSerializable class with converters and a serializer.
+    /// </summary>
+    /// <param name="typeConverter">Converter for types.</param>
+    /// <param name="memberInfoConverter">Converter for member info.</param>
+    /// <param name="methodInfoConverter">Converter for method info.</param>
+    /// <param name="propertyInfoConverter">Converter for property info.</param>
+    /// <param name="constructorInfoConverter">Converter for constructor info.</param>
+    /// <param name="memberBindingConverter">Converter for member bindings.</param>
+    /// <param name="elementInitConverter">Converter for element initializers.</param>
+    /// <param name="serializer">Serializer for converting expressions to a serializable format.</param>
     public ExpressionToSerializable(
         ITypeConverter typeConverter,
         IMemberInfoConverter memberInfoConverter,
@@ -41,6 +59,12 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         Serializer = serializer;
     }
 
+    /// <summary>
+    /// Converts an Expression object to a SerializableExpression object within the provided ConversionContext.
+    /// </summary>
+    /// <param name="context">The context in which the conversion is taking place.</param>
+    /// <param name="expression">The Expression object to convert.</param>
+    /// <returns>A SerializableExpression object representing the converted expression.</returns>
     public SerializableExpression Convert(ConversionContext context, Expression expression)
     {
         expression = Visit(expression);
@@ -561,7 +585,15 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
         return new()
         {
             NodeType = (ExtendedExpressionType)expression.NodeType,
-            ConstructorInfo = ConstructorInfoConverter.Convert(context, expression.Constructor!)
+            ConstructorInfo = ConstructorInfoConverter.Convert(context, expression.Constructor!),
+            Arguments = expression.Arguments
+                .Transform(x => Convert(context, x))
+                .ToArray(),
+            Members = expression.Members != null
+                ? expression.Members
+                    .Transform(x => MemberInfoConverter.Convert(context, x))
+                    .ToArray()
+                : Array.Empty<SerializableMemberInfo>()   
         };
     }
 

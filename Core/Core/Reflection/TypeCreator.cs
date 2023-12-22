@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using ModularSystem.Core.Threading;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -23,23 +24,44 @@ public static class TypeCreator
 
     private static ConcurrentDictionary<string, Type> Cache = new();
 
+    //*
+    // Define a significantly large threshold for the cache size to accommodate the needs of
+    // long-running applications that extensively use anonymous types.
+    // This routine serves as a safeguard against potential memory leaks due to unchecked growth of the dictionary.
+    // With an estimated average size of 2 KB per 'Type' instance, a cache with 100,000 entries
+    // would occupy approximately 195.3 MB (100,000 * 2 KB ≈ 195.3 MB).
+    // Therefore, the cache is capped to limit its size to around 200 megabytes.
+    // This aproach is straightforward, but may have to be revised in the future.
+    //*
+    private static TaskRoutine CacheResetRoutine { get; }
+        = new LambdaTaskRoutine(TimeSpan.FromDays(1), async (cancellationToken) =>
+        {
+            if (Cache.Count > 100_000)
+            {
+                Cache.Clear();
+            }
+        })
+        .Start();
+
     /// <summary>
-    /// Dynamically creates an anonymous type based on the provided properties. 
-    /// This method allows for the creation of types with customizable properties, 
-    /// including the option to have setters and a default constructor.
-    /// It is particularly useful in scenarios where types need to be defined at runtime.
+    /// Dynamically creates an anonymous type based on the properties and options provided.<br/> 
+    /// This method facilitates the creation of types with customizable properties, <br/>
+    /// including options for setters, a default constructor, and generic type arguments.<br/>
+    /// It is especially useful in scenarios where types need to be defined at runtime.
     /// </summary>
-    /// <param name="properties">An array of <see cref="AnonymousPropertyDefinition"/> defining the properties of the anonymous type.</param>
-    /// <param name="options">An instance of <see cref="AnonymousTypeCreationOptions"/> specifying options like name, setters, and constructor.</param>
+    /// <param name="options">An instance of <see cref="AnonymousTypeCreationOptions"/> specifying the properties <br/>
+    /// and options for the anonymous type, such as name, setters, constructor, and generic type arguments.</param>
     /// <returns>A new dynamically created type that represents the defined anonymous type.</returns>
     /// <remarks>
-    /// Utilizes <see cref="System.Reflection.Emit.AssemblyBuilder"/> and <see cref="System.Reflection.Emit.ModuleBuilder"/>
-    /// to create a type at runtime, resembling C# compiler-created anonymous types with added flexibility.
+    /// Utilizes <see cref="System.Reflection.Emit.AssemblyBuilder"/> and <see cref="System.Reflection.Emit.ModuleBuilder"/><br/>
+    /// to construct a type at runtime. This approach offers flexibility similar to C# compiler-created anonymous types,<br/>
+    /// but with added customization capabilities provided by the options.
     /// </remarks>
-    public static Type CreateAnonymousType(AnonymousPropertyDefinition[] properties, AnonymousTypeCreationOptions? options = null)
+    public static Type CreateAnonymousType(AnonymousTypeCreationOptions? options = null)
     {
         options ??= new();
 
+        var properties = options.Properties.ToArray();
         var signatureKey = CreateSignatureKey(properties);
 
         if (options.UseCache && Cache.ContainsKey(signatureKey))
@@ -47,43 +69,81 @@ public static class TypeCreator
             return Cache[signatureKey];
         }
 
-        var name = options.Name;
         var createSetters = options.CreateSetters;
 
         // Cria um assembly dinâmico
-        var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("DynamicAssembly"), AssemblyBuilderAccess.Run);
+        var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(
+            new AssemblyName("DynamicAssembly"),
+            AssemblyBuilderAccess.RunAndCollect
+        );
+
         var moduleBuilder = assemblyBuilder.DefineDynamicModule("DynamicModule");
 
         // Cria um tipo dinâmico
-        var typeBuilder = moduleBuilder.DefineType($"{name}", TypeAttributes.Public);
+        var typeBuilder = moduleBuilder.DefineType($"{options.Name}", TypeAttributes.Public);
+
+        // Adiciona argumentos de tipo genérico, se existirem
+        if (options.GenericTypeArguments.Length > 0)
+        {
+            var genericTypeNames = options.GenericTypeArguments
+                .Select((_, i) => $"T{i}")
+                .ToArray();
+
+            var genericTypeParameters = typeBuilder.DefineGenericParameters(genericTypeNames);
+
+            for (int i = 0; i < genericTypeParameters.Length; i++)
+            {
+                //*
+                // TODO: Type Constraints
+                //*
+            }
+        }
 
         // Define os campos
         var fieldBuilders = new FieldBuilder[properties.Length];
 
         // Defines some data notations attributes that exists in a real anonymous type generated by the compiler.
         typeBuilder.SetCustomAttribute(new CustomAttributeBuilder(
-            typeof(CompilerGeneratedAttribute).GetConstructor(Type.EmptyTypes)!, Array.Empty<object>()));
+            typeof(CompilerGeneratedAttribute)
+                .GetConstructor(Type.EmptyTypes)!,
+            Array.Empty<object>()
+        ));
 
         typeBuilder.SetCustomAttribute(new CustomAttributeBuilder(
-            typeof(DebuggerDisplayAttribute).GetConstructor(new[] { typeof(string) })!, new object[] { "{ToString()}" }));
+            typeof(DebuggerDisplayAttribute)
+                .GetConstructor(new[] { typeof(string) })!,
+            new object[] { "{ToString()}" }
+        ));
 
 
         for (int i = 0; i < properties.Length; i++)
         {
-            fieldBuilders[i] = typeBuilder.DefineField($"<{properties[i].Name}>k__BackingField", properties[i].Type, FieldAttributes.Private);
+            fieldBuilders[i] = typeBuilder.DefineField(
+                $"<{properties[i].Name}>k__BackingField",
+                properties[i].Type,
+                FieldAttributes.Private
+            );
         }
 
         if (options.CreateDefaultConstructor)
         {
             // default constructor
-            var defaultConstructorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, Type.EmptyTypes);
+            var defaultConstructorBuilder = typeBuilder.DefineConstructor(
+                MethodAttributes.Public,
+                CallingConventions.Standard, Type.EmptyTypes
+            );
+
             var defaultConstructorGenerator = defaultConstructorBuilder.GetILGenerator();
 
             defaultConstructorGenerator.Emit(OpCodes.Ret);
         }
 
         // Define o construtor
-        var constructorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, properties.Select(p => p.Type).ToArray());
+        var constructorBuilder = typeBuilder.DefineConstructor(
+            MethodAttributes.Public,
+            CallingConventions.Standard,
+            properties.Select(p => p.Type).ToArray()
+        );
 
         var ctorIL = constructorBuilder.GetILGenerator();
 
@@ -99,10 +159,20 @@ public static class TypeCreator
         // Define as propriedades e seus acessadores
         for (int i = 0; i < properties.Length; i++)
         {
-            var propertyBuilder = typeBuilder.DefineProperty(properties[i].Name, PropertyAttributes.HasDefault, properties[i].Type, null);
+            var propertyBuilder = typeBuilder.DefineProperty(
+                properties[i].Name, 
+                PropertyAttributes.HasDefault, 
+                properties[i].Type,
+                null
+            );
 
             // Define o getter
-            var getterMethodBuilder = typeBuilder.DefineMethod($"get_{properties[i].Name}", MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig, properties[i].Type, Type.EmptyTypes);
+            var getterMethodBuilder = typeBuilder.DefineMethod(
+                $"get_{properties[i].Name}", 
+                MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
+                properties[i].Type,
+                Type.EmptyTypes
+            );
             var getterIL = getterMethodBuilder.GetILGenerator();
 
             getterIL.Emit(OpCodes.Ldarg_0);
@@ -112,7 +182,11 @@ public static class TypeCreator
 
             if (createSetters)
             {
-                var setterMethodBuilder = typeBuilder.DefineMethod($"set_{properties[i].Name}", MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig, null, new[] { properties[i].Type });
+                var setterMethodBuilder = typeBuilder.DefineMethod(
+                    $"set_{properties[i].Name}", 
+                    MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig, 
+                    null, new[] { properties[i].Type }
+                );
                 var setterIL = setterMethodBuilder.GetILGenerator();
 
                 setterIL.Emit(OpCodes.Ldarg_0);
@@ -131,24 +205,17 @@ public static class TypeCreator
             throw new Exception();
         }
 
+        if(options.GenericTypeArguments.Length > 0)
+        {
+            type = type.MakeGenericType(options.GenericTypeArguments);
+        }
+
         if (options.UseCache)
         {
             Cache.AddOrUpdate(signatureKey, type, (key, current) => type);
         }
 
         return type;
-    }
-
-    /// <summary>
-    /// Overload of <see cref="CreateAnonymousType(AnonymousPropertyDefinition[], AnonymousTypeCreationOptions)"/> for creating an anonymous type from an enumerable of property definitions.
-    /// This method simplifies the creation of anonymous types by allowing the use of an IEnumerable for property definitions.
-    /// </summary>
-    /// <param name="properties">An enumerable of <see cref="AnonymousPropertyDefinition"/> for defining the properties of the anonymous type.</param>
-    /// <param name="options">Optional settings for creating the anonymous type, such as name, setters, and constructor.</param>
-    /// <returns>A new dynamically created type that represents the defined anonymous type.</returns>
-    public static Type CreateAnonymousType(IEnumerable<AnonymousPropertyDefinition> properties, AnonymousTypeCreationOptions? options = null)
-    {
-        return CreateAnonymousType(properties.ToArray(), options);
     }
 
     private static string CreateSignatureKey(AnonymousPropertyDefinition[] propertyDefinitions)
@@ -159,7 +226,7 @@ public static class TypeCreator
         {
             keyBuilder.Append('[');
             keyBuilder.Append(propertyDefinition.Name);
-            keyBuilder.Append(propertyDefinition.Type.GetQualifiedFullName());
+            keyBuilder.Append(propertyDefinition.Type.GetQualifiedAssemblyName());
             keyBuilder.Append(']');
         }
 
@@ -207,6 +274,28 @@ public class AnonymousTypeCreationOptions
     /// Defaults to a generic anonymous type name if not set.
     /// </remarks>
     public string Name { get; set; } = TypeCreator.AnonymousTypePrefix;
+
+    /// <summary>
+    /// Provides a collection of property definitions for the dynamically created anonymous type.
+    /// </summary>
+    /// <remarks>
+    /// Each property definition in this collection includes the name and type of the property. <br/>
+    /// This collection dictates the structure of the anonymous type by specifying the properties it will contain.
+    /// </remarks>
+    public IEnumerable<AnonymousPropertyDefinition> Properties { get; set; }
+        = Array.Empty<AnonymousPropertyDefinition>();
+
+    /// <summary>
+    /// Gets or sets the generic type arguments for the dynamically created anonymous type.
+    /// </summary>
+    /// <remarks>
+    /// This array of <see cref="Type"/> objects represents the generic type arguments <br/>
+    /// to be applied to the anonymous type. If no generic type arguments are specified, <br/>
+    /// the anonymous type will be non-generic. This feature allows for the creation <br/>
+    /// of generic anonymous types, enhancing their flexibility and applicability <br/>
+    /// in scenarios where generic functionality is required.
+    /// </remarks>
+    public Type[] GenericTypeArguments { get; set; } = Array.Empty<Type>();
 
     /// <summary>
     /// Indicates whether to use a cache for storing and reusing dynamically created types. <br/>

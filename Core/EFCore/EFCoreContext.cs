@@ -54,13 +54,16 @@ public class EFCoreContext : DbContext
                 }
 
                 var foreignKeyColumnName = $"{entityType.Name}Id";
-                var elementTableTypeProps = new AnonymousPropertyDefinition[]
+                var options = new AnonymousTypeCreationOptions()
                 {
-                    new(nameof(EFModel.Id), typeof(long)),
-                    new(foreignKeyColumnName, typeof(long)),
-                    new("Value", elementType)
+                    Properties = new AnonymousPropertyDefinition[]
+                    {
+                        new(nameof(EFModel.Id), typeof(long)),
+                        new(foreignKeyColumnName, typeof(long)),
+                        new("Value", elementType)
+                    }
                 };
-                var elementTableType = TypeCreator.CreateAnonymousType(elementTableTypeProps);
+                var elementTableType = TypeCreator.CreateAnonymousType(options);
 
                 // Criar uma tabela para a coleção
                 modelBuilder

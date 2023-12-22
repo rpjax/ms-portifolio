@@ -116,11 +116,12 @@ public class ProjectionBuilder
 
         var options = new AnonymousTypeCreationOptions()
         {
+            Properties = Properties,
             CreateDefaultConstructor = true,
             CreateSetters = true
         };
 
-        ProjectedType = TypeCreator.CreateAnonymousType(Properties, options);
+        ProjectedType = TypeCreator.CreateAnonymousType(options);
 
         if (ProjectedType == null)
         {

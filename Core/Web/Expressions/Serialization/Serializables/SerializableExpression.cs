@@ -9,7 +9,7 @@ public abstract class SerializableExpression
     /// <summary>
     /// Gets or sets the specific type of the node within the expression tree, like Add, Subtract, And, Or, etc.
     /// </summary>
-    public ExtendedExpressionType NodeType { get; set; }
+    public ExtendedExpressionType NodeType { get; init; }
 
     public string? ReferenceId { get; set; } = null;
 
@@ -202,6 +202,7 @@ public abstract class SerializableExpression
     {
         return GetConcreteType((ExtendedExpressionType)type);
     }
+
 }
 
 /// <summary>
@@ -210,14 +211,6 @@ public abstract class SerializableExpression
 internal class EmptySerializableNode : SerializableExpression
 {
 
-}
-
-public class SerializableBinaryExpression : SerializableExpression
-{
-    public bool IsLiftedToNull { get; set; }
-    public SerializableType? Type { get; set; }
-    public SerializableExpression? Left { get; set; }
-    public SerializableExpression? Right { get; set; }
 }
 
 public class SerializableUnaryExpression : SerializableExpression
@@ -231,6 +224,14 @@ public class SerializableUnaryExpression : SerializableExpression
     /// Gets or sets the operand for this unary operation.
     /// </summary>
     public SerializableExpression? Operand { get; set; }
+}
+
+public class SerializableBinaryExpression : SerializableExpression
+{
+    public bool IsLiftedToNull { get; set; }
+    public SerializableType? Type { get; set; }
+    public SerializableExpression? Left { get; set; }
+    public SerializableExpression? Right { get; set; }
 }
 
 public class SerializableMethodCallExpression : SerializableExpression
@@ -291,12 +292,20 @@ public class SerializableMemberExpression : SerializableExpression
 public class SerializableMemberInitExpression : SerializableExpression
 {
     public SerializableNewExpression? NewExpression { get; set; }
-    public SerializableMemberBinding[] Bindings { get; set; }
+    public SerializableMemberBinding[] Bindings { get; set; } = Array.Empty<SerializableMemberBinding>();
+
+    public SerializableMemberInitExpression()
+    {
+        NodeType = ExtendedExpressionType.MemberInit;
+    }
 }
 
 public class SerializableNewExpression : SerializableExpression
 {
+    public bool IsChildToMemberInit { get; set; }
     public SerializableConstructorInfo? ConstructorInfo { get; set; }
+    public SerializableExpression[] Arguments { get; set;} = Array.Empty<SerializableExpression>();
+    public SerializableMemberInfo[] Members { get; set; } = Array.Empty<SerializableMemberInfo>();
 }
 
 public class SerializableNewArrayExpression : SerializableExpression

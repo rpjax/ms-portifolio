@@ -86,16 +86,16 @@ public class TypeConverter : ConverterBase, ITypeConverter
             Name = type.Name,
             Namespace = type.Namespace,
             AssemblyQualifiedName =
-                Strategy == TypeConversionStrategy.UseAssemblyName
-                ? type.GetQualifiedFullName()
-                : null,
+                            Strategy == TypeConversionStrategy.UseAssemblyName
+                            ? type.GetQualifiedAssemblyName()
+                            : null,
             GenericTypeArguments = type.GenericTypeArguments
-                .Transform(x => Convert(context, x))
-                .ToArray(),
+                            .Transform(x => Convert(context, x))
+                            .ToArray(),
             GenericTypeDefinition =
-                genericTypeDefinition != null
-                ? Convert(context, genericTypeDefinition)
-                : null,
+                            genericTypeDefinition != null && !type.IsAnonymous()
+                            ? Convert(context, genericTypeDefinition)
+                            : null,
             AnonymousPropertyDefinitions = anonymousPropertiesDefinitions
         };
     }
@@ -212,6 +212,9 @@ public class TypeConverter : ConverterBase, ITypeConverter
         }
 
         var properties = new List<AnonymousPropertyDefinition>(sType.AnonymousPropertyDefinitions.Length);
+        var genericTypeArguments = sType.GenericTypeArguments
+            .Transform(x => Convert(context, x))
+            .ToArray();
         var counter = 0;
 
         foreach (var item in sType.AnonymousPropertyDefinitions)
@@ -231,12 +234,14 @@ public class TypeConverter : ConverterBase, ITypeConverter
 
         var options = new AnonymousTypeCreationOptions()
         {
+            Properties = properties,
+            GenericTypeArguments = genericTypeArguments,
             CreateDefaultConstructor = true,
             CreateSetters = true,
             UseCache = true
         };
-        var anonymousType = TypeCreator
-            .CreateAnonymousType(properties, options);
+
+        var anonymousType = TypeCreator.CreateAnonymousType(options);
 
         return anonymousType;
     }
