@@ -3,8 +3,18 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ModularSystem.Web.Expressions;
 
+/// <summary>
+/// Provides a base class for visiting <see cref="SerializableExpression"/> nodes. <br/>
+/// This class is designed for traversing and manipulating a tree of serializable expressions.
+/// </summary>
 public abstract class SerializableExpressionVisitor
 {
+    /// <summary>
+    /// Visits a serializable expression node and returns the modified node. <br/>
+    /// This method is the entry point for visiting nodes in the expression tree.
+    /// </summary>
+    /// <param name="node">The serializable expression node to be visited.</param>
+    /// <returns>The modified serializable expression node, if any.</returns>
     [return: NotNullIfNotNull("node")]
     public virtual SerializableExpression? Visit(SerializableExpression? node)
     {
@@ -16,6 +26,12 @@ public abstract class SerializableExpressionVisitor
         return Dispatch(node);
     }
 
+    /// <summary>
+    /// Dispatches the serializable expression to the appropriate visit method based on its node type. <br/>
+    /// This method acts as a router to different visit methods for each expression type.
+    /// </summary>
+    /// <param name="expression">The serializable expression to be dispatched.</param>
+    /// <returns>The modified serializable expression after the visit.</returns>
     private SerializableExpression Dispatch(SerializableExpression expression)
     {
         switch (expression.NodeType)
@@ -324,19 +340,6 @@ public abstract class SerializableExpressionVisitor
         return expression;
     }
 
-    [return: NotNullIfNotNull("node")]
-    protected T? As<T>(SerializableExpression? node) where T : SerializableExpression
-    {
-        var cast = node.TryTypeCast<T>();
-
-        if (cast == null)
-        {
-            throw new Exception();
-        }
-
-        return cast;
-    }
-
     [return: NotNullIfNotNull("binding")]
     protected SerializableMemberBinding? VisitMemberBindings(SerializableMemberBinding? binding)
     {
@@ -369,6 +372,19 @@ public abstract class SerializableExpressionVisitor
             .ToArray();
 
         return elementInit;
+    }
+
+    [return: NotNullIfNotNull("node")]
+    protected T? As<T>(SerializableExpression? node) where T : SerializableExpression
+    {
+        var cast = node.TryTypeCast<T>();
+
+        if (cast == null)
+        {
+            throw new Exception();
+        }
+
+        return cast;
     }
 
     protected virtual SerializableExpression VisitUnary(SerializableUnaryExpression node)

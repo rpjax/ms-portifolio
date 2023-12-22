@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core;
+using ModularSystem.Webql.Synthesis;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
@@ -147,7 +148,7 @@ internal class AnonymousNewFix : SerializableExpressionVisitor
 {
     protected override SerializableExpression VisitMemberInit(SerializableMemberInitExpression node)
     {
-        if(node.NewExpression != null)
+        if (node.NewExpression != null)
         {
             node.NewExpression.IsChildToMemberInit = true;
         }
@@ -155,6 +156,22 @@ internal class AnonymousNewFix : SerializableExpressionVisitor
         return base.VisitMemberInit(node);
     }
 
+    /// <summary>
+    /// Visits and potentially transforms a SerializableNewExpression node, especially when dealing with anonymous types.
+    /// </summary>
+    /// <param name="node">The SerializableNewExpression to visit.</param>
+    /// <returns>The transformed SerializableNewExpression, or the original node if no transformation is needed.</returns>
+    /// <remarks>
+    /// This method addresses a specific serialization challenge with anonymous types. Anonymous types in LINQ expressions 
+    /// are often instantiated using a parameterized constructor, which can cause issues during serialization and deserialization.
+    /// Specifically, the generated constructors by the TypeCreator have limitations, such as parameters without names, 
+    /// leading to translation issues with LINQ providers expecting named parameters.
+    /// 
+    /// To resolve this, the method transforms the SerializableNewExpression into a SerializableMemberInitExpression 
+    /// when dealing with anonymous types. This transformation includes transferring the constructor arguments to member bindings 
+    /// and clearing the arguments and members of the original NewExpression to avoid invoking the parameterized constructor.
+    /// The transformation ensures compatibility and correct handling of anonymous types during serialization and deserialization processes.
+    /// </remarks>
     protected override SerializableExpression VisitNew(SerializableNewExpression node)
     {
         if (node.IsChildToMemberInit)
@@ -164,7 +181,7 @@ internal class AnonymousNewFix : SerializableExpressionVisitor
 
         var constructorInfo = node.ConstructorInfo;
 
-        if(constructorInfo == null)
+        if (constructorInfo == null)
         {
             return node;
         }
@@ -175,10 +192,9 @@ internal class AnonymousNewFix : SerializableExpressionVisitor
         {
             return node;
         }
-
         var constructorParams = constructorInfo.Parameters;
         var arguments = node.Arguments;
-        var members = node.Members!;
+        var members = node.Members;
         var propertyBindings = new List<SerializableMemberBinding>();
 
         for (int i = 0; i < constructorParams.Length; i++)
@@ -201,6 +217,20 @@ internal class AnonymousNewFix : SerializableExpressionVisitor
         };
 
         node.IsChildToMemberInit = true;
+
+        //*
+        // This section addresses a specific limitation of the TypeCreator regarding the generation
+        // of parameterized constructors.
+        // Typically, parameterized constructors created by the TypeCreator lack named parameters,
+        // which can cause issues with LINQ providers that rely on named parameters in the
+        // constructor's ParameterInfo for proper translation.
+        // To circumvent this, the code clears the constructor's parameters, as well as the
+        // arguments and members of the node, thus preventing the invocation of the
+        // problematic parameterized constructor and ensuring compatibility with LINQ providers.
+        //*
+        constructorInfo.Parameters = Array.Empty<SerializableType>();
+        node.Arguments = Array.Empty<SerializableExpression>();
+        node.Members = Array.Empty<SerializableMemberInfo>();
 
         return memberInit;
     }

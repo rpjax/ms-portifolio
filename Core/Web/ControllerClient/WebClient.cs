@@ -1,5 +1,6 @@
 using ModularSystem.Core;
 using ModularSystem.Web.Client;
+using ModularSystem.Web.Linq;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Web;
@@ -188,8 +189,16 @@ public class CrudClient<T> : WebClient where T : class
     }
 }
 
+/// <summary>
+/// A client that facilitates querying data from a remote service. <br/>
+/// It serializes LINQ expressions and sends them to a service which executes the query against a database.
+/// </summary>
 public class QueryableClient : WebClient
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="QueryableClient"/> class with the specified endpoint configuration.
+    /// </summary>
+    /// <param name="config">The <see cref="EndpointConfiguration"/> used for initializing the client.</param>
     public QueryableClient(EndpointConfiguration config) : base(config)
     {
     }
@@ -199,17 +208,22 @@ public class QueryableClient : WebClient
     /// </summary>
     /// <param name="query">The serializable query for the search.</param>
     /// <returns>A task representing the asynchronous operation, with a result of the query.</returns>
-    public async Task<IQueryable<object>> QueryAsync(SerializableQueryable query)
+    public async Task<T> QueryAsync<T>(SerializableQueryable query)
     {
-        var data = await new QueryableEndpoint(CopyUri())
+        var data = await new QueryableEndpoint<T>(CopyUri())
             .RunAsync(query);
 
-        return (IQueryable<object>)data;
+        return data;
     }
 
-}
-
-public class QueryableReader
-{
+    /// <summary>
+    /// Creates a <see cref="ServiceQueryable{T}"/> for the specified entity type.
+    /// </summary>
+    /// <typeparam name="T">The entity type for the queryable.</typeparam>
+    /// <returns>A new instance of ServiceQueryable for the specified type.</returns>
+    public ServiceQueryable<T> AsQueryable<T>()
+    {
+        return new ServiceQueryProvider<T>(this).CreateQuery();
+    }
 
 }

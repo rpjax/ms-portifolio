@@ -65,7 +65,7 @@ internal class QueryEndpoint<T> : EndpointBase<SerializableQuery, QueryResult<T>
     }
 }
 
-internal class QueryableEndpoint : EndpointBase<SerializableQueryable, object>
+internal class QueryableEndpoint<T> : EndpointBase<SerializableQueryable, T>
 {
     public QueryableEndpoint(Http.Uri uri) : base(uri)
     {
@@ -74,9 +74,8 @@ internal class QueryableEndpoint : EndpointBase<SerializableQueryable, object>
 
     protected override HttpRequest CreateRequest(SerializableQueryable input)
     {
-        var req = new HttpRequest(RequestUri.AppendPath("queryable-query"), HttpMethod.Post)
+        return new HttpRequest(RequestUri.AppendPath("queryable-query"), HttpMethod.Post)
             .SetJsonBody(input);
-        return req;
     }
 
     protected override Task<Exception> HandleExceptionAsync(Exception e, HttpRequest? request, HttpResponse? response)
