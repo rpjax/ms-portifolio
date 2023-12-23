@@ -10,19 +10,21 @@ using ModularSystem.Webql.Synthesis;
 namespace ModularSystem.Web;
 
 /// <summary>
-/// Generates a basic crud based on the modular system RESTful CRUD API specification. <br></br>
-/// It uses the <see cref="IEntityService{T}"/> interface.
+/// Provides a base controller for services handling data of type <typeparamref name="T"/>. <br/>
+/// This abstract controller defines common functionalities for service-oriented controllers.
 /// </summary>
-/// <typeparam name="T"></typeparam>
-public abstract class CrudController<T> : WebController, IPingController, IDisposable where T : class, IQueryableModel
+/// <typeparam name="T">The type of the data model, which must implement <see cref="IQueryableModel"/>.</typeparam>
+public abstract class ServiceController<T> : WebController where T : IQueryableModel
 {
     /// <summary>
-    /// Gets the associated service instance for CRUD operations.
+    /// Represents the abstract property for accessing the EntityService associated with the specific data type T. <br/>
+    /// This service provides the necessary operations for handling data entities in the underlying data store.
     /// </summary>
     protected abstract EntityService<T> Service { get; }
 
     /// <summary>
-    /// Disposes the associated entity.
+    /// Disposes of the resources used by the ServiceController. <br/>
+    /// This method ensures that the EntityService is properly disposed, and GC.SuppressFinalize is called to optimize garbage collection.
     /// </summary>
     [NonAction]
     public virtual void Dispose()
@@ -31,6 +33,15 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
         GC.SuppressFinalize(this);
     }
 
+}
+
+/// <summary>
+/// Defines a controller to implement basic CRUD (Create, Read, Update, Delete) operations based on a RESTful API design.<br/>
+/// This controller interacts with data of type <typeparamref name="T"/> using <see cref="EntityService{T}"/>.
+/// </summary>
+/// <typeparam name="T">The type of the data entity. Must be a class implementing <see cref="IQueryableModel"/>.</typeparam>
+public abstract class CrudController<T> : ServiceController<T>, IPingController, IDisposable where T : class, IQueryableModel
+{
     // CREATE
     [HttpPost]
     public virtual async Task<IActionResult> CreateAsync([FromBody] T data)
@@ -219,11 +230,12 @@ public abstract class CrudController<T> : WebController, IPingController, IDispo
 }
 
 /// <summary>
-/// Extends the basic CRUD controller functionality to handle queryable data. <br/>
-/// This controller supports querying operations using a queryable builder, allowing for complex querying logic on data sets.
+/// Enhances the base service controller by enabling complex querying functionalities. <br/>
+/// It processes dynamic queries defined by <see cref="SerializableQueryable"/>.
 /// </summary>
-/// <typeparam name="T">The type of the entity that the controller manages. This type must implement <see cref="IQueryableModel"/>.</typeparam>
-public abstract class QueryableController<T> : WebController where T : class, IQueryableModel
+/// <typeparam name="T">The type of the entity being managed, conforming to <see cref="IQueryableModel"/>.</typeparam>
+/// <returns>A task resulting in an IActionResult containing the query results or an error message.</returns>
+public abstract class QueryableController<T> : ServiceController<T> where T : class, IQueryableModel
 {
     /// <summary>
     /// Handles an incoming query request and returns the result of the query. <br/>
@@ -236,6 +248,11 @@ public abstract class QueryableController<T> : WebController where T : class, IQ
     {
         try
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var source = await Service.CreateQueryAsync();
             var queryable = VisitQueryable(request.ToQueryable(source));
             var data = await queryable.ToArrayAsync();
@@ -249,21 +266,6 @@ public abstract class QueryableController<T> : WebController where T : class, IQ
     }
 
     /// <summary>
-    /// Disposes the associated entity.
-    /// </summary>
-    [NonAction]
-    public virtual void Dispose()
-    {
-        Service.Dispose();
-        GC.SuppressFinalize(this);
-    }
-
-    /// <summary>
-    /// Gets the associated service instance for CRUD operations.
-    /// </summary>
-    protected abstract EntityService<T> Service { get; }
-
-    /// <summary>
     /// Provides an extension point to modify or inspect the TranslatedQueryable object before it is executed. <br/>
     /// Override this method in derived classes to customize the query execution process.
     /// </summary>
@@ -273,38 +275,42 @@ public abstract class QueryableController<T> : WebController where T : class, IQ
     {
         return queryable;
     }
+
 }
 
 /// <summary>
-/// Provides CRUD operations for WebQL queries. <br/>
-/// This controller extends the basic CRUD functionalities to support WebQL query processing, allowing clients to query data using WebQL syntax.
+/// Extends service controller functionalities to handle WebQL queries. <br/>
+/// Enables data querying using WebQL syntax for entities of type <typeparamref name="T"/>.
 /// </summary>
-/// <typeparam name="T">The type of the entity that the controller manages. This type must implement <see cref="IQueryableModel"/>.</typeparam>
-public abstract class WebqlController<T> : WebController where T : class, IQueryableModel
+/// <typeparam name="T">The entity type managed by the controller, implementing <see cref="IQueryableModel"/>.</typeparam>
+/// <returns>A task resulting in an IActionResult with the processed data or an error message.</returns>
+public abstract class WebqlController<T> : WebController
 {
-    //[HttpPost("webql-query")]
-    //public async Task<IActionResult> QueryAsync()
-    //{
-    //    try
-    //    {     
-    //        var json = (await ReadBodyAsStringAsync()) ?? Translator.EmptyQuery;
-    //        var translator = GetTranslator();
-    //        var queryable = await Service.CreateQueryAsync();
-    //        var transformedQueryable = VisitTranslatedQueryable(translator.TranslateToQueryable(json, queryable));
-    //        var data = await transformedQueryable.ToArrayAsync();
+    [HttpPost("webql-query")]
+    public async Task<IActionResult> QueryAsync()
+    {
+        try
+        {
+            var json = (await ReadBodyAsStringAsync()) ?? Translator.EmptyQuery;
+            var translator = GetTranslator();
+            var source = await CreateQueryAsync();
+            var webqlQueryable = VisitQueryable(translator.TranslateToQueryable(json, source));
+            var data = await webqlQueryable.ToArrayAsync();
 
-    //        return Ok(data);
-    //    }
-    //    catch (Exception e)
-    //    {
-    //        if (e is ParseException parseException)
-    //        {
-    //            return HandleException(new AppException(parseException.GetMessage(), ExceptionCode.InvalidInput));
-    //        }
+            return Ok(data);
+        }
+        catch (Exception e)
+        {
+            if (e is ParseException parseException)
+            {
+                return HandleException(new AppException(parseException.GetMessage(), ExceptionCode.InvalidInput));
+            }
 
-    //        return HandleException(e);
-    //    }
-    //}
+            return HandleException(e);
+        }
+    }
+
+    protected abstract Task<IQueryable<T>> CreateQueryAsync();
 
     /// <summary>
     /// Gets the WebQL translator to translate queries.
@@ -322,6 +328,17 @@ public abstract class WebqlController<T> : WebController where T : class, IQuery
     protected virtual TranslatorOptions GetTranslatorOptions()
     {
         return new TranslatorOptions();
+    }
+
+    /// <summary>
+    /// Provides a method to modify or inspect a WebqlQueryable object before its execution. <br/>
+    /// This virtual method serves as an extension point in derived classes, allowing for customization of the query execution process.
+    /// </summary>
+    /// <param name="queryable">The WebqlQueryable object representing the query to be executed.</param>
+    /// <returns>A potentially modified WebqlQueryable object that is ready for execution.</returns>
+    protected virtual WebqlQueryable VisitQueryable(WebqlQueryable queryable)
+    {
+        return queryable;
     }
 
 }
