@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -126,6 +127,24 @@ public static class JsonSerializerSingleton
     public static object? Deserialize(string json, Type type, JsonSerializerOptions? options = null)
     {
         return JsonSerializer.Deserialize(json, type, GetOptions(options));
+    }
+
+    public static bool TryDeserialize(
+        string json,
+        Type type,
+        JsonSerializerOptions? options,
+        [NotNullWhen(true)] out object? value)
+    {
+        try
+        {
+            value = Deserialize(json, type, options);
+            return true;
+        }
+        catch
+        {
+            value = null;
+            return false;
+        }
     }
 
     /// <summary>

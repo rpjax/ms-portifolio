@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using ModularSystem.Webql.Synthesis;
+using System.Collections;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Web.Linq;
@@ -94,4 +96,44 @@ public class ServiceQueryable<T> : ServiceQueryable, IQueryable<T>
     {
         return ((IEnumerable<T>)Provider.Execute(Expression)!).GetEnumerator();
     }
+}
+
+/// <summary>
+/// Extends the basic <see cref="IQueryable{T}"/> class.
+/// </summary>
+/// <typeparam name="T"></typeparam>
+public class ExtendedQueryable<T> : IQueryable<T>
+{
+    public Type ElementType { get; }
+    public Expression Expression { get; }
+    public IQueryProvider Provider { get; }
+
+    private IQueryable<T> Queryable { get; }
+
+    public ExtendedQueryable(IQueryable<T> queryable)
+    {
+        ElementType = queryable.ElementType;
+        Expression = queryable.Expression;
+        Provider = queryable.Provider;
+    }
+
+    public IEnumerator GetEnumerator()
+    {
+        return Queryable.GetEnumerator();
+    }
+
+    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+    {
+        return Queryable.GetEnumerator();
+    }
+
+    /// <summary>
+    /// Converts the query results to an array asynchronously.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation. The task result contains an array of the query results.</returns>
+    public virtual Task<T[]> ToArrayAsync()
+    {
+        return Task.FromResult(Queryable.ToArray());
+    }
+
 }

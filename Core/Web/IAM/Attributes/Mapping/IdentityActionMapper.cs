@@ -22,7 +22,7 @@ public class IdentityActionMapper
         foreach (var methodInfo in GetRoutesMethodInfo())
         {
             var declaringType = methodInfo.DeclaringType;
-            var controllerName = declaringType?.Name;
+            var controllerName = declaringType?.FullName;
 
             var identityAttributes = methodInfo.GetCustomAttributes()
                 .Where(x => x is IdentityActionAttribute)

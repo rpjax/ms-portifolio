@@ -243,4 +243,16 @@ public abstract class WebController : ControllerBase
         return text;
     }
 
+    protected async Task<T?> DeserializeJsonBodyAsync<T>() 
+    {
+        var str = await ReadBodyAsStringAsync();
+
+        if(str == null)
+        {
+            return default;
+        }
+
+        return JsonSerializerSingleton.Deserialize<T>(str);
+    }
+
 }

@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver.Linq;
+﻿using ModularSystem.Core.Linq;
+using MongoDB.Driver.Linq;
 using System.Collections;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -10,7 +11,7 @@ namespace ModularSystem.Webql.Synthesis;
 /// This class provides the capability to interact with query results as both IQueryable and IEnumerable, <br/>
 /// supporting operations like enumeration, conversion to array, and count operations.
 /// </summary>
-public class WebqlQueryable : IQueryable<object>
+public class WebqlQueryable : IExtendedQueryable<object>
 {
     /// <summary>
     /// Gets the input type of the query.

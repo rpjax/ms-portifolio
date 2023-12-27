@@ -108,7 +108,8 @@ public class CrudClient<T> : WebClient where T : class
     /// <returns>A task representing the asynchronous operation, with a result of the query.</returns>
     public Task<QueryResult<T>> QueryAsync(SerializableQuery query)
     {
-        return new QueryEndpoint<T>(CopyUri()).RunAsync(query);
+        return new QueryEndpoint<T>(CopyUri())
+            .RunAsync(query);
     }
 
     /// <summary>
@@ -160,7 +161,8 @@ public class CrudClient<T> : WebClient where T : class
     /// <returns>A task representing the asynchronous delete operation.</returns>
     public Task DeleteByIdAsync(string id)
     {
-        return new DeleteByIdEndpoint<T>(CopyUri()).RunAsync(id);
+        return new DeleteByIdEndpoint<T>(CopyUri())
+            .RunAsync(id);
     }
 
     /// <summary>
@@ -187,6 +189,17 @@ public class CrudClient<T> : WebClient where T : class
         var dto = await endpoint.RunAsync(id);
         return dto.Value;
     }
+
+    /// <summary>
+    /// Creates a <see cref="ServiceQueryable{T}"/> for the specified entity type.
+    /// </summary>
+    /// <typeparam name="T">The entity type for the queryable.</typeparam>
+    /// <returns>A new instance of ServiceQueryable for the specified type.</returns>
+    public ServiceQueryable<T> AsQueryable()
+    {
+        return new ServiceQueryProvider<T>(new(Config)).CreateQuery();
+    }
+
 }
 
 /// <summary>
@@ -224,6 +237,127 @@ public class QueryableClient : WebClient
     public ServiceQueryable<T> AsQueryable<T>()
     {
         return new ServiceQueryProvider<T>(this).CreateQuery();
+    }
+
+}
+
+public class QueryableCrudClient<T> : QueryableClient where T : class
+{
+    public QueryableCrudClient(EndpointConfiguration config) : base(config)
+    {
+     
+    }
+
+    /// <summary>
+    /// Asynchronously creates a new instance of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <param name="value">The instance to be created.</param>
+    /// <returns>The ID of the created instance as a string.</returns>
+    public async Task<string> CreateAsync(T value)
+    {
+        var endpoint = new CreateEndpoint<T>(CopyUri());
+        var dto = await endpoint.RunAsync(value);
+        return dto.Value ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Asynchronously retrieves an instance of type <typeparamref name="T"/> by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the instance.</param>
+    /// <returns>A task representing the asynchronous operation, with a result of the retrieved instance.</returns>
+    public Task<T> GetByIdAsync(string id)
+    {
+        var endpoint = new GetByIdEndpoint<T>(CopyUri());
+        return endpoint.RunAsync(id);
+    }
+
+    /// <summary>
+    /// Asynchronously queries instances of type <typeparamref name="T"/> based on a search query.
+    /// </summary>
+    /// <param name="query">The serializable query for the search.</param>
+    /// <returns>A task representing the asynchronous operation, with a result of the query.</returns>
+    public Task<QueryResult<T>> QueryAsync(SerializableQuery query)
+    {
+        return new QueryEndpoint<T>(CopyUri())
+            .RunAsync(query);
+    }
+
+    /// <summary>
+    /// Asynchronously queries entities of type <typeparamref name="T"/> based on a search query.
+    /// </summary>
+    /// <param name="query">The query defining the search criteria.</param>
+    /// <returns>A task representing the asynchronous query operation, with a result containing the matched entities.</returns>
+    public Task<QueryResult<T>> QueryAsync(Query<T> query)
+    {
+        return QueryAsync(query.ToSerializable());
+    }
+
+    /// <summary>
+    /// Asynchronously updates an existing instance of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <param name="value">The instance to be updated.</param>
+    /// <returns>A task representing the asynchronous update operation.</returns>
+    public async Task UpdateAsync(T value)
+    {
+        var endpoint = new UpdateEndpoint<T>(CopyUri());
+        await endpoint.RunAsync(value);
+    }
+
+    /// <summary>
+    /// Asynchronously updates entities based on the provided update criteria.
+    /// </summary>
+    /// <param name="update">The serialized update criteria.</param>
+    /// <returns>The number of entities updated; null if the update count is unavailable.</returns>
+    public async Task<long?> UpdateAsync(SerializableUpdate update)
+    {
+        var dto = await new UpdateBulkEndpoint(CopyUri()).RunAsync(update);
+        return dto.Value;
+    }
+
+    /// <summary>
+    /// Asynchronously updates multiple entities of type <typeparamref name="T"/> based on the provided update criteria.
+    /// </summary>
+    /// <param name="update">The update criteria specifying which entities to update and the modifications to apply.</param>
+    /// <returns>A task representing the asynchronous bulk update operation, with a result indicating the number of entities updated. Returns null if the update count is not available.</returns>
+    public Task<long?> BulkUpdateAsync(Update<T> update)
+    {
+        return UpdateAsync(update.ToSerializable());
+    }
+
+    /// <summary>
+    /// Asynchronously deletes an instance of type <typeparamref name="T"/> by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the instance.</param>
+    /// <returns>A task representing the asynchronous delete operation.</returns>
+    public Task DeleteByIdAsync(string id)
+    {
+        return new DeleteByIdEndpoint<T>(CopyUri())
+            .RunAsync(id);
+    }
+
+    /// <summary>
+    /// Deletes multiple entities of type <typeparamref name="T"/> based on the provided criteria.
+    /// </summary>
+    /// <param name="expression">The criteria to identify entities to delete.</param>
+    /// <returns>The number of entities deleted; null if the delete count is unavailable.</returns>
+    public async Task<long?> BulkDeleteAsync(Expression<Func<T, bool>> expression)
+    {
+        var serializable = QueryProtocol.ToSerializable(expression);
+        var endpoint = new BulkDeleteEndpoint(CopyUri());
+        var dto = await endpoint.RunAsync(serializable);
+        return dto.Value;
+    }
+
+    /// <summary>
+    /// Asynchronously validates the ID of an instance of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <param name="id">The ID to validate.</param>
+    /// <returns>A task representing the asynchronous validation operation, with a result of true if the ID is valid; otherwise, false.</returns>
+    public async Task<bool> ValidateIdAsync(string id)
+    {
+        var endpoint = new ValidateIdEndpoint<T>(CopyUri());
+        var dto = await endpoint.RunAsync(id);
+        return dto.Value;
     }
 
 }

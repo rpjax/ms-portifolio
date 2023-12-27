@@ -1,4 +1,5 @@
 using ModularSystem.Core;
+using ModularSystem.Core.Linq;
 using ModularSystem.Web.Expressions;
 using ModularSystem.Webql.Synthesis;
 using System.Collections;
@@ -160,7 +161,7 @@ public class SerializableQueryable
     /// <param name="elementType">The type of the elements in the <see cref="WebqlQueryable"/>.</param>
     /// <param name="translator">An optional translator to convert expressions into a format suitable for the underlying data source (default is null).</param>
     /// <returns>A <see cref="WebqlQueryable"/> that represents the translated query.</returns>
-    public WebqlQueryable ToQueryable(IQueryable source, Type elementType, Translator? translator = null)
+    public IExtendedQueryable<object> ToQueryable(IQueryable source, Type elementType, Translator? translator = null)
     {
         if (Expression == null)
         {
@@ -179,8 +180,9 @@ public class SerializableQueryable
     /// <param name="source">The underlying queryable object of type <typeparamref name="T"/>.</param>
     /// <param name="translator">An optional translator to convert expressions into a format suitable for the underlying data source (default is null).</param>
     /// <returns>A <see cref="WebqlQueryable"/> that represents the translated query.</returns>
-    public WebqlQueryable ToQueryable<T>(IQueryable<T> source, Translator? translator = null)
+    public IExtendedQueryable<object> ToQueryable<T>(IQueryable<T> source, Translator? translator = null)
     {
         return ToQueryable(source, typeof(T), translator);
     }
+
 }

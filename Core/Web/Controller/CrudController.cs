@@ -2,10 +2,13 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using ModularSystem.Core;
 using ModularSystem.Core.Expressions;
+using ModularSystem.Core.Linq;
 using ModularSystem.Core.Security;
 using ModularSystem.Web.Expressions;
+using ModularSystem.Web.Linq;
 using ModularSystem.Webql;
 using ModularSystem.Webql.Synthesis;
+using System.ComponentModel.DataAnnotations;
 
 namespace ModularSystem.Web;
 
@@ -83,7 +86,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
     }
 
     [HttpPost("query")]
-    public virtual async Task<IActionResult> QueryAsync([FromBody] SerializableQuery serializableQuery)
+    public virtual async Task<IActionResult> QueryAsync()
     {
         try
         {
@@ -92,8 +95,10 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
                 return BadRequest(ModelState);
             }
 
-            var query = serializableQuery.ToQuery<T>();
+            var request = (await DeserializeJsonBodyAsync<SerializableQuery>()) ?? new();
+            var query = request.ToQuery<T>();
             var result = await Service.QueryAsync(query);
+
             return Ok(result);
         }
         catch (Exception e)
@@ -101,6 +106,28 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
             return HandleException(e);
         }
 
+    }
+
+    [HttpPost("queryable-query")]
+    public async Task<IActionResult> QueryAsync([FromBody] SerializableQueryable request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var source = await Service.CreateQueryAsync();
+            var queryable = VisitQueryable(request.ToQueryable(source));
+            var data = await queryable.ToArrayAsync();
+
+            return Ok(data);
+        }
+        catch (Exception e)
+        {
+            return HandleException(e);
+        }
     }
 
     // UPDATE
@@ -227,6 +254,17 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
         }
     }
 
+    /// <summary>
+    /// Provides an extension point to modify or inspect the TranslatedQueryable object before it is executed. <br/>
+    /// Override this method in derived classes to customize the query execution process.
+    /// </summary>
+    /// <param name="queryable">The translated queryable object to visit.</param>
+    /// <returns>The potentially modified TranslatedQueryable object.</returns>
+    protected virtual IExtendedQueryable<object> VisitQueryable(IExtendedQueryable<object> queryable)
+    {
+        return queryable;
+    }
+
 }
 
 /// <summary>
@@ -271,7 +309,7 @@ public abstract class QueryableController<T> : ServiceController<T> where T : cl
     /// </summary>
     /// <param name="queryable">The translated queryable object to visit.</param>
     /// <returns>The potentially modified TranslatedQueryable object.</returns>
-    protected virtual WebqlQueryable VisitQueryable(WebqlQueryable queryable)
+    protected virtual IExtendedQueryable<object> VisitQueryable(IExtendedQueryable<object> queryable)
     {
         return queryable;
     }
@@ -286,14 +324,14 @@ public abstract class QueryableController<T> : ServiceController<T> where T : cl
 /// <returns>A task resulting in an IActionResult with the processed data or an error message.</returns>
 public abstract class WebqlController<T> : WebController
 {
-    [HttpPost("webql-query")]
-    public async Task<IActionResult> QueryAsync()
+    [HttpPost("query")]
+    public virtual async Task<IActionResult> QueryAsync()
     {
         try
         {
             var json = (await ReadBodyAsStringAsync()) ?? Translator.EmptyQuery;
             var translator = GetTranslator();
-            var source = await CreateQueryAsync();
+            var source = VisitSource(await CreateQueryAsync());
             var webqlQueryable = VisitQueryable(translator.TranslateToQueryable(json, source));
             var data = await webqlQueryable.ToArrayAsync();
 
@@ -328,6 +366,17 @@ public abstract class WebqlController<T> : WebController
     protected virtual TranslatorOptions GetTranslatorOptions()
     {
         return new TranslatorOptions();
+    }
+
+    /// <summary>
+    /// Provides a method to modify or inspect a ServiceQueryable object before its execution. <br/>
+    /// This method serves as an extension point in derived classes, allowing for customization of the query execution process.
+    /// </summary>
+    /// <param name="source">The ServiceQueryable object representing the query to be executed.</param>
+    /// <returns>A potentially modified ServiceQueryable object that is ready for execution.</returns>
+    protected virtual IQueryable<T> VisitSource(IQueryable<T> source)
+    {
+        return source;
     }
 
     /// <summary>

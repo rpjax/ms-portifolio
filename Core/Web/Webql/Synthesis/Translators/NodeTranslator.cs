@@ -75,7 +75,10 @@ public class NodeTranslator
             return ParseLiteralReference(context, node);
         }
 
-        var value = JsonSerializerSingleton.Deserialize(node.Value, type);
+        if (!JsonSerializerSingleton.TryDeserialize(node.Value, type, null, out var value))
+        {
+            throw new TranslationException($"Failed to deserialize the provided literal value '{node.Value}' into the expected type '{type.Name}'. Please ensure the literal value is correctly formatted and compatible with the type '{type.Name}'. If the issue persists, verify the serialization settings and the type structure.", context);
+        }
 
         return Expression.Constant(value, type);
     }
