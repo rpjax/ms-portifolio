@@ -33,9 +33,19 @@ public class AesAuthenticationProvider : IAuthenticationProvider
     protected byte[]? EncryptionKeyCache { get; set; } = null;
 
     /// <summary>
+    /// Cache for the IV used by the encrypter.
+    /// </summary>
+    protected byte[]? IVCache { get; set; } = null;
+
+    /// <summary>
     /// Object used to synchronize access to the encryption key cache.
     /// </summary>
     protected object EncryptionKeyLock { get; } = new object();
+
+    /// <summary>
+    /// Object used to synchronize access to the initialization vector(IV) cache.
+    /// </summary>
+    protected object IVLock { get; } = new object();
 
     /// <summary>
     /// Responsible for encrypting and decrypting tokens.
@@ -139,6 +149,19 @@ public class AesAuthenticationProvider : IAuthenticationProvider
     }
 
     /// <summary>
+    /// Initializes the encryption key cache either from storage or by generating a new one if none exists.
+    /// </summary>
+    void InitEncryptionKeyCache()
+    {
+        var fileInfo = EncryptionKeyFileInfo
+            ?? LocalStorage.GetFileInfo($"Keys{Path.DirectorySeparatorChar}websession_encryption_key.json");
+
+        var keyStorage = new EncryptionKeyStorage(fileInfo);
+
+        EncryptionKeyCache = keyStorage.GetKey(256 / 8);
+    }
+
+    /// <summary>
     /// Provides the encryption key, initializing it from cache or storage.
     /// </summary>
     byte[] EncryptionKey()
@@ -154,26 +177,17 @@ public class AesAuthenticationProvider : IAuthenticationProvider
         return EncryptionKeyCache!;
     }
 
-    /// <summary>
-    /// Initializes the encryption key cache either from storage or by generating a new one if none exists.
-    /// </summary>
-    void InitEncryptionKeyCache()
+    byte[] InitializationVector()
     {
-        var fileInfo = EncryptionKeyFileInfo ?? LocalStorage.GetFileInfo("websession_encryption_key.json");
-        var storage = new JsonStorage<KeyFile>(fileInfo);
-        var file = storage.Read();
-
-        if (file == null)
+        if (IVCache == null)
         {
-            file = new KeyFile();
-        }
-        if (file.Bytes == null || file.Bytes.IsEmpty())
-        {
-            file.Bytes = AesEncrypter.RandomKey(AesKeySize.bits256);
-            storage.Write(file);
+            lock (IVLock)
+            {
+                IVCache = new byte[16];
+            }
         }
 
-        EncryptionKeyCache = file.Bytes;
+        return IVCache!;
     }
 
     /// <summary>
@@ -181,8 +195,7 @@ public class AesAuthenticationProvider : IAuthenticationProvider
     /// </summary>
     ITokenEncrypter CreateTokenEncrypter()
     {
-        var encrypter = new AesEncrypter(EncryptionKey(), new byte[16]);
-        return new TokenEncrypter(encrypter);
+        return new TokenEncrypter(new AesEncrypter(EncryptionKey(), InitializationVector()));
     }
 
     /// <summary>
@@ -201,14 +214,4 @@ public class AesAuthenticationProvider : IAuthenticationProvider
         public FileInfo? KeyFileInfo { get; set; } = null;
     }
 
-    /// <summary>
-    /// Represents the stored encryption key file.
-    /// </summary>
-    internal class KeyFile
-    {
-        /// <summary>
-        /// Bytes of the stored encryption key.
-        /// </summary>
-        public byte[]? Bytes { get; set; } = new byte[0];
-    }
 }

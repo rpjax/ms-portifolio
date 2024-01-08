@@ -25,6 +25,28 @@ public class EncryptionKeyStorage
         FileInfo = fileInfo;
     }
 
+    public async Task<byte[]> GetKeyAsync(int keySize)
+    {
+        var storage = new JsonStorage<KeyFile>(FileInfo);
+        var file = await storage.ReadAsync();
+
+        if (file == null || file.Bytes.IsEmpty())
+        {
+            file ??= new KeyFile();
+            file.Bytes = Encrypter.RandomKey(keySize);
+            await storage.WriteAsync(file);
+        }
+
+        if (file.Bytes.Length * 8 != (int)keySize)
+        {
+            file ??= new KeyFile();
+            file.Bytes = Encrypter.RandomKey(keySize);
+            await storage.WriteAsync(file);
+        }
+
+        return file.Bytes;
+    }
+
     /// <summary>
     /// Retrieves the stored encryption key of the specified size. If no key exists, it generates and stores a new one.
     /// </summary>
@@ -32,34 +54,18 @@ public class EncryptionKeyStorage
     /// <returns>A byte array representing the encryption key.</returns>
     public byte[] GetKey(int keySize)
     {
-        var storage = new JsonStorage<KeyFile>(FileInfo);
-        var file = storage.Read();
-
-        if (file == null || file.Bytes.IsEmpty())
-        {
-            file ??= new KeyFile();
-            file.Bytes = Encrypter.RandomKey(keySize);
-            storage.Write(file);
-        }
-
-        if(file.Bytes.Length * 8 != (int)keySize)
-        {
-            file ??= new KeyFile();
-            file.Bytes = Encrypter.RandomKey(keySize);
-            storage.Write(file);
-        }
-
-        return file.Bytes;
+        return GetKeyAsync(keySize).Result;
     }
 
+}
+
+/// <summary>
+/// Represents the structure of the key file containing the encryption key in bytes.
+/// </summary>
+public class KeyFile
+{
     /// <summary>
-    /// Represents the structure of the key file containing the encryption key in bytes.
+    /// Gets or sets the byte representation of the encryption key.
     /// </summary>
-    public class KeyFile
-    {
-        /// <summary>
-        /// Gets or sets the byte representation of the encryption key.
-        /// </summary>
-        public byte[] Bytes { get; set; } = new byte[0];
-    }
+    public byte[] Bytes { get; set; } = new byte[0];
 }
