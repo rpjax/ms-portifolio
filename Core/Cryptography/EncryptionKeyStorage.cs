@@ -30,7 +30,7 @@ public class EncryptionKeyStorage
     /// </summary>
     /// <param name="keySize">The size of the key that needs to be retrieved or generated.</param>
     /// <returns>A byte array representing the encryption key.</returns>
-    public byte[] GetKey(AesKeySize keySize)
+    public byte[] GetKey(int keySize)
     {
         var storage = new JsonStorage<KeyFile>(FileInfo);
         var file = storage.Read();
@@ -38,7 +38,14 @@ public class EncryptionKeyStorage
         if (file == null || file.Bytes.IsEmpty())
         {
             file ??= new KeyFile();
-            file.Bytes = AesEncrypter.RandomKey(keySize);
+            file.Bytes = Encrypter.RandomKey(keySize);
+            storage.Write(file);
+        }
+
+        if(file.Bytes.Length * 8 != (int)keySize)
+        {
+            file ??= new KeyFile();
+            file.Bytes = Encrypter.RandomKey(keySize);
             storage.Write(file);
         }
 

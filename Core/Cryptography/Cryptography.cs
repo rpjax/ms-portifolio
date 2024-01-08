@@ -9,14 +9,30 @@ namespace ModularSystem.Core.Cryptography;
 /// Provides a base implementation for cryptographic encryption and decryption operations.
 /// </summary>
 /// <remarks>
-/// Derived classes should implement the specific encryption and decryption logic as well as any
-/// required verification mechanisms. This abstract class ensures that all encrypters follow the
-/// <see cref="IEncrypter"/> contract, promoting consistency across different encryption strategies.
-/// As this class implements <see cref="IDisposable"/>, derived classes should also ensure that they
+/// Derived classes should implement the specific encryption and decryption logic as well as any <br/>
+/// required verification mechanisms. This abstract class ensures that all encrypters follow the <br/>
+/// <see cref="IEncrypter"/> contract, promoting consistency across different encryption strategies. <br/>
+/// As this class implements <see cref="IDisposable"/>, derived classes should also ensure that they <br/>
 /// properly handle any resources that need cleanup.
 /// </remarks>
 public abstract class Encrypter : IEncrypter
 {
+    /// <summary>
+    /// Generates a cryptographically strong random key.
+    /// </summary>
+    /// <param name="length">The length of the random key in bytes.</param>
+    /// <returns>A random key of the specified length.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the length is less than zero.</exception>
+    public static byte[] RandomKey(int length)
+    {
+        if (length < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative.");
+        }
+
+        return RandomNumberGenerator.GetBytes(length);
+    }
+
     /// <summary>
     /// Encrypts the provided raw data to ensure its confidentiality.
     /// </summary>

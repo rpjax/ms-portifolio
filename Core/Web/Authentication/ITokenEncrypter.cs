@@ -46,7 +46,12 @@ public class TokenEncrypter : ITokenEncrypter
     /// <param name="encrypter">The encrypter to use.</param>
     public TokenEncrypter(IEncrypter encrypter)
     {
-        Encrypter = new TextEncrypter(encrypter) ?? throw new ArgumentNullException(nameof(encrypter));
+        if(encrypter == null)
+        {
+            throw new ArgumentNullException(nameof(encrypter));
+        }
+
+        Encrypter = new TextEncrypter(encrypter);
     }
 
     /// <summary>
@@ -66,8 +71,9 @@ public class TokenEncrypter : ITokenEncrypter
     /// <inheritdoc/>
     public virtual IToken Decrypt(string encryptedToken)
     {
+        var json = Encrypter.Decrypt(encryptedToken);
         return
-            JsonSerializerSingleton.Deserialize<Token>(Encrypter.Decrypt(encryptedToken))
+            JsonSerializerSingleton.Deserialize<Token>(json)
             ?? throw new InvalidDataException("Failed to deserialize decrypted data.");
     }
 

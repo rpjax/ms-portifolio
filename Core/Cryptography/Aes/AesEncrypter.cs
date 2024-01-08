@@ -5,7 +5,7 @@ namespace ModularSystem.Core.Cryptography;
 /// <summary>
 /// Represents different AES encryption key sizes.
 /// </summary>
-public enum AesKeySize
+public enum AesKeySize : int
 {
     bits128 = 128,
     bits192 = 192,

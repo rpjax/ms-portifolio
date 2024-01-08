@@ -21,16 +21,28 @@ public class IdentityActionMapper
 
         foreach (var methodInfo in GetRoutesMethodInfo())
         {
-            var declaringType = methodInfo.DeclaringType;
-            var controllerName = declaringType?.FullName;
+            var controllerType = methodInfo.ReflectedType ?? methodInfo.DeclaringType;
+            var controllerName = controllerType?.FullName;
 
-            var identityAttributes = methodInfo.GetCustomAttributes()
+            var identityAttributes = methodInfo
+                .GetCustomAttributes()
                 .Where(x => x is IdentityActionAttribute)
                 .ToArray();
 
-            var anonymousAttributes = methodInfo.GetCustomAttributes()
+            var anonymousAttributes = methodInfo
+                .GetCustomAttributes()
                 .Where(x => x is AnonymousActionAttribute)
                 .ToArray();
+
+            var nonActionAttributes = methodInfo
+                .GetCustomAttributes()
+                .Where(methodInfo => methodInfo is NonActionAttribute)
+                .ToArray();
+
+            if (nonActionAttributes.IsNotEmpty() && !settings.IgnoreNonActionAttribute)
+            {
+                continue;
+            }
 
             if (anonymousAttributes.IsNotEmpty() && identityAttributes.IsNotEmpty())
             {
@@ -115,5 +127,7 @@ public class IdentityActionMapper
         /// Gets or sets a value indicating whether to ignore all <see cref="AnonymousActionAttribute"/> attributes.
         /// </summary>
         public bool IgnoreAnonymousAttribute { get; set; } = false;
+
+        public bool IgnoreNonActionAttribute { get; set;} = false;
     }
 }
