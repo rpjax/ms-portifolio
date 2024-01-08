@@ -38,10 +38,11 @@ public class MongoSearch<T> where T : IMongoModel
         }
 
         var complexOrdering = Reader.GetOrderingExpression();
-        var orderingReader = new ComplexOrderingReader<T>(complexOrdering);
 
         if (complexOrdering != null)
         {
+            var orderingReader = new ComplexOrderingReader<T>(complexOrdering);
+
             foreach (var orderingExpression in orderingReader.GetOrderingExpressions())
             {
                 var newOrder = null as SortDefinition<T>;

@@ -101,6 +101,10 @@ public class ComplexOrderingReader<T>
     /// <param name="expression">The expression to extract complex ordering information from.</param>
     public ComplexOrderingReader(Expression? expression)
     {
+        if(expression == null)
+        {
+
+        }
         if (expression is ComplexOrderingExpression orderingExpression)
         {
             OrderingExpression = orderingExpression;
@@ -130,4 +134,5 @@ public class ComplexOrderingReader<T>
             }
         }
     }
+
 }
