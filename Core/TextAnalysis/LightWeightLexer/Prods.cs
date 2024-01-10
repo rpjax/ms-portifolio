@@ -1,6 +1,6 @@
 ﻿using Core.TextAnalysis;
 
-namespace App;
+namespace Domain;
 
 public static class Prods
 {

@@ -53,4 +53,5 @@ public static class IApplicationBuilderExtension
         return builder
             .UseMiddleware<AttributesHandlerMiddleware>();
     }
+
 }

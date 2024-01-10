@@ -83,37 +83,33 @@ public partial class CurrencyValue
     /// <summary>
     /// Subtracts the value of one CurrencyValue object from another.
     /// </summary>
-    public static CurrencyValue operator -(CurrencyValue self, CurrencyValue other)
+    public static CurrencyValue operator -(CurrencyValue left, CurrencyValue right)
     {
-        self.Value = self.Value - other.Value;
-        return self;
+        return new CurrencyValue(left.Value - right.Value, left.Info);
     }
 
     /// <summary>
     /// Adds the value of two CurrencyValue objects.
     /// </summary>
-    public static CurrencyValue operator +(CurrencyValue self, CurrencyValue other)
+    public static CurrencyValue operator +(CurrencyValue left, CurrencyValue right)
     {
-        self.Value = self.Value + other.Value;
-        return self;
+        return new CurrencyValue(left.Value + right.Value, left.Info);
     }
 
     /// <summary>
     /// Multiplies the value of two CurrencyValue objects.
     /// </summary>
-    public static CurrencyValue operator *(CurrencyValue self, CurrencyValue other)
+    public static CurrencyValue operator *(CurrencyValue left, CurrencyValue right)
     {
-        self.Value = self.Value * other.Value;
-        return self;
+        return new CurrencyValue(left.Value * right.Value, left.Info);
     }
 
     /// <summary>
     /// Divides the value of one CurrencyValue object by another.
     /// </summary>
-    public static CurrencyValue operator /(CurrencyValue self, CurrencyValue other)
+    public static CurrencyValue operator /(CurrencyValue left, CurrencyValue right)
     {
-        self.Value = self.Value / other.Value;
-        return self;
+        return new CurrencyValue(left.Value / right.Value, left.Info);
     }
 
     //*
