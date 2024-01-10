@@ -32,13 +32,4 @@ public class TranslatorOptions
     {
     }
 
-    public Type CreateGenericQueryable(Type genericType)
-    {
-        if (!QueryableType.IsGenericTypeDefinition)
-        {
-            throw new Exception();
-        }
-
-        return QueryableType.MakeGenericType(genericType);
-    }
 }
