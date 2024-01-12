@@ -38,7 +38,7 @@ public static class AppExceptionPresenter
 
     public static string ToJson(AppException e, bool hideInternal = true)
     {
-        var presentedException = new PresentedAppException(e.Message, e.Code);
+        var presentedException = new PresentedAppException(e.Message, e.Details, e.Code);
 
         if (presentedException.Code == ExceptionCode.Internal && hideInternal)
         {
@@ -60,11 +60,13 @@ public static class AppExceptionPresenter
 public class PresentedAppException
 {
     public string Message { get; set; }
+    public List<KeyValuePair<string, string>> Details { get; set; } = new();
     public ExceptionCode Code { get; set; }
 
-    public PresentedAppException(string message, ExceptionCode code)
+    public PresentedAppException(string message, List<KeyValuePair<string, string>>details, ExceptionCode code)
     {
         Message = message;
+        Details = details;
         Code = code;
     }
 }

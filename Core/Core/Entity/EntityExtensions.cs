@@ -143,6 +143,18 @@ public static class EntityExtensions
     }
 
     /// <summary>
+    /// Performs a query with the provided pagination value and no filter.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="entity"></param>
+    /// <param name="pagination"></param>
+    /// <returns></returns>
+    public static Task<IQueryResult<T>> QueryAsync<T>(this EntityService<T> entity, PaginationIn pagination) where T : IQueryableModel
+    {
+        return entity.QueryAsync(new Query<T>() { Pagination = pagination });
+    }
+
+    /// <summary>
     /// Asynchronously deletes an entity by its ID.
     /// </summary>
     /// <param name="entity"></param>

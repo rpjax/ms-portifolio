@@ -91,7 +91,6 @@ public abstract class TaskRoutine : IDisposable
         }
 
         CancellationTokenSource?.Cancel();
-        ExitEvent.Wait();
     }
 
     /// <summary>
@@ -173,7 +172,7 @@ public abstract class TaskRoutine : IDisposable
     }
 
     /// <summary>
-    /// Logic to be executed after the TaskRoutine stops running, either when it is manually stopped or completes its execution.
+    /// Logic to be executed after the TaskRoutine stops running, either when it is manually stopped or completes its execution. <br/>
     /// Derived classes can override this method to provide custom behavior when the TaskRoutine stops.
     /// </summary>
     protected virtual void OnExit()

@@ -1,4 +1,153 @@
+using System.Collections;
+using System.Text.Json.Serialization;
+
 namespace ModularSystem.Core;
+
+/// <summary>
+/// Represents a validation error with optional text, code, and target properties.
+/// </summary>
+public class ValidationError
+{
+    /// <summary>
+    /// Describes the error.
+    /// </summary>
+    public string? Text { get; set; }
+
+    /// <summary>
+    /// An identifier used to bind this error to its validation source. 
+    /// </summary>
+    public string? Source { get; set; }
+
+    /// <summary>
+    /// A code meant to track the error. Used for book-keeping of the error.
+    /// </summary>
+    public string? Code { get; set; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ValidationError"/> class.
+    /// </summary>
+    [JsonConstructor]
+    public ValidationError()
+    {
+        Text = null;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ValidationError"/> class with specified text, code, and target.
+    /// </summary>
+    /// <param name="text">The text description of the error.</param>
+    /// <param name="code">The code associated with the error.</param>
+    /// <param name="source">The source associated with the error.</param>
+    public ValidationError(string? text, string? source = null, string? code = null)
+    {
+        Text = text;
+        Source = source;
+        Code = code;
+    }
+
+    /// <summary>
+    /// Provides implicit conversion from string to <see cref="ValidationError"/>.
+    /// </summary>
+    /// <param name="text">The error message to convert into a <see cref="ValidationError"/>.</param>
+    public static implicit operator ValidationError(string text)
+    {
+        return new(text);
+    }
+
+    /// <summary>
+    /// Returns a string representation of the <see cref="ValidationError"/>, combining target, code, and text.
+    /// </summary>
+    /// <returns>A string representation of the ValidationError.</returns>
+    public override string ToString()
+    {
+        var parts = new List<string>();
+
+        if (!string.IsNullOrEmpty(Source))
+        {
+            parts.Add($"Source: \"{Source}\"");
+        }
+
+        if (!string.IsNullOrEmpty(Code))
+        {
+            parts.Add($"Code: \"{Code}\"");
+        }
+
+        if (!string.IsNullOrEmpty(Text))
+        {
+            parts.Add($"Message: \"{Text}\"");
+        }
+
+        return parts.Count > 0 
+            ? string.Join(", ", parts)
+            : "Undefined ValidationError";
+    }
+
+    public ValidationError AppendSource(string? source, string? separator = ".")
+    {
+        if (string.IsNullOrEmpty(source))
+        {
+            return this;
+        }
+        if (string.IsNullOrEmpty(Source))
+        {
+            Source = source;
+            return this;
+        }
+
+        Source = $"{source}{separator}{Source}";
+        return this;
+    }
+
+}
+
+/// <summary>
+/// Represents a collection of <see cref="ValidationError"/> objects and provides methods to iterate over them.
+/// </summary>
+public class ValidationResult : IEnumerable<ValidationError>
+{
+    /// <summary>
+    /// Gets a value indicating whether the validation result contains no errors.
+    /// </summary>
+    public bool IsEmpty => Errors.Count <= 0;
+
+    /// <summary>
+    /// Gets a value indicating whether the validation result contains errors.
+    /// </summary>
+    public bool IsNotEmpty => !IsEmpty;
+
+    /// <summary>
+    /// Gets or sets an identifier for the validation result.
+    /// </summary>
+    public string? Identifier { get; set; }
+
+    /// <summary>
+    /// Gets the list of validation errors.
+    /// </summary>
+    public List<ValidationError> Errors { get; set; } = new();
+
+    /// <summary>
+    /// Returns an enumerator that iterates through the collection of validation errors.
+    /// </summary>
+    /// <returns>An enumerator for the validation errors.</returns>
+    public IEnumerator<ValidationError> GetEnumerator()
+    {
+        return Errors.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    /// <summary>
+    /// Returns a string representation of all validation errors, separated by new lines.
+    /// </summary>
+    /// <returns>A string containing all validation errors.</returns>
+    public override string ToString()
+    {
+        return string.Join("; " + Environment.NewLine, Errors);
+    }
+}
 
 /// <summary>
 /// Defines a contract for asynchronous validation of objects of type <typeparamref name="T"/>.
@@ -27,7 +176,7 @@ public interface ISyncValidator<T>
     /// Validates the specified instance.
     /// </summary>
     /// <param name="instance">The instance of type <typeparamref name="T"/> to validate.</param>
-    void Validate(T instance);
+    ValidationResult Validate(T instance);
 }
 
 /// <summary>
@@ -43,16 +192,108 @@ public interface IAsyncValidator<T>
     /// <returns>
     /// A task that represents the asynchronous validation operation.
     /// </returns>
-    Task ValidateAsync(T instance);
+    Task<ValidationResult> ValidateAsync(T instance);
 }
 
+/// <summary>
+/// Represents the base class for validators, providing common functionalities like error collection and aggregation.
+/// </summary>
+public abstract class ValidatorBase
+{
+    /// <summary>
+    /// Gets a value indicating whether the validation process should stop after the first error is found.
+    /// </summary>
+    public bool EnableShortCircuit { get; } = false;
+
+    /// <summary>
+    /// Protected property to access the cumulative validation results.
+    /// </summary>
+    protected ValidationResult Result { get; } = new();
+
+    /// <summary>
+    /// Adds one or more <see cref="ValidationError"/> objects to the validation result.
+    /// </summary>
+    /// <param name="error">The array of ValidationError objects to add.</param>
+    protected void AddError(params ValidationError[] error)
+    {
+        Result.Errors.AddRange(error);
+    }
+
+    /// <summary>
+    /// Combines the current validation result with another, optionally prefixing errors with a source identifier.
+    /// </summary>
+    /// <param name="result">The ValidationResult to combine with the current result.</param>
+    /// <param name="source">Optional source identifier to prefix each error message.</param>
+    /// <param name="separator">The separator used between source and error message.</param>
+    protected void Combine(ValidationResult result, string? source = null, string? separator = ".")
+    {
+        var errors = result.Errors
+            .Transform(x => x.AppendSource(source ?? "", separator));
+
+        Result.Errors.AddRange(errors);
+    }
+
+    /// <summary>
+    /// Asynchronously combines the current validation result with the result of a provided validation task.
+    /// </summary>
+    /// <param name="validationTask">The validation task whose result is to be combined.</param>
+    /// <param name="source">Optional source identifier to prefix each error message.</param>
+    /// <param name="separator">The separator used between source and error message.</param>
+    protected async Task CombineAsync(Task<ValidationResult> validationTask, string? source = null, string? separator = ".")
+    {
+        Combine(await validationTask, source, separator);
+    }
+}
+
+/// <summary>
+/// Provides an abstract base for asynchronous validators of objects of type <typeparamref name="T"/>. <br/>
+/// This class extends <see cref="ValidatorBase"/> to include asynchronous validation logic.
+/// </summary>
+/// <typeparam name="T">The type of the object to be validated.</typeparam>
+public abstract class AsyncValidator<T> : ValidatorBase, IAsyncValidator<T>
+{
+    /// <summary>
+    /// Asynchronously validates an instance of type <typeparamref name="T"/>. <br/>
+    /// This method iterates through potential errors, adding them to the validation result. <br/>
+    /// If <see cref="ValidatorBase.EnableShortCircuit"/> is true, the validation stops at the first error.
+    /// </summary>
+    /// <param name="input">The instance of type <typeparamref name="T"/> to be validated.</param>
+    /// <returns>
+    /// A task representing the asynchronous validation operation, yielding a <see cref="ValidationResult"/> 
+    /// that contains all identified validation errors.
+    /// </returns>
+    public virtual async Task<ValidationResult> ValidateAsync(T input)
+    {
+        await using var errorsEnumerator = EnumerateErrorsAsync(input).GetAsyncEnumerator();
+
+        while (await errorsEnumerator.MoveNextAsync())
+        {
+            AddError(errorsEnumerator.Current);
+
+            if (EnableShortCircuit)
+            {
+                break;
+            }
+        }
+
+        return Result;
+    }
+
+    /// <summary>
+    /// When overridden in a derived class, provides an asynchronous enumerable of <see cref="ValidationError"/> <br/>
+    /// for a given input. This method should be implemented to define the validation logic specific to the type <typeparamref name="T"/>.
+    /// </summary>
+    /// <param name="input">The instance of type <typeparamref name="T"/> to validate.</param>
+    /// <returns>An asynchronous enumerable of <see cref="ValidationError"/> objects, representing the validation errors.</returns>
+    protected abstract IAsyncEnumerable<ValidationError> EnumerateErrorsAsync(T input);
+}
 
 /// <summary>
 /// Represents a validator for type <typeparamref name="T"/> that always considers the instance as valid.
 /// This is a "no-op" or "pass-through" validator that doesn't perform any validation checks.
 /// </summary>
 /// <typeparam name="T">The type of the object to be validated.</typeparam>
-public class EmptyValidator<T> : IValidator<T>
+public class EmptyValidator<T> : ValidatorBase, IValidator<T>
 {
     /// <summary>
     /// Validates the specified instance but always returns a successful validation.

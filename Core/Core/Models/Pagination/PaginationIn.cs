@@ -80,4 +80,13 @@ public class PaginationIn
         Limit = limit;
         Offset = offset;
     }
+
+    /// <summary>
+    /// Increments the offset by the current limit value.
+    /// </summary>
+    public void Increment()
+    {
+        Offset =+ Limit;
+    }
+
 }

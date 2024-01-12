@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using ModularSystem.Core.Json.Attributes;
+using Newtonsoft.Json.Linq;
+using System.Reflection;
 
 namespace ModularSystem.Core;
 
@@ -58,7 +60,7 @@ public class EnvironmentConfigValidator
 
             if (!jprops.Any())
             {
-                if (IsNullable(propertyType))
+                if (PropertyIsNullable(propertyInfo))
                 {
                     continue;
                 }
@@ -82,11 +84,28 @@ public class EnvironmentConfigValidator
     }
 
     /// <summary>
-    /// Determines if the given type is nullable.
+    /// Determines if the given property is nullable.
     /// </summary>
-    private bool IsNullable(Type type)
+    private bool PropertyIsNullable(PropertyInfo propertyInfo)
     {
-        return Nullable.GetUnderlyingType(type) != null;
+        // Verifica se é um tipo de valor nullable
+        if (Nullable.GetUnderlyingType(propertyInfo.PropertyType) != null)
+        {
+            return true;
+        }
+
+        // Verifica se é um tipo de referência nullable
+        if (!propertyInfo.PropertyType.IsValueType)
+        {
+            var nullableAttribute = propertyInfo.GetCustomAttribute<NullablePropertyAttribute>();
+
+            if (nullableAttribute != null)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

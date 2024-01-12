@@ -200,6 +200,11 @@ public class ConsoleLogger
         ConsoleWriter.Write(Environment.NewLine);
     }
 
+    public static void Log(string message)
+    {
+        Log(new Log(message));
+    }
+
     public static void Info(string message)
     {
         Log(new InfoLog(message));
