@@ -162,7 +162,7 @@ public static class EntityExtensions
     /// <returns>A task that represents the asynchronous delete operation.</returns>
     public static async Task DeleteAsync<T>(this EntityService<T> entity, string id) where T : IQueryableModel
     {
-        if (entity.ValidateIdBeforeDeletion)
+        if (entity.Settings.ValidateIdBeforeDeletion)
         {
             await RunIdValidationAsync(entity, id);
         }
@@ -202,7 +202,7 @@ public static class EntityExtensions
             return;
         }
 
-        if (entity.ValidateIdBeforeDeletion)
+        if (entity.Settings.ValidateIdBeforeDeletion)
         {
             var tasks = new List<Task>(ids.Count());
 
@@ -351,18 +351,81 @@ public static class EntityExtensions
     /// <summary>
     /// Creates a query with a LINQ filter for: "(<typeparamref name="T"/> obj) => obj.$Id == $<paramref name="id"/>".
     /// </summary>
-    /// <param name="entity"></param>
+    /// <param name="service"></param>
     /// <param name="id"></param>
     /// <returns></returns>
-    public static IQuery<T> CreateQueryWhereIdEquals<T>(this EntityService<T> entity, string id) where T : IQueryableModel
+    public static IQuery<T> CreateQueryWhereIdEquals<T>(this EntityService<T> service, string id) where T : IQueryableModel
     {
         var pagination = new PaginationIn(1, 0);
         var writer = new QueryWriter<T>();
 
         return writer
             .SetPagination(pagination)
-            .SetFilter(entity.WhereIdEquals(id))
+            .SetFilter(service.WhereIdEquals(id))
             .Create();
+    }
+
+    /// <summary>
+    /// Asynchronously validates the specified entity using the service's asynchronous validator.
+    /// </summary>
+    /// <param name="service">The service that contains the validator.</param>
+    /// <param name="entity">The entity to validate.</param>
+    /// <typeparam name="T">The type of the entity, which must implement IQueryableModel.</typeparam>
+    /// <returns>
+    /// A task that represents the asynchronous validation operation. The task result contains the 
+    /// <see cref="ValidationResult"/> of the validation. <br/>
+    /// If the service has no asynchronous validator, a successful validation result is returned.
+    /// </returns>
+    public static Task<ValidationResult> ValidateAsync<T>(this EntityService<T> service, T entity) where T : IQueryableModel
+    {
+        if(service.AsyncValidator != null)
+        {
+            return service.AsyncValidator.ValidateAsync(entity);    
+        }
+
+        return Task.FromResult(new ValidationResult());
+    }
+
+    /// <summary>
+    /// Asynchronously validates the entity for an update operation using the service's asynchronous update validator.
+    /// </summary>
+    /// <param name="service">The service containing the update validator.</param>
+    /// <param name="entity">The entity to be validated for update.</param>
+    /// <typeparam name="T">The type of the entity which must implement IQueryableModel.</typeparam>
+    /// <returns>
+    /// A task representing the asynchronous update validation operation. The task result contains the 
+    /// <see cref="ValidationResult"/> with the outcome of the validation. <br/>
+    /// If no asynchronous update validator is provided by the service, a successful validation result is returned.
+    /// </returns>
+    public static Task<ValidationResult> ValidateUpdateAsync<T>(this EntityService<T> service, T entity) where T : IQueryableModel
+    {
+        if (service.AsyncUpdateValidator != null)
+        {
+            return service.AsyncUpdateValidator.ValidateAsync(entity);
+        }
+
+        return Task.FromResult(new ValidationResult());
+    }
+
+    /// <summary>
+    /// Asynchronously validates a query against the entity using the service's asynchronous query validator.
+    /// </summary>
+    /// <param name="service">The service containing the query validator.</param>
+    /// <param name="query">The query object to validate.</param>
+    /// <typeparam name="T">The type of the entity which must implement IQueryableModel.</typeparam>
+    /// <returns>
+    /// A task representing the asynchronous query validation operation. The task result contains the 
+    /// <see cref="ValidationResult"/> indicating the outcome of the validation. <br/>
+    /// If the service does not have an asynchronous query validator, a successful validation result is returned.
+    /// </returns>
+    public static Task<ValidationResult> ValidateQueryAsync<T>(this EntityService<T> service, IQuery<T> query) where T : IQueryableModel
+    {
+        if (service.AsyncQueryValidator != null)
+        {
+            return service.AsyncQueryValidator.ValidateAsync(query);
+        }
+
+        return Task.FromResult(new ValidationResult());
     }
 
 }

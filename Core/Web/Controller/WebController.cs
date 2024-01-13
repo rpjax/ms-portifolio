@@ -4,6 +4,7 @@ using Microsoft.Extensions.Primitives;
 using ModularSystem.Core;
 using ModularSystem.Core.Logging;
 using ModularSystem.Core.Security;
+using System;
 using System.Text;
 
 namespace ModularSystem.Web;
@@ -22,6 +23,8 @@ public abstract class WebController : ControllerBase
     /// Determines whether to log exceptions or not.
     /// </summary>
     protected bool EnableExceptionLogging { get; set; } = true;
+
+    protected int ErrorStatusCode { get; set; } = 417;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WebController"/> class.
@@ -243,6 +246,11 @@ public abstract class WebController : ControllerBase
         return text;
     }
 
+    /// <summary>
+    /// Read the HTTP body as a JSON string and attempts to deserialized it as a <typeparamref name="T"/> instance.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
     protected async Task<T?> DeserializeJsonBodyAsync<T>() 
     {
         var str = await ReadBodyAsStringAsync();
@@ -253,6 +261,30 @@ public abstract class WebController : ControllerBase
         }
 
         return JsonSerializerSingleton.Deserialize<T>(str);
+    }
+
+    //*
+    // HTTP response.
+    //*
+
+    /// <summary>
+    /// Sends a custom error response with the specified payload.
+    /// </summary>
+    /// <param name="payload">The payload to include in the error response. This could be an error message, an object representing error details, or null for no payload.</param>
+    /// <returns>An IActionResult that when executed will produce an error response.</returns>
+    /// <remarks>
+    /// This method serializes the provided payload to JSON and sets the response's content type to 'application/json'. <br/>
+    /// The HTTP status code of the response is set to the value of ErrorStatusCode property. <br/>
+    /// If the payload is null, an empty JSON object is returned in the response.
+    /// </remarks>
+    protected IActionResult ErrorResponse(object? payload = null)
+    {
+        var json = JsonSerializerSingleton.Serialize(payload);
+
+        HttpContext.Response.ContentType = "application/json";
+        HttpContext.Response.StatusCode = ErrorStatusCode;
+
+        return Content(json, "application/json");
     }
 
 }

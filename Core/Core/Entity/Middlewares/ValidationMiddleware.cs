@@ -19,10 +19,10 @@ internal class ValidationMiddleware<T> : EntityMiddleware<T> where T : IQueryabl
     /// <summary>
     /// Initializes a new instance of the <see cref="ValidationMiddleware{T}"/> class.
     /// </summary>
-    /// <param name="entity">The entity service containing the validation logic.</param>
-    public ValidationMiddleware(EntityService<T> entity)
+    /// <param name="service">The entity service containing the validation logic.</param>
+    public ValidationMiddleware(EntityService<T> service)
     {
-        Service = entity;
+        Service = service;
     }
 
     /// <summary>

@@ -5,6 +5,12 @@ using System.Linq.Expressions;
 
 namespace ModularSystem.Core;
 
+public class EnititySettings
+{
+    public bool ValidateIdBeforeDeletion { get; set; }
+    public bool UseValidators { get; set; }
+}
+
 /// <summary>
 /// Abstract base class for entities, providing shared CRUD operations, serialization, and expression handling.
 /// </summary>
@@ -12,9 +18,9 @@ namespace ModularSystem.Core;
 public abstract class EntityService<T> : IEntityService<T> where T : IQueryableModel
 {
     /// <summary>
-    /// Gets or sets a value indicating whether the ID should be validated before deletion.
+    /// Gets or sets the settings associated with the entity.
     /// </summary>
-    public bool ValidateIdBeforeDeletion { get; set; }
+    public EnititySettings Settings { get; set; } 
 
     /// <summary>
     /// Gets the data access object associated with the entity.
@@ -37,6 +43,24 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
     public IValidator<IQuery<T>>? QueryValidator { get; init; }
 
     /// <summary>
+    /// Gets the asynchronous validator used for the entity. If no asynchronous validator is provided,
+    /// the entity won't be validated asynchronously.
+    /// </summary>
+    public IAsyncValidator<T>? AsyncValidator { get; init; }
+
+    /// <summary>
+    /// Gets the asynchronous validator used for updating the entity. If no asynchronous update validator is provided,
+    /// updates to the entity won't be validated asynchronously.
+    /// </summary>
+    public IAsyncValidator<T>? AsyncUpdateValidator { get; init; }
+
+    /// <summary>
+    /// Gets the asynchronous validator used for querying the entity. If no asynchronous query validator is provided,
+    /// queries won't be validated asynchronously.
+    /// </summary>
+    public IAsyncValidator<IQuery<T>>? AsyncQueryValidator { get; init; }
+
+    /// <summary>
     /// Retrieves an instance of a middleware wrapper that encapsulates the hooks of the current entity.
     /// </summary>
     /// <returns>An instance representing the hooks of the entity.</returns>
@@ -52,6 +76,7 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
     /// </summary>
     protected EntityService()
     {
+        Settings = new();
         Validator = null;
         UpdateValidator = null;
         QueryValidator = null;
@@ -408,7 +433,11 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
 
     private IEnumerable<EntityMiddleware<T>> CreatePostUserPipeline()
     {
-        yield return new ValidationMiddleware<T>(this);
+        if(Settings.UseValidators)
+        {
+            yield return new ValidationMiddleware<T>(this);
+        }
+
         yield return new VisitorMiddlewareConverter<T>(new ExpressionNormalizer<T>(CreateIdSelectorExpression, ParseId));
     }
 

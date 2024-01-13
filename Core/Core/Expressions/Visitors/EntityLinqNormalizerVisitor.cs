@@ -30,6 +30,7 @@ internal class EntityLinqNormalizerVisitor<T> : CustomExpressionVisitor, IVisito
         }
 
         RootParameter = lambdaExp.Parameters.First();
+
         return base.VisitLambda(node);
     }
 
@@ -68,6 +69,7 @@ internal class EntityLinqNormalizerVisitor<T> : CustomExpressionVisitor, IVisito
 
                 var strValue = value.TypeCast<string>();
                 var parsedValue = ParseIdFunction(strValue);
+
                 right = Expression.Constant(parsedValue, parsedValue.GetType());
             }
             else if (firstArgument.NodeType == ExpressionType.MemberAccess)
@@ -96,6 +98,7 @@ internal class EntityLinqNormalizerVisitor<T> : CustomExpressionVisitor, IVisito
 
                 var strValue = value.TypeCast<string>();
                 var parsedValue = ParseIdFunction(strValue);
+
                 right = Expression.Constant(parsedValue, parsedValue.GetType());
             }
             else

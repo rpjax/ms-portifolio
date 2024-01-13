@@ -38,6 +38,21 @@ public class Query<T> : IQuery<T>
     }
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="Query{T}"/> class with specified pagination details.
+    /// </summary>
+    /// <param name="pagination">The pagination details to be applied to the query.</param>
+    /// <remarks>
+    /// This constructor creates a query that includes only pagination settings, without any filtering or ordering. <br/> 
+    /// It is useful when you need to fetch a specific page of results without applying any filters or sorting order.
+    /// </remarks>
+    public Query(PaginationIn pagination)
+    {
+        Filter = null;
+        Ordering = null;
+        Pagination = pagination;
+    }
+
+    /// <summary>
     /// Converts the current query to a query of a different type.
     /// </summary>
     /// <typeparam name="TConverted">The new type to which the query is being converted.</typeparam>

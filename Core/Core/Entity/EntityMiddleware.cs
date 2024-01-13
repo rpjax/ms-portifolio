@@ -45,14 +45,30 @@ public abstract class EntityMiddleware<T> where T : IQueryableModel
     /// </summary>
     /// <param name="entities">The entities about to be created.</param>
     /// <returns>The potentially modified list of entities to proceed with creation.</returns>
-    public virtual Task<IEnumerable<T>> BeforeCreateAsync(IEnumerable<T> entities) => Task.FromResult(entities);
+    public virtual async Task<IEnumerable<T>> BeforeCreateAsync(IEnumerable<T> entities)
+    {
+        foreach (var item in entities)
+        {
+            await BeforeCreateAsync(item);
+        }
+
+        return entities;
+    }
 
     /// <summary>
     /// Post-process hook executed after creating multiple entities.
     /// </summary>
     /// <param name="entities">The entities that were created.</param>
     /// <returns>Potentially post-processed list of entities after creation.</returns>
-    public virtual Task<IEnumerable<T>> AfterCreateAsync(IEnumerable<T> entities) => Task.FromResult(entities);
+    public virtual async Task<IEnumerable<T>> AfterCreateAsync(IEnumerable<T> entities)
+    {
+        foreach (var item in entities)
+        {
+            await AfterCreateAsync(item);
+        }
+
+        return entities;
+    }
 
     /// <summary>
     /// Intercepting hook executed before a query operation.

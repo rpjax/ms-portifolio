@@ -18,7 +18,7 @@ public class AppException : Exception
     /// <summary>
     /// Gets or sets the custom details associated with this exception.
     /// </summary>
-    public List<KeyValuePair<string, string>>? Details { get; set; } = new();
+    public List<KeyValuePair<string?, string?>>? Details { get; set; } = new();
 
     /// <summary>
     /// Counter to create unique keys for additional data.
@@ -67,7 +67,7 @@ public class AppException : Exception
         ExceptionCode code = ExceptionCode.Internal,
         Exception? inner = null,
         object? data = null,
-        IEnumerable<KeyValuePair<string, string>>? details = null) : base(message, inner)
+        IEnumerable<KeyValuePair<string?, string?>>? details = null) : base(message, inner)
     {
         _message = message;
         Code = code;
@@ -102,4 +102,16 @@ public class AppException : Exception
 
         return this;
     }
+
+    /// <summary>
+    /// Sets the details for this exception.
+    /// </summary>
+    /// <param name="details"></param>
+    /// <returns></returns>
+    public AppException SetDetails(IEnumerable<KeyValuePair<string?, string?>> details)
+    {
+        Details = details.ToList();
+        return this;
+    }
+
 }

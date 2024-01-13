@@ -191,6 +191,25 @@ public class CrudClient<T> : WebClient where T : class
     }
 
     /// <summary>
+    /// Asynchronously counts the number of entities of type <typeparamref name="T"/> that satisfy a specified condition.
+    /// </summary>
+    /// <param name="expression">An expression defining the condition to count entities against.</param>
+    /// <returns>
+    /// A task representing the asynchronous count operation, with a result indicating the number of entities satisfying the specified condition.
+    /// </returns>
+    /// <remarks>
+    /// This method is useful for determining the number of records that meet certain criteria without retrieving all the data. <br/>
+    /// The <paramref name="expression"/> parameter allows for specifying complex filtering conditions.
+    /// </remarks>
+    public async Task<long> CountAsync(Expression<Func<T, bool>> expression)
+    {
+        var serializable = QueryProtocol.ToSerializable(expression);
+        var endpoint = new CountEndpoint(CopyUri());
+        var dto = await endpoint.RunAsync(serializable);
+        return dto.Value;
+    }
+
+    /// <summary>
     /// Creates a <see cref="ServiceQueryable{T}"/> for the specified entity type.
     /// </summary>
     /// <typeparam name="T">The entity type for the queryable.</typeparam>

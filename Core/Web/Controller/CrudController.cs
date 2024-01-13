@@ -56,8 +56,17 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
                 return BadRequest(ModelState);
             }
 
-            var id = await Service.CreateAsync(data);
-            return Ok(Dto<string>.From(id));
+            var validationResult = await Service.ValidateAsync(data);
+
+            if(validationResult.IsNotEmpty)
+            {
+                return ErrorResponse(validationResult);
+            }
+
+            var dto = Dto<string>
+                .From(await Service.CreateAsync(data));
+
+            return Ok(dto);
         }
         catch (Exception e)
         {
@@ -97,6 +106,14 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
 
             var request = (await DeserializeJsonBodyAsync<SerializableQuery>()) ?? new();
             var query = request.ToQuery<T>();
+
+            var validationResult = await Service.ValidateQueryAsync(query);
+
+            if (validationResult.IsNotEmpty)
+            {
+                return ErrorResponse(validationResult);
+            }
+
             var result = await Service.QueryAsync(query);
 
             return Ok(result);
@@ -141,7 +158,15 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
                 return BadRequest(ModelState);
             }
 
+            var validationResult = await Service.ValidateUpdateAsync(data);
+
+            if (validationResult.IsNotEmpty)
+            {
+                return ErrorResponse(validationResult);
+            }
+
             await Service.UpdateAsync(data);
+
             return Ok();
         }
         catch (Exception e)
@@ -253,6 +278,29 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
             return HandleException(e);
         }
     }
+
+    [HttpGet("count")]
+    public virtual async Task<IActionResult> CountAsync([FromBody] SerializableExpression serializableExpression)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var reader = new ExpressionReader(QueryProtocol.FromSerializable(serializableExpression));
+            var count = await Service.CountAsync(reader.GetPredicate<T>());
+            var dto = new Dto<long?>(count);
+
+            return Ok(dto);
+        }
+        catch (Exception e)
+        {
+            return HandleException(e);
+        }
+    }
+
 
     /// <summary>
     /// Provides an extension point to modify or inspect the TranslatedQueryable object before it is executed. <br/>

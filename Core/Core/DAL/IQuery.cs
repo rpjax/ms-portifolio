@@ -3,7 +3,7 @@
 namespace ModularSystem.Core;
 
 /// <summary>
-/// Defines the structure for a query to filter, group, project (select), sort, and paginate data of type <typeparamref name="T"/>.
+/// Defines the structure for a query to filter, sort, and paginate data of type <typeparamref name="T"/>.
 /// </summary>
 /// <typeparam name="T">The type of data the query is designed for.</typeparam>
 public interface IQuery<T>

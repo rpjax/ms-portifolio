@@ -166,3 +166,17 @@ internal class ValidateIdEndpoint<T> : EndpointBase<string, Dto<bool>>
             .SetQueryParam("id", input);
     }
 }
+
+internal class CountEndpoint : EndpointBase<SerializableExpression, Dto<long>>
+{
+    public CountEndpoint(Http.Uri uri) : base(uri)
+    {
+
+    }
+
+    protected override HttpRequest CreateRequest(SerializableExpression input)
+    {
+        return new HttpRequest(RequestUri.AppendPath("count"), HttpMethod.Post)
+            .SetJsonBody(input);
+    }
+}

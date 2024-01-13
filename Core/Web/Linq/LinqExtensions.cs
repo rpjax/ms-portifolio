@@ -88,6 +88,10 @@ public static class ServiceQueryableLinq
         return (ServiceQueryable<TSource>)source.AsQueryable().OrderByDescending(keySelector);
     }
 
+    //*
+    // Materialization methods.
+    //*
+
     /// <summary>
     /// Asynchronously creates an array from a <see cref="ServiceQueryable{TSource}"/>.
     /// </summary>
@@ -104,5 +108,11 @@ public static class ServiceQueryableLinq
     {
         return (await ((ServiceQueryProvider<TSource>)source.Provider).ExecuteAsync(source.Expression)).ToArray();
     }
+
+    //TODO...
+    //public static async Task<int> CountAsync<TSource>(this ServiceQueryable<TSource> source)
+    //{
+    //    return (await source.Select(x => new {}).ToArrayAsync()).Length;
+    //}
 
 }
