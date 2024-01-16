@@ -2,11 +2,6 @@
 
 namespace ModularSystem.Core.Logging;
 
-//*
-// GENERIC COMMON API SECTION.
-// NOTE: All components in this section must be agnostic of their implementations.
-//*
-
 /// <summary>
 /// Defines a mechanism to read log entries.
 /// </summary>
@@ -17,7 +12,9 @@ public interface ILogReader<T> : IDisposable
     /// Retrieves all the log entries.
     /// </summary>
     /// <returns>An <see cref="IQueryable{T}"/> containing the log entries.</returns>
-    IQueryable<T> GetEntries();
+    IQueryable<T> AsQueryable();
+
+    IAsyncEnumerable<T> AsAsyncQueryable();
 }
 
 /// <summary>

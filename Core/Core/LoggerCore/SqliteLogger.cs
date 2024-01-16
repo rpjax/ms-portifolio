@@ -22,29 +22,35 @@ public class EFLogEntry : EFModel, ILogEntry
     public string? Message { get; set; } = null;
 
     /// <summary>
-    /// Gets or sets the stack trace at the point where the log was generated, if applicable.
+    /// Gets or sets the flags of the log entry.
     /// </summary>
-    public string? StackTrace { get; set; } = null;
+    public string? Flags { get; set; } = null;
 }
 
 public class SqliteLogReader<T> : ILogReader<T> where T : EFLogEntry
 {
-    EFCoreSqliteContext<T> context;
+    protected EFCoreSqliteContext<T> Context { get; init; }
 
     public SqliteLogReader(FileInfo file)
     {
-        context = new EFCoreSqliteContext<T>(file);
+        Context = new EFCoreSqliteContext<T>(file);
     }
 
     public void Dispose()
     {
-        context.Dispose();
+        Context.Dispose();
     }
 
-    public IQueryable<T> GetEntries()
+    public IQueryable<T> AsQueryable()
     {
-        return context.Entries.AsQueryable();
+        return Context.Entries.AsQueryable();
     }
+
+    public IAsyncEnumerable<T> AsAsyncQueryable()
+    {
+        return Context.Entries.AsAsyncEnumerable();
+    }
+    
 }
 
 public class SqliteLogWriter<T> : ILogWriter<T> where T : EFLogEntry

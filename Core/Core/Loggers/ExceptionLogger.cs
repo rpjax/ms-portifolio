@@ -21,8 +21,13 @@ class ExceptionLoggerInitializer : Initializer
 /// The <c>ExceptionEntry</c> class extends the <see cref="EFLogEntry"/> to provide specialized functionality <br/>
 /// for logging exceptions, including serialization and deserialization of exception objects.
 /// </remarks>
-public class ExceptionEntry : EFLogEntry
+public class ExceptionEntry : EFLogEntry, IExceptionLogEntry
 {
+    /// <summary>
+    /// Gets or sets the stack trace at the point where the log was generated, if applicable.
+    /// </summary>
+    public string? StackTrace { get; set; } = null;
+
     /// <summary>
     /// Gets or sets the serialized representation of the exception.
     /// </summary>
@@ -31,22 +36,33 @@ public class ExceptionEntry : EFLogEntry
     /// <summary>
     /// Initializes a new instance of the <see cref="ExceptionEntry"/> class with default properties.
     /// </summary>
+    [JsonConstructor]
     public ExceptionEntry()
     {
-        Type = LogTypes.Error;
+        
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExceptionEntry"/> class with default properties.
+    /// </summary>
+    public ExceptionEntry(string? type = null)
+    {
+        Type = type;
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ExceptionEntry"/> class with a given exception.
     /// </summary>
     /// <param name="exception">The exception to be logged.</param>
-    public ExceptionEntry(Exception exception) : this()
+    /// <param name="type">The error type associated to this exception to be logged.</param>
+    public ExceptionEntry(Exception exception, string? type = LogTypes.Error) 
     {
         var settings = new JsonSerializerSettings
         {
             ContractResolver = new InternalContractResolver()
         };
 
+        Type = type;
         Message = exception.Message;
         StackTrace = exception.StackTrace;
         SerializedException = JsonConvert.SerializeObject(exception, settings);
@@ -58,9 +74,9 @@ public class ExceptionEntry : EFLogEntry
     /// <param name="exception">The exception to be logged.</param>
     /// <param name="occurredAt">The time the exception occurred.</param>
     /// <returns>An instance of <see cref="ExceptionEntry"/>.</returns>
-    public static ExceptionEntry From(Exception exception, DateTime occurredAt)
+    public static ExceptionEntry From(Exception exception, DateTime occurredAt, string? type = LogTypes.Error)
     {
-        return new ExceptionEntry(exception)
+        return new ExceptionEntry(exception, type)
         {
             CreatedAt = occurredAt,
         };
@@ -111,6 +127,21 @@ public class ExceptionEntry : EFLogEntry
     }
 
     /// <summary>
+    /// Gets the <see cref="Exception"/> stored in this entry.
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    public Exception GetException()
+    {
+        if(SerializedException == null)
+        {
+            throw new ArgumentException("Cannot get exception from entry with null serialized exception data.", nameof(SerializedException));
+        }
+
+        return Deserialize(SerializedException)!;
+    }
+
+    /// <summary>
     /// Represents a contract resolver for JSON serialization and deserialization operations specific to exceptions.
     /// </summary>
     /// <remarks>
@@ -149,11 +180,6 @@ public static class ExceptionLogger
     public const string DefaultFileName = "e_debug.db";
 
     /// <summary>
-    /// Default filename for persisting log entries related to critical errors needing urgent attention.
-    /// </summary>
-    public const string CriticalErrorFileName = "critical_e_debug.db";
-
-    /// <summary>
     /// Gets or sets a value indicating whether to enable logging of exceptions to disk.
     /// </summary>
     public static bool EnableDiskLogging { get; set; }
@@ -167,7 +193,8 @@ public static class ExceptionLogger
     /// Logs the provided exception. Depending on the logger's settings, this could be to the console, to disk, or both.
     /// </summary>
     /// <param name="e">The exception to be logged.</param>
-    public static void Log(Exception e)
+    /// <param name="type">The error type associated with this exception.</param>
+    public static void Log(Exception e, string? type = LogTypes.Error)
     {
         if (EnableConsoleLogging)
         {
@@ -177,35 +204,7 @@ public static class ExceptionLogger
         if (EnableDiskLogging)
         {
             var logger = GetLogger();
-            var entry = ExceptionEntry.From(e, TimeProvider.UtcNow());
-            var job = new LoggerJob<ExceptionEntry>(logger, entry);
-
-            JobQueue.Enqueue(job);
-        }
-    }
-
-    /// <summary>
-    /// Logs a critical exception.
-    /// This method provides the capability to log the exception both to the console and to disk, 
-    /// depending on the logging configurations set (EnableConsoleLogging and EnableDiskLogging).
-    /// </summary>
-    /// <param name="e">The exception to be logged.</param>
-    /// <remarks>
-    /// If EnableConsoleLogging is set to true, the exception will be written to the console using the ConsoleLogger.
-    /// If EnableDiskLogging is set to true, the exception will be saved to a Sqlite database, with the filename 
-    /// specified by CritialErrorFileName. The logging to disk is queued in a job pool for asynchronous processing.
-    /// </remarks>
-    public static void Critial(Exception e)
-    {
-        if (EnableConsoleLogging)
-        {
-            ConsoleLogger.Error(e.ToString());
-        }
-
-        if (EnableDiskLogging)
-        {
-            var logger = new SqliteLogger<ExceptionEntry>(Logger.DefaultPathFile(CriticalErrorFileName));
-            var entry = ExceptionEntry.From(e, TimeProvider.UtcNow());
+            var entry = ExceptionEntry.From(e, TimeProvider.UtcNow(), type);
             var job = new LoggerJob<ExceptionEntry>(logger, entry);
 
             JobQueue.Enqueue(job);
