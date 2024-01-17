@@ -1,109 +1,11 @@
 using System.Collections;
-using System.Text.Json.Serialization;
 
 namespace ModularSystem.Core;
 
 /// <summary>
-/// Represents a validation error with optional text, code, and target properties.
+/// Represents a collection of <see cref="Error"/> objects and provides methods to iterate over them.
 /// </summary>
-public class ValidationError
-{
-    /// <summary>
-    /// Describes the error.
-    /// </summary>
-    public string? Text { get; set; }
-
-    /// <summary>
-    /// An identifier used to bind this error to its validation source. 
-    /// </summary>
-    public string? Source { get; set; }
-
-    /// <summary>
-    /// A code meant to track the error. Used for book-keeping of the error.
-    /// </summary>
-    public string? Code { get; set; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ValidationError"/> class.
-    /// </summary>
-    [JsonConstructor]
-    public ValidationError()
-    {
-        Text = null;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ValidationError"/> class with specified text, code, and target.
-    /// </summary>
-    /// <param name="text">The text description of the error.</param>
-    /// <param name="code">The code associated with the error.</param>
-    /// <param name="source">The source associated with the error.</param>
-    public ValidationError(string? text, string? source = null, string? code = null)
-    {
-        Text = text;
-        Source = source;
-        Code = code;
-    }
-
-    /// <summary>
-    /// Provides implicit conversion from string to <see cref="ValidationError"/>.
-    /// </summary>
-    /// <param name="text">The error message to convert into a <see cref="ValidationError"/>.</param>
-    public static implicit operator ValidationError(string text)
-    {
-        return new(text);
-    }
-
-    /// <summary>
-    /// Returns a string representation of the <see cref="ValidationError"/>, combining target, code, and text.
-    /// </summary>
-    /// <returns>A string representation of the ValidationError.</returns>
-    public override string ToString()
-    {
-        var parts = new List<string>();
-
-        if (!string.IsNullOrEmpty(Source))
-        {
-            parts.Add($"Source: \"{Source}\"");
-        }
-
-        if (!string.IsNullOrEmpty(Code))
-        {
-            parts.Add($"Code: \"{Code}\"");
-        }
-
-        if (!string.IsNullOrEmpty(Text))
-        {
-            parts.Add($"Message: \"{Text}\"");
-        }
-
-        return parts.Count > 0 
-            ? string.Join(", ", parts)
-            : "Undefined ValidationError";
-    }
-
-    public ValidationError AppendSource(string? source, string? separator = ".")
-    {
-        if (string.IsNullOrEmpty(source))
-        {
-            return this;
-        }
-        if (string.IsNullOrEmpty(Source))
-        {
-            Source = source;
-            return this;
-        }
-
-        Source = $"{source}{separator}{Source}";
-        return this;
-    }
-
-}
-
-/// <summary>
-/// Represents a collection of <see cref="ValidationError"/> objects and provides methods to iterate over them.
-/// </summary>
-public class ValidationResult : IEnumerable<ValidationError>
+public class ValidationResult : IEnumerable<Error>
 {
     /// <summary>
     /// Gets a value indicating whether the validation result contains no errors.
@@ -123,13 +25,13 @@ public class ValidationResult : IEnumerable<ValidationError>
     /// <summary>
     /// Gets the list of validation errors.
     /// </summary>
-    public List<ValidationError> Errors { get; set; } = new();
+    public List<Error> Errors { get; set; } = new();
 
     /// <summary>
     /// Returns an enumerator that iterates through the collection of validation errors.
     /// </summary>
     /// <returns>An enumerator for the validation errors.</returns>
-    public IEnumerator<ValidationError> GetEnumerator()
+    public IEnumerator<Error> GetEnumerator()
     {
         return Errors.GetEnumerator();
     }
@@ -211,10 +113,10 @@ public abstract class ValidatorBase
     protected ValidationResult Result { get; } = new();
 
     /// <summary>
-    /// Adds one or more <see cref="ValidationError"/> objects to the validation result.
+    /// Adds one or more <see cref="Error"/> objects to the validation result.
     /// </summary>
     /// <param name="error">The array of ValidationError objects to add.</param>
-    protected void AddError(params ValidationError[] error)
+    protected void AddError(params Error[] error)
     {
         Result.Errors.AddRange(error);
     }
@@ -280,12 +182,12 @@ public abstract class AsyncValidator<T> : ValidatorBase, IAsyncValidator<T>
     }
 
     /// <summary>
-    /// When overridden in a derived class, provides an asynchronous enumerable of <see cref="ValidationError"/> <br/>
+    /// When overridden in a derived class, provides an asynchronous enumerable of <see cref="Error"/> <br/>
     /// for a given input. This method should be implemented to define the validation logic specific to the type <typeparamref name="T"/>.
     /// </summary>
     /// <param name="input">The instance of type <typeparamref name="T"/> to validate.</param>
-    /// <returns>An asynchronous enumerable of <see cref="ValidationError"/> objects, representing the validation errors.</returns>
-    protected abstract IAsyncEnumerable<ValidationError> EnumerateErrorsAsync(T input);
+    /// <returns>An asynchronous enumerable of <see cref="Error"/> objects, representing the validation errors.</returns>
+    protected abstract IAsyncEnumerable<Error> EnumerateErrorsAsync(T input);
 }
 
 /// <summary>

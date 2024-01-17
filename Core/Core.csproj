@@ -65,6 +65,7 @@
   <ItemGroup>
     <Folder Include="CLI\" />
     <Folder Include="Core\Initializer\Internal\" />
+    <Folder Include="Patterns\" />
   </ItemGroup>
 
 </Project>

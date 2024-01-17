@@ -6,9 +6,9 @@
 public interface IErrorProducer
 {
     /// <summary>
-    /// Gets a collection of validation errors.
+    /// Gets a collection of errors.
     /// </summary>
-    IEnumerable<ValidationError> Errors { get; }
+    List<Error> Errors { get; }
 }
 
 /// <summary>
@@ -16,10 +16,7 @@ public interface IErrorProducer
 /// </summary>
 public interface IOperationResult : IErrorProducer
 {
-    /// <summary>
-    /// Gets the validation result of the operation, if available.
-    /// </summary>
-    ValidationResult? ValidationResult { get; }
+ 
 }
 
 /// <summary>
@@ -40,10 +37,7 @@ public interface IOperationResult<T> : IOperationResult
 public class OperationResult : IOperationResult
 {
     /// <inheritdoc />
-    public ValidationResult? ValidationResult { get; init; }
-
-    /// <inheritdoc />
-    public IEnumerable<ValidationError> Errors { get => GetValidationErrors(); }
+    public List<Error> Errors { get; protected set; }
 
     /// <summary>
     /// Gets a value indicating whether the operation was successful (no errors).
@@ -61,22 +55,18 @@ public class OperationResult : IOperationResult
     /// <param name="result">An optional IOperationResult to initialize the current instance with.</param>
     public OperationResult(IOperationResult? result = null)
     {
-        ValidationResult = result?.ValidationResult;
+        Errors = result?.Errors ?? new(0);
     }
 
     /// <summary>
-    /// Retrieves the collection of validation errors, if any.
+    /// Returns a string representation of all errors, separated by new lines.
     /// </summary>
-    /// <returns>A collection of ValidationError objects.</returns>
-    private IEnumerable<ValidationError> GetValidationErrors()
+    /// <returns>A string containing all validation errors.</returns>
+    public override string ToString()
     {
-        if (ValidationResult == null)
-        {
-            return Enumerable.Empty<ValidationError>();
-        }
-
-        return ValidationResult.Errors;
+        return string.Join("; " + Environment.NewLine, Errors);
     }
+
 }
 
 /// <summary>
@@ -108,7 +98,7 @@ public class OperationResult<T> : OperationResult, IOperationResult<T?>
     /// <param name="validationResult">The ValidationResult associated with the failed operation.</param>
     public OperationResult(ValidationResult validationResult)
     {
-        ValidationResult = validationResult;
+        Errors = validationResult.Errors;
         Data = default;
     }
 
@@ -119,7 +109,7 @@ public class OperationResult<T> : OperationResult, IOperationResult<T?>
     /// <param name="data">The data produced by the successful operation.</param>
     public OperationResult(T? data)
     {
-        ValidationResult = null;
+        Errors = new(0);
         Data = data;
     }
 
