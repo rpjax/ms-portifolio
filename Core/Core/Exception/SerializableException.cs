@@ -30,6 +30,11 @@ public class SerializableException
     public string? HelpLink { get; set; }
 
     /// <summary>
+    /// Gets or sets the HResult associated with this exception.
+    /// </summary>
+    public int? HResult { get; set; }
+
+    /// <summary>
     /// Gets or sets the custom data associated with this exception.
     /// </summary>
     public IDictionary? Data { get; set; }
@@ -50,6 +55,7 @@ public class SerializableException
         StackTrace = null;
         Source = null;
         HelpLink = null;
+        HResult = null;
         Data = null;
         InnerException = null;
     }
@@ -64,6 +70,7 @@ public class SerializableException
         StackTrace = exception.StackTrace;
         Source = exception.Source;
         HelpLink = exception.HelpLink;
+        HResult = exception.HResult;
         Data = exception.Data;
 
         if (exception.InnerException != null)

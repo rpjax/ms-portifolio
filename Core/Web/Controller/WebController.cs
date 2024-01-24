@@ -24,7 +24,7 @@ public abstract class WebController : ControllerBase
     /// </summary>
     protected bool EnableExceptionLogging { get; set; } = true;
 
-    protected int ErrorStatusCode { get; set; } = 417;
+    protected int OperationFailedStatusCode { get; set; } = 417;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WebController"/> class.
@@ -267,6 +267,27 @@ public abstract class WebController : ControllerBase
     // HTTP response.
     //*
 
+    protected IActionResult OperationResultResponse(OperationResult operationResult, int statusCode)
+    {
+        var debugErrors = operationResult.Errors
+            .Where(x => x.ContainsFlags(ErrorFlags.Debug))
+            .ToArray();
+
+        if (debugErrors.IsNotEmpty())
+        {
+            // log it...
+        }
+
+        operationResult.RemoveErrorsWithoutFlags(ErrorFlags.Public);
+
+        var json = JsonSerializerSingleton.Serialize(operationResult);
+
+        HttpContext.Response.ContentType = "application/json";
+        HttpContext.Response.StatusCode = OperationFailedStatusCode;
+
+        return Content(json, "application/json");
+    }
+
     /// <summary>
     /// Sends a custom error response with the specified payload.
     /// </summary>
@@ -282,9 +303,15 @@ public abstract class WebController : ControllerBase
         var json = JsonSerializerSingleton.Serialize(payload);
 
         HttpContext.Response.ContentType = "application/json";
-        HttpContext.Response.StatusCode = ErrorStatusCode;
+        HttpContext.Response.StatusCode = OperationFailedStatusCode;
 
         return Content(json, "application/json");
     }
+
+    protected IActionResult ErrorResponse(OperationResult result)
+    {
+        return OperationResultResponse(result, OperationFailedStatusCode);
+    }
+
 
 }

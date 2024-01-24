@@ -10,6 +10,7 @@ class ExceptionLoggerInitializer : Initializer
     {
         ExceptionLogger.EnableDiskLogging = options.EnableDiskExceptionLogger;
         ExceptionLogger.EnableConsoleLogging = options.EnableConsoleExceptionLogger;
+
         return Task.CompletedTask;
     }
 }
@@ -43,14 +44,6 @@ public class ExceptionEntry : EFLogEntry, IExceptionLogEntry
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ExceptionEntry"/> class with default properties.
-    /// </summary>
-    public ExceptionEntry(string? type = null)
-    {
-        Type = type;
-    }
-
-    /// <summary>
     /// Initializes a new instance of the <see cref="ExceptionEntry"/> class with a given exception.
     /// </summary>
     /// <param name="exception">The exception to be logged.</param>
@@ -73,6 +66,7 @@ public class ExceptionEntry : EFLogEntry, IExceptionLogEntry
     /// </summary>
     /// <param name="exception">The exception to be logged.</param>
     /// <param name="occurredAt">The time the exception occurred.</param>
+    /// <param name="type"></param>
     /// <returns>An instance of <see cref="ExceptionEntry"/>.</returns>
     public static ExceptionEntry From(Exception exception, DateTime occurredAt, string? type = LogTypes.Error)
     {

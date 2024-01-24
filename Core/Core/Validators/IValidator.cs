@@ -5,7 +5,7 @@ namespace ModularSystem.Core;
 /// <summary>
 /// Represents a collection of <see cref="Error"/> objects and provides methods to iterate over them.
 /// </summary>
-public class ValidationResult : IEnumerable<Error>
+public class ValidationResultOld : IEnumerable<Error>
 {
     /// <summary>
     /// Gets a value indicating whether the validation result contains no errors.
@@ -16,11 +16,6 @@ public class ValidationResult : IEnumerable<Error>
     /// Gets a value indicating whether the validation result contains errors.
     /// </summary>
     public bool IsNotEmpty => !IsEmpty;
-
-    /// <summary>
-    /// Gets or sets an identifier for the validation result.
-    /// </summary>
-    public string? Identifier { get; set; }
 
     /// <summary>
     /// Gets the list of validation errors.
@@ -47,7 +42,7 @@ public class ValidationResult : IEnumerable<Error>
     /// <returns>A string containing all validation errors.</returns>
     public override string ToString()
     {
-        return string.Join("; " + Environment.NewLine, Errors);
+        return string.Join(";" + Environment.NewLine, Errors);
     }
 }
 
@@ -78,7 +73,7 @@ public interface ISyncValidator<T>
     /// Validates the specified instance.
     /// </summary>
     /// <param name="instance">The instance of type <typeparamref name="T"/> to validate.</param>
-    ValidationResult Validate(T instance);
+    OperationResult Validate(T instance);
 }
 
 /// <summary>
@@ -94,7 +89,7 @@ public interface IAsyncValidator<T>
     /// <returns>
     /// A task that represents the asynchronous validation operation.
     /// </returns>
-    Task<ValidationResult> ValidateAsync(T instance);
+    Task<OperationResult> ValidateAsync(T instance);
 }
 
 /// <summary>
@@ -110,15 +105,15 @@ public abstract class ValidatorBase
     /// <summary>
     /// Protected property to access the cumulative validation results.
     /// </summary>
-    protected ValidationResult Result { get; } = new();
+    protected OperationResult Result { get; } = new();
 
     /// <summary>
     /// Adds one or more <see cref="Error"/> objects to the validation result.
     /// </summary>
-    /// <param name="error">The array of ValidationError objects to add.</param>
-    protected void AddError(params Error[] error)
+    /// <param name="errors">The array of ValidationError objects to add.</param>
+    protected void AddErrors(params Error[] errors)
     {
-        Result.Errors.AddRange(error);
+        Result.Errors.AddRange(errors);
     }
 
     /// <summary>
@@ -127,12 +122,13 @@ public abstract class ValidatorBase
     /// <param name="result">The ValidationResult to combine with the current result.</param>
     /// <param name="source">Optional source identifier to prefix each error message.</param>
     /// <param name="separator">The separator used between source and error message.</param>
-    protected void Combine(ValidationResult result, string? source = null, string? separator = ".")
+    protected void Combine(OperationResult result, string? source = null, string? separator = ".")
     {
         var errors = result.Errors
-            .Transform(x => x.AppendSource(source ?? "", separator));
+            .Transform(x => x.AppendSource(source, separator))
+            .ToArray();
 
-        Result.Errors.AddRange(errors);
+        AddErrors(errors);
     }
 
     /// <summary>
@@ -141,7 +137,7 @@ public abstract class ValidatorBase
     /// <param name="validationTask">The validation task whose result is to be combined.</param>
     /// <param name="source">Optional source identifier to prefix each error message.</param>
     /// <param name="separator">The separator used between source and error message.</param>
-    protected async Task CombineAsync(Task<ValidationResult> validationTask, string? source = null, string? separator = ".")
+    protected async Task CombineAsync(Task<OperationResult> validationTask, string? source = null, string? separator = ".")
     {
         Combine(await validationTask, source, separator);
     }
@@ -161,16 +157,16 @@ public abstract class AsyncValidator<T> : ValidatorBase, IAsyncValidator<T>
     /// </summary>
     /// <param name="input">The instance of type <typeparamref name="T"/> to be validated.</param>
     /// <returns>
-    /// A task representing the asynchronous validation operation, yielding a <see cref="ValidationResult"/> 
+    /// A task representing the asynchronous validation operation, yielding a <see cref="OperationResult"/> 
     /// that contains all identified validation errors.
     /// </returns>
-    public virtual async Task<ValidationResult> ValidateAsync(T input)
+    public virtual async Task<OperationResult> ValidateAsync(T input)
     {
         await using var errorsEnumerator = EnumerateErrorsAsync(input).GetAsyncEnumerator();
 
         while (await errorsEnumerator.MoveNextAsync())
         {
-            AddError(errorsEnumerator.Current);
+            AddErrors(errorsEnumerator.Current);
 
             if (EnableShortCircuit)
             {

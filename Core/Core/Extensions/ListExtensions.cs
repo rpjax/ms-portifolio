@@ -3,7 +3,7 @@
 public static partial class ListExtensions
 {
     /// <summary>
-    /// Not compatible with LINQ.
+    /// Not compatible with LINQ providers.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="list"></param>
@@ -11,7 +11,9 @@ public static partial class ListExtensions
     /// <returns></returns>
     public static List<T> RemoveWhere<T>(this List<T> list, Func<T, bool> selector)
     {
-        return list.Where(x => !selector.Invoke(x)).ToList();
+        return list
+            .Where(x => !selector.Invoke(x))
+            .ToList();
     }
 
     /// <summary>

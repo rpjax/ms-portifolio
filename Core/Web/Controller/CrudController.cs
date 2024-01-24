@@ -58,7 +58,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
 
             var validationResult = await Service.ValidateAsync(data);
 
-            if(validationResult.IsNotEmpty)
+            if(validationResult.IsFailure)
             {
                 return ErrorResponse(validationResult);
             }
@@ -109,7 +109,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
 
             var validationResult = await Service.ValidateQueryAsync(query);
 
-            if (validationResult.IsNotEmpty)
+            if (validationResult.IsFailure)
             {
                 return ErrorResponse(validationResult);
             }
@@ -160,7 +160,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
 
             var validationResult = await Service.ValidateUpdateAsync(data);
 
-            if (validationResult.IsNotEmpty)
+            if (validationResult.IsFailure)
             {
                 return ErrorResponse(validationResult);
             }

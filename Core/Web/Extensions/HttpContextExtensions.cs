@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using ModularSystem.Core;
 using ModularSystem.Core.Logging;
 using ModularSystem.Core.Security;
 using System.Text;
 using System.Text.RegularExpressions;
+using static MongoDB.Libmongocrypt.CryptContext;
 
 namespace ModularSystem.Web;
 
@@ -219,6 +221,24 @@ public static class HttpContextExtensions
         {
             ExceptionLogger.Log(appException);
         }
+
+        return WriteJsonResponseAsync(context, statusCode, json);
+    }
+
+    public static Task WriteErrorResponseAsync(this HttpContext context, OperationResult operationResult, int statusCode)
+    {
+        var debugErrors = operationResult.Errors
+            .Where(x => x.ContainsFlags(ErrorFlags.Debug))
+            .ToArray();
+
+        if (debugErrors.IsNotEmpty())
+        {
+            // log it...
+        }
+
+        operationResult.RemoveErrorsWithoutFlags(ErrorFlags.Public);
+
+        var json = JsonSerializerSingleton.Serialize(operationResult);
 
         return WriteJsonResponseAsync(context, statusCode, json);
     }
