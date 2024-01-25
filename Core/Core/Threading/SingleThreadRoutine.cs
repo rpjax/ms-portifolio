@@ -64,7 +64,7 @@ public class SingleThreadRoutine : IDisposable
     {
         if (LogExceptions)
         {
-            ExceptionLogger.Log(e);
+            ErrorLogger.Log(e);
         }
     }
 

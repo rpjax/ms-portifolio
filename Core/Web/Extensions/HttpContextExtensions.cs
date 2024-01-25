@@ -219,7 +219,7 @@ public static class HttpContextExtensions
 
         if (appException.Code == ExceptionCode.Internal)
         {
-            ExceptionLogger.Log(appException);
+            ErrorLogger.Log(appException);
         }
 
         return WriteJsonResponseAsync(context, statusCode, json);

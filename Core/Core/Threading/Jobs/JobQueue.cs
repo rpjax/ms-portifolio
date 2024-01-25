@@ -1,7 +1,8 @@
 ﻿namespace ModularSystem.Core.Threading;
 
 /// <summary>
-/// Provides static methods to queue and unqueue jobs.
+/// Provides static methods to queue and manage jobs for execution by the thread pool. <br/>
+/// This class allows for parallel execution of multiple jobs and handles their lifecycle.
 /// </summary>
 public static class JobQueue
 {
@@ -9,13 +10,17 @@ public static class JobQueue
     private static TaskCompletionSource ExitEvent { get; set; } = new();
 
     /// <summary>
-    /// Queues the job to be executed by the thread pool. <br/>
-    /// Multiple jobs might be executed in parallel depending on available threads.
+    /// Queues a specified job for execution by the thread pool. <br/>
+    /// Allows multiple jobs to be executed in parallel depending on available threads.
     /// </summary>
-    /// <param name="job">The job to be queued.</param>
+    /// <param name="job">The job to be queued for execution.</param>
+    /// <remarks>
+    /// The method adds the job to the running jobs list and queues it for execution. <br/>
+    /// When the job exits, it is automatically removed from the running jobs list.
+    /// </remarks>
     public static void Enqueue(Job job)
     {
-        job.Exit += (job) => Untrack(job);
+        job.Exit += (job) => StopTracking(job);
         Track(job);
         job.QueueToThreadPool();
     }
@@ -34,6 +39,23 @@ public static class JobQueue
     }
 
     /// <summary>
+    /// Queues a specified <see cref="Task"/> for execution as a job by the thread pool. <br/>
+    /// The task is wrapped in a <see cref="LambdaJob"/> and executed in parallel depending on available threads.
+    /// </summary>
+    /// <param name="work">The <see cref="Task"/> to be executed as a job.</param>
+    /// <returns>A <see cref="Job"/> instance representing the queued task.</returns>
+    /// <remarks>
+    /// This method allows for the convenient queuing of a <see cref="Task"/> without the need to explicitly create a <see cref="Job"/> instance. <br/>
+    /// The returned <see cref="Job"/> provides mechanisms to monitor and control the execution of the queued task.
+    /// </remarks>
+    public static Job Enqueue(Task work)
+    {
+        var job = new LambdaJob(x => work);
+        Enqueue(job);
+        return job;
+    }
+
+    /// <summary>
     /// Queues the lambda function as a job to be executed by the thread pool. <br/>
     /// Multiple jobs might be executed in parallel depending on available threads.
     /// </summary>
@@ -45,26 +67,18 @@ public static class JobQueue
         {
             work.Invoke();
         });
+
         Enqueue(job);
         return job;
     }
 
     /// <summary>
-    /// Removes the specified job from the queue.
-    /// </summary>
-    /// <param name="job">The job to be removed from the queue.</param>
-    public static void Dequeue(Job job)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
     /// Waits asynchronously for all queued jobs to complete.
     /// </summary>
-    /// <returns>A task that represents the asynchronous wait operation.</returns>
+    /// <returns>A task that represents the asynchronous wait operation for the completion of all jobs.</returns>
     /// <remarks>
-    /// The method returns a task that completes when all currently queued jobs have finished executing.
-    /// If there are no active jobs, the returned task is already completed.
+    /// The method returns a task that completes when all currently queued jobs have finished executing. <br/>
+    /// If there are no active jobs at the time of calling, the returned task is already completed.
     /// </remarks>
     public static Task WaitAllJobsAsync()
     {
@@ -84,7 +98,7 @@ public static class JobQueue
         }
     }
 
-    private static void Untrack(Job job)
+    private static void StopTracking(Job job)
     {
         lock (RunningJobs)
         {

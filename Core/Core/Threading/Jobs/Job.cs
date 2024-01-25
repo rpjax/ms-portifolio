@@ -14,7 +14,7 @@ public abstract class Job : IDisposable
     /// Gets or sets the maximum number of execution attempts before the job is disposed.
     /// Default value is 5.
     /// </summary>
-    public int MaxExecutionAttempts { get; set; } = 5;
+    public int MaxExecutionAttempts { get; set; } = 1;
 
     /// <summary>
     /// Occurs when the job has completed its execution cycle, either by successfully completing its task 
@@ -83,7 +83,7 @@ public abstract class Job : IDisposable
         {
             try
             {
-                await ExecuteAsync(CancellationTokenSource.Token);
+                await OnExecuteAsync(CancellationTokenSource.Token);
                 break;
             }
             catch (Exception e)
@@ -100,9 +100,19 @@ public abstract class Job : IDisposable
 
             await Task.Delay(TimeOut(), CancellationTokenSource.Token);
         }
+    
+        try 
+        { 
+            await OnExitAsync(CancellationTokenSource.Token); 
+        } 
+        catch { }
 
-        await OnExitAsync(CancellationTokenSource.Token);
-        Exit.Invoke(this);
+        try
+        {
+            Exit.Invoke(this);
+        }
+        catch { }
+        
         Dispose();
     }
 
@@ -111,7 +121,7 @@ public abstract class Job : IDisposable
     /// </summary>
     /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
     /// <returns>A task representing the execution of the job.</returns>
-    protected abstract Task ExecuteAsync(CancellationToken cancellationToken);
+    protected abstract Task OnExecuteAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Provides a mechanism to handle exceptions that might occur during execution.
@@ -157,11 +167,12 @@ public class LambdaJob : Job
     /// <param name="lambda">The function to execute when the job runs.</param>
     public LambdaJob(Func<CancellationToken, Task> lambda)
     {
+        MaxExecutionAttempts = 1;
         this.lambda = lambda;
     }
 
     ///<inheritdoc/>
-    protected override Task ExecuteAsync(CancellationToken cancellationToken)
+    protected override Task OnExecuteAsync(CancellationToken cancellationToken)
     {
         return lambda.Invoke(cancellationToken);
     }

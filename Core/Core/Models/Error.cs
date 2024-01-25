@@ -8,6 +8,8 @@ namespace ModularSystem.Core;
 /// </summary>
 public class Error
 {
+    public const string ExceptionDataKey = "exception";
+
     /// <summary>
     /// Gets or sets the descriptive text of the error. This field can provide a human-readable explanation of the error.
     /// </summary>
@@ -82,7 +84,7 @@ public class Error
         Source = exception.StackTrace;
         Code = exception.HResult.ToString();
         AddFlags(ErrorFlags.Exception);
-        AddJsonData("exception", new SerializableException(exception));
+        AddJsonData(ExceptionDataKey, new SerializableException(exception));
     }
 
     /// <summary>
@@ -172,6 +174,24 @@ public class Error
     }
 
     /// <summary>
+    /// Retrieves the value associated with a specified key in the error's data collection.
+    /// </summary>
+    /// <param name="key">The key for the data to retrieve.</param>
+    /// <returns>The value associated with the specified key, or null if the key is not found.</returns>
+    public string? GetData(string key)
+    {
+        foreach (var item in Data)
+        {
+            if(item.Key == key)
+            {
+                return item.Value;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Appends additional source information to the existing source of the error. <br/>
     /// If the 'source' argument is null, the operation is cancelled without throwing exceptions.
     /// </summary>
@@ -241,6 +261,24 @@ public class Error
     }
 
     /// <summary>
+    /// Sets or updates the value associated with a specified key in the error's data collection.
+    /// </summary>
+    /// <param name="key">The key for the data to set or update.</param>
+    /// <param name="value">The value to set. If null, no action is taken.</param>
+    /// <returns>The current <see cref="Error"/> instance with the updated data.</returns>
+    public Error SetData(string key, string? value)
+    {
+        if(value  == null)
+        {
+            return this;
+        }
+
+        Data = Data.RemoveWhere(x => x.Key == key);
+        Data.Add(new(key, value));
+        return this;
+    }
+
+    /// <summary>
     /// Adds additional data to the error in the form of key-value pairs. <br/>
     /// This method is intended for storing structured data, such as JSON strings or encoded binary data, which provide additional context or information about the error.
     /// </summary>
@@ -263,6 +301,26 @@ public class Error
     public Error AddData(string key, string value)
     {
         Data.Add(new KeyValuePair<string, string>(key, value));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a key-value pair to the error's data collection, where the value is serialized into JSON format. <br/>
+    /// This method is useful for including complex or structured data with the error.
+    /// </summary>
+    /// <typeparam name="T">The type of the value to be serialized and added.</typeparam>
+    /// <param name="key">The key associated with the data to be added.</param>
+    /// <param name="value">The value to be serialized into JSON and added. If the value is null, the method does nothing.</param>
+    /// <returns>The current <see cref="Error"/> instance with the added JSON data.</returns>
+    public Error SetJsonData<T>(string key, T? value)
+    {
+        if (value == null)
+        {
+            return this;
+        }
+
+        SetData(key, JsonSerializerSingleton.Serialize(value));
+
         return this;
     }
 

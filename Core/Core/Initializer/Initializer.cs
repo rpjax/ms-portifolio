@@ -40,8 +40,11 @@ public abstract class Initializer
     /// Invokes all <see cref="Initializer"/> within the given assembly array. <br/>
     /// Custom initializer classes override the <see cref="OnInitAsync"/> method to define their initialization logic.
     /// </summary>
-    /// <param name="assemblies">The assemblies to search in.</param>
-    /// <param name="options">Custom options for the initialization process.</param>
+    /// <param name="assemblies">The assemblies to search in for initializers.</param>
+    /// <param name="options">Custom options for the initialization process. If null, default options are used.</param>
+    /// <remarks>
+    /// This method orchestrates the initialization process by invoking the appropriate lifecycle methods on all initializers found in the specified assemblies.
+    /// </remarks>
     public static void Run(Assembly[] assemblies, Options? options = null)
     {
         options ??= new Options();
@@ -68,39 +71,52 @@ public abstract class Initializer
     }
 
     /// <summary>
-    /// Contains logic that runs before the main initialization process. 
-    /// This method runs first in the initialization pipeline.
+    /// Contains logic that runs before the main initialization process. <br/>
+    /// This method runs first in the initialization pipeline and can be used for pre-initialization tasks.
     /// </summary>
     /// <param name="options">Configuration options for the initialization process.</param>
+    /// <remarks>
+    /// Override this method to include any setup tasks that need to be executed before the internal and main initialization logic.
+    /// </remarks>
     protected virtual Task BeforeInitAsync(Options options)
     {
         return Task.CompletedTask;
     }
 
     /// <summary>
-    /// Used by the library to initialize it's internal components. A hook to for before this can be created by overriding <see cref="BeforeInitAsync(Options)"/>.
+    /// Contains logic that runs internally as part of the initialization process and is invoked after <see cref="BeforeInitAsync"/>. <br/>
+    /// This method is designed for the library's internal components initialization. It's executed second in the initialization pipeline.<br/>
+    /// Override this method to insert custom logic that should occur after <see cref="BeforeInitAsync"/> and before <see cref="OnInitAsync"/>.
     /// </summary>
-    /// <param name="options"></param>
-    /// <returns></returns>
+    /// <param name="options">Configuration options for the initialization process.</param>
+    /// <remarks>
+    /// This method provides an internal initialization hook that can be useful for setting up necessary states or configurations <br/>
+    /// that are required before the main custom initialization logic (<see cref="OnInitAsync"/>) takes place.
+    /// </remarks>
     protected internal virtual Task InternalInitAsync(Options options)
     {
         return Task.CompletedTask;
     }
 
     /// <summary>
-    /// Contains the logic that needs to be executed during initialization. <br/>
+    /// Contains the main logic that needs to be executed during initialization. <br/>
+    /// This method runs third in the initialization pipeline, after <see cref="InternalInitAsync"/>. <br/>
     /// Derived classes must override this method to define their custom initialization behavior.
     /// </summary>
+    /// <param name="options">Configuration options for the initialization process.</param>
     protected virtual Task OnInitAsync(Options options)
     {
         return Task.CompletedTask;
     }
 
     /// <summary>
-    /// Contains logic that runs after the main initialization process. 
-    /// This method runs last in the initialization pipeline.
+    /// Contains logic that runs after the main initialization process. <br/>
+    /// This method runs last in the initialization pipeline and can be used for post-initialization tasks.
     /// </summary>
     /// <param name="options">Configuration options for the initialization process.</param>
+    /// <remarks>
+    /// Override this method to include any finalization or cleanup tasks that need to occur after the main initialization logic.
+    /// </remarks>
     protected virtual Task AfterInitAsync(Options options)
     {
         return Task.CompletedTask;
@@ -246,13 +262,13 @@ public abstract class Initializer
 
         /// <summary>
         /// Gets or sets a value indicating whether disk logging is enabled for exceptions.
-        /// When set to true, exceptions are logged to disk using the <see cref="ExceptionLogger.EnableDiskLogging"/> mechanism.
+        /// When set to true, exceptions are logged to disk using the <see cref="ErrorLogger.EnableDiskLogging"/> mechanism.
         /// </summary>
         public bool EnableDiskExceptionLogger { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether console logging is enabled for exceptions.
-        /// When set to true (default), exceptions are logged to the console using the <see cref="ExceptionLogger.EnableConsoleLogging"/> mechanism.
+        /// When set to true (default), exceptions are logged to the console using the <see cref="ErrorLogger.EnableConsoleLogging"/> mechanism.
         /// </summary>
         public bool EnableConsoleExceptionLogger { get; set; } = true;
 

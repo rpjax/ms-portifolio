@@ -19,7 +19,8 @@ public interface IEFModel : IQueryableModel
 }
 
 /// <summary>
-/// Represents an abstract base class for models designed for Entity Framework, providing querying capabilities and a long integer identifier.
+/// Represents an abstract base class for models designed for Entity Framework, <br/>
+/// providing querying capabilities and a long integer identifier.
 /// </summary>
 /// <remarks>
 /// This class builds upon the <see cref="QueryableModel"/> and introduces an Entity Framework standard <c>Id</c> field 

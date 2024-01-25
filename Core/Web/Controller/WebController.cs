@@ -75,7 +75,7 @@ public abstract class WebController : ControllerBase
     {
         if (e.Code == ExceptionCode.Internal)
         {
-            ExceptionLogger.Log(e);
+            ErrorLogger.Log(e);
         }
     }
 
