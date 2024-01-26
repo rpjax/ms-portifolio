@@ -61,6 +61,7 @@ public class WebClient
     {
         return Config.RequestUri.Copy();
     }
+
 }
 
 /// <summary>
@@ -106,7 +107,7 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="query">The serializable query for the search.</param>
     /// <returns>A task representing the asynchronous operation, with a result of the query.</returns>
-    public Task<OperationResult<QueryResult<T>>> QueryAsync(SerializableQuery query)
+    public Task<QueryResult<T>> QueryAsync(SerializableQuery query)
     {
         return new QueryEndpoint<T>(CopyUri())
             .RunAsync(query);
@@ -127,10 +128,10 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="value">The instance to be updated.</param>
     /// <returns>A task representing the asynchronous update operation.</returns>
-    public async Task UpdateAsync(T value)
+    public async Task<OperationResult> UpdateAsync(T value)
     {
         var endpoint = new UpdateEndpoint<T>(CopyUri());
-        await endpoint.RunAsync(value);
+        return await endpoint.RunAsync(value);
     }
 
     /// <summary>

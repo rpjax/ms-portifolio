@@ -135,11 +135,6 @@ public class Error
     {
         var parts = new List<string>();
 
-        if (!string.IsNullOrEmpty(Source))
-        {
-            parts.Add($"Source: \"{Source}\"");
-        }
-
         if (!string.IsNullOrEmpty(Code))
         {
             parts.Add($"Code: \"{Code}\"");
@@ -148,6 +143,16 @@ public class Error
         if (!string.IsNullOrEmpty(Text))
         {
             parts.Add($"Message: \"{Text}\"");
+        }
+
+        if (!string.IsNullOrEmpty(Source))
+        {
+            parts.Add($"Source: \"{Source}\"");
+        }
+
+        foreach (var item in Details)
+        {
+            parts.Add($"{item.Key}: \"{item.Value}\"");
         }
 
         return parts.Count > 0

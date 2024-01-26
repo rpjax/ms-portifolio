@@ -53,6 +53,12 @@ public class OperationResult : IOperationResult
     [JsonIgnore]
     public bool IsFailure { get => !IsSuccess; }
 
+    /// <summary>
+    /// Gets a value indicating whether the operation resulted in errors.
+    /// </summary>
+    [JsonIgnore]
+    public bool ContainsErrors { get => Errors.IsNotEmpty(); }
+
     /// <inheritdoc/>
     public List<Error> Errors { get; protected set; }
 
@@ -96,12 +102,25 @@ public class OperationResult : IOperationResult
     }
 
     /// <summary>
+    /// Constructs an OperationResult indicating a failed operation with the provided error details.
+    /// </summary>
+    /// <param name="errors">Collection of <see cref="Error"/> objects detailing the reasons for the operation's failure.</param>
+    /// <remarks>
+    /// This constructor is exclusively used for creating an OperationResult representing a failed operation. <br/>
+    /// It sets the operation status to failure and includes the provided errors. <br/>
+    /// If the errors collection is empty, the operation is still considered as a failure.
+    /// </remarks>
+    public OperationResult(IEnumerable<Error> errors) : this(false, errors.ToArray())
+    {
+    }
+
+    /// <summary>
     /// Returns a string representation of all errors, separated by new lines.
     /// </summary>
     /// <returns>A string containing all validation errors.</returns>
     public override string ToString()
     {
-        return string.Join("; " + Environment.NewLine, Errors);
+        return string.Join($"; {Environment.NewLine}", Errors);
     }
 
     /// <summary>
@@ -206,21 +225,27 @@ public class OperationResult<T> : OperationResult, IOperationResult<T?>
     }
 
     /// <summary>
-    /// Initializes a new instance of the OperationResult class, potentially with a set of errors. <br/>
-    /// This constructor can represent either a successful or a failed operation based on the provided errors.
+    /// Constructs an OperationResult indicating a failed operation with the provided error details.
     /// </summary>
-    /// <param name="errors">An array of <see cref="Error"/> objects representing the errors encountered during the operation. 
-    /// If no errors are provided, the operation is considered successful by default.</param>
+    /// <param name="errors">Array of <see cref="Error"/> objects detailing the reasons for the operation's failure.</param>
     /// <remarks>
-    /// If errors are provided, the operation's success status is set to <c>false</c>, indicating a failed operation. <br/>
-    /// If no errors are passed (an empty array), the constructor treats the operation as successful, setting the success status to <c>true</c>.
+    /// This constructor is used for creating an OperationResult representing a failed operation. <br/> 
+    /// It will set the operation status to failure, regardless of whether errors are provided.
     /// </remarks>
     public OperationResult(params Error[] errors) : this(false, default, errors)
     {
-        if (errors.Length == 0)
-        {
-            IsSuccess = true;
-        }
+    }
+
+    /// <summary>
+    /// Constructs an OperationResult indicating a failed operation with the provided error details.
+    /// </summary>
+    /// <param name="errors">Collection of <see cref="Error"/> objects detailing the reasons for the operation's failure.</param>
+    /// <remarks>
+    /// This constructor is used for creating an OperationResult representing a failed operation. <br/>
+    /// It will set the operation status to failure, regardless of whether the error collection is empty or not.
+    /// </remarks>
+    public OperationResult(IEnumerable<Error> errors) : this(errors.ToArray())
+    {
     }
 
     /// <summary>

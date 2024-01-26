@@ -186,7 +186,7 @@ internal class EFCoreQueryOperation<T> where T : class, IEFModel
         var data = await GetDataAsync(query);
         var pagination = await GetPaginationAsync(query);
 
-        return new QueryResult<T>(data, pagination);
+        return new QueryResult<T>(data);
     }
 
     Task<T[]> GetDataAsync(IQuery<T> query)

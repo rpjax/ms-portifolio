@@ -40,6 +40,6 @@ public class LayerAdapter<InputT, OutputT> : ILayerAdapter<InputT, OutputT>
             data.Add(Present(item));
         }
 
-        return new QueryResult<OutputT>(data, queryResult.Pagination);
+        return new QueryResult<OutputT>(data);
     }
 }

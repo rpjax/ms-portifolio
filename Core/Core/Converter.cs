@@ -28,7 +28,7 @@ public class Converter<T1, T2> : IBidirectionalConverter<T1, T2>
             data.Add(Convert(item));
         }
 
-        return new QueryResult<T2>(data, queryResult.Pagination);
+        return new QueryResult<T2>(data);
     }
 
     public IQueryResult<T1> Adapt(IQueryResult<T2> queryResult)

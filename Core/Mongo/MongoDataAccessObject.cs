@@ -142,7 +142,7 @@ public class MongoDataAccessObject<T> : IDataAccessObject<T> where T : IMongoMod
         var total = await MongoCountAsync(filter);
         var paginationOut = new PaginationOut() { Total = total, Limit = pagination.Limit, Offset = pagination.Offset };
 
-        return new QueryResult<T>(data, paginationOut);
+        return new QueryResult<T>(data);
     }
 
     /// <summary>

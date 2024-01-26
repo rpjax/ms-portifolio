@@ -5,7 +5,7 @@ namespace ModularSystem.Core;
 /// <summary>
 /// Represents a collection of <see cref="Error"/> objects and provides methods to iterate over them.
 /// </summary>
-public class ValidationResultOld : IEnumerable<Error>
+public class ValidationResult : IEnumerable<Error>
 {
     /// <summary>
     /// Gets a value indicating whether the validation result contains no errors.
@@ -73,7 +73,7 @@ public interface ISyncValidator<T>
     /// Validates the specified instance.
     /// </summary>
     /// <param name="instance">The instance of type <typeparamref name="T"/> to validate.</param>
-    OperationResult Validate(T instance);
+    ValidationResult Validate(T instance);
 }
 
 /// <summary>
@@ -89,7 +89,7 @@ public interface IAsyncValidator<T>
     /// <returns>
     /// A task that represents the asynchronous validation operation.
     /// </returns>
-    Task<OperationResult> ValidateAsync(T instance);
+    Task<ValidationResult> ValidateAsync(T instance);
 }
 
 /// <summary>
@@ -105,7 +105,7 @@ public abstract class ValidatorBase
     /// <summary>
     /// Protected property to access the cumulative validation results.
     /// </summary>
-    protected OperationResult Result { get; } = new();
+    protected ValidationResult Result { get; } = new();
 
     /// <summary>
     /// Adds one or more <see cref="Error"/> objects to the validation result.
@@ -160,7 +160,7 @@ public abstract class AsyncValidator<T> : ValidatorBase, IAsyncValidator<T>
     /// A task representing the asynchronous validation operation, yielding a <see cref="OperationResult"/> 
     /// that contains all identified validation errors.
     /// </returns>
-    public virtual async Task<OperationResult> ValidateAsync(T input)
+    public virtual async Task<ValidationResult> ValidateAsync(T input)
     {
         await using var errorsEnumerator = EnumerateErrorsAsync(input).GetAsyncEnumerator();
 
