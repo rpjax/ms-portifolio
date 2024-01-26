@@ -23,7 +23,13 @@ public class AttributesHandlerMiddleware : Middleware
 
         if (forbbidenActionAttribute != null)
         {
-            await WriteErrorResponseAsync(context, new AppException("", ExceptionCode.Forbidden));
+            var error = new Error("This operation is forbidden.")
+                .AddFlags(ErrorFlags.Public);
+
+            var result = new OperationResult(error);
+
+            await context.WriteOperationResponseAsync(result, 403);
+
             return Strategy.Break;
         }
 

@@ -9,11 +9,11 @@ namespace ModularSystem.Web.Client;
 //*
 
 /// <summary>
-/// Represents a base endpoint configuration for interacting with RESTful services.
-/// This base class provides built-in functionality for deserialization, error handling, and response processing.
+/// Provides a base implementation for RESTful endpoints with a specific request URI and input/output types. <br/>
+/// This abstract class extends the functionality of <see cref="RestfulEndpoint{TIn, TOut}"/> by adding a predefined request URI.
 /// </summary>
-/// <typeparam name="TIn">The input type for API requests.</typeparam>
-/// <typeparam name="TOut">The output type expected from API responses.</typeparam>
+/// <typeparam name="TIn">The type of input data for the endpoint.</typeparam>
+/// <typeparam name="TOut">The type of output data produced by the endpoint.</typeparam>
 public abstract class EndpointBase<TIn, TOut> : RestfulEndpoint<TIn, TOut>
 {
     /// <summary>
@@ -22,7 +22,7 @@ public abstract class EndpointBase<TIn, TOut> : RestfulEndpoint<TIn, TOut>
     protected Http.Uri RequestUri { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="EndpointBase{TIn, TOut}"/> class.
+    /// Initializes a new instance of the <see cref="EndpointBase{TIn, TOut}"/> class with a specific base URI.
     /// </summary>
     /// <param name="uri">The base URI for the endpoint.</param>
     protected EndpointBase(Http.Uri uri)
@@ -31,44 +31,48 @@ public abstract class EndpointBase<TIn, TOut> : RestfulEndpoint<TIn, TOut>
     }
 
     /// <summary>
-    /// Handles failure responses by attempting to deserialize the returned error and convert it into an AppException.
+    /// Handles the failure response received from an HTTP endpoint asynchronously. <br/>
+    /// It attempts to deserialize the response into an <see cref="OperationResult{TOut}"/>. If deserialization fails, a default error is created.
     /// </summary>
-    /// <param name="response">The failed HTTP response.</param>
-    /// <returns>An exception that represents the error.</returns>
-    protected override async Task<Exception> HandleFailureResponseAsync(HttpResponse response)
+    /// <param name="response">The <see cref="HttpResponse"/> object representing the HTTP response from the endpoint.</param>
+    /// <returns>A task that represents the asynchronous operation, resulting in an <see cref="OperationResult{TOut}"/>.</returns>
+    /// <remarks>
+    /// This method should be overridden in derived classes for the following reasons:
+    /// <list type="bullet">
+    /// <item>
+    /// <description>When the operation can yield data even in failure scenarios. The default implementation assumes no data is available when the operation fails.</description>
+    /// </item>
+    /// <item>
+    /// <description>When handling API-specific error structures. Different applications may have unique error response formats that need custom deserialization logic.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    protected override async Task<OperationResult<TOut>> HandleFailureResponseAsync(HttpResponse response)
     {
-        try
-        {
-            var json = await response.ReadAsStringAsync(Encoding.UTF8);
-            var deserializedException = JsonSerializer.Deserialize<SerializableAppException>(json, new JsonSerializerOptions()
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            });
+        var json = await response.ReadAsStringAsync(Encoding.UTF8);
 
-            if (deserializedException == null || deserializedException.Message.IsEmpty())
-            {
-                return new AppException($"Failed to process the HTTP API request. Received status code: {response.StatusCode}. Refer to the associated metadata and inner exception for detailed information.", ExceptionCode.Internal)
-                    .AddData(await response.GetSummaryAsync());
-            }
-
-            return deserializedException.ToAppException();
-        }
-        catch (Exception e)
+        var options = new JsonSerializerOptions()
         {
-            return new AppException($"Failed to process the HTTP API request. Received status code: {response.StatusCode}. Refer to the associated metadata and inner exception for detailed information.",
-                ExceptionCode.Internal, e).AddData(await response.GetSummaryAsync());
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        };
+
+        var operationResult = JsonSerializerSingleton
+            .Deserialize<OperationResult<TOut>>(json, options);
+
+        if (operationResult == null)
+        {
+            var message = $"Failed to process the HTTP API request. Received status code: {response.StatusCode}. Refer to the associated data and inner exception for detailed information.";
+            var responseSummary = await response.GetSummaryAsync();
+
+            var error = new Error(message)
+                .AddJsonData("http-response", responseSummary);
+
+            operationResult = new(error);
         }
+
+        return operationResult;
     }
 
-    /// <summary>
-    /// Deserializes the response from the HTTP request asynchronously.
-    /// </summary>
-    /// <param name="response">The HTTP response to deserialize.</param>
-    /// <returns>A task that represents the asynchronous deserialization operation. The value of TResult contains the deserialized response.</returns>
-    protected override async Task<TOut> DeserializeResponseAsync(HttpResponse response)
-    {
-        return (await response.DeserializeAsJsonAsync(typeof(TOut), Encoding.UTF8)).TypeCast<TOut>();
-    }
 }
 
 //*
@@ -93,108 +97,25 @@ public abstract class EndpointBase : EndpointBase<Core.Void, Core.Void>
         // Intentionally left blank.
     }
 
-    /// <summary>
-    /// Executes the endpoint operation asynchronously.
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <inheritdoc/>
     public Task RunAsync()
     {
         return RunAsync(new Core.Void());
     }
 
-    /// <summary>
-    /// When overridden in a derived class, creates an <see cref="HttpRequest"/> object 
-    /// representing the API request associated with this endpoint.
-    /// </summary>
-    /// <returns>The created <see cref="HttpRequest"/> object.</returns>
+    /// <inheritdoc/>
     protected abstract HttpRequest CreateRequest();
 
-    /// <summary>
-    /// Creates an <see cref="HttpRequest"/> using the provided input.
-    /// </summary>
-    /// <param name="input">The input of type <see cref="Core.Void"/>.</param>
-    /// <returns>The created <see cref="HttpRequest"/> object.</returns>
+    /// <inheritdoc/>
     protected override HttpRequest CreateRequest(Core.Void input)
     {
         return CreateRequest(input);
     }
 
-    /// <summary>
-    /// Deserializes the response to an instance of <see cref="Core.Void"/>, effectively capturing no data.
-    /// </summary>
-    /// <param name="response">The received <see cref="HttpResponse"/>.</param>
-    /// <returns>An instance of <see cref="Core.Void"/>.</returns>
-    protected override Core.Void DeserializeResponse(HttpResponse response)
+    /// <inheritdoc/>
+    protected override Task<Core.Void> DeserializeResponseAsync(HttpResponse response)
     {
-        return new Core.Void();
-    }
-}
-
-/// <summary>
-/// Represents a base endpoint configuration specialized for APIs that only take input and do not return data.
-/// This class streamlines the deserialization process by assuming the output is always <see cref="Core.Void"/>.
-/// </summary>
-/// <typeparam name="TIn">The input type for API requests.</typeparam>
-public abstract class EndpointBaseIn<TIn> : EndpointBase<TIn, Core.Void>
-{
-    /// <summary>
-    /// Initializes a new instance of the <see cref="EndpointBaseIn{TIn}"/> class.
-    /// </summary>
-    /// <param name="uri">The base URI for the endpoint.</param>
-    protected EndpointBaseIn(Http.Uri uri) : base(uri)
-    {
+        return Task.FromResult(new Core.Void());
     }
 
-    /// <summary>
-    /// Deserializes the API response. Since the expected output type is <see cref="Core.Void"/>, 
-    /// this method always returns a new instance of <see cref="Core.Void"/>.
-    /// </summary>
-    /// <param name="response">The HTTP response to deserialize.</param>
-    /// <returns>An instance of <see cref="Core.Void"/>.</returns>
-    protected override Core.Void DeserializeResponse(HttpResponse response)
-    {
-        return new Core.Void();
-    }
-}
-
-/// <summary>
-/// Represents a base endpoint configuration specialized for APIs that only return data (no input).
-/// This class streamlines the execution process by assuming the input is always <see cref="Core.Void"/>.
-/// </summary>
-/// <typeparam name="TOut">The output type expected from API responses.</typeparam>
-public abstract class EndpointBaseOut<TOut> : EndpointBase<Core.Void, TOut>
-{
-    /// <summary>
-    /// Initializes a new instance of the <see cref="EndpointBaseOut{TOut}"/> class.
-    /// </summary>
-    /// <param name="uri">The base URI for the endpoint.</param>
-    protected EndpointBaseOut(Http.Uri uri) : base(uri)
-    {
-    }
-
-    /// <summary>
-    /// Executes the API request with the default <see cref="Core.Void"/> input.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation. The value of TResult contains the API response.</returns>
-    public Task<TOut> RunAsync()
-    {
-        return RunAsync(new Core.Void());
-    }
-
-    /// <summary>
-    /// Creates an HTTP request for the endpoint.
-    /// Derived classes must implement this method to specify the request details.
-    /// </summary>
-    /// <returns>The created HTTP request.</returns>
-    protected abstract HttpRequest CreateRequest();
-
-    /// <summary>
-    /// Invokes the overridable <see cref="CreateRequest()"/> method to create an HTTP request with the provided input.
-    /// </summary>
-    /// <param name="input">The input for the API request. Expected to be <see cref="Core.Void"/>.</param>
-    /// <returns>The created HTTP request.</returns>
-    protected override HttpRequest CreateRequest(Core.Void input)
-    {
-        return CreateRequest(input);
-    }
 }

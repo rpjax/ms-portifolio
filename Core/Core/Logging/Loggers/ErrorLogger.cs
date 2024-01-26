@@ -1,7 +1,6 @@
-﻿using ModularSystem.Core.Threading;
+﻿using Microsoft.EntityFrameworkCore;
+using ModularSystem.Core.Threading;
 using ModularSystem.EntityFramework;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace ModularSystem.Core.Logging;
 
@@ -14,178 +13,6 @@ class ExceptionLoggerInitializer : Initializer
 
         return Task.CompletedTask;
     }
-}
-
-/// <summary>
-/// Represents an error entry that can be logged and stored in an Entity Framework context. <br/>
-/// Inherits from <see cref="Error"/> and implements <see cref="IEFModel"/> for database storage.
-/// </summary>
-public class ErrorEntry : EFErrorEntry
-{
-    /// <summary>
-    /// Gets or sets the serialized representation of the exception.
-    /// </summary>
-    public string? SerializedException 
-    { 
-        get => GetData(ExceptionDataKey); 
-        set => SetData(ExceptionDataKey, value);
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ErrorEntry"/> class with default properties.
-    /// </summary>
-    [JsonConstructor]
-    public ErrorEntry()
-    {
-        
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ErrorEntry"/> class using an <see cref="Error"/> object.
-    /// </summary>
-    /// <param name="error">The <see cref="Error"/> object to initialize the <see cref="ErrorEntry"/> from.</param>
-    /// <remarks>
-    /// This constructor creates an <see cref="ErrorEntry"/> by copying the properties of the provided <see cref="Error"/> object.
-    /// </remarks>
-    public ErrorEntry(Error error)
-    {
-        Text = error.Text;
-        Source = error.Source;
-        Code = error.Code;
-        Flags = error.Flags;
-        Details = error.Details;
-        Data = error.Data;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ErrorEntry"/> class using an <see cref="Exception"/> object.
-    /// </summary>
-    /// <param name="exception">The exception to initialize the <see cref="ErrorEntry"/> from.</param>
-    /// <param name="code">Optional error code associated with the exception.</param>
-    /// <param name="flags">Optional flags to classify the error.</param>
-    /// <remarks>
-    /// This constructor creates an <see cref="ErrorEntry"/> by extracting information from the provided exception.
-    /// <br/>
-    /// The exception is serialized to a JSON string for detailed error reporting.
-    /// </remarks>
-    public ErrorEntry(Exception exception, string? code = null, params string[] flags)
-    {
-        var settings = new JsonSerializerSettings
-        {
-            ContractResolver = new InternalContractResolver()
-        };
-
-        Text = exception.Message;
-        Source = exception.Source;
-        Code = code;
-        SerializedException = JsonConvert.SerializeObject(exception, settings);
-        AddFlags(flags);
-    }
-
-    /// <summary>
-    /// Creates an <see cref="ErrorEntry"/> from an <see cref="Exception"/>, specifying the time of occurrence and additional parameters.
-    /// </summary>
-    /// <param name="exception">The exception to base the <see cref="ErrorEntry"/> on.</param>
-    /// <param name="occurredAt">The date and time when the error occurred.</param>
-    /// <param name="code">Optional error code associated with the exception.</param>
-    /// <param name="flags">Optional flags to classify the error.</param>
-    /// <returns>A new instance of <see cref="ErrorEntry"/> initialized from the exception.</returns>
-    /// <remarks>
-    /// This static method provides a convenient way to create an <see cref="ErrorEntry"/> with the time of occurrence and additional parameters like code and flags.
-    /// </remarks>
-    public static ErrorEntry From(
-        Exception exception,
-        DateTime occurredAt,
-        string? code = null,
-        params string[] flags)
-    {
-        return new ErrorEntry(exception, code, flags)
-        {
-            CreatedAt = occurredAt,
-        };
-    }
-
-    /// <summary>
-    /// Serializes a given exception to its string representation.
-    /// </summary>
-    /// <param name="exception">The exception to be serialized.</param>
-    /// <returns>A serialized string representation of the exception.</returns>
-    public static string Serialize(Exception exception)
-    {
-        var settings = new JsonSerializerSettings
-        {
-            ContractResolver = new InternalContractResolver()
-        };
-
-        return JsonConvert.SerializeObject(exception, settings);
-    }
-
-    /// <summary>
-    /// Deserializes a given serialized exception back into its <see cref="Exception"/> object.
-    /// </summary>
-    /// <param name="serializedException">The serialized exception string.</param>
-    /// <returns>The deserialized <see cref="Exception"/> object, or null if the input string is null.</returns>
-    public static Exception? Deserialize(string? serializedException)
-    {
-        if (serializedException == null)
-        {
-            return null;
-        }
-
-        var settings = new JsonSerializerSettings
-        {
-            ContractResolver = new InternalContractResolver()
-        };
-
-        return JsonConvert.DeserializeObject<Exception>(serializedException, settings);
-    }
-
-    /// <summary>
-    /// Deserializes the <see cref="SerializedException"/> property back into its <see cref="Exception"/> object.
-    /// </summary>
-    /// <returns>The deserialized <see cref="Exception"/> object, or null if <see cref="SerializedException"/> is null.</returns>
-    public Exception? DeserializeException()
-    {
-        return Deserialize(SerializedException);
-    }
-
-    /// <summary>
-    /// Gets the <see cref="Exception"/> stored in this entry.
-    /// </summary>
-    /// <returns></returns>
-    /// <exception cref="ArgumentException"></exception>
-    public Exception GetException()
-    {
-        if(SerializedException == null)
-        {
-            throw new ArgumentException("Cannot get exception from entry with null serialized exception data.", nameof(SerializedException));
-        }
-
-        return Deserialize(SerializedException)!;
-    }
-
-    /// <summary>
-    /// Represents a contract resolver for JSON serialization and deserialization operations specific to exceptions.
-    /// </summary>
-    /// <remarks>
-    /// The primary intent of this resolver is to filter out certain properties from the serialization process,
-    /// such as the <see cref="Exception.TargetSite"/>.
-    /// </remarks>
-    internal class InternalContractResolver : DefaultContractResolver
-    {
-        protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
-        {
-            var ignoreProps = new string[]
-            {
-                nameof(Exception.TargetSite)
-            };
-
-            var props = base.CreateProperties(type, memberSerialization);
-
-            return props.Where(p => !ignoreProps.Contains(p.PropertyName)).ToList();
-        }
-    }
-
 }
 
 /// <summary>
@@ -250,7 +77,7 @@ public class ErrorLogger : EFEntityService<ErrorEntry>
 
         if (EnableDiskLogging)
         {
-            JobQueue.Enqueue(LogTask(error, logFile));
+            JobQueue.Enqueue(CreateLogJob(error, logFile));
         }
     }
 
@@ -277,16 +104,77 @@ public class ErrorLogger : EFEntityService<ErrorEntry>
         }
     }
 
-    private static async Task LogTask(Error error, FileInfo? logFile = null)
+    private static Job CreateLogJob(Error error, FileInfo? logFile = null)
     {
-        using var service = new ErrorLogger(logFile);
-        var entry = new ErrorEntry(error);
+        return new LogJob(error, logFile);
     }
 
     private IDataAccessObject<ErrorEntry> CreateDataAccessObject(FileInfo? fileInfo)
     {
         fileInfo ??= LogsDirectory.GetFileInfo(DefaultFileName);
-        return new EFCoreDataAccessObject<ErrorEntry>(new EFCoreSqliteContext<ErrorEntry>(fileInfo));
+        return new EFCoreDataAccessObject<ErrorEntry>(new ErrorEntrySqliteContext(fileInfo));
+    }
+
+    internal class ErrorEntrySqliteContext : EFCoreSqliteContext<ErrorEntry>
+    {
+        public ErrorEntrySqliteContext(FileInfo fileInfo, string tableName = "Entries") : base(fileInfo, tableName)
+        {
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<ErrorEntry>(entity =>
+            {
+                // Configure the Flags collection
+                entity.OwnsMany(e => e.Flags, a =>
+                {
+                    a.WithOwner().HasForeignKey("ErrorId");
+                    a.Property<long>("Id").ValueGeneratedOnAdd(); // Auto-increment primary key
+                    a.HasKey("Id"); // Make Id the sole primary key
+                });
+
+                // Configure the Details collection
+                entity.OwnsMany(e => e.Details, a =>
+                {
+                    a.WithOwner().HasForeignKey("ErrorId");
+                    a.Property<long>("Id").ValueGeneratedOnAdd(); // Auto-increment primary key
+                    a.HasKey("Id"); // Make Id the sole primary key
+                });
+
+                // Configure the Data collection
+                entity.OwnsMany(e => e.Data, a =>
+                {
+                    a.WithOwner().HasForeignKey("ErrorId");
+                    a.Property<long>("Id").ValueGeneratedOnAdd(); // Auto-increment primary key
+                    a.HasKey("Id"); // Make Id the sole primary key
+                });
+
+            });
+
+        }
+
+    }
+
+    internal class LogJob : Job
+    {
+        private Error error { get; }
+        private FileInfo? logFile { get; }
+
+        public LogJob(Error error, FileInfo? logFile)
+        {
+            this.error = error;
+            this.logFile = logFile;
+        }
+
+        protected override async Task OnExecuteAsync(CancellationToken cancellationToken)
+        {
+            using var service = new ErrorLogger(logFile);
+            var entry = new ErrorEntry(error);
+
+            await service.CreateAsync(entry);
+        }
     }
 
 }

@@ -1,7 +1,6 @@
 using ModularSystem.Core;
 using ModularSystem.Web.Expressions;
 using ModularSystem.Web.Http;
-using System.Text.Json;
 
 namespace ModularSystem.Web.Client;
 
@@ -78,15 +77,6 @@ internal class QueryableEndpoint<T> : EndpointBase<SerializableQueryable, T>
             .SetJsonBody(input);
     }
 
-    protected override Task<Exception> HandleExceptionAsync(Exception e, HttpRequest? request, HttpResponse? response)
-    {
-        return base.HandleExceptionAsync(e, request, response);
-    }
-
-    protected override Task<Exception> HandleFailureResponseAsync(HttpResponse response)
-    {
-        return base.HandleFailureResponseAsync(response);
-    }
 }
 
 // UPDATE
@@ -132,10 +122,6 @@ internal class DeleteByIdEndpoint<T> : EndpointBase<string, Core.Void>
             .SetQueryParam("id", input);
     }
 
-    protected override Core.Void DeserializeResponse(HttpResponse response)
-    {
-        return new();
-    }
 }
 
 internal class BulkDeleteEndpoint : EndpointBase<SerializableExpression, Dto<long?>>

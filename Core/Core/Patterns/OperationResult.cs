@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Core;
+﻿using System.Text.Json.Serialization;
+
+namespace ModularSystem.Core;
 
 /// <summary>
 /// Interface representing the result of an operation, including any validation results and errors.
@@ -36,18 +38,23 @@ public interface IOperationResult<T> : IOperationResult
 /// </summary>
 public class OperationResult : IOperationResult
 {
+    /// <summary>
+    /// Provides a pre-defined instance representing a successful operation. <br/>
+    /// This static member can be used to indicate success without the need to create a new instance of <see cref="OperationResult"/>.
+    /// </summary>
     public static readonly OperationResult Success = new();
 
     /// <inheritdoc/>
     public bool IsSuccess { get; protected set; }
 
-    /// <inheritdoc/>
-    public List<Error> Errors { get; protected set; }
-
     /// <summary>
     /// Gets a value indicating whether the operation failed.
     /// </summary>
+    [JsonIgnore]
     public bool IsFailure { get => !IsSuccess; }
+
+    /// <inheritdoc/>
+    public List<Error> Errors { get; protected set; }
 
     /// <summary>
     /// Initializes a new instance of the OperationResult class based on another operation result.

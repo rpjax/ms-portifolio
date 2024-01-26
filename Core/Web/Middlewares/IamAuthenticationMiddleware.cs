@@ -72,6 +72,6 @@ public class IamAuthenticationMiddleware : Middleware
     /// <param name="identity">The validated identity to inject.</param>
     private void InjectIdentity(HttpContext context, IIdentity identity)
     {
-        context.Items.Add(WebController.HTTP_CONTEXT_IDENTITY_KEY, identity);
+        context.Items.Add(WebController.HttpContextIdentityKey, identity);
     }
 }

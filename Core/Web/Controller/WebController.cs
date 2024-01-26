@@ -4,7 +4,6 @@ using Microsoft.Extensions.Primitives;
 using ModularSystem.Core;
 using ModularSystem.Core.Logging;
 using ModularSystem.Core.Security;
-using System;
 using System.Text;
 
 namespace ModularSystem.Web;
@@ -17,14 +16,12 @@ public abstract class WebController : ControllerBase
     /// <summary>
     /// Key used for storing and retrieving the identity from the HttpContext.Items dictionary.
     /// </summary>
-    public const string HTTP_CONTEXT_IDENTITY_KEY = "__identity_injection";
+    public const string HttpContextIdentityKey = "__identity_injection";
 
     /// <summary>
     /// Determines whether to log exceptions or not.
     /// </summary>
     protected bool EnableExceptionLogging { get; set; } = true;
-
-    protected int OperationFailedStatusCode { get; set; } = 417;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WebController"/> class.
@@ -32,31 +29,6 @@ public abstract class WebController : ControllerBase
     protected WebController()
     {
 
-    }
-
-    /// <summary>
-    /// Handles exceptions and returns an appropriate response.
-    /// </summary>
-    /// <param name="exception">The exception to handle.</param>
-    /// <returns>An IActionResult representing the exception response.</returns>
-    protected virtual IActionResult HandleException(Exception exception)
-    {
-        OnException(exception);
-
-        var appException = exception.ToAppException();
-
-        if (EnableExceptionLogging)
-        {
-            LogException(appException);
-        }
-
-        var json = AppExceptionPresenter.ToJson(appException);
-        var statusCode = AppExceptionPresenter.GetStatusCodeFrom(appException);
-
-        HttpContext.Response.ContentType = "application/json";
-        HttpContext.Response.StatusCode = statusCode;
-
-        return Content(json, "application/json");
     }
 
     /// <summary>
@@ -147,7 +119,7 @@ public abstract class WebController : ControllerBase
     /// <returns>An IIdentity object if found; otherwise, null.</returns>
     protected virtual IIdentity? TryGetIdentity()
     {
-        if (HttpContext.Items.TryGetValue(HTTP_CONTEXT_IDENTITY_KEY, out object? value))
+        if (HttpContext.Items.TryGetValue(HttpContextIdentityKey, out object? value))
         {
             var identity = value?.TryTypeCast<IIdentity>();
 
@@ -251,7 +223,7 @@ public abstract class WebController : ControllerBase
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    protected async Task<T?> DeserializeJsonBodyAsync<T>() 
+    protected async Task<T?> DeserializeBodyAsJsonAsync<T>() 
     {
         var str = await ReadBodyAsStringAsync();
 
@@ -267,51 +239,82 @@ public abstract class WebController : ControllerBase
     // HTTP response.
     //*
 
-    protected IActionResult OperationResultResponse(OperationResult operationResult, int statusCode)
+    /// <summary>
+    /// Generates an IActionResult representing the outcome of an operation, including any errors, and sends it as a JSON response. <br/>
+    /// This method processes the provided <see cref="OperationResult"/> and formats it into a JSON response.
+    /// </summary>
+    /// <param name="operationResult">The operation result that contains the status and potential errors of the operation.</param>
+    /// <param name="statusCode">The HTTP status code to be set for the response.</param>
+    /// <returns>An IActionResult that can be returned from an action method.</returns>
+    /// <remarks>
+    /// If <c>AspnetSettings.ExposeNonPublicErrors</c> is false, only errors flagged as "public" are included in the response. <br/>
+    /// Errors flagged as "debug" are logged using <see cref="ErrorLogger"/>.
+    /// </remarks>
+    protected IActionResult OperationResponse(OperationResult operationResult, int statusCode)
     {
         var debugErrors = operationResult.Errors
-            .Where(x => x.ContainsFlags(ErrorFlags.Debug))
-            .ToArray();
+            .Where(x => x.ContainsFlags(ErrorFlags.Debug));
 
-        if (debugErrors.IsNotEmpty())
+        foreach (var item in debugErrors)
         {
-            // log it...
+            ErrorLogger.Log(item);
         }
 
-        operationResult.RemoveErrorsWithoutFlags(ErrorFlags.Public);
+        if (!AspnetSettings.ExposeNonPublicErrors)
+        {
+            operationResult.RemoveErrorsWithoutFlags(ErrorFlags.Public);
+        }
 
         var json = JsonSerializerSingleton.Serialize(operationResult);
 
         HttpContext.Response.ContentType = "application/json";
-        HttpContext.Response.StatusCode = OperationFailedStatusCode;
+        HttpContext.Response.StatusCode = statusCode;
 
         return Content(json, "application/json");
     }
 
     /// <summary>
-    /// Sends a custom error response with the specified payload.
+    /// Generates an IActionResult for a failed operation result and sends it as a JSON response. <br/>
+    /// This method uses the <c>AspnetSettings.FailedOperationStatusCode</c> as the HTTP status code for the response.
     /// </summary>
-    /// <param name="payload">The payload to include in the error response. This could be an error message, an object representing error details, or null for no payload.</param>
-    /// <returns>An IActionResult that when executed will produce an error response.</returns>
+    /// <param name="result">The operation result representing the failed operation.</param>
+    /// <returns>An IActionResult that can be returned from an action method.</returns>
     /// <remarks>
-    /// This method serializes the provided payload to JSON and sets the response's content type to 'application/json'. <br/>
-    /// The HTTP status code of the response is set to the value of ErrorStatusCode property. <br/>
-    /// If the payload is null, an empty JSON object is returned in the response.
+    /// This method is typically used when the operation represented by the OperationResult has failed.
     /// </remarks>
-    protected IActionResult ErrorResponse(object? payload = null)
+    protected IActionResult FailedOperationResponse(OperationResult result)
     {
-        var json = JsonSerializerSingleton.Serialize(payload);
-
-        HttpContext.Response.ContentType = "application/json";
-        HttpContext.Response.StatusCode = OperationFailedStatusCode;
-
-        return Content(json, "application/json");
+        return OperationResponse(result, AspnetSettings.FailedOperationStatusCode);
     }
 
-    protected IActionResult ErrorResponse(OperationResult result)
+    /// <summary>
+    /// Generates an IActionResult for an exception and sends it as a JSON response. <br/>
+    /// The response includes the exception details, formatted as an OperationResult. 
+    /// </summary>
+    /// <param name="exception">The exception to be processed and included in the response.</param>
+    /// <returns>An IActionResult that can be returned from an action method.</returns>
+    /// <remarks>
+    /// If <c>EnableExceptionLogging</c> is true, the exception error is flagged as a "debug". <br/>
+    /// Additionally, if <c>AspnetSettings.ExposeExceptions</c> is true, the error is flagged as "public", making its details visible in the response. <br/>
+    /// The HTTP status code for the response is set to 500 (Internal Server Error).
+    /// </remarks>
+    protected virtual IActionResult ExceptionResponse(Exception exception)
     {
-        return OperationResultResponse(result, OperationFailedStatusCode);
-    }
+        OnException(exception);
 
+        var error = new Error(exception);
+        var operationResult = new OperationResult(error);
+
+        if (EnableExceptionLogging)
+        {
+            error.AddFlags(ErrorFlags.Debug);
+        }
+        if (AspnetSettings.ExposeExceptions)
+        {
+            error.AddFlags(ErrorFlags.Public);
+        }
+
+        return OperationResponse(operationResult, 500);
+    }
 
 }

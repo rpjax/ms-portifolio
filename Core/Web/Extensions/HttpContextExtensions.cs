@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using ModularSystem.Core;
 using ModularSystem.Core.Logging;
 using ModularSystem.Core.Security;
 using System.Text;
 using System.Text.RegularExpressions;
-using static MongoDB.Libmongocrypt.CryptContext;
 
 namespace ModularSystem.Web;
 
@@ -97,16 +95,13 @@ public static class HttpContextExtensions
     }
 
     /// <summary>
-    /// Attempts to retrieve the user's identity from the current HTTP context. If not found in the context's items, <br/>
-    /// it can optionally check the Authorization header for a valid token and resolve the identity from that.
+    /// Attempts to retrieve the user's identity from the current HTTP context.
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
-    /// <param name="fromItems">If true, the method will try to read the token from the items contained in the HttpContext.</param>
-    /// <param name="fromHeaders">If true, the method will try to read the token from the Authorization header and resolve the identity if not found in the context's items.</param>
     /// <returns>The user's identity or null if not found.</returns>
-    public static IIdentity? TryGetIdentity(this HttpContext context, bool fromItems = true, bool fromHeaders = false)
+    public static IIdentity? TryGetIdentity(this HttpContext context)
     {
-        if (fromItems && context.Items.TryGetValue(WebController.HTTP_CONTEXT_IDENTITY_KEY, out object? value))
+        if (context.Items.TryGetValue(WebController.HttpContextIdentityKey, out object? value))
         {
             var identity = value?.TryTypeCast<IIdentity>();
 
@@ -114,11 +109,6 @@ public static class HttpContextExtensions
             {
                 return identity;
             }
-        }
-
-        if (!fromHeaders)
-        {
-            return null;
         }
 
         if (!DependencyContainer.TryGetInterface<IIamSystem>(out var iam))
@@ -145,12 +135,11 @@ public static class HttpContextExtensions
     /// Retrieves the user's identity from the current HTTP context. Throws an exception if not found.
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
-    /// <param name="readFromHeaderIfNotFound">If true, the method will try to read the token from the Authorization header and resolve the identity if not found in the context's items.</param>
     /// <returns>The user's identity.</returns>
     /// <exception cref="AppException">Thrown if the identity is not found.</exception>
-    public static IIdentity GetIdentity(this HttpContext context, bool readFromHeaderIfNotFound = false)
+    public static IIdentity GetIdentity(this HttpContext context)
     {
-        var identity = TryGetIdentity(context, readFromHeaderIfNotFound);
+        var identity = TryGetIdentity(context);
 
         if (identity == null)
         {
@@ -164,7 +153,7 @@ public static class HttpContextExtensions
     /// Sends an HTTP response with no content.
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
-    public static void WriteNoContentResponse(HttpContext context)
+    public static void WriteNoContentResponse(this HttpContext context)
     {
         context.Response.Clear();
         context.Response.StatusCode = 204;
@@ -173,7 +162,7 @@ public static class HttpContextExtensions
     /// <summary>
     /// Sends an HTTP response with the specified content type and data.
     /// </summary>
-    public static async Task WriteTextResponseAsync(HttpContext context, int statusCode, string contentType, string data)
+    public static async Task WriteTextResponseAsync(this HttpContext context, int statusCode, string contentType, string data)
     {
         var bytes = Encoding.UTF8.GetBytes(data);
 
@@ -187,7 +176,7 @@ public static class HttpContextExtensions
     /// <summary>
     /// Sends a JSON response with the specified status code and data.
     /// </summary>
-    public static Task WriteJsonResponseAsync(HttpContext context, int statusCode, string data)
+    public static Task WriteJsonResponseAsync(this HttpContext context, int statusCode, string data)
     {
         return WriteTextResponseAsync(context, statusCode, "application/json", data);
     }
@@ -195,52 +184,81 @@ public static class HttpContextExtensions
     /// <summary>
     /// Sends an HTML response with the specified status code and data.
     /// </summary>
-    public static Task WriteHtmlResponseAsync(HttpContext context, int statusCode, string html)
+    public static Task WriteHtmlResponseAsync(this HttpContext context, int statusCode, string html)
     {
         return WriteTextResponseAsync(context, statusCode, "text/html", html);
     }
 
     /// <summary>
-    /// Writes an error response to the client based on the provided exception.
+    /// Writes an operation result response to the HTTP context. <br/>
+    /// This method serializes the provided <see cref="OperationResult"/> and sends it as a JSON response.
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
-    /// <param name="exception">The exception to be processed and presented to the client.</param>
-    /// <returns>A task representing the asynchronous operation of writing the error response.</returns>
+    /// <param name="operationResult">The operation result to be serialized and written in the response.</param>
+    /// <param name="statusCode">The HTTP status code to set for the response.</param>
+    /// <returns>A task representing the asynchronous operation of writing the operation result response.</returns>
     /// <remarks>
-    /// This method first converts the given exception into a standardized application exception using <see cref="Exception.ToAppException"/>.
-    /// It then determines the appropriate HTTP status code and formats the exception as a JSON response.
-    /// If the exception represents an internal error, it will be logged for further analysis.
+    /// If <c>AspnetSettings.ExposeNonPublicErrors</c> is false, only errors flagged as "public" are included in the response. <br/>
+    /// Additionally, any errors flagged with "debug" are logged using <see cref="ErrorLogger"/>.
     /// </remarks>
-    public static Task WriteErrorResponseAsync(this HttpContext context, Exception exception)
-    {
-        var appException = exception.ToAppException();
-        var statusCode = AppExceptionPresenter.GetStatusCodeFrom(appException);
-        var json = AppExceptionPresenter.ToJson(appException);
-
-        if (appException.Code == ExceptionCode.Internal)
-        {
-            ErrorLogger.Log(appException);
-        }
-
-        return WriteJsonResponseAsync(context, statusCode, json);
-    }
-
-    public static Task WriteErrorResponseAsync(this HttpContext context, OperationResult operationResult, int statusCode)
+    public static Task WriteOperationResponseAsync(this HttpContext context, OperationResult operationResult, int statusCode)
     {
         var debugErrors = operationResult.Errors
-            .Where(x => x.ContainsFlags(ErrorFlags.Debug))
-            .ToArray();
+            .Where(x => x.ContainsFlags(ErrorFlags.Debug));
 
-        if (debugErrors.IsNotEmpty())
+        foreach (var item in debugErrors)
         {
-            // log it...
+            ErrorLogger.Log(item);
         }
 
-        operationResult.RemoveErrorsWithoutFlags(ErrorFlags.Public);
+        if (!AspnetSettings.ExposeNonPublicErrors)
+        {
+            operationResult.RemoveErrorsWithoutFlags(ErrorFlags.Public);
+        }
 
         var json = JsonSerializerSingleton.Serialize(operationResult);
 
         return WriteJsonResponseAsync(context, statusCode, json);
+    }
+
+    /// <summary>
+    /// Writes a response for a failed operation to the HTTP context. <br/>
+    /// This method uses <c>AspnetSettings.FailedOperationStatusCode</c> as the HTTP status code for the response.
+    /// </summary>
+    /// <param name="context">The current HTTP context.</param>
+    /// <param name="result">The operation result representing the failed operation.</param>
+    /// <returns>A task representing the asynchronous operation of writing the failed operation response.</returns>
+    public static Task WriteFailedOperationResponseAsync(this HttpContext context, OperationResult result)
+    {
+        return WriteOperationResponseAsync(context, result, AspnetSettings.FailedOperationStatusCode);
+    }
+
+    /// <summary>
+    /// Writes an exception response to the HTTP context based on the provided exception and application settings. <br/>
+    /// This method converts the exception to an <see cref="OperationResult"/> and sends it as a JSON response.
+    /// </summary>
+    /// <param name="context">The current HTTP context.</param>
+    /// <param name="exception">The exception to be processed and potentially written in the response.</param>
+    /// <param name="enableExceptionLogging">Indicates whether to log the exception using <see cref="ErrorLogger"/>.</param>
+    /// <returns>A task representing the asynchronous operation of writing the exception response.</returns>
+    /// <remarks>
+    /// If <c>enableExceptionLogging</c> is true, the exception error is flagged as a "debug". <br/>
+    /// The HTTP status code for the response is set to 500 (Internal Server Error).
+    /// </remarks>
+    public static Task WriteExceptionResponseAsync(
+        this HttpContext context, 
+        Exception exception, 
+        bool enableExceptionLogging)
+    {
+        var error = new Error(exception);
+        var operationResult = new OperationResult(error);
+
+        if (enableExceptionLogging)
+        {
+            error.AddFlags(ErrorFlags.Debug);
+        }
+
+        return WriteOperationResponseAsync(context, operationResult, 500);
     }
 
 }

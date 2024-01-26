@@ -11,7 +11,7 @@ internal class ExceptionHandlerMiddleware : Middleware
 
     protected override async Task<Strategy> OnExceptionAsync(HttpContext context, Exception exception)
     {
-        await WriteErrorResponseAsync(context, exception);
+        await WriteExceptionResponseAsync(context, exception);
         return Strategy.Break;
     }
 

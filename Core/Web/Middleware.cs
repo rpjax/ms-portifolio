@@ -33,6 +33,11 @@ public abstract class Middleware
     protected RequestDelegate Next { get; }
 
     /// <summary>
+    /// Determines whether to log exceptions or not.
+    /// </summary>
+    protected bool EnableExceptionLogging { get; set; } = true;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Middleware"/> class with the specified next delegate in the pipeline.
     /// </summary>
     /// <param name="next">The next delegate in the request pipeline.</param>
@@ -102,6 +107,22 @@ public abstract class Middleware
     }
 
     /// <summary>
+    /// Handles exceptions that occur during the processing of the middleware.
+    /// This method provides a mechanism to handle exceptions in a centralized manner, 
+    /// allowing for custom error handling, logging, or response modification.
+    /// By default, this method re-throws the exception, allowing it to be caught by 
+    /// any subsequent error-handling middleware in the pipeline. Override this method 
+    /// in derived classes to implement custom exception handling behavior.
+    /// </summary>
+    /// <param name="context">The prevailing HTTP context.</param>
+    /// <param name="exception">The exception that occurred.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    protected virtual Task<Strategy> OnExceptionAsync(HttpContext context, Exception exception)
+    {
+        return Task.FromResult(Strategy.Continue);
+    }
+
+    /// <summary>
     /// Sends an HTTP response with no content.
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
@@ -142,19 +163,24 @@ public abstract class Middleware
     }
 
     /// <summary>
-    /// Writes an error response to the client based on the provided exception.
+    /// Writes an exception response to the HTTP context based on the provided exception and application settings. <br/>
+    /// This method formats the provided exception into a suitable response format and sends it to the client, 
+    /// adhering to the application's error exposure settings.
     /// </summary>
-    /// <param name="context">The prevailing HTTP context.</param>
-    /// <param name="exception">The exception to be processed and presented to the client.</param>
-    /// <returns>A task representing the asynchronous operation of writing the error response.</returns>
+    /// <param name="context">The current HTTP context.</param>
+    /// <param name="exception">The exception to be processed and potentially written in the response.</param>
+    /// <returns>A task representing the asynchronous operation of writing the exception response.</returns>
     /// <remarks>
-    /// This method first converts the given exception into a standardized application exception using <see cref="Exception.ToAppException"/>.
-    /// It then determines the appropriate HTTP status code and formats the exception as a JSON response.
-    /// If the exception represents an internal error, it will be logged for further analysis.
+    /// The behavior of this method is influenced by <c>AspnetSettings.ExposeExceptions</c> and <c>AspnetSettings.ExposeNonPublicErrors</c>. <br/>
+    /// If <c>AspnetSettings.ExposeExceptions</c> is true, the exception details are included in the response. <br/>
+    /// If the exception includes errors flagged as "public", or if <c>AspnetSettings.ExposeNonPublicErrors</c> is true, 
+    /// these errors are displayed to the user. <br/>
+    /// In cases where no error is provided, or if all errors are not flagged as "public" and <c>AspnetSettings.ExposeNonPublicErrors</c> 
+    /// is not set, no detailed error information will be displayed in the response.
     /// </remarks>
-    protected Task WriteErrorResponseAsync(HttpContext context, Exception exception)
+    protected Task WriteExceptionResponseAsync(HttpContext context, Exception exception)
     {
-        return context.WriteErrorResponseAsync(exception);
+        return context.WriteExceptionResponseAsync(exception, EnableExceptionLogging);
     }
 
     /// <summary>
@@ -215,22 +241,6 @@ public abstract class Middleware
     protected void DeleteCookie(HttpContext context, string cookieName)
     {
         context.Response.Cookies.Delete(cookieName);
-    }
-
-    /// <summary>
-    /// Handles exceptions that occur during the processing of the middleware.
-    /// This method provides a mechanism to handle exceptions in a centralized manner, 
-    /// allowing for custom error handling, logging, or response modification.
-    /// By default, this method re-throws the exception, allowing it to be caught by 
-    /// any subsequent error-handling middleware in the pipeline. Override this method 
-    /// in derived classes to implement custom exception handling behavior.
-    /// </summary>
-    /// <param name="context">The prevailing HTTP context.</param>
-    /// <param name="exception">The exception that occurred.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    protected virtual Task<Strategy> OnExceptionAsync(HttpContext context, Exception exception)
-    {
-        return Task.FromResult(Strategy.Continue);
     }
 
 }

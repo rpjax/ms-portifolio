@@ -5,10 +5,8 @@ using ModularSystem.Core.Expressions;
 using ModularSystem.Core.Linq;
 using ModularSystem.Core.Security;
 using ModularSystem.Web.Expressions;
-using ModularSystem.Web.Linq;
 using ModularSystem.Webql;
 using ModularSystem.Webql.Synthesis;
-using System.ComponentModel.DataAnnotations;
 
 namespace ModularSystem.Web;
 
@@ -56,11 +54,11 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
                 return BadRequest(ModelState);
             }
 
-            var validationResult = await Service.ValidateAsync(data);
+            var result = await Service.ValidateAsync(data);
 
-            if(validationResult.IsFailure)
+            if(result.IsFailure)
             {
-                return ErrorResponse(validationResult);
+                return FailedOperationResponse(result);
             }
 
             var dto = Dto<string>
@@ -70,7 +68,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -90,7 +88,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -104,23 +102,23 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
                 return BadRequest(ModelState);
             }
 
-            var request = (await DeserializeJsonBodyAsync<SerializableQuery>()) ?? new();
+            var request = (await DeserializeBodyAsJsonAsync<SerializableQuery>()) ?? new();
             var query = request.ToQuery<T>();
 
             var validationResult = await Service.ValidateQueryAsync(query);
 
             if (validationResult.IsFailure)
             {
-                return ErrorResponse(validationResult);
+                return FailedOperationResponse(validationResult);
             }
 
-            var result = await Service.QueryAsync(query);
+            var data = await Service.QueryAsync(query);
 
-            return Ok(result);
+            return Ok(data);
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
 
     }
@@ -143,7 +141,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -162,7 +160,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
 
             if (validationResult.IsFailure)
             {
-                return ErrorResponse(validationResult);
+                return FailedOperationResponse(validationResult);
             }
 
             await Service.UpdateAsync(data);
@@ -171,7 +169,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -192,7 +190,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -208,11 +206,12 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
             }
 
             await Service.DeleteAsync(id);
+
             return Ok();
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -234,7 +233,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -256,7 +255,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -275,7 +274,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -297,7 +296,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -347,7 +346,7 @@ public abstract class QueryableController<T> : ServiceController<T> where T : cl
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -389,10 +388,10 @@ public abstract class WebqlController<T> : WebController
         {
             if (e is ParseException parseException)
             {
-                return HandleException(new AppException(parseException.GetMessage(), ExceptionCode.InvalidInput));
+                return ExceptionResponse(new AppException(parseException.GetMessage(), ExceptionCode.InvalidInput));
             }
 
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -486,7 +485,7 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -510,7 +509,7 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -532,7 +531,7 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
 
     }
@@ -555,7 +554,7 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -576,7 +575,7 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -598,7 +597,7 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 
@@ -618,7 +617,7 @@ public abstract class CrudController<TEntity, TPresented> : WebController, IPing
         }
         catch (Exception e)
         {
-            return HandleException(e);
+            return ExceptionResponse(e);
         }
     }
 

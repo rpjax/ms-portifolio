@@ -1,8 +1,14 @@
 ﻿namespace ModularSystem.Web.Http;
 
+public static class HttpClientSingleton
+{
+    public static HttpClient Value { get; set; } = new HttpClient();
+}
+
 /// <summary>
 /// HTTP facade.
 /// </summary>
+[Obsolete("")]
 public class HttpRequester : IDisposable
 {
     public static HttpRequester Singleton { get; set; }

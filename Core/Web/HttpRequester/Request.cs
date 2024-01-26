@@ -5,7 +5,7 @@ namespace ModularSystem.Web;
 /// <summary>
 /// Represents an HTTP request with its properties including URI, headers, method, and body.
 /// </summary>
-public class HttpRequest
+public class HttpRequest : IDisposable
 {
     /// <summary>
     /// Gets or sets the HTTP method for the request.
@@ -70,6 +70,11 @@ public class HttpRequest
         Header = header;
         Body = body;
         Method = method;
+    }
+
+    public void Dispose()
+    {
+        // TODO ... add an internal HttpRequestMessage and also a dispose call.
     }
 
     /// <summary>
