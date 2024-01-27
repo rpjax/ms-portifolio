@@ -107,10 +107,12 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="query">The serializable query for the search.</param>
     /// <returns>A task representing the asynchronous operation, with a result of the query.</returns>
-    public Task<QueryResult<T>> QueryAsync(SerializableQuery query)
+    public async Task<QueryResult<T>> QueryAsync(SerializableQuery query)
     {
-        return new QueryEndpoint<T>(CopyUri())
+        var result = await  new QueryEndpoint<T>(CopyUri())
             .RunAsync(query);
+
+        return new(result);
     }
 
     /// <summary>
@@ -118,7 +120,7 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="query">The query defining the search criteria.</param>
     /// <returns>A task representing the asynchronous query operation, with a result containing the matched entities.</returns>
-    public Task<OperationResult<QueryResult<T>>> QueryAsync(Query<T> query)
+    public Task<QueryResult<T>> QueryAsync(Query<T> query)
     {
         return QueryAsync(query.ToSerializable());
     }

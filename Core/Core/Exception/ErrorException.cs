@@ -39,4 +39,17 @@ public class ErrorException : Exception
     {
 
     }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ErrorException"/> class with errors from an <see cref="IOperationResult"/>.
+    /// </summary>
+    /// <param name="operation">The <see cref="IOperationResult"/> containing the errors to be included in the exception.</param>
+    /// <remarks>
+    /// This constructor extracts the errors from the provided operation result and initializes the exception with these errors. <br/>
+    /// It's useful for propagating errors from an operation result into an exception context.
+    /// </remarks>
+    public ErrorException(IOperationResult operation) : this(operation.Errors)
+    {
+    }
+
 }

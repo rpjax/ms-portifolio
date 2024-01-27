@@ -50,11 +50,10 @@ internal class GetByIdEndpoint<T> : EndpointBase<string, T>
     }
 }
 
-internal class QueryEndpoint<T> : EndpointBase<SerializableQuery, QueryResult<T>>
+internal class QueryEndpoint<T> : EndpointBase<SerializableQuery, T[]>
 {
     public QueryEndpoint(Http.Uri uri) : base(uri)
     {
-
     }
 
     protected override HttpRequest CreateRequest(SerializableQuery input)
@@ -62,6 +61,7 @@ internal class QueryEndpoint<T> : EndpointBase<SerializableQuery, QueryResult<T>
         return new HttpRequest(RequestUri.AppendPath("query"), HttpMethod.Post)
             .SetJsonBody(input);
     }
+
 }
 
 internal class QueryableEndpoint<T> : EndpointBase<SerializableQueryable, T>

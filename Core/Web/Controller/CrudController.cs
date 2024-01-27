@@ -54,13 +54,6 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
                 return BadRequest(ModelState);
             }
 
-            var result = await Service.ValidateAsync(data);
-
-            if(result.IsFailure)
-            {
-                return FailedOperationResponse(result);
-            }
-
             var dto = Dto<string>
                 .From(await Service.CreateAsync(data));
 
@@ -104,14 +97,6 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
 
             var request = (await DeserializeBodyAsJsonAsync<SerializableQuery>()) ?? new();
             var query = request.ToQuery<T>();
-
-            var validationResult = await Service.ValidateQueryAsync(query);
-
-            if (validationResult.IsFailure)
-            {
-                return FailedOperationResponse(validationResult);
-            }
-
             var data = await Service.QueryAsync(query);
 
             return Ok(data);
@@ -154,13 +139,6 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
-            }
-
-            var validationResult = await Service.ValidateUpdateAsync(data);
-
-            if (validationResult.IsFailure)
-            {
-                return FailedOperationResponse(validationResult);
             }
 
             await Service.UpdateAsync(data);

@@ -79,16 +79,7 @@ public class JsonDao<T> : IDataAccessObject<T> where T : class, IQueryableModel
             .Take(reader.IntLimit)
             .ToArray();
 
-        var result = new QueryResult<T>()
-        {
-            Data = data,
-            Pagination = new PaginationOut()
-            {
-                Limit = reader.Limit,
-                Offset = reader.Offset,
-                Total = queryable.LongCount()
-            }
-        };
+        var result = new QueryResult<T>(data);
 
         return result;
     }

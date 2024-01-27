@@ -376,14 +376,14 @@ public static class EntityExtensions
     /// <see cref="OperationResult"/> of the validation. <br/>
     /// If the service has no asynchronous validator, a successful validation result is returned.
     /// </returns>
-    public static Task<OperationResult> ValidateAsync<T>(this EntityService<T> service, T entity) where T : IQueryableModel
+    public static Task<ValidationResult> ValidateAsync<T>(this EntityService<T> service, T entity) where T : IQueryableModel
     {
         if(service.AsyncValidator != null)
         {
             return service.AsyncValidator.ValidateAsync(entity);    
         }
 
-        return Task.FromResult(new OperationResult());
+        return Task.FromResult(new ValidationResult());
     }
 
     /// <summary>
@@ -397,14 +397,14 @@ public static class EntityExtensions
     /// <see cref="OperationResult"/> with the outcome of the validation. <br/>
     /// If no asynchronous update validator is provided by the service, a successful validation result is returned.
     /// </returns>
-    public static Task<OperationResult> ValidateUpdateAsync<T>(this EntityService<T> service, T entity) where T : IQueryableModel
+    public static Task<ValidationResult> ValidateUpdateAsync<T>(this EntityService<T> service, T entity) where T : IQueryableModel
     {
         if (service.AsyncUpdateValidator != null)
         {
             return service.AsyncUpdateValidator.ValidateAsync(entity);
         }
 
-        return Task.FromResult(new OperationResult());
+        return Task.FromResult(new ValidationResult());
     }
 
     /// <summary>
@@ -418,14 +418,14 @@ public static class EntityExtensions
     /// <see cref="OperationResult"/> indicating the outcome of the validation. <br/>
     /// If the service does not have an asynchronous query validator, a successful validation result is returned.
     /// </returns>
-    public static Task<OperationResult> ValidateQueryAsync<T>(this EntityService<T> service, IQuery<T> query) where T : IQueryableModel
+    public static Task<ValidationResult> ValidateQueryAsync<T>(this EntityService<T> service, IQuery<T> query) where T : IQueryableModel
     {
         if (service.AsyncQueryValidator != null)
         {
             return service.AsyncQueryValidator.ValidateAsync(query);
         }
 
-        return Task.FromResult(new OperationResult());
+        return Task.FromResult(new ValidationResult());
     }
 
 }
