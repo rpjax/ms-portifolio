@@ -50,7 +50,7 @@ internal class GetByIdEndpoint<T> : EndpointBase<string, T>
     }
 }
 
-internal class QueryEndpoint<T> : EndpointBase<SerializableQuery, T[]>
+internal class QueryEndpoint<T> : EndpointBase<SerializableQuery, QueryResult<T>>
 {
     public QueryEndpoint(Http.Uri uri) : base(uri)
     {
@@ -80,7 +80,7 @@ internal class QueryableEndpoint<T> : EndpointBase<SerializableQueryable, T>
 }
 
 // UPDATE
-internal class UpdateEndpoint<T> : EndpointBase<T, Dto<bool>> where T : class
+internal class UpdateEndpoint<T> : EndpointBase<T, Core.Void> where T : class
 {
     public UpdateEndpoint(Http.Uri uri) : base(uri)
     {
@@ -94,7 +94,7 @@ internal class UpdateEndpoint<T> : EndpointBase<T, Dto<bool>> where T : class
     }
 }
 
-internal class UpdateBulkEndpoint : EndpointBase<SerializableUpdate, Dto<long?>>
+internal class UpdateBulkEndpoint : EndpointBase<SerializableUpdate, Dto<long>>
 {
     public UpdateBulkEndpoint(Http.Uri uri) : base(uri)
     {
@@ -124,7 +124,7 @@ internal class DeleteByIdEndpoint<T> : EndpointBase<string, Core.Void>
 
 }
 
-internal class BulkDeleteEndpoint : EndpointBase<SerializableExpression, Dto<long?>>
+internal class BulkDeleteEndpoint : EndpointBase<SerializableExpression, Dto<long>>
 {
     public BulkDeleteEndpoint(Http.Uri uri) : base(uri)
     {

@@ -310,7 +310,7 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
 
         if (response != null)
         {
-            exception.AddData(await response.GetSummaryAsync());
+            exception.AddData(await response.CreateSummaryCopyAsync());
         }
         else if (request != null)
         {

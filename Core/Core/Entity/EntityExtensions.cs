@@ -109,7 +109,7 @@ public static class EntityExtensions
             return default;
         }
 
-        return queryResult.First;
+        return queryResult.Data.FirstOrDefault();
     }
 
     /// <summary>

@@ -193,7 +193,7 @@ public class HttpResponse : IDisposable
     /// Retrieves a summary of the current HttpResponse instance, that is serializable and does not require disposing.
     /// </summary>
     /// <returns>A <see cref="SummaryCopy"/> instance representing a condensed version of the HTTP response.</returns>
-    public Task<SummaryCopy> GetSummaryAsync()
+    public Task<SummaryCopy> CreateSummaryCopyAsync()
     {
         return SummaryCopy.CreateAsync(this);
     }

@@ -287,6 +287,11 @@ public abstract class WebController : ControllerBase
         return OperationResponse(result, AspnetSettings.FailedOperationStatusCode);
     }
 
+    protected IActionResult FailedOperationResponse(params Error[] errors)
+    {
+        return FailedOperationResponse(new OperationResult(errors));
+    }
+
     /// <summary>
     /// Generates an IActionResult for an exception and sends it as a JSON response. <br/>
     /// The response includes the exception details, formatted as an OperationResult. 
@@ -302,16 +307,30 @@ public abstract class WebController : ControllerBase
     {
         OnException(exception);
 
-        var error = new Error(exception);
-        var operationResult = new OperationResult(error);
+        OperationResult? operationResult = null;
 
-        if (EnableExceptionLogging)
+        if (exception is ErrorException errorException)
         {
-            error.AddFlags(ErrorFlags.Debug);
+            operationResult = new OperationResult(errorException.Errors);
         }
-        if (AspnetSettings.ExposeExceptions)
+
+        if(operationResult == null)
         {
-            error.AddFlags(ErrorFlags.Public);
+            var error = new Error(exception);
+
+            operationResult = new OperationResult(error);
+        }
+
+        foreach (var error in operationResult.Errors)
+        {
+            if (EnableExceptionLogging)
+            {
+                error.AddFlags(ErrorFlags.Debug);
+            }
+            if (AspnetSettings.ExposeExceptions)
+            {
+                error.AddFlags(ErrorFlags.Public);
+            }
         }
 
         return OperationResponse(operationResult, 500);

@@ -2,11 +2,9 @@
 
 /// <summary>
 /// Defines the structure for the result of a query designed to work with data of type <typeparamref name="T"/>.
-/// <br/>
-/// This interface extends <see cref="IOperationResult{T[]?}"/>, providing additional properties specific to query results.
 /// </summary>
 /// <typeparam name="T">The type of data contained in the query result.</typeparam>
-public interface IQueryResult<T> : IOperationResult<T[]?>
+public interface IQueryResult<T> 
 {
     /// <summary>
     /// Gets a value indicating whether the query result is empty.
@@ -31,6 +29,21 @@ public interface IQueryResult<T> : IOperationResult<T[]?>
     /// This property provides a count of all the items returned by the query, offering a quick way to ascertain the volume of returned data.
     /// </remarks>
     long Length { get; }
+
+    /// <summary>
+    /// Gets the data elements of type <typeparamref name="T"/> contained in the query result.
+    /// </summary>
+    /// <value>
+    /// An array of data elements resulting from the query. If the query is successful but finds no records, this returns an empty array.
+    /// <br/>
+    /// If the query fails, this property is null.
+    /// </value>
+    /// <remarks>
+    /// This property provides the actual data returned by the query. It is an array of type <typeparamref name="T"/>, 
+    /// <br/>
+    /// which can be empty if the query finds no records or null if the query fails.
+    /// </remarks>
+    T[] Data { get; }
 
     /// <summary>
     /// Gets the first element of type <typeparamref name="T"/> in the query result, or null if the result is empty or the query failed.

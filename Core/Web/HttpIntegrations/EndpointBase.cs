@@ -62,10 +62,10 @@ public abstract class EndpointBase<TIn, TOut> : RestfulEndpoint<TIn, TOut>
         if (operationResult == null)
         {
             var message = $"Failed to process the HTTP API request. Received status code: {response.StatusCode}. Refer to the associated data and inner exception for detailed information.";
-            var responseSummary = await response.GetSummaryAsync();
+            var responseSummary = await response.CreateSummaryCopyAsync();
 
             var error = new Error(message)
-                .AddJsonData("http-response", responseSummary);
+                .AddJsonData("HTTP Response", responseSummary);
 
             operationResult = new(error);
         }

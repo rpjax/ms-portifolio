@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Text.Json.Serialization;
 
 namespace ModularSystem.Core;
 
@@ -21,6 +22,17 @@ public class ValidationResult : IEnumerable<Error>
     /// Gets the list of validation errors.
     /// </summary>
     public List<Error> Errors { get; set; } = new();
+
+    [JsonConstructor]
+    public ValidationResult()
+    {
+
+    }
+
+    public ValidationResult(IEnumerable<Error> errors)
+    {
+        Errors.AddRange(errors);
+    }
 
     /// <summary>
     /// Returns an enumerator that iterates through the collection of validation errors.
@@ -116,6 +128,21 @@ public abstract class ValidatorBase
         Result.Errors.AddRange(errors);
     }
 
+
+    protected void Combine(ValidationResult result, string? source = null, string? separator = ".")
+    {
+        var errors = result.Errors
+            .Transform(x => x.AppendSource(source, separator))
+            .ToArray();
+
+        AddErrors(errors);
+    }
+
+    protected async Task CombineAsync(Task<ValidationResult> validationTask, string? source = null, string? separator = ".")
+    {
+        Combine(await validationTask, source, separator);
+    }
+
     /// <summary>
     /// Combines the current validation result with another, optionally prefixing errors with a source identifier.
     /// </summary>
@@ -124,11 +151,7 @@ public abstract class ValidatorBase
     /// <param name="separator">The separator used between source and error message.</param>
     protected void Combine(OperationResult result, string? source = null, string? separator = ".")
     {
-        var errors = result.Errors
-            .Transform(x => x.AppendSource(source, separator))
-            .ToArray();
-
-        AddErrors(errors);
+        Combine(new ValidationResult(result.Errors), source, separator);
     }
 
     /// <summary>
@@ -141,6 +164,7 @@ public abstract class ValidatorBase
     {
         Combine(await validationTask, source, separator);
     }
+
 }
 
 /// <summary>

@@ -84,11 +84,21 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="value">The instance to be created.</param>
     /// <returns>The ID of the created instance as a string.</returns>
-    public async Task<OperationResult<string>> CreateAsync(T value)
+    public async Task<string> CreateAsync(T value)
     {
         var endpoint = new CreateEndpoint<T>(CopyUri());
         var result = await endpoint.RunAsync(value);
-        return new(result.IsSuccess, result.Data?.Value, result.Errors.ToArray());
+
+        if (result.IsFailure)
+        {
+            throw new ErrorException(result);
+        }
+        if(result.Data?.Value == null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return result.Data.Value;
     }
 
     /// <summary>
@@ -96,10 +106,21 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="id">The ID of the instance.</param>
     /// <returns>A task representing the asynchronous operation, with a result of the retrieved instance.</returns>
-    public Task<OperationResult<T>> GetByIdAsync(string id)
+    public async Task<T> GetByIdAsync(string id)
     {
         var endpoint = new GetByIdEndpoint<T>(CopyUri());
-        return endpoint.RunAsync(id);
+        var result = await endpoint.RunAsync(id);
+
+        if (result.IsFailure)
+        {
+            throw new ErrorException(result);
+        }
+        if (result.Data == null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return result.Data;
     }
 
     /// <summary>
@@ -111,8 +132,17 @@ public class CrudClient<T> : WebClient where T : class
     {
         var result = await  new QueryEndpoint<T>(CopyUri())
             .RunAsync(query);
+        
+        if (result.IsFailure)
+        {
+            throw new ErrorException(result);
+        }
+        if (result.Data == null)
+        {
+            throw new InvalidOperationException();
+        }
 
-        return new(result);
+        return result.Data;
     }
 
     /// <summary>
@@ -130,10 +160,15 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="value">The instance to be updated.</param>
     /// <returns>A task representing the asynchronous update operation.</returns>
-    public async Task<OperationResult> UpdateAsync(T value)
+    public async Task UpdateAsync(T value)
     {
         var endpoint = new UpdateEndpoint<T>(CopyUri());
-        return await endpoint.RunAsync(value);
+        var result = await endpoint.RunAsync(value);
+
+        if (result.IsFailure)
+        {
+            throw new ErrorException(result);
+        }
     }
 
     /// <summary>
@@ -141,12 +176,21 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="update">The serialized update criteria.</param>
     /// <returns>The number of entities updated; null if the update count is unavailable.</returns>
-    public async Task<OperationResult<long>> UpdateAsync(SerializableUpdate update)
+    public async Task<long> UpdateAsync(SerializableUpdate update)
     {
         var result = await new UpdateBulkEndpoint(CopyUri())
             .RunAsync(update);
 
-        return new(result.IsSuccess, result.Data?.Value ?? 0, result.Errors.ToArray());
+        if (result.IsFailure)
+        {
+            throw new ErrorException(result);
+        }
+        if (result.Data?.Value == null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return result.Data.Value;
     }
 
     /// <summary>
@@ -154,7 +198,7 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="update">The update criteria specifying which entities to update and the modifications to apply.</param>
     /// <returns>A task representing the asynchronous bulk update operation, with a result indicating the number of entities updated. Returns null if the update count is not available.</returns>
-    public Task<OperationResult<long>> BulkUpdateAsync(Update<T> update)
+    public Task<long> BulkUpdateAsync(Update<T> update)
     {
         return UpdateAsync(update.ToSerializable());
     }
@@ -164,11 +208,15 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="id">The ID of the instance.</param>
     /// <returns>A task representing the asynchronous delete operation.</returns>
-    public async Task<OperationResult> DeleteByIdAsync(string id)
+    public async Task DeleteByIdAsync(string id)
     {
         var result = await new DeleteByIdEndpoint<T>(CopyUri())
             .RunAsync(id);
-        return new(result);
+
+        if (result.IsFailure)
+        {
+            throw new ErrorException(result);
+        }
     }
 
     /// <summary>
@@ -176,13 +224,22 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="expression">The criteria to identify entities to delete.</param>
     /// <returns>The number of entities deleted; null if the delete count is unavailable.</returns>
-    public async Task<OperationResult<long>> BulkDeleteAsync(Expression<Func<T, bool>> expression)
+    public async Task<long> BulkDeleteAsync(Expression<Func<T, bool>> expression)
     {
         var serializable = QueryProtocol.ToSerializable(expression);
         var endpoint = new BulkDeleteEndpoint(CopyUri());
         var result = await endpoint.RunAsync(serializable);
 
-        return new(result.IsSuccess, result.Data?.Value ?? 0, result.Errors.ToArray());
+        if (result.IsFailure)
+        {
+            throw new ErrorException(result);
+        }
+        if (result.Data?.Value == null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return result.Data.Value;
     }
 
     /// <summary>
@@ -190,12 +247,21 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="id">The ID to validate.</param>
     /// <returns>A task representing the asynchronous validation operation, with a result of true if the ID is valid; otherwise, false.</returns>
-    public async Task<OperationResult<bool>> ValidateIdAsync(string id)
+    public async Task<bool> ValidateIdAsync(string id)
     {
         var endpoint = new ValidateIdEndpoint<T>(CopyUri());
         var result = await endpoint.RunAsync(id);
 
-        return new(result.IsSuccess, result.Data?.Value ?? false, result.Errors.ToArray());
+        if (result.IsFailure)
+        {
+            throw new ErrorException(result);
+        }
+        if (result.Data?.Value == null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return result.Data.Value;
     }
 
     /// <summary>
@@ -209,13 +275,22 @@ public class CrudClient<T> : WebClient where T : class
     /// This method is useful for determining the number of records that meet certain criteria without retrieving all the data. <br/>
     /// The <paramref name="expression"/> parameter allows for specifying complex filtering conditions.
     /// </remarks>
-    public async Task<OperationResult<long>> CountAsync(Expression<Func<T, bool>> expression)
+    public async Task<long> CountAsync(Expression<Func<T, bool>> expression)
     {
         var serializable = QueryProtocol.ToSerializable(expression);
         var endpoint = new CountEndpoint(CopyUri());
         var result = await endpoint.RunAsync(serializable);
 
-        return new(result.IsSuccess, result.Data?.Value ?? 0, result.Errors.ToArray());
+        if (result.IsFailure)
+        {
+            throw new ErrorException(result);
+        }
+        if (result.Data?.Value == null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return result.Data.Value;
     }
 
     /// <summary>
@@ -249,10 +324,21 @@ public class QueryableClient : WebClient
     /// </summary>
     /// <param name="query">The serializable query for the search.</param>
     /// <returns>A task representing the asynchronous operation, with a result of the query.</returns>
-    public Task<OperationResult<T>> QueryAsync<T>(SerializableQueryable query)
+    public async Task<T> QueryAsync<T>(SerializableQueryable query)
     {
-        return new QueryableEndpoint<T>(CopyUri())
+        var result = await new QueryableEndpoint<T>(CopyUri())
             .RunAsync(query);
+
+        if (result.IsFailure)
+        {
+            throw new ErrorException(result);
+        }
+        if (result.Data == null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return result.Data;
     }
 
     /// <summary>

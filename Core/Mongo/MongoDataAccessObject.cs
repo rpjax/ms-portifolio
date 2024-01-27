@@ -167,8 +167,11 @@ public class MongoDataAccessObject<T> : IDataAccessObject<T> where T : IMongoMod
     public virtual async Task<long?> UpdateAsync(IUpdate<T> update)
     {
         var reader = new UpdateReader<T>(update);
-        var filter = reader.GetFilterExpression();
-        var modifications = reader.GetUpdateSetExpressions().ToArray();
+
+        var filter = reader
+            .GetFilterExpression();
+        var modifications = reader.GetUpdateSetExpressions()
+            .ToArray();
 
         if (filter == null)
         {
@@ -189,7 +192,18 @@ public class MongoDataAccessObject<T> : IDataAccessObject<T> where T : IMongoMod
 
         foreach (var updateSet in modifications)
         {
-            updateDefinition = UpdateBuilder.Combine(updateDefinition, UpdateBuilder.Set(updateSet.FieldName, updateSet.Value));
+            dynamic? setValue = updateSet.Value;
+
+            if(setValue is ConstantExpression constantExpression)
+            {
+                setValue = constantExpression.Value;
+            }
+
+            var set = UpdateBuilder
+                .Set(updateSet.FieldName, setValue);
+
+            updateDefinition = UpdateBuilder
+                .Combine(updateDefinition, set);
         }
 
         var result = await Collection.UpdateManyAsync(filterDefinition, updateDefinition);

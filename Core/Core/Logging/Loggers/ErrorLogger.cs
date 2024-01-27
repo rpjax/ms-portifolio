@@ -84,11 +84,21 @@ public class ErrorLogger : EFEntityService<ErrorEntry>
     /// <summary>
     /// Logs an error derived from an <see cref="Exception"/>, along with additional flags.
     /// </summary>
-    /// <param name="e">The exception to derive the error from.</param>
+    /// <param name="exception">The exception to derive the error from.</param>
     /// <param name="flags">Additional flags to classify the error.</param>
-    public static void Log(Exception e, params string[] flags)
+    public static void Log(Exception exception, params string[] flags)
     {
-        Log(new Error(e).AddFlags(flags));
+        if(exception is ErrorException errorException)
+        {
+            foreach (var error in errorException.Errors)
+            {
+                Log(error.AddFlags(flags));
+            }
+
+            return;
+        }
+
+        Log(new Error(exception).AddFlags(flags));
     }
 
     /// <summary>

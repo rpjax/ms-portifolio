@@ -99,17 +99,7 @@ public class ServiceQueryProvider<T> : IQueryProvider
         var query = new SerializableQueryable(QueryProtocol.ToSerializable(expression));
         var result = await Client.QueryAsync<T[]>(query);
 
-        if (result.IsFailure)
-        {
-            throw new QueryExecutionException("Failed to execute query.", result.Errors);
-        }
-
-        if (result.Data == null)
-        {
-            throw new InvalidOperationException("Query execution resulted in null data.");
-        }
-
-        return result.Data.AsQueryable();
+        return result.AsQueryable();
     }
 
 }

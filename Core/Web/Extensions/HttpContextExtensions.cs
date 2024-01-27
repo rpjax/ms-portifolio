@@ -250,12 +250,30 @@ public static class HttpContextExtensions
         Exception exception, 
         bool enableExceptionLogging)
     {
-        var error = new Error(exception);
-        var operationResult = new OperationResult(error);
+        OperationResult? operationResult = null;
 
-        if (enableExceptionLogging)
+        if (exception is ErrorException errorException)
         {
-            error.AddFlags(ErrorFlags.Debug);
+            operationResult = new OperationResult(errorException.Errors);
+        }
+
+        if (operationResult == null)
+        {
+            var error = new Error(exception);
+
+            operationResult = new OperationResult(error);
+        }
+
+        foreach (var error in operationResult.Errors)
+        {
+            if (enableExceptionLogging)
+            {
+                error.AddFlags(ErrorFlags.Debug);
+            }
+            if (AspnetSettings.ExposeExceptions)
+            {
+                error.AddFlags(ErrorFlags.Public);
+            }
         }
 
         return WriteOperationResponseAsync(context, operationResult, 500);
