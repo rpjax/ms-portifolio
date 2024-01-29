@@ -112,7 +112,7 @@ public class ErrorEntry : IEFModel
             .Transform(x => new KeyValue<string, string>(x.Key, x.Value))
             .ToList();
 
-        Data = error.Data
+        Data = error.DebugData
             .Transform(x => new KeyValue<string, string>(x.Key, x.Value))
             .ToList();
     }

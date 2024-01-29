@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using ModularSystem.Core;
 using ModularSystem.Core.Cryptography;
-using ModularSystem.Core.Helpers;
 using ModularSystem.Core.Security;
 
 namespace ModularSystem.Web.Authentication;
@@ -28,26 +27,6 @@ public class AesAuthenticationProvider : IAuthenticationProvider
     protected FileInfo? EncryptionKeyFileInfo { get; }
 
     /// <summary>
-    /// Cache for the encryption key used by the encrypter.
-    /// </summary>
-    protected byte[]? EncryptionKeyCache { get; set; } = null;
-
-    /// <summary>
-    /// Cache for the IV used by the encrypter.
-    /// </summary>
-    protected byte[]? IVCache { get; set; } = null;
-
-    /// <summary>
-    /// Object used to synchronize access to the encryption key cache.
-    /// </summary>
-    protected object EncryptionKeyLock { get; } = new object();
-
-    /// <summary>
-    /// Object used to synchronize access to the initialization vector(IV) cache.
-    /// </summary>
-    protected object IVLock { get; } = new object();
-
-    /// <summary>
     /// Responsible for encrypting and decrypting tokens.
     /// </summary>
     protected ITokenEncrypter TokenEncrypter { get; }
@@ -71,72 +50,110 @@ public class AesAuthenticationProvider : IAuthenticationProvider
         SaltGenerator = new SaltGenerator();
     }
 
-    /// <summary>
-    /// Extracts and decrypts the bearer token from the provided HTTP context.
-    /// </summary>
-    public virtual IToken? GetToken(HttpContext httpContext)
+    /// <inheritdoc/>
+    public virtual async Task<OperationResult<IIdentity>> TryGetIdentityAsync(HttpContext httpContext)
     {
-        var rawToken = httpContext.GetBearerToken();
+        var tokenResult = TryGetTokenFromContext(httpContext);
 
-        if (rawToken == null)
+        if (tokenResult.IsFailure)
         {
-            return null;
+            return new(tokenResult.Errors);
         }
 
-        if (!TokenEncrypter.Verify(rawToken))
+        if(tokenResult.Data == null)
         {
-            throw new AppException("Invalid or unrecognized credentials provided. Authentication failed.", ExceptionCode.CredentialsInvalid);
+            return new(true);
         }
 
-        return TokenEncrypter.Decrypt(rawToken);
+        var token = tokenResult.Data;
+
+        if (token.Payload == null)
+        {
+            var message = "Invalid token payload: The provided bearer token lacks the necessary data for identity verification.";
+            var error = new Error(message)
+                .AddJsonData("Token", token)
+                .AddFlags(ErrorFlags.Critical, ErrorFlags.Debug);
+
+            return new(error);
+        }
+
+        if (token.IsExpired())
+        {
+            var message = "The provided credential is expired and can no longer be used.";
+            var error = new Error(message)
+                .AddJsonData("Token", token)
+                .AddFlags(ErrorFlags.Public);
+
+            return new(true, null, error);
+        }
+
+        var identity = JsonSerializerSingleton.Deserialize<Identity>(token.Payload);
+
+        if(identity == null)
+        {
+            var message = "Identity processing error: Unable to extract identity information from the token due to deserialization issues.";
+            var error = new Error(message)
+                .AddJsonData("Token", token)
+                .AddFlags(ErrorFlags.Critical, ErrorFlags.Debug);
+
+            return new(error);
+        }
+
+        return new(identity);
     }
 
     /// <summary>
     /// Creates a token with prefixed and suffixed salts from the provided identity.
     /// </summary>
-    public virtual IToken GetToken(IIdentity identity)
+    public virtual Token CreateToken(Identity identity)
     {
-        if (identity is not Identity)
-        {
-            throw new ArgumentException("Only 'ModularSystem.Core.Security.Identity' is supported by this Auth provider.");
-        }
-
         var random = new Random();
-        var prefixSaltSize = random.Next(150, 500);
-        var sufixSaltSize = random.Next(150, 500);
         var now = TimeProvider.Now();
-        var lifetime = TokenLifetime;
-        var payload = JsonSerializerSingleton.Serialize((Identity)identity);
+
+        var prefixSaltSize = random.Next(100, 150);
+        var suffixSaltSize = random.Next(100, 150);
+
+        var prefixSalt = SaltGenerator.Generate(prefixSaltSize);
+        var payload = JsonSerializerSingleton.Serialize(identity);
+        var suffixSalt = SaltGenerator.Generate(suffixSaltSize);
+        var expiresAt = now.Add(TokenLifetime);
 
         return new Token()
         {
-            PrefixSalt = SaltGenerator.Generate(prefixSaltSize),
+            PrefixSalt = prefixSalt,
             Payload = payload,
-            SuffixSalt = SaltGenerator.Generate(sufixSaltSize),
+            SuffixSalt = suffixSalt,
             CreatedAt = now,
-            ExpiresAt = now.Add(lifetime),
+            ExpiresAt = expiresAt,
         };
     }
 
-    /// <summary>
-    /// Deserializes the token payload into an identity instance.
-    /// </summary>
-    public virtual IIdentity? GetIdentity(IToken token)
+    public virtual string CreateEncryptedToken(Identity identity)
     {
-        try
-        {
-            if (token.Payload == null)
-            {
-                throw new AppException("Invalid or unrecognized credentials provided. Authentication failed.", ExceptionCode.CredentialsInvalid);
-            }
+        return TokenEncrypter.Encrypt(CreateToken(identity));
+    }
 
-            return JsonSerializerSingleton.Deserialize<Identity>(token.Payload);
-        }
-        catch (Exception e)
+    /// <summary>
+    /// Extracts and decrypts the bearer token from the provided HTTP context.
+    /// </summary>
+    protected virtual OperationResult<Token> TryGetTokenFromContext(HttpContext httpContext)
+    {
+        var rawToken = httpContext.GetBearerToken();
+
+        if (rawToken == null)
         {
-            throw new AppException("Failed to deserialize the token's payload.", ExceptionCode.Internal, e)
-                .AddData(token);
+            return new(true);
         }
+
+        if (!TokenEncrypter.Verify(rawToken))
+        {
+            var message = "The provided bearer token is not recognized by the encryption algorithm. Please verify that the token's value adheres to the expected format and encryption standards used by the system.";
+            var error = new Error(message);
+
+            return new(true, null, error);
+        }
+
+        return new(TokenEncrypter.Decrypt(rawToken));
     }
 
     /// <summary>
@@ -149,45 +166,20 @@ public class AesAuthenticationProvider : IAuthenticationProvider
     }
 
     /// <summary>
-    /// Initializes the encryption key cache either from storage or by generating a new one if none exists.
-    /// </summary>
-    void InitEncryptionKeyCache()
-    {
-        var fileInfo = EncryptionKeyFileInfo
-            ?? LocalStorage.GetFileInfo($"Keys{Path.DirectorySeparatorChar}websession_encryption_key.json");
-
-        var keyStorage = new EncryptionKeyStorage(fileInfo);
-
-        EncryptionKeyCache = keyStorage.GetKey(256 / 8);
-    }
-
-    /// <summary>
     /// Provides the encryption key, initializing it from cache or storage.
     /// </summary>
     byte[] EncryptionKey()
     {
-        if (EncryptionKeyCache == null)
-        {
-            lock (EncryptionKeyLock)
-            {
-                InitEncryptionKeyCache();
-            }
-        }
-
-        return EncryptionKeyCache!;
+        var keyStorage = new EncryptionKeyStorage("websession_key", 32);
+        keyStorage.MissingFileStrategy = EncryptionKeyStorage.OnMissingFile.CreateNew;
+        return keyStorage.GetBytesAsync().Result;
     }
 
     byte[] InitializationVector()
     {
-        if (IVCache == null)
-        {
-            lock (IVLock)
-            {
-                IVCache = new byte[16];
-            }
-        }
-
-        return IVCache!;
+        var keyStorage = new EncryptionKeyStorage("websession_iv", 16);
+        keyStorage.MissingFileStrategy = EncryptionKeyStorage.OnMissingFile.CreateNew;
+        return keyStorage.GetBytesAsync().Result;
     }
 
     /// <summary>

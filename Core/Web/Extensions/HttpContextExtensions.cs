@@ -99,7 +99,7 @@ public static class HttpContextExtensions
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
     /// <returns>The user's identity or null if not found.</returns>
-    public static IIdentity? TryGetIdentity(this HttpContext context)
+    public static async Task<IIdentity?> TryGetIdentityAsync(this HttpContext context)
     {
         if (context.Items.TryGetValue(WebController.HttpContextIdentityKey, out object? value))
         {
@@ -111,24 +111,19 @@ public static class HttpContextExtensions
             }
         }
 
-        if (!DependencyContainer.TryGetInterface<IIamSystem>(out var iam))
+        if (!DependencyContainer.TryGetInterface<IIamService>(out var iam))
         {
             return null;
         }
 
-        var token = iam.AuthenticationProvider.GetToken(context);
+        var result = await iam.AuthenticationProvider.TryGetIdentityAsync(context);
 
-        if (token == null)
+        if(result.IsFailure)
         {
-            return null;
+            throw new ErrorException(result);
         }
 
-        if (token.IsExpired())
-        {
-            return null;
-        }
-
-        return iam.AuthenticationProvider.GetIdentity(token);
+        return result.Data;
     }
 
     /// <summary>
@@ -137,9 +132,9 @@ public static class HttpContextExtensions
     /// <param name="context">The current HTTP context.</param>
     /// <returns>The user's identity.</returns>
     /// <exception cref="AppException">Thrown if the identity is not found.</exception>
-    public static IIdentity GetIdentity(this HttpContext context)
+    public static async Task<IIdentity> GetIdentityAsync(this HttpContext context)
     {
-        var identity = TryGetIdentity(context);
+        var identity = await TryGetIdentityAsync(context);
 
         if (identity == null)
         {

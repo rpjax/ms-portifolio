@@ -120,7 +120,7 @@ public class OperationResult : IOperationResult
     /// <returns>A string containing all validation errors.</returns>
     public override string ToString()
     {
-        return string.Join($"; {Environment.NewLine}", Errors);
+        return string.Join("; " + Environment.NewLine, Errors);
     }
 
     /// <summary>
@@ -195,7 +195,7 @@ public class OperationResult<T> : OperationResult, IOperationResult<T?>
     /// optionally with results and data from another operation.
     /// </summary>
     /// <param name="operationResult">An optional IOperationResult of the same type to initialize the current instance with.</param>
-    public OperationResult(OperationResult<T> operationResult) : base(operationResult)
+    public OperationResult(IOperationResult<T> operationResult) : base(operationResult)
     {
         Data = operationResult.Data;
     }

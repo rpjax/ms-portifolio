@@ -7,7 +7,7 @@ namespace ModularSystem.Web;
 /// Defines an interface for Identity and Access Management (IAM) systems within the web context. <br/>
 /// It encompasses both authentication (verifying who a user is) and authorization (determining what a user can do).
 /// </summary>
-public interface IIamSystem
+public interface IIamService
 {
     /// <summary>
     /// Gets the instance of <see cref="IAuthenticationProvider"/> which is responsible for authenticating and 

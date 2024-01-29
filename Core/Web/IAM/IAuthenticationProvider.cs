@@ -1,58 +1,31 @@
 ﻿using Microsoft.AspNetCore.Http;
+using ModularSystem.Core;
 using ModularSystem.Core.Security;
 
 namespace ModularSystem.Web.Authentication;
 
 /// <summary>
-/// Provides methods to define the authentication strategy of the application.
+/// Defines an interface for implementing authentication providers in an application. <br/>
+/// Authentication providers are responsible for establishing user identity, <br/>
+/// potentially based on credentials provided in the request.
 /// </summary>
 public interface IAuthenticationProvider
 {
     /// <summary>
-    /// Generates a token for the given identity.
+    /// Asynchronously attempts to retrieve the identity of a user based on the provided HTTP context. <br/>
+    /// This method processes authentication, which may include checking tokens, credentials, or other forms of identity verification.
     /// </summary>
-    /// <param name="identity">The identity for which a token should be generated.</param>
-    /// <returns>An <see cref="IToken"/> instance.</returns>
-    IToken GetToken(IIdentity identity);
-
-    /// <summary>
-    /// Retrieves the token associated with the given HTTP context.
-    /// </summary>
-    /// <param name="httpContext">The HTTP context for which the token should be retrieved.</param>
-    /// <returns>An <see cref="IToken"/> instance if found; otherwise, null.</returns>
-    IToken? GetToken(HttpContext httpContext);
-
-    /// <summary>
-    /// Retrieves the identity associated with the provided token.
-    /// </summary>
-    /// <param name="token">The token for which the identity should be retrieved.</param>
-    /// <returns>An <see cref="IIdentity"/> instance if found; otherwise, null.</returns>
-    IIdentity? GetIdentity(IToken token);
-}
-
-/// <summary>
-/// Provides methods to define the authentication strategy of the application asynchronously.
-/// </summary>
-public interface IAsyncAuthenticationProvider
-{
-    /// <summary>
-    /// Asynchronously generates a token for the given identity.
-    /// </summary>
-    /// <param name="identity">The identity for which a token should be generated.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IToken"/> instance.</returns>
-    Task<IToken> GetTokenAsync(IIdentity identity);
-
-    /// <summary>
-    /// Asynchronously retrieves the token associated with the given HTTP context.
-    /// </summary>
-    /// <param name="httpContext">The HTTP context for which the token should be retrieved.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IToken"/> instance if found; otherwise, null.</returns>
-    Task<IToken?> GetTokenAsync(HttpContext httpContext);
-
-    /// <summary>
-    /// Asynchronously retrieves the identity associated with the provided token.
-    /// </summary>
-    /// <param name="token">The token for which the identity should be retrieved.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IIdentity"/> instance if found; otherwise, null.</returns>
-    Task<IIdentity?> GetIdentityAsync(IToken token);
+    /// <param name="httpContext">The HTTP context of the current request, containing all HTTP-specific information.</param>
+    /// <returns>
+    /// A task representing the asynchronous operation, resulting in an <see cref="OperationResult{IIdentity}"/>. <br/>
+    /// The result provides the outcome of the authentication attempt, including a potentially authenticated user's identity <br/>
+    /// or error information if authentication could not be conclusively processed.
+    /// </returns>
+    /// <remarks>
+    /// This method returns an operation result to convey the authentication attempt's outcome. <br/>
+    /// A successful operation with null data typically represents the absence of valid credentials. <br/>
+    /// For example, when provided credentials are expired or otherwise invalid, yet the request format and processing are correct. <br/>
+    /// Conversely, a failed operation indicates unexpected issues, such as deserialization errors, invalid formats, or other system-level failures.
+    /// </remarks>
+    Task<OperationResult<IIdentity>> TryGetIdentityAsync(HttpContext httpContext);
 }

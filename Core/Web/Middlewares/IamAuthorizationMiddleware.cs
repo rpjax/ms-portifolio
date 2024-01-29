@@ -5,14 +5,14 @@ namespace ModularSystem.Web;
 
 /// <summary>
 /// Middleware for handling IAM (Identity and Access Management) based authorization. <br/>
-/// It uses the registered <see cref="IIamSystem"/>  implementation to authorize the incoming requests.
+/// It uses the registered <see cref="IIamService"/>  implementation to authorize the incoming requests.
 /// </summary>
 public class IamAuthorizationMiddleware : Middleware
 {
     /// <summary>
     /// The IIamSystem instance retrieved from the DependencyContainer.
     /// </summary>
-    private IIamSystem Iam { get; }
+    private IIamService Iam { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IamAuthorizationMiddleware"/> class.
@@ -21,7 +21,7 @@ public class IamAuthorizationMiddleware : Middleware
     /// <exception cref="InvalidOperationException">Thrown when an appropriate IIamSystem implementation is not found in the DependencyContainer.</exception>
     public IamAuthorizationMiddleware(RequestDelegate next) : base(next)
     {
-        if (!DependencyContainer.TryGetInterface<IIamSystem>(out var iam))
+        if (!DependencyContainer.TryGetInterface<IIamService>(out var iam))
         {
             throw new InvalidOperationException("The IamAuthenticationMiddleware requires an implementation of IIamSystem to be registered in the DependencyContainer. Ensure that an appropriate implementation is registered before using this middleware.");
         }
@@ -45,7 +45,8 @@ public class IamAuthorizationMiddleware : Middleware
             return Strategy.Continue;
         }
 
-        var isAuthorized = await resourcePolicy.AuthorizeAsync(context.TryGetIdentity());
+        var identity = await context.TryGetIdentityAsync();
+        var isAuthorized = await resourcePolicy.AuthorizeAsync(identity);
 
         if (!isAuthorized)
         {

@@ -43,7 +43,7 @@ public class Error
     /// Gets or sets a list of key-value-pair data associated with this error,  <br/>
     /// designed for additional data about the error, including JSON or encoded binary data.
     /// </summary>
-    public List<KeyValuePair<string, string>> Data { get; set; } = new(0);
+    public List<KeyValuePair<string, string>> DebugData { get; set; } = new(0);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Error"/> class.
@@ -185,7 +185,7 @@ public class Error
     /// <returns>The value associated with the specified key, or null if the key is not found.</returns>
     public string? GetData(string key)
     {
-        foreach (var item in Data)
+        foreach (var item in DebugData)
         {
             if(item.Key == key)
             {
@@ -278,8 +278,8 @@ public class Error
             return this;
         }
 
-        Data = Data.RemoveWhere(x => x.Key == key);
-        Data.Add(new(key, value));
+        DebugData = DebugData.RemoveWhere(x => x.Key == key);
+        DebugData.Add(new(key, value));
         return this;
     }
 
@@ -291,7 +291,7 @@ public class Error
     /// <returns>The <see cref="Error"/> instance with the added data.</returns>
     public Error AddData(params KeyValuePair<string, string>[] values)
     {
-        Data.AddRange(values);
+        DebugData.AddRange(values);
         return this;
     }
 
@@ -305,7 +305,7 @@ public class Error
     /// <returns>The <see cref="Error"/> instance with the added data.</returns>
     public Error AddData(string key, string value)
     {
-        Data.Add(new KeyValuePair<string, string>(key, value));
+        DebugData.Add(new KeyValuePair<string, string>(key, value));
         return this;
     }
 
@@ -344,7 +344,7 @@ public class Error
             return this;
         }
         
-        Data.Add(new(key, JsonSerializerSingleton.Serialize(value)));
+        DebugData.Add(new(key, JsonSerializerSingleton.Serialize(value)));
 
         return this;
     }

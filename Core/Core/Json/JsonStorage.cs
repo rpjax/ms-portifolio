@@ -6,7 +6,7 @@ namespace ModularSystem.Core.Helpers;
 /// Provides methods for storing and retrieving data in JSON format.
 /// </summary>
 /// <typeparam name="T">The type of the data to be stored. Must be a class and have a parameterless constructor.</typeparam>
-public class JsonStorage<T> where T : class, new()
+public class JsonStorage<T> where T : class
 {
     /// <summary>
     /// Gets or sets the options for JSON serialization and deserialization.
@@ -62,7 +62,7 @@ public class JsonStorage<T> where T : class, new()
     {
         EnsureFileInitialization();
         var json = File.ReadAllText(FileInfo.FullName);
-        return JsonSerializer.Deserialize<T>(json);
+        return JsonSerializerSingleton.Deserialize<T>(json);
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ public class JsonStorage<T> where T : class, new()
     {
         EnsureFileInitialization();
         var json = await File.ReadAllTextAsync(FileInfo.FullName);
-        return JsonSerializer.Deserialize<T>(json);
+        return JsonSerializerSingleton.Deserialize<T>(json);
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ public class JsonStorage<T> where T : class, new()
     /// <param name="data">The data to serialize and write.</param>
     public void Write(T data)
     {
-        var json = JsonSerializer.Serialize(data);
+        var json = JsonSerializerSingleton.Serialize(data);
         File.WriteAllText(FileInfo.FullName, json);
     }
 
@@ -93,7 +93,7 @@ public class JsonStorage<T> where T : class, new()
     /// <returns>A task that represents the asynchronous write operation.</returns>
     public Task WriteAsync(T data)
     {
-        var json = JsonSerializer.Serialize(data);
+        var json = JsonSerializerSingleton.Serialize(data);
         return File.WriteAllTextAsync(FileInfo.FullName, json);
     }
 
@@ -113,23 +113,10 @@ public class JsonStorage<T> where T : class, new()
     {
         FileInfo.Refresh();
 
-        if (!FileInfo.Exists || FileInfo.Length == 0)
+        if (!FileInfo.Exists)
         {
-            Write(new T());
+            FileInfo.Create();
         }
     }
 
-    /// <summary>
-    /// Ensures the initialization of the storage file with a specified initial value.
-    /// </summary>
-    /// <param name="initialValue">The initial value to write if the file does not exist or is empty.</param>
-    public void EnsureFileInitialization(T initialValue)
-    {
-        FileInfo.Refresh();
-
-        if (!FileInfo.Exists || FileInfo.Length == 0)
-        {
-            Write(initialValue);
-        }
-    }
 }

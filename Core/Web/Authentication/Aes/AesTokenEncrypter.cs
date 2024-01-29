@@ -24,7 +24,7 @@ public sealed class AesTokenEncrypter : ITokenEncrypter
         Encrypter.Dispose();
     }
 
-    public string Encrypt(IToken token)
+    public string Encrypt(Token token)
     {
         var json = JsonSerializer.Serialize(token);
         var bytes = Encoding.UTF8.GetBytes(json);
@@ -32,7 +32,7 @@ public sealed class AesTokenEncrypter : ITokenEncrypter
         return Convert.ToBase64String(encryptedBytes);
     }
 
-    public IToken Decrypt(string encryptedToken)
+    public Token Decrypt(string encryptedToken)
     {
         var encryptedBytes = Convert.FromBase64String(encryptedToken);
         var decryptedBytes = Encrypter.Decrypt(encryptedBytes);

@@ -16,14 +16,14 @@ public interface ITokenEncrypter : IDisposable
     /// </summary>
     /// <param name="token">The token to encrypt.</param>
     /// <returns>The encrypted token string.</returns>
-    string Encrypt(IToken token);
+    string Encrypt(Token token);
 
     /// <summary>
     /// Decrypts an encrypted token string back to its original form.
     /// </summary>
     /// <param name="encryptedToken">The encrypted token string.</param>
     /// <returns>The original token object.</returns>
-    IToken Decrypt(string encryptedToken);
+    Token Decrypt(string encryptedToken);
 
     /// <summary>
     /// Validates whether an encrypted token string is genuine and has not been tampered with.
@@ -63,13 +63,13 @@ public class TokenEncrypter : ITokenEncrypter
     }
 
     /// <inheritdoc/>
-    public virtual string Encrypt(IToken token)
+    public virtual string Encrypt(Token token)
     {
         return Encrypter.Encrypt(JsonSerializerSingleton.Serialize(token));
     }
 
     /// <inheritdoc/>
-    public virtual IToken Decrypt(string encryptedToken)
+    public virtual Token Decrypt(string encryptedToken)
     {
         var json = Encrypter.Decrypt(encryptedToken);
         return

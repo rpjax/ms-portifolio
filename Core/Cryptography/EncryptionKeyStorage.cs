@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core.Helpers;
+using System.Text.Json.Serialization;
 
 namespace ModularSystem.Core.Cryptography;
 
@@ -11,50 +12,102 @@ namespace ModularSystem.Core.Cryptography;
 /// </remarks>
 public class EncryptionKeyStorage
 {
-    /// <summary>
-    /// Gets the FileInfo object representing the file where the encryption key is stored.
-    /// </summary>
-    private FileInfo FileInfo { get; }
+    const string DefaultFolder = "Keys";
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="EncryptionKeyStorage"/> class with a specified file information.
-    /// </summary>
-    /// <param name="fileInfo">The FileInfo object representing the file where the encryption key will be stored.</param>
-    public EncryptionKeyStorage(FileInfo fileInfo)
+    public enum OnMissingFile
     {
-        FileInfo = fileInfo;
+        Throw,
+        CreateNew
     }
 
-    public async Task<byte[]> GetKeyAsync(int keySize)
+    public enum OnKeyLengthMismatch
+    {
+        Throw, 
+        CreateNew
+    }
+
+    public OnMissingFile MissingFileStrategy { get; set; } = OnMissingFile.Throw;
+    public OnKeyLengthMismatch KeyLengthMismatchStrategy { get; set; } = OnKeyLengthMismatch.Throw;
+
+    private FileInfo FileInfo { get; }
+    private int Length { get; }
+
+    public EncryptionKeyStorage(FileInfo fileInfo, int byteLength)
+    {
+        FileInfo = fileInfo;
+        Length = byteLength;
+
+        if(Length <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(byteLength));
+        }
+    }
+
+    public EncryptionKeyStorage(string file, int byteLength)
+    {
+        FileInfo = LocalStorage.GetFileInfo($"{DefaultFolder}{Path.DirectorySeparatorChar}{file}");
+        Length = byteLength;
+
+        if (Length <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(byteLength));
+        }
+    }
+
+    public async Task<KeyFile> GenerateAsync()
+    {
+        var storage = new JsonStorage<KeyFile>(FileInfo);
+        var file = new KeyFile(Encrypter.RandomKey(Length));
+        await storage.WriteAsync(file);
+        return file;
+    }
+
+    public async Task<byte[]> GetBytesAsync()
     {
         var storage = new JsonStorage<KeyFile>(FileInfo);
         var file = await storage.ReadAsync();
 
-        if (file == null || file.Bytes.IsEmpty())
+        if (file == null)
         {
-            file ??= new KeyFile();
-            file.Bytes = Encrypter.RandomKey(keySize);
-            await storage.WriteAsync(file);
+            if (MissingFileStrategy == OnMissingFile.Throw)
+            {
+                throw MissingFileException();
+            }
+
+            file = await GenerateAsync();
         }
 
-        if (file.Bytes.Length * 8 != (int)keySize)
+        if (file.Bytes.Length != Length)
         {
-            file ??= new KeyFile();
-            file.Bytes = Encrypter.RandomKey(keySize);
-            await storage.WriteAsync(file);
+            if (KeyLengthMismatchStrategy == OnKeyLengthMismatch.Throw)
+            {
+                throw KeyLengthMismatchException(file.Bytes.Length);
+            }
+
+            file = await GenerateAsync();
         }
 
         return file.Bytes;
     }
 
-    /// <summary>
-    /// Retrieves the stored encryption key of the specified size. If no key exists, it generates and stores a new one.
-    /// </summary>
-    /// <param name="keySize">The size of the key that needs to be retrieved or generated.</param>
-    /// <returns>A byte array representing the encryption key.</returns>
-    public byte[] GetKey(int keySize)
+    private Exception MissingFileException()
     {
-        return GetKeyAsync(keySize).Result;
+        var message = $"Failed to locate the required key file at '{FileInfo.FullName}'. Ensure the file exists and the path is correct.";
+        var error = new Error(message)
+            .AddJsonData("key path", FileInfo.FullName)
+            .AddFlags(ErrorFlags.Debug, ErrorFlags.Critical);
+
+        return new ErrorException(error);
+    }
+
+    private Exception KeyLengthMismatchException(int length)
+    {
+        var message = $"Key length mismatch error. Tried to read a key with a length value different from the actual length of the key read. Expected {Length}, found {length}.";
+        var error = new Error(message)
+            .AddJsonData("key path", FileInfo.FullName)
+            .AddFlags(ErrorFlags.Debug, ErrorFlags.Critical);
+
+        return new ErrorException(error);
     }
 
 }
@@ -68,4 +121,15 @@ public class KeyFile
     /// Gets or sets the byte representation of the encryption key.
     /// </summary>
     public byte[] Bytes { get; set; } = new byte[0];
+
+    [JsonConstructor]
+    public KeyFile()
+    {
+
+    }
+
+    public KeyFile(byte[] bytes)
+    {
+        Bytes = bytes;
+    }
 }

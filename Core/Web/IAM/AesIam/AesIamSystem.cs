@@ -9,7 +9,7 @@ namespace ModularSystem.Web;
 /// This class encapsulates both authentication and authorization operations <br/>
 /// using AES for secure token management and attribute-based authorization.
 /// </summary>
-public class AesIamSystem : IIamSystem
+public class AesIamSystem : IIamService
 {
     /// <summary>
     /// Gets the provider responsible for handling authentication processes using AES encryption.
