@@ -86,7 +86,7 @@ public class PaginationIn
     /// </summary>
     public void Increment()
     {
-        Offset =+ Limit;
+        Offset += Limit;
     }
 
 }

@@ -115,20 +115,21 @@ public class HttpResponse : IDisposable
     /// <returns>A task representing the asynchronous operation with the deserialized object as the result. Returns null if deserialization fails.</returns>
     public async Task<object?> TryDeserializeAsJsonAsync(Type type, Encoding? encoding = null, JsonSerializerOptions? options = null)
     {
+        if (type == typeof(Core.Void))
+        {
+            return new Core.Void();
+        }
         if (Body == null)
         {
             return null;
         }
 
-        try
-        {
-            options ??= options ??= JsonSerializerOptions ??= DefaultJsonSerializerOptions();
-            return JsonSerializerSingleton.Deserialize(await Body.ReadAsStringAsync(encoding), type, options);
-        }
-        catch
-        {
-            return null;
-        }
+        options 
+            ??= options 
+            ??= JsonSerializerOptions 
+            ??= DefaultJsonSerializerOptions();
+
+        return JsonSerializerSingleton.Deserialize(await Body.ReadAsStringAsync(encoding), type, options);
     }
 
     /// <summary>
@@ -140,7 +141,8 @@ public class HttpResponse : IDisposable
     /// <returns>A task representing the asynchronous operation with the deserialized object as the result. Returns null if deserialization fails.</returns>
     public async Task<T?> TryDeserializeAsJsonAsync<T>(Encoding? encoding = null, JsonSerializerOptions? options = null) where T : class
     {
-        return (await TryDeserializeAsJsonAsync(typeof(T), encoding, options))?.TypeCast<T>();
+        return (await TryDeserializeAsJsonAsync(typeof(T), encoding, options))
+            ?.TypeCast<T>();
     }
 
     /// <summary>
@@ -152,29 +154,14 @@ public class HttpResponse : IDisposable
     /// <returns>A task representing the asynchronous operation with the deserialized object as the result.</returns>
     public async Task<object> DeserializeAsJsonAsync(Type type, Encoding? encoding = null, JsonSerializerOptions? options = null)
     {
-        try
+        var deserialized = await TryDeserializeAsJsonAsync(type, encoding, options);
+
+        if (deserialized == null)
         {
-            if (Body == null)
-            {
-                throw new InvalidOperationException("The response body is null. Deserialization cannot proceed without content.");
-            }
-
-            options ??= options ??= JsonSerializerOptions ??= DefaultJsonSerializerOptions();
-
-            var json = await Body.ReadAsStringAsync(encoding);
-            var deserialized = JsonSerializerSingleton.Deserialize(json, type, options);
-
-            if (deserialized == null)
-            {
-                throw new InvalidOperationException($"Deserialization of the JSON content to type '{type.FullName}' resulted in a null object, indicating that the content may not match the expected type.");
-            }
-
-            return deserialized;
+            throw new InvalidOperationException($"Deserialization of the JSON content to type '{type.FullName}' resulted in a null object, indicating that the content may not match the expected type.");
         }
-        catch (Exception e)
-        {
-            throw new AppException($"Failed to deserialize the HTTP response content to an object of type '{type.FullName}'. Ensure that the response content is a valid JSON representation of the specified type.", ExceptionCode.Internal, e, this);
-        }
+
+        return deserialized;
     }
 
     /// <summary>
@@ -186,7 +173,8 @@ public class HttpResponse : IDisposable
     /// <returns>A task representing the asynchronous operation with the deserialized object as the result.</returns>
     public async Task<T> DeserializeAsJsonAsync<T>(Encoding? encoding = null, JsonSerializerOptions? options = null)
     {
-        return (await DeserializeAsJsonAsync(typeof(T), encoding, options))!.TypeCast<T>();
+        return (await DeserializeAsJsonAsync(typeof(T), encoding, options))
+            .TypeCast<T>();
     }
 
     /// <summary>

@@ -88,7 +88,7 @@ public class HttpApplication : IAsyncDisposable
     /// <summary>
     /// Starts the web application, making it available for handling incoming requests.
     /// </summary>
-    public void Start()
+    public virtual void Start()
     {
         if (App != null)
         {
@@ -107,7 +107,7 @@ public class HttpApplication : IAsyncDisposable
     /// Stops the web application gracefully.
     /// </summary>
     /// <returns>A task representing the asynchronous stop operation.</returns>
-    public Task Stop()
+    public virtual Task Stop()
     {
         if (App == null)
         {

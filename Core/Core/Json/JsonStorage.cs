@@ -48,9 +48,13 @@ public class JsonStorage<T> where T : class
     /// Opens the JSON storage file as a stream for reading.
     /// </summary>
     /// <returns>A <see cref="FileStream"/> for reading the file.</returns>
-    public FileStream ReadAsStream()
+    public FileStream? ReadAsStream()
     {
-        EnsureFileInitialization();
+        if (!FileInfo.Exists)
+        {
+            return null;
+        }
+
         return File.OpenRead(FileInfo.FullName);
     }
 
@@ -60,8 +64,18 @@ public class JsonStorage<T> where T : class
     /// <returns>The deserialized data.</returns>
     public T? Read()
     {
-        EnsureFileInitialization();
+        if (!FileInfo.Exists)
+        {
+            return default;
+        }
+        
         var json = File.ReadAllText(FileInfo.FullName);
+
+        if (string.IsNullOrEmpty(json))
+        {
+            return null;
+        }
+
         return JsonSerializerSingleton.Deserialize<T>(json);
     }
 
@@ -71,8 +85,18 @@ public class JsonStorage<T> where T : class
     /// <returns>A task that represents the asynchronous read operation. The task result contains the deserialized data.</returns>
     public async Task<T?> ReadAsync()
     {
-        EnsureFileInitialization();
+        if(!FileInfo.Exists)
+        {
+            return default;
+        }
+
         var json = await File.ReadAllTextAsync(FileInfo.FullName);
+
+        if (string.IsNullOrEmpty(json))
+        {
+            return null;
+        }
+
         return JsonSerializerSingleton.Deserialize<T>(json);
     }
 

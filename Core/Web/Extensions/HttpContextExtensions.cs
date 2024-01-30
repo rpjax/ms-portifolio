@@ -210,6 +210,10 @@ public static class HttpContextExtensions
         {
             operationResult.RemoveErrorsWithoutFlags(ErrorFlags.Public);
         }
+        if (!AspnetSettings.ExposeExceptions)
+        {
+            operationResult.RemoveErrorsWithFlags(ErrorFlags.Exception);
+        }
 
         var json = JsonSerializerSingleton.Serialize(operationResult);
 
@@ -265,10 +269,8 @@ public static class HttpContextExtensions
             {
                 error.AddFlags(ErrorFlags.Debug);
             }
-            if (AspnetSettings.ExposeExceptions)
-            {
-                error.AddFlags(ErrorFlags.Public);
-            }
+
+            error.AddFlags(ErrorFlags.Exception);
         }
 
         return WriteOperationResponseAsync(context, operationResult, 500);

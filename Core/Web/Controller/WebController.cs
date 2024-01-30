@@ -264,6 +264,10 @@ public abstract class WebController : ControllerBase
         {
             operationResult.RemoveErrorsWithoutFlags(ErrorFlags.Public);
         }
+        if (!AspnetSettings.ExposeExceptions)
+        {
+            operationResult.RemoveErrorsWithFlags(ErrorFlags.Exception);
+        }
 
         var json = JsonSerializerSingleton.Serialize(operationResult);
 
@@ -327,10 +331,8 @@ public abstract class WebController : ControllerBase
             {
                 error.AddFlags(ErrorFlags.Debug);
             }
-            if (AspnetSettings.ExposeExceptions)
-            {
-                error.AddFlags(ErrorFlags.Public);
-            }
+
+            error.AddFlags(ErrorFlags.Exception);
         }
 
         return OperationResponse(operationResult, 500);

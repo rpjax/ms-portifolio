@@ -11,7 +11,7 @@ namespace ModularSystem.Web.Linq;
 /// facilitating the construction of complex queries in a type-safe manner. <br/>
 /// They ensure that queries remain fluent and readable, while being executed remotely against a data service.
 /// </remarks>
-public static class ServiceQueryableLinq
+public static class ServiceQueryableLinqExtensions
 {
     /// <summary>
     /// Filters a sequence of values based on a predicate and returns a remote queryable sequence.
@@ -106,7 +106,8 @@ public static class ServiceQueryableLinq
     /// </remarks>
     public static async Task<TSource[]> ToArrayAsync<TSource>(this ServiceQueryable<TSource> source)
     {
-        return (await ((ServiceQueryProvider<TSource>)source.Provider).ExecuteAsync(source.Expression)).ToArray();
+        return (await ((ServiceQueryProvider<TSource>)source.Provider).ExecuteAsync(source.Expression))
+            .ToArray();
     }
 
     //TODO...
