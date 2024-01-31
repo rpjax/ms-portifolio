@@ -120,7 +120,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
 
             var source = await Service.CreateQueryAsync();
             var queryable = VisitQueryable(request.ToQueryable(source));
-            var data = await queryable.ToArrayAsync();
+            var data = queryable.ToArray();
 
             return Ok(data);
         }
@@ -285,7 +285,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
     /// </summary>
     /// <param name="queryable">The translated queryable object to visit.</param>
     /// <returns>The potentially modified TranslatedQueryable object.</returns>
-    protected virtual IExtendedQueryable<object> VisitQueryable(IExtendedQueryable<object> queryable)
+    protected virtual IQueryable<object> VisitQueryable(IQueryable<object> queryable)
     {
         return queryable;
     }
@@ -315,10 +315,10 @@ public abstract class QueryableController<T> : ServiceController<T> where T : cl
             {
                 return BadRequest(ModelState);
             }
-
+   
             var source = await Service.CreateQueryAsync();
             var queryable = VisitQueryable(request.ToQueryable(source));
-            var data = await queryable.ToArrayAsync();
+            var data = queryable.ToArray();
 
             return Ok(data);
         }
@@ -334,7 +334,7 @@ public abstract class QueryableController<T> : ServiceController<T> where T : cl
     /// </summary>
     /// <param name="queryable">The translated queryable object to visit.</param>
     /// <returns>The potentially modified TranslatedQueryable object.</returns>
-    protected virtual IExtendedQueryable<object> VisitQueryable(IExtendedQueryable<object> queryable)
+    protected virtual IQueryable<object> VisitQueryable(IQueryable<object> queryable)
     {
         return queryable;
     }

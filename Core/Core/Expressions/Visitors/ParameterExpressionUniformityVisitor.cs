@@ -104,7 +104,7 @@ public class ParameterExpressionReferenceBinder : CustomExpressionVisitor
                 {
                     if (fullMatch.Length > 1)
                     {
-                        throw new Exception();
+                        throw new InvalidOperationException();
                     }
 
                     return fullMatch.First();
@@ -118,7 +118,7 @@ public class ParameterExpressionReferenceBinder : CustomExpressionVisitor
                 {
                     if (typeMatch.Length > 1)
                     {
-                        throw new Exception();
+                        throw new InvalidOperationException();
                     }
 
                     return typeMatch.First();

@@ -87,7 +87,7 @@ public class LinqProvider
     {
         if (!context.IsQueryable())
         {
-            throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Project);
+            throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Filter);
         }
 
         var queryableType = context.GetQueryableType();
@@ -140,10 +140,8 @@ public class LinqProvider
         // Cria uma lista para armazenar as associações de propriedades do tipo projetado
         var propertyBindings = new List<MemberBinding>();
 
-        var projectionBuilder = new ProjectionBuilder(translator)
-            .Run(subContext, objectNode);
-
-        var projectedType = projectionBuilder.ProjectedType;
+        var projectionBuilder = new ProjectionBuilder(translator);
+        var projectedType = projectionBuilder.Run(subContext, objectNode);
 
         if (projectedType == null)
         {

@@ -259,8 +259,13 @@ public class Error
     /// <param name="key">The key identifying the detail.</param>
     /// <param name="value">The value or message associated with the key.</param>
     /// <returns>The <see cref="Error"/> instance with the added detail.</returns>
-    public Error AddDetails(string key, string value)
+    public Error AddDetails(string key, string? value)
     {
+        if(value == null)
+        {
+            return this;
+        }
+
         Details.Add(new KeyValuePair<string, string>(key, value));
         return this;
     }
@@ -385,5 +390,12 @@ public static class ErrorFlags
     /// standard operational errors from those specifically arising from exceptions.
     /// </summary>
     public const string Exception = "exception";
+
+    /// <summary>
+    /// Identifies the error as a bug. <br/>
+    /// This flag is used to categorize errors as bugs, implying defects or problems in the code or logic. <br/>
+    /// It indicates that the error is a result of a flaw in the system that may require a code review or a fix.
+    /// </summary>
+    public const string Bug = "bug";
 }
 

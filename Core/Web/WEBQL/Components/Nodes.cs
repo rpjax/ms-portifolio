@@ -48,7 +48,7 @@ public class LiteralNode : Node
     public string? Value { get; }
 
     /// <summary>
-    /// Indicates whether the node represents an operator.
+    /// Indicates whether the node represents a reference operator.
     /// </summary>
     public bool IsReference { get; }
 

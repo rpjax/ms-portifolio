@@ -61,7 +61,7 @@ public class TranslationContext : SemanticContext
     }
 
     /// <summary>
-    /// Creates a sub-context for translation based on a specified property name, optionally searching parent contexts.
+    /// Creates a sub-context for translation based on a specified property name, optionally searching parent contexts. <br/>
     /// This method is used to navigate deeper into the object graph of the context's type, creating a new translation context
     /// for a specific property.
     /// </summary>

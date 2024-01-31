@@ -1,9 +1,8 @@
 using ModularSystem.Core;
+using ModularSystem.Core.Expressions;
 using ModularSystem.Core.Linq;
 using ModularSystem.Web.Expressions;
 using ModularSystem.Webql.Synthesis;
-using System.Collections;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Text.Json.Serialization;
 
@@ -155,34 +154,79 @@ public class SerializableQueryable
     }
 
     /// <summary>
-    /// Translates the serialized expression into a <see cref="WebqlQueryable"/> for a specific generic type.
+    /// Builds an <see cref="IQueryable"/> based on the serialized expression and the given source queryable.
     /// </summary>
-    /// <param name="source">The underlying queryable object.</param>
-    /// <param name="elementType">The type of the elements in the <see cref="WebqlQueryable"/>.</param>
-    /// <param name="translator">An optional translator to convert expressions into a format suitable for the underlying data source (default is null).</param>
-    /// <returns>A <see cref="WebqlQueryable"/> that represents the translated query.</returns>
-    public IExtendedQueryable<object> ToQueryable(IQueryable source, Type elementType, Translator? translator = null)
+    /// <typeparam name="T">The type of the elements in the source <see cref="IQueryable{T}"/>.</typeparam>
+    /// <param name="source">The source <see cref="IQueryable{T}"/> to which the serialized expression is applied.</param>
+    /// <returns>An <see cref="IQueryable"/> object that represents the transformed queryable.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when no expression is set or if the expression type is invalid.</exception>
+    /// <exception cref="ErrorException">Thrown when the transformation of the queryable fails, with detailed error information.</exception>
+    /// <remarks>
+    /// The method uses the serialized expression to generate a new queryable object. It checks the validity of the expression,
+    /// binds necessary parameters, and dynamically compiles and invokes a lambda expression to transform the source queryable.
+    /// If the transformation process fails, detailed error information is provided.
+    /// </remarks>
+    public IQueryable BuildQueryable<T>(IQueryable<T> source)
     {
         if (Expression == null)
         {
-            return new WebqlQueryable(elementType, elementType, source);
+            throw new InvalidOperationException();
         }
 
         var expression = QueryProtocol.FromSerializable(Expression);
 
-        return (translator ?? new()).TranslateToQueryable(expression, elementType, source);
+        if (!expression.Type.IsGenericType)
+        {
+            throw new InvalidOperationException();
+        }
+
+        var visitor = new ParameterExpressionReferenceBinder();
+
+        var inputType = typeof(IQueryable<T>);
+        var parameter = System.Linq.Expressions.Expression.Parameter(inputType, "root");
+        var projectedType = expression.Type.GenericTypeArguments[0];
+        var outputType = typeof(IQueryable<>).MakeGenericType(projectedType);
+        var lambdaExpressionType = typeof(Func<,>).MakeGenericType(inputType, outputType);
+
+        var lambdaExpression = visitor
+            .Visit(System.Linq.Expressions.Expression.Lambda(lambdaExpressionType, expression, parameter))
+            .TypeCast<LambdaExpression>();
+
+        var lambda = lambdaExpression.Compile();
+
+        var transformedQueryable = (IQueryable?)lambda.DynamicInvoke(source);
+
+        if (transformedQueryable == null)
+        {
+            var typeSerializer = new TypeSerializer();
+            var message = "Failed to transform queryable.";
+            var error = new Error(message)
+                .AddJsonData("Source Queryable Type", typeSerializer.Serialize(inputType))
+                .AddJsonData("Transformed Queryable Type", typeSerializer.Serialize(outputType))
+                .AddJsonData("Projected Type", typeSerializer.Serialize(projectedType))
+                .AddJsonData("Raw SerializableExpression", Expression)
+                .AddFlags(ErrorFlags.Bug, ErrorFlags.Debug);
+
+            throw new ErrorException(error);
+        }
+
+        return transformedQueryable;
     }
 
     /// <summary>
-    /// Translates the serialized expression into a <see cref="WebqlQueryable"/> for a specific generic type <typeparamref name="T"/>.
+    /// Wraps the result of <see cref="BuildQueryable{T}"/> into a <see cref="QueryableWrapper"/>, making it an <see cref="IQueryable{object}"/>.
     /// </summary>
-    /// <typeparam name="T">The type of the elements in the <see cref="WebqlQueryable"/>.</typeparam>
-    /// <param name="source">The underlying queryable object of type <typeparamref name="T"/>.</param>
-    /// <param name="translator">An optional translator to convert expressions into a format suitable for the underlying data source (default is null).</param>
-    /// <returns>A <see cref="WebqlQueryable"/> that represents the translated query.</returns>
-    public IExtendedQueryable<object> ToQueryable<T>(IQueryable<T> source, Translator? translator = null)
-    {
-        return ToQueryable(source, typeof(T), translator);
+    /// <typeparam name="T">The type of the elements in the source <see cref="IQueryable{T}"/>.</typeparam>
+    /// <param name="source">The source <see cref="IQueryable{T}"/> to apply the serialized expression to.</param>
+    /// <returns>A <see cref="QueryableWrapper"/> object that encapsulates the <see cref="IQueryable"/> resulting from <see cref="BuildQueryable{T}"/>.</returns>
+    /// <remarks>
+    /// This method serves as a convenience wrapper around the <see cref="BuildQueryable{T}"/> method. <br/>
+    /// It converts the result into a <see cref="QueryableWrapper"/>,
+    /// allowing the returned queryable to be treated as an <see cref="IQueryable{object}"/>.
+    /// </remarks>
+    public IQueryable<object> ToQueryable<T>(IQueryable<T> source)
+    {      
+        return new QueryableWrapper(BuildQueryable(source));
     }
 
 }

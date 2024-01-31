@@ -27,9 +27,9 @@ public interface IExtendedQueryable : IQueryable
 /// Defines an extended IQueryable interface for a specific type, including additional query capabilities and asynchronous operations.
 /// </summary>
 /// <typeparam name="T">The type of the elements in the queryable sequence.</typeparam>
-public interface IExtendedQueryable<T> : IExtendedQueryable, IExtendedEnumerable<T>, IQueryable<T>
+public interface IExtendedQueryable<T> : IExtendedQueryable, IQueryable<T>
 {
-
+    Task<T[]> ToArrayAsync();
 }
 
 public static class AsyncEnumerableExtensions

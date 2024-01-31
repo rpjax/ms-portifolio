@@ -495,7 +495,9 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
                 expression.Object != null
                 ? Convert(context, expression.Object!)
                 : null,
-            Arguments = expression.Arguments.Transform(x => Convert(context, x)).ToArray()
+            Arguments = expression.Arguments
+                .Transform(x => Convert(context, x))
+                .ToArray()
         };
     }
 

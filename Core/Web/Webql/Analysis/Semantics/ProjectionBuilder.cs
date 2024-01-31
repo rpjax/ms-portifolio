@@ -43,13 +43,16 @@ public class ProjectionBuilder
     }
 
     /// <summary>
-    /// Runs the projection building process on a given ObjectNode within a translation context.
-    /// This method analyzes and translates each property in the object node, constructing a dynamic type for the projection.
+    /// Runs the projection building process on a given ObjectNode within a translation context. <br/>
+    /// This method analyzes and translates each property in the object node, constructing a dynamic type for the projection. <br/>
+    /// The dynamic type represents the schema of the projected data, with its structure determined by the analysis of the ObjectNode.
     /// </summary>
-    /// <param name="context">The translation context for the projection.</param>
-    /// <param name="node">The ObjectNode representing the projection expression in the WebQL query.</param>
-    /// <returns>The ProjectionBuilder instance with the constructed projection.</returns>
-    public ProjectionBuilder Run(TranslationContext context, ObjectNode node)
+    /// <param name="context">The translation context for the projection, providing necessary information and tools for translating the projection expression.</param>
+    /// <param name="node">The ObjectNode representing the projection expression in the WebQL query. This node contains the structure and expressions defining the projection.</param>
+    /// <returns>A Type instance representing the dynamically constructed projection.<br/>
+    /// This type can be used to instantiate objects that conform to the projected data structure, <br/>
+    /// allowing for dynamic data shaping according to the projection defined in the WebQL query.</returns>
+    public Type Run(TranslationContext context, ObjectNode node)
     {
         // Itera sobre cada propriedade na expressão de projeção
         foreach (var item in node.Expressions)
@@ -64,12 +67,10 @@ public class ProjectionBuilder
 
             if (isSubTypeDefinition)
             {
-                var propertyBindings = new List<MemberBinding>();
-                var propertyBuilder = new ProjectionBuilder(Translator)
-                    .Run(context, rhs.As<ObjectNode>());
-
+                var propertyBuilder = new ProjectionBuilder(Translator);
+                var propertyBindings = new List<MemberBinding>();                  
                 var propertyName = lhs;
-                var propertyType = propertyBuilder.ProjectedType!;
+                var propertyType = propertyBuilder.Run(context, rhs.As<ObjectNode>());
 
                 for (int i = 0; i < propertyBuilder.Properties.Count; i++)
                 {
@@ -128,7 +129,7 @@ public class ProjectionBuilder
             throw new TranslationException("Failed to create projected type: Anonymous type generation encountered an internal error. Review the property definitions for any inconsistencies.", context);
         }
 
-        return this;
+        return ProjectedType;
     }
 
 }
