@@ -80,7 +80,7 @@ public class SemanticException : ParseException
     public override string GetMessage()
     {
         var dot = Message.EndsWith('.') ? "" : ".";
-        return $"Semantic Error: {Message}{dot} This error was identified at: {Context.Name}";
+        return $"Semantic Error: {Message}{dot} This error was identified at: {Context.Label}";
     }
 }
 
@@ -134,7 +134,7 @@ public class TranslationException : ParseException
     public override string GetMessage()
     {
         var dot = Message.EndsWith('.') ? "" : ".";
-        return $"Translation Error: {Message}{dot} This error was identified at: {Context.Name}";
+        return $"Translation Error: {Message}{dot} This error was identified at: {Context.Label}";
     }
 }
 

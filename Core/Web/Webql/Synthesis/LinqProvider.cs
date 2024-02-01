@@ -49,7 +49,7 @@ public class LinqProvider
         {
             if (arrayNode.Length != 2)
             {
-                throw TranslationThrowHelper.ArraySyntaxWrongBinaryArgumentsCount(context, null);
+                throw TranslationThrowHelper.ArraySyntaxBinaryExprWrongArgumentsCount(context, null);
             }
 
             lhs = translator.Translate(context, arrayNode[0]);
@@ -67,12 +67,14 @@ public class LinqProvider
         }
 
         var toLowerMethod = typeof(string).GetMethod("ToLower", new Type[] { })!;
-        var tolowerExpression = Expression.Call(lhs, toLowerMethod);
-
         var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) });
-        var containsArgs = new[] { rhs };
 
-        return Expression.Call(tolowerExpression, containsMethod!, containsArgs);
+        var lhsTolowerExpression = Expression.Call(lhs, toLowerMethod);
+        var rhsToLowerExpression = Expression.Call(rhs, toLowerMethod);
+
+        var containsArgs = new[] { rhsToLowerExpression };
+
+        return Expression.Call(lhsTolowerExpression, containsMethod!, containsArgs);
     }
 
     /// <summary>
@@ -90,7 +92,7 @@ public class LinqProvider
             throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Filter);
         }
 
-        var queryableType = context.GetQueryableType();
+        var queryableType = context.GetQueryableElementType();
         var methodInfo = GetWhereMethodInfo().MakeGenericMethod(queryableType);
         var subExpressionParameter = Expression.Parameter(queryableType, "x");
         var subContext = new TranslationContext(queryableType, subExpressionParameter, context);
@@ -133,9 +135,9 @@ public class LinqProvider
             throw TranslationThrowHelper.WrongNodeType(context, "Expected an ObjectNode for projection operation. Received a node of a different type.");
         }
 
-        var queryableType = context.GetQueryableType();
+        var queryableType = context.GetQueryableElementType();
         var subContextParameter = Expression.Parameter(queryableType, context.CreateParameterName());
-        var subContext = new TranslationContext(queryableType, subContextParameter, context);
+        var subContext = new ProjectionTranslationContext(queryableType, subContextParameter, context);
 
         // Cria uma lista para armazenar as associações de propriedades do tipo projetado
         var propertyBindings = new List<MemberBinding>();
@@ -170,11 +172,104 @@ public class LinqProvider
         // Cria a expressão lambda 'x => new projectedType { Prop1 = ..., Prop2 = ..., ... }'
         var lambda = Expression.Lambda(newExpression, subContextParameter);
 
+        //*
+        // Ensures '.Select' LINQ operations target the correct extension method within data structures.
+        //
+        // In the context of translating projection operations, it's crucial to specify the source of the '.Select' method invocation accurately.
+        // This implementation guarantees that the '.Select' calls are bound to the 'Enumerable.Select' method rather than 'Queryable.Select'.
+        // This distinction is important because:
+        //   - The translation context operates on collections that are expected to implement IEnumerable<T>, not necessarily IQueryable<T>.
+        //   - Using 'Enumerable.Select' ensures compatibility with a wider range of collection types by focusing on the IEnumerable<T> interface,
+        //     which is a common denominator for both in-memory and queryable data collections.
+        //   - It prevents the automatic resolution to 'Queryable.Select', which requires an IQueryable<T> source and can lead to incorrect
+        //     behavior or errors if the source collection does not support IQueryable<T> operations.
+        //
+        // This approach is designed to maintain consistency and predictability in how projection operations are applied to the data structure,
+        // ensuring that the translations align with the intended collection interfaces and behaviors.
+        //*
         // Cria a expressão de chamada ao método 'Select'
-        var selectMethod = GetSelectMethodInfo()
-            .MakeGenericMethod(new[] { queryableType, projectedType });
+        var selectMethod = context.IsProjectionContext 
+            ? GetEnumerableSelectMethodInfo()
+            : GetSelectMethodInfo();
+
+        selectMethod = selectMethod.MakeGenericMethod(new[] { queryableType, projectedType });
 
         return Expression.Call(selectMethod, context.Expression, lambda);
+    }
+
+    public virtual Expression TranslateTransformOperator(TranslationContext context, NodeTranslator translator, Node node)
+    {
+        if (!context.IsQueryable())
+        {
+            throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.SelectMany);
+        }
+        if (node is not ObjectNode objectNode)
+        {
+            throw TranslationThrowHelper.WrongNodeType(context, "Expected an ObjectNode for transform operation. Received a node of a different type.");
+        }
+
+        var elementType = context.GetQueryableElementType();
+
+        var lambdaContextParameter = Expression.Parameter(elementType, context.CreateParameterName());
+        var lambdaContext = new ProjectionTranslationContext(elementType, lambdaContextParameter, context);
+        var lambdaBody = translator.Translate(lambdaContext, node);
+        var lambda = Expression.Lambda(lambdaBody, lambdaContextParameter);
+
+        var selectMethod = context.IsProjectionContext
+            ? GetEnumerableSelectMethodInfo()
+            : GetSelectMethodInfo();
+
+        var selectedElementType = lambdaBody.Type;
+        var selectedType = selectedElementType;
+
+        selectMethod = selectMethod.MakeGenericMethod(new[] { elementType, selectedType });
+
+        return Expression.Call(selectMethod, context.Expression, lambda);
+    }
+
+    public virtual Expression TranslateSelectManyOperator(TranslationContext context, NodeTranslator translator, Node node)
+    {
+        throw TranslationThrowHelper.UnknownOrUnsupportedOperator(context, Operator.SelectMany);
+
+        if (!context.IsQueryable())
+        {
+            throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.SelectMany);
+        }
+
+        var elementType = context.GetQueryableElementType();
+
+        var lambdaContextParameter = Expression.Parameter(elementType, context.CreateParameterName());
+        var lambdaContext = new ProjectionTranslationContext(elementType, lambdaContextParameter, context);
+        var lambdaBody = translator.Translate(lambdaContext, node);
+        var lambda = Expression.Lambda(lambdaBody, lambdaContextParameter);
+
+        //*
+        // Ensures '.Select' LINQ operations target the correct extension method within data structures.
+        //
+        // In the context of translating projection operations, it's crucial to specify the source of the '.Select' method invocation accurately.
+        // This implementation guarantees that the '.Select' calls are bound to the 'Enumerable.Select' method rather than 'Queryable.Select'.
+        // This distinction is important because:
+        //   - The translation context operates on collections that are expected to implement IEnumerable<T>, not necessarily IQueryable<T>.
+        //   - Using 'Enumerable.Select' ensures compatibility with a wider range of collection types by focusing on the IEnumerable<T> interface,
+        //     which is a common denominator for both in-memory and queryable data collections.
+        //   - It prevents the automatic resolution to 'Queryable.Select', which requires an IQueryable<T> source and can lead to incorrect
+        //     behavior or errors if the source collection does not support IQueryable<T> operations.
+        //
+        // This approach is designed to maintain consistency and predictability in how projection operations are applied to the data structure,
+        // ensuring that the translations align with the intended collection interfaces and behaviors.
+        //*
+        var selectManyMethod = context.IsProjectionContext
+            ? GetEnumerableSelectManyMethodInfo()
+            : GetSelectManyMethodInfo();
+
+        var selectedElementType = lambdaBody.Type;
+        var selectedType = context.IsProjectionContext
+            ? typeof(IEnumerable<>).MakeGenericType(selectedElementType)
+            : typeof(IQueryable<>).MakeGenericType(selectedElementType);
+
+        selectManyMethod = selectManyMethod.MakeGenericMethod(new[] { elementType, selectedType });
+
+        return Expression.Call(selectManyMethod, context.Expression, lambda);
     }
 
     /// <summary>
@@ -189,20 +284,14 @@ public class LinqProvider
     {
         if (!context.IsQueryable())
         {
-            throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Project);
+            throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Limit);
         }
         if (node is not LiteralNode literalNode)
         {
             throw TranslationThrowHelper.WrongNodeType(context, "Expected a LiteralNode for limit operation. Received a node of a different type.");
         }
 
-        var queryableType = context.GetQueryableType();
-
-        if (queryableType == null)
-        {
-            throw new Exception();
-        }
-
+        var queryableType = context.GetQueryableElementType();
         var valueExpression = null as Expression;
 
         if (translator.Options.TakeSupportsInt64)
@@ -249,7 +338,7 @@ public class LinqProvider
             throw TranslationThrowHelper.WrongNodeType(context, "Expected a LiteralNode for skip operation. Received a node of a different type.");
         }
 
-        var queryableType = context.GetQueryableType();
+        var queryableType = context.GetQueryableElementType();
         var valueExpression = null as Expression;
 
         if (translator.Options.SkipSupportsInt64)
@@ -292,7 +381,7 @@ public class LinqProvider
             throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Project);
         }
 
-        var queryableType = context.GetQueryableType();
+        var queryableType = context.GetQueryableElementType();
 
         var methodSource = GetLinqTypeSource(context);
 
@@ -331,7 +420,7 @@ public class LinqProvider
             throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Project);
         }
 
-        var queryableType = context.GetQueryableType();
+        var queryableType = context.GetQueryableElementType();
         var subContextExpression = Expression.Parameter(queryableType, "x");
         var subContext = new TranslationContext(queryableType, subContextExpression, context);
         var lambdaParameter = subContextExpression;
@@ -363,7 +452,7 @@ public class LinqProvider
             throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Project);
         }
 
-        var queryableType = context.GetQueryableType();
+        var queryableType = context.GetQueryableElementType();
         var subContextExpression = Expression.Parameter(queryableType, "x");
         var subContext = new TranslationContext(queryableType, subContextExpression, context);
         var lambdaParameter = subContextExpression;
@@ -395,7 +484,7 @@ public class LinqProvider
             throw TranslationThrowHelper.QueryableExclusiveOperator(context, Operator.Project);
         }
 
-        var subContextType = context.GetQueryableType();
+        var subContextType = context.GetQueryableElementType();
         var subContextExpression = Expression.Parameter(subContextType, "x");
         var subContext = new TranslationContext(subContextType, subContextExpression, context);
         var lambdaParameter = subContextExpression;
@@ -500,6 +589,80 @@ public class LinqProvider
                 && x.Params[1].ParameterType.GetGenericTypeDefinition() == typeof(Expression<>))
             .Select(x => x.Method)
             .First(m => m != null);
+    }
+
+    protected virtual MethodInfo GetEnumerableSelectMethodInfo()
+    {
+        return typeof(Enumerable)
+            .GetMethods()
+            .Where(m => m.Name == "Select" && m.IsGenericMethodDefinition)
+            .Select(m => new
+            {
+                Method = m,
+                Params = m.GetParameters(),
+                Args = m.GetGenericArguments()
+            })
+            .Where(x => x.Params.Length == 2
+                && x.Args.Length == 2
+                && x.Params[0].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>)
+                && x.Params[1].ParameterType.GetGenericTypeDefinition() == typeof(Func<,>))
+            .Select(x => x.Method)
+            .First(m => m != null);
+    }
+
+    protected virtual MethodInfo GetSelectManyMethodInfo()
+    {
+        return typeof(Queryable)
+            .GetMethods()
+            .Where(m => m.Name == "SelectMany" && m.IsGenericMethodDefinition)
+            .Select(m => new
+            {
+                Method = m,
+                Params = m.GetParameters(),
+                Args = m.GetGenericArguments()
+            })
+            .Where(x => x.Params.Length >= 2
+                && x.Args.Length == 2
+                && x.Params[0].ParameterType.IsGenericType
+                && x.Params[0].ParameterType.GetGenericTypeDefinition() == typeof(IQueryable<>)
+                && x.Params[1].ParameterType.IsGenericType
+                && x.Params[1].ParameterType.GetGenericTypeDefinition() == typeof(Expression<>)
+                && x.Params[1].ParameterType.GetGenericArguments()[0].IsGenericType
+                && x.Params[1].ParameterType.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(Func<,>))
+            .Select(x => x.Method)
+            .First(m => m.GetParameters().Length == 2 && m != null);
+    }
+
+    protected virtual MethodInfo GetEnumerableSelectManyMethodInfo()
+    {
+
+        return typeof(Enumerable)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Select(x => new
+            {
+                Name = x.Name,
+                Parameters = x.GetParameters(),
+                GenericArguments = x.GetGenericArguments(),
+                MethodInfo = x
+            })
+            .Where(x => x.Name == "SelectMany")
+            .Where(x => x.Parameters.Length == 2)
+            .Where(x => x.GenericArguments.Length == 2)
+            .Select(x => x.MethodInfo)
+            .First();
+
+        return typeof(Enumerable)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .First(m => m.Name == "SelectMany"
+                && m.IsGenericMethodDefinition
+                && m.GetGenericArguments().Length == 2
+                && m.GetParameters().Length == 2
+                && m.GetParameters()[0].ParameterType.IsGenericType
+                && m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>)
+                && m.GetParameters()[1].ParameterType.IsGenericType
+                && m.GetParameters()[1].ParameterType.GetGenericTypeDefinition() == typeof(Func<,>)
+                && m.GetParameters()[1].ParameterType.GetGenericArguments()[0].IsGenericType
+                && m.GetParameters()[1].ParameterType.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(Func<,>));
     }
 
     /// <summary>

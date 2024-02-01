@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using ModularSystem.Web;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -101,6 +102,6 @@ public class TextHasher : ITextHasher
     /// <inheritdoc/>
     public virtual string GetHashString(string text)
     {
-        return Encoding.UTF8.GetString(GetHash(text)).ToBase64();
+        return WebHelper.ToUrlBase64(GetHash(text));
     }
 }

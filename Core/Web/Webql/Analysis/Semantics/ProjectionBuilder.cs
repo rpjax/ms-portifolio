@@ -98,7 +98,7 @@ public class ProjectionBuilder
             {
                 if (item.Lhs.IsOperator)
                 {
-                    throw new TranslationException("The projection property '" + lhs + "' contains an operator, which is not allowed in this context. In WebQL projections, each property should either map directly to a field or define a sub-object or expression. For example, 'name': '$username' is a direct field binding, 'address': { 'street': '$streetName' } defines a sub-object, and 'status': { '$select': 'isActive', '$equals': true } is a valid expression. Ensure the property definition adheres to these rules.", context);
+                    throw new TranslationException($"The projection property '{lhs}' is invalid because it uses an operator. In WebQL projections, the root of the projection must exclusively contain property definitions that map directly to fields, define sub-objects, or specify expressions without operators at the root level. This is because the projection root describes the projected data structure and must correspond to property names and their associated values or sub-structures. For example, 'name': '$username' directly maps to a field, 'address': {{'street': '$streetName' }} defines a sub-object, and 'status': {{'$select': 'isActive', '$equals': true }} specifies a valid expression within a sub-object. Please adjust the projection definition to ensure it only contains valid property mappings.", context);
                 }
 
                 // Obtém o nome da propriedade e a expressão associada

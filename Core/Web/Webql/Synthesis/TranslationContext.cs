@@ -17,6 +17,20 @@ public class TranslationContext : SemanticContext
     public Expression Expression { get; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the current context is for a projection operation.
+    /// </summary>
+    /// <value>
+    /// <c>true</c> if this context is used for a projection operation; otherwise, <c>false</c>.
+    /// </value>
+    /// <remarks>
+    /// This property is used to distinguish contexts that are specifically handling projection operations
+    /// (e.g., translating a '$project' operator in WebQL to a LINQ 'Select' expression). It affects how expressions
+    /// are generated and interpreted within the framework, ensuring that operations appropriate for projections
+    /// are applied.
+    /// </remarks>
+    public bool IsProjectionContext { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="TranslationContext"/> class.
     /// </summary>
     /// <param name="type">The type associated with this context.</param>
@@ -31,6 +45,7 @@ public class TranslationContext : SemanticContext
         : base(type, parentContext, stack)
     {
         Expression = inputExpression;
+        IsProjectionContext = parentContext?.IsProjectionContext ?? false;
     }
 
     /// <summary>
@@ -104,6 +119,31 @@ public class TranslationContext : SemanticContext
     }
 
 }
+
+/// <summary>
+/// Represents a specialized translation context used for projection operations within the WebQL framework.
+/// </summary>
+/// <remarks>
+/// This context extends <see cref="TranslationContext"/> by setting <see cref="TranslationContext.IsProjectionContext"/>
+/// to <c>true</c>, indicating that it is specifically handling a projection operation. This distinction is important
+/// for the translation process, as it enables the application of logic and expressions unique to projection scenarios.
+/// </remarks>
+public class ProjectionTranslationContext : TranslationContext
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProjectionTranslationContext"/> class.
+    /// </summary>
+    /// <param name="type">The type associated with this context.</param>
+    /// <param name="inputExpression">The current expression in the translation process.</param>
+    /// <param name="parentContext">The parent translation context, if any.</param>
+    /// <param name="stack">A string representing the stack trace of contexts leading to this one (used for debugging).</param>
+    public ProjectionTranslationContext(Type type, Expression inputExpression, TranslationContext? parentContext = null, string stack = "translation context")
+        : base(type, inputExpression, parentContext, stack)
+    {
+        IsProjectionContext = true;
+    }
+}
+
 
 /// <summary>
 /// A utility class for providing variable names within the context of translations.

@@ -118,8 +118,6 @@ public static class HelperTools
             case Operator.Or:
             case Operator.And:
             case Operator.Not:
-            case Operator.Any:
-            case Operator.All:
                 return OperatorType.Logical;
 
             case Operator.Expr:
@@ -128,9 +126,13 @@ public static class HelperTools
 
             case Operator.Select:
             case Operator.Filter:
+            case Operator.Transform:
+            case Operator.SelectMany:
             case Operator.Project:
             case Operator.Limit:
             case Operator.Skip:
+            case Operator.Any:
+            case Operator.All:
                 return OperatorType.Queryable;
 
             case Operator.Count:

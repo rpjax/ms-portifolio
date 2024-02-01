@@ -147,6 +147,12 @@ public class OperatorTranslator
             case Operator.Project:
                 return QueryableOperatorsTranslator.TranslateProject(context, node);
 
+            case Operator.Transform:
+                return QueryableOperatorsTranslator.TranslateTransform(context, node);    
+
+            case Operator.SelectMany:
+                return QueryableOperatorsTranslator.TranslateSelectMany(context, node); 
+
             case Operator.Limit:
                 return QueryableOperatorsTranslator.TranslateLimit(context, node);
 
@@ -312,7 +318,7 @@ public class RelationalOperatorsTranslator
         {
             if (arrayNode.Length != 2)
             {
-                throw TranslationThrowHelper.ArraySyntaxWrongBinaryArgumentsCount(context, null);
+                throw TranslationThrowHelper.ArraySyntaxBinaryExprWrongArgumentsCount(context, null);
             }
 
             lhs = NodeTranslator.Translate(context, arrayNode[0]);
@@ -337,7 +343,7 @@ public class RelationalOperatorsTranslator
         {
             if (arrayNode.Length != 2)
             {
-                throw TranslationThrowHelper.ArraySyntaxWrongBinaryArgumentsCount(context, null);
+                throw TranslationThrowHelper.ArraySyntaxBinaryExprWrongArgumentsCount(context, null);
             }
 
             lhs = NodeTranslator.Translate(context, arrayNode[0]);
@@ -362,7 +368,7 @@ public class RelationalOperatorsTranslator
         {
             if (arrayNode.Length != 2)
             {
-                throw TranslationThrowHelper.ArraySyntaxWrongBinaryArgumentsCount(context, null);
+                throw TranslationThrowHelper.ArraySyntaxBinaryExprWrongArgumentsCount(context, null);
             }
 
             lhs = NodeTranslator.Translate(context, arrayNode[0]);
@@ -387,7 +393,7 @@ public class RelationalOperatorsTranslator
         {
             if (arrayNode.Length != 2)
             {
-                throw TranslationThrowHelper.ArraySyntaxWrongBinaryArgumentsCount(context, null);
+                throw TranslationThrowHelper.ArraySyntaxBinaryExprWrongArgumentsCount(context, null);
             }
 
             lhs = NodeTranslator.Translate(context, arrayNode[0]);
@@ -412,7 +418,7 @@ public class RelationalOperatorsTranslator
         {
             if (arrayNode.Length != 2)
             {
-                throw TranslationThrowHelper.ArraySyntaxWrongBinaryArgumentsCount(context, null);
+                throw TranslationThrowHelper.ArraySyntaxBinaryExprWrongArgumentsCount(context, null);
             }
 
             lhs = NodeTranslator.Translate(context, arrayNode[0]);
@@ -437,7 +443,7 @@ public class RelationalOperatorsTranslator
         {
             if (arrayNode.Length != 2)
             {
-                throw TranslationThrowHelper.ArraySyntaxWrongBinaryArgumentsCount(context, null);
+                throw TranslationThrowHelper.ArraySyntaxBinaryExprWrongArgumentsCount(context, null);
             }
 
             lhs = NodeTranslator.Translate(context, arrayNode[0]);
@@ -702,6 +708,16 @@ public class QueryableOperatorsTranslator
     public Expression TranslateProject(TranslationContext context, Node node)
     {
         return Options.LinqProvider.TranslateProjectOperator(context, NodeTranslator, node);
+    }
+
+    public Expression TranslateTransform(TranslationContext context, Node node)
+    {
+        return Options.LinqProvider.TranslateTransformOperator(context, NodeTranslator, node);
+    }
+
+    public Expression TranslateSelectMany(TranslationContext context, Node node)
+    {
+        return Options.LinqProvider.TranslateSelectManyOperator(context, NodeTranslator, node);
     }
 
     public Expression TranslateLimit(TranslationContext context, Node node)

@@ -114,7 +114,7 @@ public static class TranslationThrowHelper
     /// <param name="context">The translation context, providing context-specific details for the error.</param>
     /// <param name="message">An optional message providing more details about the error. If not provided, a default message is used.</param>
     /// <returns>A TranslationException highlighting the improper use of binary operators in array syntax.</returns>
-    public static Exception ArraySyntaxWrongBinaryArgumentsCount(TranslationContext context, string? message)
+    public static Exception ArraySyntaxBinaryExprWrongArgumentsCount(TranslationContext context, string? message)
     {
         var detailedMessage = string.IsNullOrEmpty(message)
             ? "An invalid number of arguments were passed to a binary operator within an array syntax."
@@ -152,6 +152,11 @@ public static class TranslationThrowHelper
     {
         var detailedMessage = $"The operator '{operatorName}' is either unknown or unsupported in the current translation context.";
         return new TranslationException($"{detailedMessage} Check the operator's validity and ensure it's appropriate for the translation context. Review the query and the operator's applicability to the types and structures involved.", context);
+    }
+
+    public static Exception UnknownOrUnsupportedOperator(TranslationContext context, Operator @operator)
+    {
+        return UnknownOrUnsupportedOperator(context, HelperTools.Stringify(@operator));
     }
 
 }

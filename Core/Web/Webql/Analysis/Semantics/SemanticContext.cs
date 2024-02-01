@@ -22,7 +22,7 @@ public class SemanticContext
     /// <summary>
     /// Gets the stack trace of the context for debugging and tracing purposes.
     /// </summary>
-    public string Name { get; }
+    public string Label { get; }
 
     /// <summary>
     /// Indicates whether navigation through nested properties and contexts is enabled in the semantic context. <br/>
@@ -46,7 +46,7 @@ public class SemanticContext
     {
         Type = type;
         ParentContext = parentContext;
-        Name = name ?? "$";
+        Label = name ?? "$";
         EnableNavigation = parentContext?.EnableNavigation ?? true;
         EnableImplicitAndSyntax = parentContext?.EnableImplicitAndSyntax ?? true;
     }
@@ -86,7 +86,7 @@ public class SemanticContext
     /// If the type is a generic IEnumerable, it returns the generic argument type. <br/>
     /// If the context's type is not queryable, it returns null.
     /// </remarks>
-    public Type? TryGetQueryableType()
+    public Type? TryGetQueryableElementType()
     {
         if (IsQueryable())
         {
@@ -108,9 +108,9 @@ public class SemanticContext
     /// </summary>
     /// <returns>The element type of the queryable.</returns>
     /// <exception cref="SemanticException">Thrown if the context is not queryable or the queryable type is undefined.</exception>
-    public Type GetQueryableType()
+    public Type GetQueryableElementType()
     {
-        var type = TryGetQueryableType();
+        var type = TryGetQueryableElementType();
 
         if (type == null)
         {
@@ -218,20 +218,20 @@ public class SemanticContext
     /// This method is used for navigating deeper into the semantic structure of a context, allowing targeted analysis or modification.
     /// </summary>
     /// <param name="identifier">The property name to create a sub-context for.</param>
-    /// <param name="name">The sub-stack trace for the new context, providing additional context for error reporting and analysis.</param>
+    /// <param name="label">The sub-stack trace for the new context, providing additional context for error reporting and analysis.</param>
     /// <param name="useParents">Indicates whether to use parent contexts to find the property if it's not present in the current context.</param>
     /// <returns>A new SemanticContext instance representing the sub-context.</returns>
     /// <exception cref="SemanticException">Thrown if the specified property is not found within the context hierarchy.</exception>
-    public SemanticContext GetReference(string identifier, string name, bool useParents = true)
+    public SemanticContext GetReference(string identifier, string label, bool useParents = true)
     {
         var propertyInfo = GetPropertyInfo(identifier, useParents);
 
         if (propertyInfo == null)
         {
-            throw new SemanticException($"Reference '{identifier}' not found in the current context. Ensure the reference name is correct and exists in the context type {Name}.", this);
+            throw new SemanticException($"Reference '{identifier}' not found in the current context. Ensure the reference name is correct and exists in the context type {Label}.", this);
         }
 
-        return new SemanticContext(propertyInfo.PropertyType, this, $"{Name}{name}");
+        return new SemanticContext(propertyInfo.PropertyType, this, $"{Label}{label}");
     }
 
 }

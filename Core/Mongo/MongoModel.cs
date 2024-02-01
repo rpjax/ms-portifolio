@@ -26,7 +26,8 @@ public interface IMongoModel : IQueryableModel
 /// Represents a base MongoDB model that supports querying capabilities defined in <see cref="IQueryableModel"/>.
 /// </summary>
 /// <remarks>
-/// This abstract class extends <see cref="QueryableModel"/> to offer MongoDB-specific features, notably the usage of ObjectId as a unique identifier.
+/// This abstract class extends <see cref="QueryableModel"/> to offer MongoDB-specific features, <br/>
+/// notably the usage of ObjectId as a unique identifier.
 /// </remarks>
 public abstract class MongoModel : QueryableModel, IMongoModel
 {

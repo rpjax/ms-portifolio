@@ -150,7 +150,7 @@ public class NodeTypeEvaluator : SemanticsVisitor
                 return typeof(int);
 
             case Operator.Index:
-                return context.GetQueryableType()!;
+                return context.GetQueryableElementType()!;
 
             case Operator.Any:
             case Operator.All:
@@ -182,7 +182,7 @@ public class NodeTypeEvaluator : SemanticsVisitor
 
         if (context.IsQueryable())
         {
-            context = new SemanticContext(context.GetQueryableType()!, context, context.Name);
+            context = new SemanticContext(context.GetQueryableElementType()!, context, context.Label);
         }
 
         context = context.GetReference(memberName, $".{memberName}");

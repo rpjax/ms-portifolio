@@ -68,6 +68,8 @@ public enum Operator
     // Queryable Operators
     Filter,
     Project,
+    Transform,
+    SelectMany,
     Limit,
     Skip,
     Count,
@@ -98,43 +100,43 @@ public enum OperatorType
     Aggregation
 }
 
-public enum ArithmeticOperator
-{
-    Add,
-    Subtract,
-    Divide,
-    Multiply,
-    Modulo
-}
+//public enum ArithmeticOperator
+//{
+//    Add,
+//    Subtract,
+//    Divide,
+//    Multiply,
+//    Modulo
+//}
 
-public enum RelationalOperator
-{
-    Equals,
-    NotEquals,
-    Less,
-    LessEquals,
-    Greater,
-    GreaterEquals,
-}
+//public enum RelationalOperator
+//{
+//    Equals,
+//    NotEquals,
+//    Less,
+//    LessEquals,
+//    Greater,
+//    GreaterEquals,
+//}
 
-public enum LogicalOperator
-{
-    Or,
-    And,
-    Not
-}
+//public enum LogicalOperator
+//{
+//    Or,
+//    And,
+//    Not
+//}
 
-public enum QueryableOperator
-{
-    Filter,
-    Project,
-    Limit,
-    Skip,
-    Size,
-    Index,
-    Any,
-    All
-}
+//public enum QueryableOperator
+//{
+//    Filter,
+//    Project,
+//    Limit,
+//    Skip,
+//    Size,
+//    Index,
+//    Any,
+//    All
+//}
 
 public enum OrderDirection
 {

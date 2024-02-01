@@ -230,3 +230,13 @@ public class SerializableQueryable
     }
 
 }
+
+public class QueryResponse
+{
+    public object Data { get; set; }
+
+    public QueryResponse(object data)
+    {
+        Data = data;
+    }
+}

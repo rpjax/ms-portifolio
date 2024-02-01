@@ -69,7 +69,7 @@ public class SemanticsVisitor
     [return: NotNullIfNotNull("node")]
     protected virtual Node? Visit(SemanticContext context, ArrayNode node)
     {
-        var baseStack = context.Name;
+        var baseStack = context.Label;
 
         for (int i = 0; i < node.Values.Length; i++)
         {
@@ -96,7 +96,7 @@ public class SemanticsVisitor
     [return: NotNullIfNotNull("node")]
     protected virtual ExpressionNode? Visit(SemanticContext context, ExpressionNode node)
     {
-        var baseStack = context.Name;
+        var baseStack = context.Label;
         var subStack = $".{node.Lhs.Value}";
         var stack = $"{baseStack}{subStack}";
 

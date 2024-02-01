@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 namespace ModularSystem.Core;
 
 /// <summary>
-/// Represents a query with parameters that can be used to filter, group, project (select), sort, and paginate data of type <typeparamref name="T"/>.
+/// Represents a query with parameters that can be used to filter, order, and paginate data of type <typeparamref name="T"/>. <br/>
 /// Implements the <see cref="IQuery{T}"/> interface.
 /// </summary>
 /// <typeparam name="T">The type of the object being queried.</typeparam>
