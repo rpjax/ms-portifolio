@@ -1,5 +1,6 @@
 ﻿using ModularSystem.Core;
 using MongoDB.Bson;
+using MongoDB.Driver.Linq;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Mongo;
@@ -10,6 +11,11 @@ namespace ModularSystem.Mongo;
 /// <typeparam name="T">The type of the entity, which should implement the <see cref="IMongoModel"/> interface.</typeparam>
 public abstract class MongoEntityService<T> : EntityService<T> where T : class, IMongoModel
 {
+    public async Task<IMongoQueryable<T>> CreateMongoQueryableAsync()
+    {
+        return (IMongoQueryable<T>)await CreateQueryAsync();
+    }
+
     /// <summary>
     /// Creates an expression to select the ID of an entity in the MongoDB context.
     /// </summary>
@@ -41,4 +47,5 @@ public abstract class MongoEntityService<T> : EntityService<T> where T : class, 
 
         return null;
     }
+
 }

@@ -46,7 +46,7 @@ public class IdentityActionAttribute : Attribute
     /// Initializes a new instance of the <see cref="IdentityActionAttribute"/> class based on an action string.
     /// </summary>
     /// <param name="actionString">The action string in the format "domain:resource:action".</param>
-    public IdentityActionAttribute(string actionString)
+    public IdentityActionAttribute(string actionString, string? description = null)
     {
         IdentityAction = new(actionString);
     }
