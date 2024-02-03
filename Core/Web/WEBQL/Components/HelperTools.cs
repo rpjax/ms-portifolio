@@ -39,7 +39,7 @@ public static class HelperTools
         return false;
     }
 
-    public static Type GetEnumerableType(Type type)
+    public static Type GetEnumerableElementType(Type type)
     {
         // Verifica se o tipo é um IEnumerable<T> diretamente
         if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))

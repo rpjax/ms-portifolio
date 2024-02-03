@@ -60,7 +60,7 @@ public class ProjectionBuilder
             var lhs = item.Lhs.Value;
             var rhs = item.Rhs.Value;
 
-            var isSubTypeDefinition =
+            var isSubTypeDefinition = 
                 rhs is ObjectNode child
                 && child.IsNotEmpty()
                 && !child.First().Lhs.IsOperator;

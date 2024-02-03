@@ -118,7 +118,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
                 return BadRequest(ModelState);
             }
 
-            var source = await Service.CreateQueryAsync();
+            var source = await Service.CreateQueryableAsync();
             var queryable = VisitQueryable(request.ToQueryable(source));
             var data = queryable.ToArray();
 
@@ -316,7 +316,7 @@ public abstract class QueryableController<T> : ServiceController<T> where T : cl
                 return BadRequest(ModelState);
             }
    
-            var source = await Service.CreateQueryAsync();
+            var source = await Service.CreateQueryableAsync();
             var queryable = VisitQueryable(request.ToQueryable(source));
             var data = queryable.ToArray();
 

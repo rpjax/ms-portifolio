@@ -74,6 +74,15 @@ public class SemanticContext
     }
 
     /// <summary>
+    /// Determines if the type of the current context is NOT a form of IEnumerable, indicating a non queryable type.
+    /// </summary>
+    /// <returns>True if the type is queryable; otherwise, false.</returns>
+    public bool IsNotQueryable()
+    {
+        return !IsQueryable();
+    }
+
+    /// <summary>
     /// Attempts to retrieve the element type of the queryable type represented by the current context. <br/>
     /// This method determines if the context type is queryable and, if so, extracts the relevant element type.
     /// </summary>
@@ -88,16 +97,32 @@ public class SemanticContext
     /// </remarks>
     public Type? TryGetQueryableElementType()
     {
-        if (IsQueryable())
+        if (IsNotQueryable())
         {
-            if (Type!.IsArray)
-            {
-                return Type.GetElementType();
-            }
-            else
-            {
-                return Type.GetGenericArguments().FirstOrDefault();
-            }
+            return null;        
+        }
+
+        if (Type.IsArray)
+        {
+            return Type.GetElementType();
+        }
+
+        var queryableInterface = Type.GetInterfaces()
+            .Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IQueryable<>))
+            .FirstOrDefault();
+
+        if (queryableInterface != null)
+        {
+            return queryableInterface.GetGenericArguments()[0];
+        }
+
+        var enumerableInterface = Type.GetInterfaces()
+            .Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            .FirstOrDefault();
+
+        if(enumerableInterface != null)
+        {
+            return enumerableInterface.GetGenericArguments()[0];
         }
 
         return null;
@@ -214,7 +239,7 @@ public class SemanticContext
     }
 
     /// <summary>
-    /// Creates a sub-context based on a specified property name and a sub-stack trace.
+    /// Creates a sub-context based on a specified property name and a sub-stack trace. <br/>
     /// This method is used for navigating deeper into the semantic structure of a context, allowing targeted analysis or modification.
     /// </summary>
     /// <param name="identifier">The property name to create a sub-context for.</param>
@@ -222,7 +247,7 @@ public class SemanticContext
     /// <param name="useParents">Indicates whether to use parent contexts to find the property if it's not present in the current context.</param>
     /// <returns>A new SemanticContext instance representing the sub-context.</returns>
     /// <exception cref="SemanticException">Thrown if the specified property is not found within the context hierarchy.</exception>
-    public SemanticContext GetReference(string identifier, string label, bool useParents = true)
+    public SemanticContext GetReferenceContext(string identifier, string label, bool useParents = true)
     {
         var propertyInfo = GetPropertyInfo(identifier, useParents);
 

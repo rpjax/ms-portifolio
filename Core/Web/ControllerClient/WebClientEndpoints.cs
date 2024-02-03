@@ -10,7 +10,7 @@ namespace ModularSystem.Web.Client;
 
 internal class PingEndpoint : EndpointBase
 {
-    public PingEndpoint(Http.Uri uri) : base(uri)
+    public PingEndpoint(URI uri) : base(uri)
     {
 
     }
@@ -24,7 +24,7 @@ internal class PingEndpoint : EndpointBase
 // CREATE
 internal class CreateEndpoint<T> : EndpointBase<T, Dto<string>> where T : class
 {
-    public CreateEndpoint(Http.Uri uri) : base(uri)
+    public CreateEndpoint(URI uri) : base(uri)
     {
 
     }
@@ -38,7 +38,7 @@ internal class CreateEndpoint<T> : EndpointBase<T, Dto<string>> where T : class
 // READ
 internal class GetByIdEndpoint<T> : EndpointBase<string, T> 
 {
-    public GetByIdEndpoint(Http.Uri uri) : base(uri)
+    public GetByIdEndpoint(URI uri) : base(uri)
     {
 
     }
@@ -52,7 +52,7 @@ internal class GetByIdEndpoint<T> : EndpointBase<string, T>
 
 internal class QueryEndpoint<T> : EndpointBase<SerializableQuery, QueryResult<T>>
 {
-    public QueryEndpoint(Http.Uri uri) : base(uri)
+    public QueryEndpoint(URI uri) : base(uri)
     {
     }
 
@@ -66,7 +66,7 @@ internal class QueryEndpoint<T> : EndpointBase<SerializableQuery, QueryResult<T>
 
 internal class QueryableEndpoint<T> : EndpointBase<SerializableQueryable, T>
 {
-    public QueryableEndpoint(Http.Uri uri) : base(uri)
+    public QueryableEndpoint(URI uri) : base(uri)
     {
 
     }
@@ -82,7 +82,7 @@ internal class QueryableEndpoint<T> : EndpointBase<SerializableQueryable, T>
 // UPDATE
 internal class UpdateEndpoint<T> : EndpointBase<T, Core.Void> where T : class
 {
-    public UpdateEndpoint(Http.Uri uri) : base(uri)
+    public UpdateEndpoint(URI uri) : base(uri)
     {
 
     }
@@ -96,7 +96,7 @@ internal class UpdateEndpoint<T> : EndpointBase<T, Core.Void> where T : class
 
 internal class UpdateBulkEndpoint : EndpointBase<SerializableUpdate, Dto<long>>
 {
-    public UpdateBulkEndpoint(Http.Uri uri) : base(uri)
+    public UpdateBulkEndpoint(URI uri) : base(uri)
     {
 
     }
@@ -111,7 +111,7 @@ internal class UpdateBulkEndpoint : EndpointBase<SerializableUpdate, Dto<long>>
 // DELETE
 internal class DeleteByIdEndpoint<T> : EndpointBase<string, Core.Void>
 {
-    public DeleteByIdEndpoint(Http.Uri uri) : base(uri)
+    public DeleteByIdEndpoint(URI uri) : base(uri)
     {
 
     }
@@ -126,7 +126,7 @@ internal class DeleteByIdEndpoint<T> : EndpointBase<string, Core.Void>
 
 internal class BulkDeleteEndpoint : EndpointBase<SerializableExpression, Dto<long>>
 {
-    public BulkDeleteEndpoint(Http.Uri uri) : base(uri)
+    public BulkDeleteEndpoint(URI uri) : base(uri)
     {
 
     }
@@ -141,7 +141,7 @@ internal class BulkDeleteEndpoint : EndpointBase<SerializableExpression, Dto<lon
 // OTHER APIs
 internal class ValidateIdEndpoint<T> : EndpointBase<string, Dto<bool>>
 {
-    public ValidateIdEndpoint(Http.Uri uri) : base(uri)
+    public ValidateIdEndpoint(URI uri) : base(uri)
     {
 
     }
@@ -155,7 +155,7 @@ internal class ValidateIdEndpoint<T> : EndpointBase<string, Dto<bool>>
 
 internal class CountEndpoint : EndpointBase<SerializableExpression, Dto<long>>
 {
-    public CountEndpoint(Http.Uri uri) : base(uri)
+    public CountEndpoint(URI uri) : base(uri)
     {
 
     }

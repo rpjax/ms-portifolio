@@ -34,7 +34,7 @@ public class WebClient
     /// </remarks>
     public virtual Task PingAsync()
     {
-        var endpoint = new PingEndpoint(Config.RequestUri.Copy());
+        var endpoint = new PingEndpoint(BaseUri());
         return endpoint.RunAsync();
     }
 
@@ -53,11 +53,11 @@ public class WebClient
     /// <summary>
     /// Returns a copy of the original URI object.
     /// </summary>
-    /// <returns>A copy of the <see cref="Http.Uri"/> object.</returns>
+    /// <returns>A copy of the <see cref="URI"/> object.</returns>
     /// <remarks>
     /// This allows the URI to be modified for individual requests without altering the original URI in the configuration.
     /// </remarks>
-    protected virtual Http.Uri CopyUri()
+    protected virtual URI BaseUri()
     {
         return Config.RequestUri.Copy();
     }
@@ -86,7 +86,7 @@ public class CrudClient<T> : WebClient where T : class
     /// <returns>The ID of the created instance as a string.</returns>
     public async Task<string> CreateAsync(T value)
     {
-        var endpoint = new CreateEndpoint<T>(CopyUri());
+        var endpoint = new CreateEndpoint<T>(BaseUri());
         var result = await endpoint.RunAsync(value);
 
         if (result.IsFailure)
@@ -108,7 +108,7 @@ public class CrudClient<T> : WebClient where T : class
     /// <returns>A task representing the asynchronous operation, with a result of the retrieved instance.</returns>
     public async Task<T> GetByIdAsync(string id)
     {
-        var endpoint = new GetByIdEndpoint<T>(CopyUri());
+        var endpoint = new GetByIdEndpoint<T>(BaseUri());
         var result = await endpoint.RunAsync(id);
 
         if (result.IsFailure)
@@ -130,7 +130,7 @@ public class CrudClient<T> : WebClient where T : class
     /// <returns>A task representing the asynchronous operation, with a result of the query.</returns>
     public async Task<QueryResult<T>> QueryAsync(SerializableQuery query)
     {
-        var result = await  new QueryEndpoint<T>(CopyUri())
+        var result = await  new QueryEndpoint<T>(BaseUri())
             .RunAsync(query);
         
         if (result.IsFailure)
@@ -162,7 +162,7 @@ public class CrudClient<T> : WebClient where T : class
     /// <returns>A task representing the asynchronous update operation.</returns>
     public async Task UpdateAsync(T value)
     {
-        var endpoint = new UpdateEndpoint<T>(CopyUri());
+        var endpoint = new UpdateEndpoint<T>(BaseUri());
         var result = await endpoint.RunAsync(value);
 
         if (result.IsFailure)
@@ -178,7 +178,7 @@ public class CrudClient<T> : WebClient where T : class
     /// <returns>The number of entities updated; null if the update count is unavailable.</returns>
     public async Task<long> UpdateAsync(SerializableUpdate update)
     {
-        var result = await new UpdateBulkEndpoint(CopyUri())
+        var result = await new UpdateBulkEndpoint(BaseUri())
             .RunAsync(update);
 
         if (result.IsFailure)
@@ -210,7 +210,7 @@ public class CrudClient<T> : WebClient where T : class
     /// <returns>A task representing the asynchronous delete operation.</returns>
     public async Task DeleteByIdAsync(string id)
     {
-        var result = await new DeleteByIdEndpoint<T>(CopyUri())
+        var result = await new DeleteByIdEndpoint<T>(BaseUri())
             .RunAsync(id);
 
         if (result.IsFailure)
@@ -227,7 +227,7 @@ public class CrudClient<T> : WebClient where T : class
     public async Task<long> BulkDeleteAsync(Expression<Func<T, bool>> expression)
     {
         var serializable = QueryProtocol.ToSerializable(expression);
-        var endpoint = new BulkDeleteEndpoint(CopyUri());
+        var endpoint = new BulkDeleteEndpoint(BaseUri());
         var result = await endpoint.RunAsync(serializable);
 
         if (result.IsFailure)
@@ -249,7 +249,7 @@ public class CrudClient<T> : WebClient where T : class
     /// <returns>A task representing the asynchronous validation operation, with a result of true if the ID is valid; otherwise, false.</returns>
     public async Task<bool> ValidateIdAsync(string id)
     {
-        var endpoint = new ValidateIdEndpoint<T>(CopyUri());
+        var endpoint = new ValidateIdEndpoint<T>(BaseUri());
         var result = await endpoint.RunAsync(id);
 
         if (result.IsFailure)
@@ -278,7 +278,7 @@ public class CrudClient<T> : WebClient where T : class
     public async Task<long> CountAsync(Expression<Func<T, bool>> expression)
     {
         var serializable = QueryProtocol.ToSerializable(expression);
-        var endpoint = new CountEndpoint(CopyUri());
+        var endpoint = new CountEndpoint(BaseUri());
         var result = await endpoint.RunAsync(serializable);
 
         if (result.IsFailure)
@@ -326,7 +326,7 @@ public class QueryableClient : WebClient
     /// <returns>A task representing the asynchronous operation, with a result of the query.</returns>
     public async Task<T> QueryAsync<T>(SerializableQueryable query)
     {
-        var result = await new QueryableEndpoint<T>(CopyUri())
+        var result = await new QueryableEndpoint<T>(BaseUri())
             .RunAsync(query);
 
         if (result.IsFailure)

@@ -259,9 +259,14 @@ public class OperationResult<T> : OperationResult, IOperationResult<T?>
     /// <exception cref="InvalidOperationException">Thrown when the operation result is not successful or when data is null.</exception>
     public T GetData()
     {
+        if (!IsSuccess)
+        {
+            throw new InvalidOperationException("Cannot retrieve data from an unsuccessful operation result. Check 'IsSuccess' before calling 'GetData'.");
+        }
+
         if (Data == null)
         {
-            throw new InvalidOperationException("Attempted to retrieve data from an unsuccessful operation result or when data is null.");
+            throw new InvalidOperationException("The data is null. This operation result indicates success but contains no data.");
         }
 
         return Data;

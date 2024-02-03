@@ -11,9 +11,21 @@ namespace ModularSystem.Mongo;
 /// <typeparam name="T">The type of the entity, which should implement the <see cref="IMongoModel"/> interface.</typeparam>
 public abstract class MongoEntityService<T> : EntityService<T> where T : class, IMongoModel
 {
+    /// <summary>
+    /// Asynchronously creates an <see cref="IMongoQueryable{T}"/> instance for querying the MongoDB collection of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains an <see cref="IMongoQueryable{T}"/> instance, <br/>
+    /// which allows for building LINQ queries against the MongoDB collection of entities of type <typeparamref name="T"/>.
+    /// </returns>
+    /// <remarks>
+    /// This method internally calls <c>CreateQueryableAsync</c>, which should be implemented to asynchronously create the base query
+    /// for the MongoDB collection. <br/>
+    /// The returned <see cref="IMongoQueryable{T}"/> is cast from the result of <c>CreateQueryableAsync</c>.
+    /// </remarks>
     public async Task<IMongoQueryable<T>> CreateMongoQueryableAsync()
     {
-        return (IMongoQueryable<T>)await CreateQueryAsync();
+        return (IMongoQueryable<T>)await CreateQueryableAsync();
     }
 
     /// <summary>

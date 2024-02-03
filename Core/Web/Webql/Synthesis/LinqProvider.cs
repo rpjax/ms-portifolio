@@ -118,8 +118,8 @@ public class LinqProvider
         // DEV NOTES:
         //      call expression (IQueryable<T>.Select()) arguments:
         //          constant expression (IEnumerable<T>)
-        //          quoat expression operand:
-        //              lambda expression (Func<T, projectedT>) body:
+        //          quoat expression, operand:
+        //              lambda expression (Func<T, projectedT>), body:
         //                  new expression:
         //                      members: in order, the lhs of the assignments.
         //                      arguments: in order, the rhs of the assignments.
@@ -135,9 +135,9 @@ public class LinqProvider
             throw TranslationThrowHelper.WrongNodeType(context, "Expected an ObjectNode for projection operation. Received a node of a different type.");
         }
 
-        var queryableType = context.GetQueryableElementType();
-        var subContextParameter = Expression.Parameter(queryableType, context.CreateParameterName());
-        var subContext = new ProjectionTranslationContext(queryableType, subContextParameter, context);
+        var elementType = context.GetQueryableElementType();
+        var subContextParameter = Expression.Parameter(elementType, context.CreateParameterName());
+        var subContext = new ProjectionTranslationContext(elementType, subContextParameter, context);
 
         // Cria uma lista para armazenar as associações de propriedades do tipo projetado
         var propertyBindings = new List<MemberBinding>();
@@ -190,9 +190,9 @@ public class LinqProvider
         // Cria a expressão de chamada ao método 'Select'
         var selectMethod = context.IsProjectionContext 
             ? GetEnumerableSelectMethodInfo()
-            : GetSelectMethodInfo();
+            : GetQueryableSelectMethodInfo();
 
-        selectMethod = selectMethod.MakeGenericMethod(new[] { queryableType, projectedType });
+        selectMethod = selectMethod.MakeGenericMethod(new[] { elementType, projectedType });
 
         return Expression.Call(selectMethod, context.Expression, lambda);
     }
@@ -217,7 +217,7 @@ public class LinqProvider
 
         var selectMethod = context.IsProjectionContext
             ? GetEnumerableSelectMethodInfo()
-            : GetSelectMethodInfo();
+            : GetQueryableSelectMethodInfo();
 
         var selectedElementType = lambdaBody.Type;
         var selectedType = selectedElementType;
@@ -572,7 +572,7 @@ public class LinqProvider
     /// Retrieves the MethodInfo for the 'Select' LINQ method.
     /// </summary>
     /// <returns>MethodInfo for the 'Select' method.</returns>
-    protected virtual MethodInfo GetSelectMethodInfo()
+    protected virtual MethodInfo GetQueryableSelectMethodInfo()
     {
         return typeof(Queryable)
             .GetMethods()

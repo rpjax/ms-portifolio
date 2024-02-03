@@ -68,11 +68,11 @@ public class NodeTypeEvaluator : SemanticsVisitor
             ? pathSplit.First()
             : propPath;
 
-        var subContext = context.GetReference(rootPropertyName, rootPropertyName);
+        var subContext = context.GetReferenceContext(rootPropertyName, rootPropertyName);
 
         for (int i = 1; i < pathSplit.Length; i++)
         {
-            subContext = subContext.GetReference(pathSplit[i], pathSplit[i], false);
+            subContext = subContext.GetReferenceContext(pathSplit[i], pathSplit[i], false);
         }
 
         return subContext.Type;
@@ -185,7 +185,7 @@ public class NodeTypeEvaluator : SemanticsVisitor
             context = new SemanticContext(context.GetQueryableElementType()!, context, context.Label);
         }
 
-        context = context.GetReference(memberName, $".{memberName}");
+        context = context.GetReferenceContext(memberName, $".{memberName}");
 
         return Evaluate(context, node.Rhs.Value);
     }

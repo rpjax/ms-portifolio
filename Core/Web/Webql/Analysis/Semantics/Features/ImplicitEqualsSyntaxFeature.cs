@@ -36,7 +36,7 @@ internal class ImplicitEqualsSyntaxFeature : SemanticsVisitor
         // Update context based on the left-hand side reference
         if (node.Lhs.IsReference)
         {
-            context = context.GetReference(node.Lhs.Value, subStack);
+            context = context.GetReferenceContext(node.Lhs.Value, subStack);
         }
 
         // Transform literal right-hand side into explicit equality check

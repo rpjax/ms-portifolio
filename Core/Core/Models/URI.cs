@@ -1,23 +1,50 @@
-﻿namespace ModularSystem.Web.Http;
+﻿namespace ModularSystem.Core;
 
 /// <summary>
-/// Uri facade.
+/// Represents a Uniform Resource Identifier (URI) and provides easy access and manipulation of the parts of the URI.
+/// <br/>
+/// This class provides a custom implementation that mimics the functionality of <see cref="System.Uri"/>, 
+/// <br/>
+/// facilitating the construction and modification of URIs for web requests within the application.
 /// </summary>
-public class Uri
+public class URI
 {
+    /// <summary>
+    /// Gets or sets the Port number of the URI.
+    /// </summary>
     public int Port { get; set; } = 80;
-    public string Scheme { get; set; } = "http";
-    public string Host { get; set; } = "localhost";
-    public string Path { get; set; } = "";
-    public string OriginalString { get; private set; } = string.Empty;
-    public List<KeyValuePair<string, string>> QueryParams { get; set; }
 
-    public Uri()
+    /// <summary>
+    /// Gets or sets the Scheme of the URI, such as 'http' or 'https'.
+    /// </summary>
+    public string Scheme { get; set; } = "http";
+
+    /// <summary>
+    /// Gets or sets the Host name of the URI.
+    /// </summary>
+    public string Host { get; set; } = "localhost";
+
+    /// <summary>
+    /// Gets or sets the Path of the URI.
+    /// </summary>
+    public string Path { get; set; } = "/";
+
+    /// <summary>
+    /// Gets or sets the Query Parameters of the URI in the form of a list of key-value pairs.
+    /// </summary>
+    public List<KeyValuePair<string, string>> QueryParams { get; set; } = new();
+
+    /// <summary>
+    /// Gets the original string used to construct the URI, if available.
+    /// </summary>
+    public string? OriginalString { get; private set; } = null;
+
+    public URI()
     {
-        QueryParams = new List<KeyValuePair<string, string>>();
+        
     }
 
-    public Uri(string uriString) : this()
+    public URI(string uriString)
     {
         var uri = new System.Uri(uriString);
 
@@ -25,31 +52,31 @@ public class Uri
         Scheme = uri.Scheme;
         Host = uri.Host;
         Path = uri.AbsolutePath;
-        OriginalString = uriString;
         QueryParams = DecodeQueryString(uri.Query);
+        OriginalString = uriString;
     }
 
-    public Uri(System.Uri uri) : this()
+    public URI(System.Uri uri) 
     {
         Port = uri.Port;
         Scheme = uri.Scheme;
         Host = uri.Host;
         Path = uri.AbsolutePath;
-        OriginalString = uri.OriginalString;
         QueryParams = DecodeQueryString(uri.Query);
+        OriginalString = uri.OriginalString;
     }
 
-    public static implicit operator Uri(string uri)
+    public static implicit operator URI(string uri)
     {
-        return new Uri(uri);
+        return new URI(uri);
     }
 
-    public static implicit operator Uri(System.Uri uri)
+    public static implicit operator URI(System.Uri uri)
     {
-        return new Uri(uri);
+        return new URI(uri);
     }
 
-    public static implicit operator System.Uri(Uri uri)
+    public static implicit operator System.Uri(URI uri)
     {
         return uri.ToSystemUri();
     }
@@ -64,9 +91,9 @@ public class Uri
         return new System.Uri(ToString());
     }
 
-    public Uri Copy()
+    public URI Copy()
     {
-        return new Uri(ToSystemUri());
+        return new URI(ToSystemUri());
     }
 
     public string GetQueryString()
@@ -104,7 +131,7 @@ public class Uri
         return null;
     }
 
-    public Uri SetQueryParam(string key, string? value)
+    public URI SetQueryParam(string key, string? value)
     {
         if (value == null)
         {
@@ -116,7 +143,7 @@ public class Uri
         return this;
     }
 
-    public Uri SetQueryParam(string key, IEnumerable<string?> values)
+    public URI SetQueryParam(string key, IEnumerable<string?> values)
     {
         QueryParams.RemoveAll(x => x.Key == key);
 
@@ -133,7 +160,7 @@ public class Uri
         return this;
     }
 
-    public Uri AppendPath(string path)
+    public URI AppendPath(string path)
     {
         var originalPath = Path;
 
@@ -167,7 +194,7 @@ public class Uri
     {
         var values = new List<KeyValuePair<string, string>>();
         var queryDictionary = System.Web.HttpUtility.ParseQueryString(queryString);
-
+       
         foreach (var key in queryDictionary.AllKeys)
         {
             values.Add(new KeyValuePair<string, string>(key ?? string.Empty, queryDictionary.Get(key) ?? string.Empty));

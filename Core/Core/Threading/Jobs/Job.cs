@@ -1,14 +1,34 @@
-﻿namespace ModularSystem.Core.Threading;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ModularSystem.Core.Threading;
 
 /// <summary>
-/// Represents an abstract base job that can be queued for execution.
+/// Represents an abstract base job that can be queued for execution. <br/>
+/// This base class provides the common framework for job execution, including retry logic, <br/>
+/// exception handling, and execution tracking.
 /// </summary>
 public abstract class Job : IDisposable
 {
     /// <summary>
-    /// Gets or sets the number of times the job has attempted execution.
+    /// Gets or sets the total number of times the job has attempted execution. <br/>
+    /// This count includes both successful and unsuccessful attempts. It is incremented each time the job begins
+    /// an execution attempt.
     /// </summary>
-    public int ExecutionAttempts { get; set; }
+    /// <value>
+    /// The total number of execution attempts. This number is incremented after each execution attempt, <br/>
+    /// regardless of whether the attempt was successful or encountered an exception.
+    /// </value>
+    /// <remarks>
+    /// This property is crucial for understanding the job's execution history and for implementing <br/>
+    /// logic that depends on the number of attempts, such as exponential backoff or other retry strategies. <br/>
+    /// The <see cref="OnExceptionAsync(Exception, CancellationToken)"/> method increments this counter <br/>
+    /// each time it is called, reflecting the job's resilience in the face of errors. <br/>
+    ///
+    /// Note: This counter is reset to zero when the job is instantiated and is only meant to track <br/>
+    /// attempts for the current execution cycle of the job. It does not persist across job restarts
+    /// or system reboots.
+    /// </remarks>
+    public int TotalExecutionAttempts { get; set; }
 
     /// <summary>
     /// Gets or sets the maximum number of execution attempts before the job is disposed.
@@ -43,7 +63,7 @@ public abstract class Job : IDisposable
     /// <summary>
     /// Gets a value indicating whether the current attempt is the last execution attempt.
     /// </summary>
-    protected bool IsLastExecutionAttempt => ExecutionAttempts + 1 == MaxExecutionAttempts;
+    protected bool IsLastExecutionAttempt { get; private set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Job"/> class with a default action for the Exit event.
@@ -79,11 +99,17 @@ public abstract class Job : IDisposable
 
     private async Task InternalExecuteAsync()
     {
+        var executionAttempts = 0;
+
         while (true)
         {
+            IsLastExecutionAttempt = executionAttempts + 1 >= MaxExecutionAttempts;
+
             try
             {
+                await BeforeExecuteAsync(CancellationTokenSource.Token);
                 await OnExecuteAsync(CancellationTokenSource.Token);
+                await AfterExecuteAsync(CancellationTokenSource.Token);
                 break;
             }
             catch (Exception e)
@@ -91,9 +117,10 @@ public abstract class Job : IDisposable
                 await OnExceptionAsync(e, CancellationTokenSource.Token);
             }
 
-            ExecutionAttempts++;
+            executionAttempts++;
+            TotalExecutionAttempts++;
 
-            if (ExecutionAttempts >= MaxExecutionAttempts)
+            if (executionAttempts >= MaxExecutionAttempts)
             {
                 break;
             }
@@ -122,6 +149,43 @@ public abstract class Job : IDisposable
     /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
     /// <returns>A task representing the execution of the job.</returns>
     protected abstract Task OnExecuteAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Executes custom logic before the main job execution begins.
+    /// </summary>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests. This can be used to cancel the operation before it starts.</param>
+    /// <returns>A task that represents the asynchronous pre-execution operation. The default implementation returns a completed task.</returns>
+    /// <remarks>
+    /// Override this method to implement any initialization or setup procedures that need to occur before the job's primary logic executes.
+    /// This could include setting up logging, validating job state, or preparing resources required for execution.
+    /// It's important to check the <paramref name="cancellationToken"/> regularly in long-running or potentially blocking operations
+    /// to ensure responsive cancellation if requested.
+    /// </remarks>
+    protected virtual Task BeforeExecuteAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Executes custom logic after the main job execution completes successfully.
+    /// </summary>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests. This can be used to cancel the post-execution operations if necessary.</param>
+    /// <returns>A task that represents the asynchronous post-execution operation. The default implementation returns a completed task.</returns>
+    /// <remarks>
+    /// Override this method to implement any teardown or cleanup procedures that should occur only after the job's primary logic has executed successfully.
+    /// This method is invoked if the job completes without throwing any exceptions, making it an ideal place for operations that should only be performed
+    /// after a successful execution, such as committing transactions, updating job status in a database, or releasing allocated resources that are no longer needed.
+    ///
+    /// It's important to note that this method will not be called if an exception is thrown during the job execution, which is handled by the <see cref="OnExceptionAsync(Exception, CancellationToken)"/> method.
+    /// Therefore, any cleanup or finalization logic that must run regardless of job success or failure should be placed within <see cref="OnExitAsync(CancellationToken)"/> or the exception handling routine.
+    ///
+    /// As with <see cref="BeforeExecuteAsync"/>, ensure to regularly check the <paramref name="cancellationToken"/> during potentially long-running operations
+    /// or while awaiting other asynchronous operations, to maintain responsiveness to cancellation requests.
+    /// </remarks>
+    protected virtual Task AfterExecuteAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
 
     /// <summary>
     /// Provides a mechanism to handle exceptions that might occur during execution.

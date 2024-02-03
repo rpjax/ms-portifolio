@@ -31,7 +31,7 @@ public interface IEntityService<T> : IDisposable
     /// This method offers an entry point to construct dynamic queries for entities. The execution is deferred, meaning that the data store won't be hit until the query is materialized (e.g., by invoking ToList() or ToArray()).
     /// </remarks>
     /// <returns>An IQueryable of type <typeparamref name="T"/> which can be further shaped using LINQ.</returns>
-    Task<IQueryable<T>> CreateQueryAsync();
+    Task<IQueryable<T>> CreateQueryableAsync();
 
     /// <summary>
     /// Queries the data store asynchronously based on the provided query criteria.

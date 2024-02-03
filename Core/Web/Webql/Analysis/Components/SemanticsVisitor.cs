@@ -100,14 +100,14 @@ public class SemanticsVisitor
         var subStack = $".{node.Lhs.Value}";
         var stack = $"{baseStack}{subStack}";
 
-        if (!context.EnableNavigation && node.Lhs.IsReference)
+        if (node.Lhs.IsReference && !context.EnableNavigation)
         {
             return new ExpressionNode(Visit(context, node.Lhs), Visit(context, node.Rhs));
         }
 
         if (node.Lhs.IsReference)
         {
-            context = context.GetReference(node.Lhs.Value, subStack);
+            context = context.GetReferenceContext(node.Lhs.Value, subStack);
         }
 
         if (node.Lhs.IsOperator)
@@ -118,12 +118,9 @@ public class SemanticsVisitor
             {
                 //*
                 // The decision to not throw an exception here is intentional and serves a specific purpose. 
-                // The "$Expr" operator, which comes into play in this scenario, is designed to create a new expression scope 
-                // without altering the semantic context. It effectively isolates expressions or contexts, allowing for 
-                // independent evaluation and interpretation within the established semantic rules. 
-                // This approach avoids introducing implicit behavior or validation that might be unintended in derived classes.
-                // In essence, the "$Expr" operator serves as a means to compartmentalize and isolate parts of the syntax tree,
-                // ensuring that each segment is processed in its own right, without unintended interference or assumptions.
+                // The "$Expr" operator, which comes into play in this scenario, is designed to create a new expression scope without altering the semantic context. It effectively isolates expressions or contexts, allowing for independent evaluation and interpretation within the established semantic rules. 
+                // This approach avoids introducing implicit behavior or validation that might be unintended in derived classes of SemanticVisitor.
+                // In essence, the "$Expr" operator serves as a means to compartmentalize and isolate parts of the syntax tree, ensuring that each segment is processed in its own right, without unintended interference or assumptions.
                 // This is crucial for maintaining the integrity and modularity of the semantic analysis process.
                 //*
                 op = Operator.Expr;
@@ -146,11 +143,11 @@ public class SemanticsVisitor
 
             if (operatorIsQueryable && contextIsQueryable)
             {
-                context = new(HelperTools.GetEnumerableType(context.Type), context, stack);
+                context = new SemanticContext(context.GetQueryableElementType(), context, stack);
             }
             else
             {
-                context = new(context.Type, context, stack);
+                context = new SemanticContext(context.Type, context, stack);
             }
         }
 

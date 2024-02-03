@@ -1,4 +1,5 @@
-﻿using ModularSystem.Web.Http;
+﻿using ModularSystem.Core;
+using ModularSystem.Web.Http;
 
 namespace ModularSystem.Web;
 
@@ -15,7 +16,7 @@ public class HttpRequest : IDisposable
     /// <summary>
     /// Gets or sets the URI for the request.
     /// </summary>
-    public Http.Uri Uri { get; set; }
+    public URI Uri { get; set; }
 
     /// <summary>
     /// Gets or sets the headers associated with the request.
@@ -34,13 +35,13 @@ public class HttpRequest : IDisposable
     /// </summary>
     public HttpRequest()
     {
-        Uri = new Http.Uri();
+        Uri = new URI();
         Header = new HttpHeader();
         Body = null;
         Method = HttpMethod.Get;
     }
 
-    public HttpRequest(Http.Uri uri)
+    public HttpRequest(URI uri)
     {
         Uri = uri;
         Header = new HttpHeader();
@@ -48,7 +49,7 @@ public class HttpRequest : IDisposable
         Method = HttpMethod.Get;
     }
 
-    public HttpRequest(Http.Uri uri, HttpMethod method)
+    public HttpRequest(URI uri, HttpMethod method)
     {
         Uri = uri;
         Header = new HttpHeader();
@@ -56,7 +57,7 @@ public class HttpRequest : IDisposable
         Method = method;
     }
 
-    public HttpRequest(Http.Uri uri, HttpMethod method, HttpRequestBody body)
+    public HttpRequest(URI uri, HttpMethod method, HttpRequestBody body)
     {
         Uri = uri;
         Header = new HttpHeader();
@@ -64,7 +65,7 @@ public class HttpRequest : IDisposable
         Method = method;
     }
 
-    public HttpRequest(Http.Uri uri, HttpMethod method, HttpHeader header, HttpRequestBody body)
+    public HttpRequest(URI uri, HttpMethod method, HttpHeader header, HttpRequestBody body)
     {
         Uri = uri;
         Header = header;

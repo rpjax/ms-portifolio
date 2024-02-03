@@ -37,7 +37,7 @@ public class MongoLinqProvider : ModularSystem.Webql.Synthesis.LinqProvider
     /// Retrieves the 'Select' method info from the MongoDB LINQ provider.
     /// </summary>
     /// <returns>MethodInfo for the 'Select' operation in MongoDB.</returns>
-    protected override MethodInfo GetSelectMethodInfo()
+    protected override MethodInfo GetQueryableSelectMethodInfo()
     {
         return typeof(MongoQueryable).GetMethods(BindingFlags.Static | BindingFlags.Public)
             .First(m => m.Name == "Select" &&

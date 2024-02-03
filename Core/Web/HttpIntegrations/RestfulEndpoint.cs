@@ -31,7 +31,7 @@ public class EndpointConfiguration
     /// <summary>
     /// Gets or sets the request URI for the endpoint.
     /// </summary>
-    public Http.Uri RequestUri { get; set; }
+    public URI RequestUri { get; set; }
 
     /// <summary>
     /// Gets or sets the header configuration for the endpoint.
@@ -42,7 +42,7 @@ public class EndpointConfiguration
     /// Initializes a new instance of the <see cref="EndpointConfiguration"/> class with the specified base URI.
     /// </summary>
     /// <param name="baseUri">The base URI for the endpoint.</param>
-    public EndpointConfiguration(Http.Uri baseUri)
+    public EndpointConfiguration(URI baseUri)
     {
         RequestUri = baseUri.Copy();
         Header = null;

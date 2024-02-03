@@ -19,13 +19,13 @@ public abstract class EndpointBase<TIn, TOut> : RestfulEndpoint<TIn, TOut>
     /// <summary>
     /// Gets the request URI for the current endpoint.
     /// </summary>
-    protected Http.Uri RequestUri { get; }
+    protected URI RequestUri { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EndpointBase{TIn, TOut}"/> class with a specific base URI.
     /// </summary>
     /// <param name="uri">The base URI for the endpoint.</param>
-    protected EndpointBase(Http.Uri uri)
+    protected EndpointBase(URI uri)
     {
         RequestUri = uri;
     }
@@ -92,7 +92,7 @@ public abstract class EndpointBase : EndpointBase<Core.Void, Core.Void>
     /// Initializes a new instance of the <see cref="EndpointBase"/> class with the specified URI.
     /// </summary>
     /// <param name="uri">The URI associated with this endpoint.</param>
-    protected EndpointBase(Http.Uri uri) : base(uri)
+    protected EndpointBase(URI uri) : base(uri)
     {
         // Intentionally left blank.
     }

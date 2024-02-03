@@ -228,7 +228,7 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
     /// This method serves as an entry point to construct dynamic queries for entities. It internally calls <see cref="OnCreateQueryAsync"/> to allow middleware components to potentially alter the query before it's returned.
     /// </remarks>
     /// <returns>An IQueryable of type <typeparamref name="T"/> which can be further shaped using LINQ.</returns>
-    public Task<IQueryable<T>> CreateQueryAsync()
+    public Task<IQueryable<T>> CreateQueryableAsync()
     {
         return OnCreateQueryAsync(DataAccessObject.AsQueryable());
     }

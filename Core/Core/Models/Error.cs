@@ -354,6 +354,28 @@ public class Error
         return this;
     }
 
+    /// <summary>
+    /// Adds exception details to the error's data collection, serializing the exception into a JSON-formatted string.
+    /// </summary>
+    /// <param name="exception">The exception to add to the error. If null, the method does nothing.</param>
+    /// <returns>The current <see cref="Error"/> instance with the added exception details.</returns>
+    /// <remarks>
+    /// The serialized exception data is intended primarily for debugging and diagnostic purposes. <br/>
+    /// Care should taken to ensure that sensitive information is not inadvertently exposed, <br/>
+    /// especially when errors are logged or displayed in user-facing applications.
+    /// </remarks>
+    public Error AddException(Exception? exception)
+    {
+        if (exception == null)
+        {
+            return this;
+        }
+
+        AddJsonData(ExceptionDataKey, new SerializableException(exception));
+
+        return this;
+    }
+
 }
 
 /// <summary>

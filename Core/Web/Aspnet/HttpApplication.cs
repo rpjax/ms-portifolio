@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using ModularSystem.Core;
 
 namespace ModularSystem.Web;
 
@@ -54,7 +55,7 @@ public class HttpApplication : IAsyncDisposable
     /// <summary>
     /// The URI where the server will be hosted.
     /// </summary>
-    protected Http.Uri HostUri { get; set; }
+    protected URI HostUri { get; set; }
 
     /// <summary>
     /// Command-line arguments provided during server initialization.
@@ -68,7 +69,7 @@ public class HttpApplication : IAsyncDisposable
     /// </summary>
     /// <param name="hostUri">The URI where the server will be hosted.</param>
     /// <param name="args">Command-line arguments provided during server initialization.</param>
-    public HttpApplication(Http.Uri hostUri, params string[] args)
+    public HttpApplication(URI hostUri, params string[] args)
     {
         HostUri = hostUri;
         Args = args;
