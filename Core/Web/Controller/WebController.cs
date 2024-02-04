@@ -235,6 +235,57 @@ public abstract class WebController : ControllerBase
         return JsonSerializerSingleton.Deserialize<T>(str);
     }
 
+    /// <summary>
+    /// Tries to retrieve a service of type <typeparamref name="T"/> from the ASP.NET Core dependency injection container.
+    /// </summary>
+    /// <typeparam name="T">The type of service to retrieve.</typeparam>
+    /// <returns>
+    /// The instance of the service if found; otherwise, returns <c>default</c> (which will be <c>null</c> for reference types).
+    /// </returns>
+    /// <remarks>
+    /// This method attempts to resolve a service from the current HTTP context's request services. It's a safe way to
+    /// attempt service resolution without throwing exceptions if the service is not registered. Use this method when it's
+    /// acceptable for the operation to continue without the service.
+    /// </remarks>
+    protected T? TryGetService<T>()
+    {
+        var service = HttpContext.RequestServices.GetService(typeof(T));
+
+        if (service is T tService)
+        {
+            return tService;
+        }
+
+        return default;
+    }
+
+    /// <summary>
+    /// Retrieves a service of type <typeparamref name="T"/> from the ASP.NET Core dependency injection container.
+    /// </summary>
+    /// <typeparam name="T">The type of service to retrieve.</typeparam>
+    /// <returns>
+    /// The instance of the service.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the service of type <typeparamref name="T"/> cannot be resolved from the service provider.
+    /// </exception>
+    /// <remarks>
+    /// This method ensures that a service of the specified type is returned. It uses <see cref="TryGetService{T}"/> 
+    /// internally to attempt service resolution and throws an <see cref="InvalidOperationException"/> if the service
+    /// cannot be found. Use this method when the requested service is essential for the operation to proceed.
+    /// </remarks>
+    protected T GetService<T>()
+    {
+        var service = TryGetService<T>();
+
+        if (service == null)
+        {
+            throw new InvalidOperationException($"The required service of type {typeof(T).FullName} could not be resolved.");
+        }
+
+        return service;
+    }
+
     //*
     // HTTP response.
     //*

@@ -49,6 +49,14 @@ public class HttpRequest : IDisposable
         Method = HttpMethod.Get;
     }
 
+    public HttpRequest(HttpMethod method, URI uri, HttpRequestBody? body = null)
+    {
+        Uri = uri;
+        Header = new HttpHeader();
+        Body = body;
+        Method = method;
+    }
+
     public HttpRequest(URI uri, HttpMethod method)
     {
         Uri = uri;

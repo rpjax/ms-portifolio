@@ -291,6 +291,11 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     /// </exception>
     protected virtual Task<TOut> DeserializeResponseAsync(HttpResponse response)
     {
+        if (typeof(TOut) == typeof(Core.Void))
+        {
+            return Task.FromResult((TOut)Activator.CreateInstance(typeof(Core.Void))!);
+        }
+
         return response.DeserializeAsJsonAsync<TOut>();
     }
 

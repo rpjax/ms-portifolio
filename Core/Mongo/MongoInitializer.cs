@@ -11,8 +11,8 @@ internal class MongoInitializer : Initializer
     {
         JsonSerializerSingleton.TryAddConverter(new ObjectIdJsonConverter());
 
-        BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
-        BsonSerializer.RegisterSerializer(typeof(decimal?), new NullableSerializer<decimal>(new DecimalSerializer(BsonType.Decimal128)));
+        //BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
+        //BsonSerializer.RegisterSerializer(typeof(decimal?), new NullableSerializer<decimal>(new DecimalSerializer(BsonType.Decimal128)));
 
         ConsoleLogger.Info("Mongo module initialized.");
         return Task.CompletedTask;
