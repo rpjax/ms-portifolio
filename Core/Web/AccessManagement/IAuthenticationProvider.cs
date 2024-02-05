@@ -27,5 +27,5 @@ public interface IAuthenticationProvider
     /// For example, when provided credentials are expired or otherwise invalid, yet the request format and processing are correct. <br/>
     /// Conversely, a failed operation indicates unexpected issues, such as deserialization errors, invalid formats, or other system-level failures.
     /// </remarks>
-    Task<OperationResult<IIdentity>> TryGetIdentityAsync(HttpContext httpContext);
+    Task<OperationResult<IIdentity>> GetIdentityAsync(HttpContext httpContext);
 }

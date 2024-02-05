@@ -47,6 +47,9 @@ public class OperationResult : IOperationResult
     /// <inheritdoc/>
     public bool IsSuccess { get; protected set; }
 
+    /// <inheritdoc/>
+    public List<Error> Errors { get; set; } = new();
+
     /// <summary>
     /// Gets a value indicating whether the operation failed.
     /// </summary>
@@ -59,8 +62,15 @@ public class OperationResult : IOperationResult
     [JsonIgnore]
     public bool ContainsErrors { get => Errors.IsNotEmpty(); }
 
-    /// <inheritdoc/>
-    public List<Error> Errors { get; protected set; }
+    /// <summary>
+    /// Initializes a new instance of OperationResult with the provided arguments.
+    /// </summary>
+    [JsonConstructor]
+    public OperationResult(bool isSuccess, List<Error> errors)
+    {
+        IsSuccess = isSuccess;
+        Errors = errors;
+    }
 
     /// <summary>
     /// Initializes a new instance of the OperationResult class based on another operation result.
@@ -174,7 +184,21 @@ public class OperationResult<T> : OperationResult, IOperationResult<T?>
     /// <summary>
     /// Gets the data produced by the operation, if any.
     /// </summary>
-    public T? Data { get; protected set; }
+    public T? Data { get; set; }
+
+    /// <summary>
+    /// Initializes a new instance of OperationResult with the provided arguments.
+    /// </summary>
+    /// <param name="isSuccess"></param>
+    /// <param name="errors"></param>
+    /// <param name="data"></param>
+    [JsonConstructor]
+    public OperationResult(bool isSuccess, List<Error> errors, T? data)
+    {
+        IsSuccess = isSuccess;
+        Errors = errors;
+        Data = data;
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OperationResult{T}"/> class using an existing <see cref="IOperationResult"/>. <br/>

@@ -15,7 +15,7 @@ public class IamAuthenticationMiddleware : Middleware
     /// <summary>
     /// The IAM system that handles authentication-related operations.
     /// </summary>
-    private IIamService Iam { get; }
+    private IIamService IamService { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IamAuthenticationMiddleware"/> class.
@@ -28,7 +28,7 @@ public class IamAuthenticationMiddleware : Middleware
             throw new InvalidOperationException("The IamAuthenticationMiddleware requires an implementation of IIamSystem to be registered in the DependencyContainer. Ensure that an appropriate implementation is registered before using this middleware.");
         }
 
-        Iam = iam;
+        IamService = iam;
     }
 
     /// <summary>
@@ -38,12 +38,16 @@ public class IamAuthenticationMiddleware : Middleware
     /// <returns>A task that represents the asynchronous operation. The task result contains a value indicating if the next middleware should be invoked.</returns>
     protected override async Task<Strategy> BeforeNextAsync(HttpContext context)
     {
-        var identity = await context.TryGetIdentityAsync();
+        var identityResult = await IamService.AuthenticationProvider.GetIdentityAsync(context);
 
-        if (identity != null)
+        if (identityResult.IsFailure)
         {
-            InjectIdentity(context, identity);
+            return Strategy.Continue;
         }
+
+        var identity = identityResult.GetData();
+
+        InjectIdentity(context, identity);
 
         return Strategy.Continue;
     }

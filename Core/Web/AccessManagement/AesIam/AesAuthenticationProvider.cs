@@ -51,7 +51,7 @@ public class AesAuthenticationProvider : IAuthenticationProvider
     }
 
     /// <inheritdoc/>
-    public virtual async Task<OperationResult<IIdentity>> TryGetIdentityAsync(HttpContext httpContext)
+    public virtual async Task<OperationResult<IIdentity>> GetIdentityAsync(HttpContext httpContext)
     {
         var tokenResult = TryGetTokenFromContext(httpContext);
 
@@ -60,16 +60,11 @@ public class AesAuthenticationProvider : IAuthenticationProvider
             return new(tokenResult.Errors);
         }
 
-        if(tokenResult.Data == null)
-        {
-            return new(true);
-        }
-
-        var token = tokenResult.Data;
+        var token = tokenResult.GetData();
 
         if (token.Payload == null)
         {
-            var message = "Invalid token payload: The provided bearer token lacks the necessary data for identity verification.";
+            var message = "Invalid token payload: The provided bearer token lacks the necessary data for identity verification. This could mean that the encryption got cracked, so be careful.";
             var error = new Error(message)
                 .AddJsonData("Token", token)
                 .AddFlags(ErrorFlags.Critical, ErrorFlags.Debug);
@@ -84,7 +79,7 @@ public class AesAuthenticationProvider : IAuthenticationProvider
                 .AddJsonData("Token", token)
                 .AddFlags(ErrorFlags.Public);
 
-            return new(true, null, error);
+            return new(error);
         }
 
         var identity = JsonSerializerSingleton.Deserialize<Identity>(token.Payload);
@@ -128,7 +123,12 @@ public class AesAuthenticationProvider : IAuthenticationProvider
         };
     }
 
-    public virtual string CreateEncryptedToken(Identity identity)
+    public string EncryptToken(Token token)
+    {
+        return TokenEncrypter.Encrypt(token);
+    }
+
+    public string CreateEncryptedToken(Identity identity)
     {
         return TokenEncrypter.Encrypt(CreateToken(identity));
     }
@@ -136,13 +136,13 @@ public class AesAuthenticationProvider : IAuthenticationProvider
     /// <summary>
     /// Extracts and decrypts the bearer token from the provided HTTP context.
     /// </summary>
-    protected virtual OperationResult<Token> TryGetTokenFromContext(HttpContext httpContext)
+    protected OperationResult<Token> TryGetTokenFromContext(HttpContext httpContext)
     {
         var rawToken = httpContext.GetBearerToken();
 
         if (rawToken == null)
         {
-            return new(true);
+            return new(new Error("The request does not contain a Bearer token."));
         }
 
         if (!TokenEncrypter.Verify(rawToken))
@@ -150,19 +150,10 @@ public class AesAuthenticationProvider : IAuthenticationProvider
             var message = "The provided bearer token is not recognized by the encryption algorithm. Please verify that the token's value adheres to the expected format and encryption standards used by the system.";
             var error = new Error(message);
 
-            return new(true, null, error);
+            return new(error);
         }
 
         return new(TokenEncrypter.Decrypt(rawToken));
-    }
-
-    /// <summary>
-    /// Retrieves the current token encrypter used for encryption and decryption of authentication tokens.
-    /// </summary>
-    /// <returns>The <see cref="ITokenEncrypter"/> instance responsible for token encryption and decryption.</returns>
-    public ITokenEncrypter GetTokenEncrypter()
-    {
-        return TokenEncrypter;
     }
 
     /// <summary>

@@ -116,7 +116,7 @@ public static class HttpContextExtensions
             return null;
         }
 
-        var result = await iam.AuthenticationProvider.TryGetIdentityAsync(context);
+        var result = await iam.AuthenticationProvider.GetIdentityAsync(context);
 
         if(result.IsFailure)
         {

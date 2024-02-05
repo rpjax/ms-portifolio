@@ -53,7 +53,7 @@ public abstract class EndpointBase<TIn, TOut> : RestfulEndpoint<TIn, TOut>
 
         var options = new JsonSerializerOptions()
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            //PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
 
         var operationResult = JsonSerializerSingleton
@@ -61,7 +61,7 @@ public abstract class EndpointBase<TIn, TOut> : RestfulEndpoint<TIn, TOut>
 
         if (operationResult == null)
         {
-            var message = $"Failed to process the HTTP API request. Received status code: {response.StatusCode}. Refer to the associated data and inner exception for detailed information.";
+            var message = $"Failed to process the HTTP API request. Received status code: {response.StatusCode}. Refer to the associated data for detailed information.";
             var responseSummary = await response.CreateSummaryCopyAsync();
 
             var error = new Error(message)

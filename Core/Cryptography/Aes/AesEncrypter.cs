@@ -30,10 +30,14 @@ public class AesEncrypter : Encrypter
     /// Initializes a new instance of the <see cref="AesEncrypter"/> class using the provided key.
     /// </summary>
     /// <param name="key">The encryption key.</param>
-    public AesEncrypter(byte[] key)
+    public AesEncrypter(byte[]? key = null)
     {
         Aes = Aes.Create();
-        Aes.Key = key;
+        
+        if(key != null)
+        {
+            Aes.Key = key;
+        }
     }
 
     /// <summary>

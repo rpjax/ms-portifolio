@@ -106,7 +106,7 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="id">The ID of the instance.</param>
     /// <returns>A task representing the asynchronous operation, with a result of the retrieved instance.</returns>
-    public async Task<T> GetByIdAsync(string id)
+    public async Task<T> GetAsync(string id)
     {
         var endpoint = new GetByIdEndpoint<T>(BaseUri());
         var result = await endpoint.RunAsync(id);
@@ -208,7 +208,7 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="id">The ID of the instance.</param>
     /// <returns>A task representing the asynchronous delete operation.</returns>
-    public async Task DeleteByIdAsync(string id)
+    public async Task DeleteAsync(string id)
     {
         var result = await new DeleteByIdEndpoint<T>(BaseUri())
             .RunAsync(id);
@@ -224,7 +224,7 @@ public class CrudClient<T> : WebClient where T : class
     /// </summary>
     /// <param name="expression">The criteria to identify entities to delete.</param>
     /// <returns>The number of entities deleted; null if the delete count is unavailable.</returns>
-    public async Task<long> BulkDeleteAsync(Expression<Func<T, bool>> expression)
+    public async Task<long> DeleteAsync(Expression<Func<T, bool>> expression)
     {
         var serializable = QueryProtocol.ToSerializable(expression);
         var endpoint = new BulkDeleteEndpoint(BaseUri());
