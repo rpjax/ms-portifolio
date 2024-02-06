@@ -262,8 +262,10 @@ public class MongoDataAccessObject<T> : IDataAccessObject<T> where T : IMongoMod
     /// </returns>
     public async Task<long?> DeleteAsync(Expression<Func<T, bool>> predicate)
     {
-        var result = await Collection.DeleteManyAsync(predicate);
-
+        var filter = MongoModule.GetFilterBuilder<T>()
+            .Where(predicate);
+        var result = await Collection.DeleteManyAsync(filter);
+       
         if (result.IsAcknowledged)
         {
             return result.DeletedCount;

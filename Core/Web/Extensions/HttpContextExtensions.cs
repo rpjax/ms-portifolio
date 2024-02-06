@@ -120,10 +120,10 @@ public static class HttpContextExtensions
 
         if(result.IsFailure)
         {
-            throw new ErrorException(result);
+            return null;
         }
 
-        return result.Data;
+        return result.GetData();
     }
 
     /// <summary>

@@ -62,11 +62,8 @@ public class ExprSerializer : ISerializer<Expression>
     {
         var expression = Converter.Convert(new(), serializableExpression);
 
-        if (Config.UseParameterUniformityVisitor)
-        {
-            expression = new ParameterExpressionReferenceBinder()
+        expression = new ParameterExpressionReferenceBinder()
                 .Visit(expression);
-        }
 
         return expression;
     }
@@ -132,7 +129,8 @@ public class ExprSerializer : ISerializer<Expression>
         /// <remarks>
         /// This visitor ensures that parameters with the same name in the expression tree are represented by the same object instance.
         /// </remarks>
-        public bool UseParameterUniformityVisitor { get; set; } = false;
+        [Obsolete("This visitor is required, and setting this to false wont have any effect.")]
+        public bool UseParameterUniformityVisitor { get; set; } = true;
 
         /// <summary>
         /// Gets or sets a value indicating whether the <see cref="ClosureExpressionUnwrapper"/> should be used during serialization.
