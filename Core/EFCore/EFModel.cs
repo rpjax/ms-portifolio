@@ -43,12 +43,4 @@ public abstract class EFModel : QueryableModel, IEFModel
         return Id.ToString();
     }
 
-    /// <summary>
-    /// Sets the unique identifier of the model using a string representation of a long integer.
-    /// </summary>
-    /// <param name="id">The string representation of the long integer identifier to be set.</param>
-    public override void SetId(string id)
-    {
-        Id = long.Parse(id);
-    }
 }

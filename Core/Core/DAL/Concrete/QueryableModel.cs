@@ -47,12 +47,6 @@ public abstract class QueryableModel : IQueryableModel
     public abstract string GetId();
 
     /// <summary>
-    /// Sets the identifier of the model.
-    /// </summary>
-    /// <param name="id">The identifier to be set.</param>
-    public abstract void SetId(string id);
-
-    /// <summary>
     /// Determines whether the current object is equal to another object of the same type.
     /// </summary>
     /// <param name="other">An object to compare with this object.</param>

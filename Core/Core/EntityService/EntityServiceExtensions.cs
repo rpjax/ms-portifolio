@@ -6,7 +6,7 @@ namespace ModularSystem.Core;
 /// <summary>
 /// Provides extension methods for <see cref="EntityService{T}"/>.
 /// </summary>
-public static class EntityExtensions
+public static class EntityServiceExtensions
 {
     //*
     // TODO: Implement IVisitableQueryable
@@ -319,7 +319,7 @@ public static class EntityExtensions
     /// <returns></returns>
     public static Expression IdEquals<T>(this EntityService<T> entity, string id, bool visit = false) where T : IQueryableModel
     {
-        Expression<Func<T, bool>> expression = (T x) => EntityLinq.IdEqualsFlag(id);
+        Expression<Func<T, bool>> expression = (T x) => EntityLinq.IdEquals(id);
 
         if (visit)
         {
@@ -338,7 +338,7 @@ public static class EntityExtensions
     /// <returns></returns>
     public static Expression<Func<T, bool>> WhereIdEquals<T>(this EntityService<T> entity, string id, bool visit = true) where T : IQueryableModel
     {
-        Expression<Func<T, bool>> expression = (T x) => EntityLinq.IdEqualsFlag(id);
+        Expression<Func<T, bool>> expression = (T x) => EntityLinq.IdEquals(id);
 
         if (visit)
         {

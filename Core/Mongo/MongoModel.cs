@@ -37,7 +37,7 @@ public abstract class MongoModel : QueryableModel, IMongoModel
     /// <remarks>
     /// The ObjectId is a 12-byte identifier typically employed by MongoDB to uniquely identify documents within a collection.
     /// </remarks>
-    [BsonId]
+    [BsonId, EntityKey]
     public ObjectId Id { get; set; }
 
     /// <summary>
@@ -49,15 +49,4 @@ public abstract class MongoModel : QueryableModel, IMongoModel
         return Id.ToString();
     }
 
-    /// <summary>
-    /// Parses and sets the MongoDB ObjectId using its string representation.
-    /// </summary>
-    /// <param name="id">The string representation of the MongoDB ObjectId to be assigned to the model.</param>
-    /// <remarks>
-    /// An exception will be thrown if the provided string is not a valid representation of an ObjectId.
-    /// </remarks>
-    public override void SetId(string id)
-    {
-        Id = ObjectId.Parse(id);
-    }
 }

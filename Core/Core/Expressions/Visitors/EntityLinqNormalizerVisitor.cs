@@ -38,7 +38,7 @@ internal class EntityLinqNormalizerVisitor<T> : CustomExpressionVisitor, IVisito
     {
         var translateIdEquals =
             node.Method.DeclaringType == typeof(EntityLinq) &&
-            node.Method.Name == nameof(EntityLinq.IdEqualsFlag);
+            node.Method.Name == nameof(EntityLinq.IdEquals);
 
         if (translateIdEquals)
         {

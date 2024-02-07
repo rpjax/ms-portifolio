@@ -33,9 +33,4 @@ public interface IQueryableModel : IEquatable<IQueryableModel>
     /// <returns>The identifier of the model as a string.</returns>
     string GetId();
 
-    /// <summary>
-    /// Sets the identifier of the model.
-    /// </summary>
-    /// <param name="id">The identifier to be set.</param>
-    void SetId(string id);
 }

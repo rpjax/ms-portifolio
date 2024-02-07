@@ -1,6 +1,6 @@
 ﻿namespace ModularSystem.Core.Initialization;
 
-public static partial class Flags
+public static partial class InitializationFlags
 {
     public const string EnableInitializationLogs = "enable initialization logs";
 
@@ -15,4 +15,6 @@ public static partial class Flags
     /// Gets or sets a value indicating whether to initialize the console logger.
     /// </summary>
     public const string InitConsoleLogger = "init console logger";
+
+    public const string InitEntityKeys = "init entity keys";
 }

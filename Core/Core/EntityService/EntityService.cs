@@ -946,23 +946,10 @@ public static class EntityLinq
     /// <summary>
     /// Signals the LINQ provider to replace this flag with an <see cref="Expression"/>.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="flagName"></param>
-    /// <param name="data"></param>
-    /// <returns></returns>
-    /// <exception cref="Exception"></exception>
-    public static T ReplacementFlag<T>(string flagName, object? data = null)
-    {
-        throw new Exception();
-    }
-
-    /// <summary>
-    /// Signals the LINQ provider to replace this flag with an <see cref="Expression"/>.
-    /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static bool IdEqualsFlag(string id)
+    public static bool IdEquals(string id)
     {
         throw new Exception();
     }
