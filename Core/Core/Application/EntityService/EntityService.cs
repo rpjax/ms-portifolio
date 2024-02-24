@@ -1,4 +1,5 @@
 using ModularSystem.Core.Expressions;
+using ModularSystem.Core.Linq;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
@@ -15,7 +16,7 @@ public class EnititySettings
 /// Abstract base class for entities, providing shared CRUD operations, serialization, and expression handling.
 /// </summary>
 /// <typeparam name="T">The type of the entity being operated on, which must implement IQueryableModel.</typeparam>
-public abstract class EntityService<T> : IEntityService<T> where T : IQueryableModel
+public abstract class EntityService<T> : IEntityService<T> where T : IEntity
 {
     /// <summary>
     /// Gets or sets the settings associated with the entity.
@@ -228,9 +229,9 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
     /// This method serves as an entry point to construct dynamic queries for entities. It internally calls <see cref="OnCreateQueryAsync"/> to allow middleware components to potentially alter the query before it's returned.
     /// </remarks>
     /// <returns>An IQueryable of type <typeparamref name="T"/> which can be further shaped using LINQ.</returns>
-    public Task<IQueryable<T>> CreateQueryableAsync()
+    public IAsyncQueryable<T> CreateQueryable()
     {
-        return OnCreateQueryAsync(DataAccessObject.AsQueryable());
+        return OnQueryCreated(DataAccessObject.AsAsyncQueryable());
     }
 
     /// <summary>
@@ -446,7 +447,7 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
     //*
 
     /// <summary>
-    /// Maps the <see cref="IQueryableModel.GetId"/> method to its implementation.
+    /// Maps the <see cref="IEntity.GetId"/> method to its implementation.
     /// This should look like: <br/>
     /// MemberExpression => ParameterExpression
     /// </summary>
@@ -494,11 +495,11 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
     /// </remarks>
     /// <param name="queryable">The initial queryable object representing the entities.</param>
     /// <returns>An altered or unaltered IQueryable, depending on middleware operations.</returns>
-    protected virtual async Task<IQueryable<T>> OnCreateQueryAsync(IQueryable<T> queryable)
+    protected virtual IAsyncQueryable<T> OnQueryCreated(IAsyncQueryable<T> queryable)
     {
         foreach (var middleware in CreateMiddlewarePipeline())
         {
-            queryable = await middleware.OnCreateQueryAsync(queryable);
+            queryable = middleware.OnQueryCreated(queryable);
         }
 
         return queryable;
@@ -668,8 +669,8 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
 
     /// <summary>
     /// Called before updating the entity.<br/>
-    /// By default, this method retains the values of <see cref="IQueryableModel.CreatedAt"/> from <paramref name="currentValue"/> to <paramref name="updatedValue"/>,<br/>
-    /// and sets <see cref="IQueryableModel.LastModifiedAt"/> to <see cref="TimeProvider.UtcNow"/>.
+    /// By default, this method retains the values of <see cref="IEntity.CreatedAt"/> from <paramref name="currentValue"/> to <paramref name="updatedValue"/>,<br/>
+    /// and sets <see cref="IEntity.LastModifiedAt"/> to <see cref="TimeProvider.UtcNow"/>.
     /// </summary>
     /// <param name="currentValue">The current state of the entity.</param>
     /// <param name="updatedValue">The new state of the entity.</param>
@@ -851,9 +852,9 @@ public abstract class EntityService<T> : IEntityService<T> where T : IQueryableM
             return Entity.AfterCreateAsync(entities);
         }
 
-        public override Task<IQueryable<T>> OnCreateQueryAsync(IQueryable<T> queryable)
+        public override IAsyncQueryable<T> OnQueryCreated(IAsyncQueryable<T> queryable)
         {
-            return Entity.OnCreateQueryAsync(queryable);
+            return Entity.OnQueryCreated(queryable);
         }
 
         public override Task<IQuery<T>> BeforeQueryAsync(IQuery<T> query)

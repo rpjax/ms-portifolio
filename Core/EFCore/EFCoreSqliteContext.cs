@@ -6,8 +6,8 @@ namespace ModularSystem.EntityFramework;
 /// <summary>
 /// Represents an Entity Framework Core context specifically designed for SQLite databases.
 /// </summary>
-/// <typeparam name="T">The type of the entity that this context operates on. Must be a class and implement the <see cref="IEFModel"/> interface.</typeparam>
-public class EFCoreSqliteContext<T> : EFCoreContext where T : class, IEFModel
+/// <typeparam name="T">The type of the entity that this context operates on. Must be a class and implement the <see cref="IEFEntity"/> interface.</typeparam>
+public class EFCoreSqliteContext<T> : EFCoreContext where T : class, IEFEntity
 {
     /// <summary>
     /// The default table name used in the <see cref="EFCoreSqliteContext{T}"/>.

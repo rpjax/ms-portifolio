@@ -2,7 +2,7 @@
 
 namespace ModularSystem.Core.Expressions;
 
-internal class EntityLinqNormalizerVisitor<T> : CustomExpressionVisitor, IVisitor<Expression> where T : IQueryableModel
+internal class EntityLinqNormalizerVisitor<T> : CustomExpressionVisitor, IVisitor<Expression> where T : IEntity
 {
     private Func<ParameterExpression, Expression> CreateIdSelectorFunction { get; }
     private Func<string, object> ParseIdFunction { get; }

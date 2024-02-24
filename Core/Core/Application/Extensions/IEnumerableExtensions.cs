@@ -18,25 +18,28 @@ public static class IEnumerableExtensions
         }
     }
 
-    public static IEnumerable<T> RemoveWhere<T>(this IEnumerable<T> enumerable, Func<T, bool> selector)
+    public static IEnumerable<T> RemoveWhere<T>(this IEnumerable<T> enumerable, Func<T, bool> predicate)
     {
-        return enumerable.Where(x => !selector.Invoke(x));
+        return enumerable.Where(x => !predicate.Invoke(x));
     }
 
     public static bool IsEmpty<T>(this IEnumerable<T> enumerable)
     {
+        if (enumerable is Array array)
+        {
+            return array.Length == 0;
+        }
+        if(enumerable is ICollection<T> collection)
+        {
+            return collection.Count == 0;
+        }
+
         return !enumerable.Any();
     }
 
     public static bool IsNotEmpty<T>(this IEnumerable<T> enumerable)
     {
-        return enumerable.Any();
-    }
-
-    public static T? GetOneWhere<T>(this IEnumerable<T> enumerable, Func<T, bool> predicate)
-    {
-        var query = enumerable.Where(predicate);
-        return query.IsEmpty() ? default(T) : query.First();
+        return !enumerable.IsEmpty();
     }
 
     /// <summary>
@@ -53,6 +56,22 @@ public static class IEnumerableExtensions
         {
             yield return converter.Invoke(item);
         }
+    }
+
+    public static bool DoesNotContain<T>(
+        this IEnumerable<T> enumerable, 
+        Func<T, bool> predicate
+    )
+    {
+        return !enumerable.Any(x =>  predicate.Invoke(x));
+    }
+
+    public static bool DoesNotContain<T>(
+        this IEnumerable<T> enumerable,
+        T value
+    )
+    {
+        return !enumerable.Any(x => x?.Equals(x) == true);
     }
 
 }

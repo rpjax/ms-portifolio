@@ -1,13 +1,16 @@
-﻿namespace ModularSystem.Core;
+﻿using System.Security.Cryptography;
+
+namespace ModularSystem.Core;
 
 /// <summary>
-/// Represents a currency value along with its related currency information.
-/// Implements <see cref="IEquatable{CurrencyValue}"/> for value equality.
+/// Represents a currency value along with its related currency information. <br/>
+/// Implements <see cref="IEquatable{CurrencyValue}"/> for value *only* equality.
 /// </summary>
 public partial class CurrencyValue : IEquatable<CurrencyValue>
 {
     /// <summary>
-    /// Gets or sets the value of the currency. This value will be rounded to the number of decimal places defined by <see cref="DecimalPlaces"/>.
+    /// Gets or sets the value of the currency. <br/>
+    /// This value will be rounded to the number of decimal places defined by <see cref="CurrencyInfo.DecimalPlaces"/>.
     /// </summary>
     public decimal Value
     {
@@ -18,7 +21,7 @@ public partial class CurrencyValue : IEquatable<CurrencyValue>
     /// <summary>
     /// Gets or sets the information related to the currency, such as currency code and symbol.
     /// </summary>
-    public CurrencyInfo? Info { get; set; }
+    public CurrencyInfo Info { get; set; }
 
     private decimal _value;
 
@@ -43,16 +46,26 @@ public partial class CurrencyValue : IEquatable<CurrencyValue>
     }
 
     /// <summary>
+    /// Checks for equality with another <see cref="CurrencyValue"/> object based on its value.
+    /// </summary>
+    public override bool Equals(object? obj)
+    {
+        return obj is CurrencyValue currencyValue
+            && Equals(currencyValue);
+    }
+
+    /// <inheritdoc/>
+    public override int GetHashCode()
+    {
+        return ToString().GetHashCode();
+    }
+
+    /// <summary>
     /// Converts the currency value to a string representation, including its symbol if available.
     /// </summary>
     /// <returns>A string representing the currency value.</returns>
     public override string ToString()
     {
-        if (Info == null)
-        {
-            return Value.ToString();
-        }
-
         return $"{Info.Symbol} {Value.ToString("N" + Info.DecimalPlaces)}";
     }
 
@@ -76,6 +89,7 @@ public partial class CurrencyValue : IEquatable<CurrencyValue>
     {
         return Math.Round(value, decimalPlaces ?? CurrencyInfo.DefaultDecimalPlaces, MidpointRounding.AwayFromZero);
     }
+
 }
 
 public partial class CurrencyValue

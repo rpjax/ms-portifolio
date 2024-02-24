@@ -7,8 +7,8 @@ namespace ModularSystem.EntityFramework;
 /// Provides a base class for services managing entities within an Entity Framework context. <br/>
 /// This class offers common functionalities for entity operations.
 /// </summary>
-/// <typeparam name="T">The type of the entity, which should implement the <see cref="IEFModel"/> interface.</typeparam>
-public abstract class EFEntityService<T> : EntityService<T> where T : class, IEFModel
+/// <typeparam name="T">The type of the entity, which should implement the <see cref="IEFEntity"/> interface.</typeparam>
+public abstract class EFEntityService<T> : EntityService<T> where T : class, IEFEntity
 {
     /// <summary>
     /// Creates an expression to select the ID of an entity based on a given parameter. <br/>
@@ -16,11 +16,11 @@ public abstract class EFEntityService<T> : EntityService<T> where T : class, IEF
     /// <param name="parameter">The parameter expression used as the source for accessing the entity's properties.</param>
     /// <returns>A <see cref="MemberExpression"/> representing the ID property of the entity, typically used in LINQ queries.</returns>
     /// <remarks>
-    /// This method constructs a member access expression for the "Id" property, assuming that the entity type <typeparamref name="T"/> implements <see cref="IEFModel"/> which includes an "Id" property.
+    /// This method constructs a member access expression for the "Id" property, assuming that the entity type <typeparamref name="T"/> implements <see cref="IEFEntity"/> which includes an "Id" property.
     /// </remarks>
     protected override MemberExpression CreateIdSelectorExpression(ParameterExpression parameter)
     {
-        return Expression.Property(parameter, nameof(IEFModel.Id));
+        return Expression.Property(parameter, nameof(IEFEntity.Id));
     }
 
     /// <summary>

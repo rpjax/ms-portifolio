@@ -58,17 +58,26 @@ public class Translator
         return NodeTranslator.Translate(context, syntaxTree);
     }
 
+    public Expression Translate(string json, Type elementType)
+    {
+        var syntaxTree = RunAnalysis(json, elementType);
+        var exprParameter = Expression.Parameter(elementType, "root");
+        var context = new TranslationContext(elementType, exprParameter);
+
+        return NodeTranslator.Translate(context, syntaxTree);
+    }
+
     /// <summary>
     /// Translates a WebQL query string into a queryable object. <br/>
     /// This method provides an integration point for executing WebQL queries against various data sources.
     /// </summary>
     /// <param name="json">The WebQL query string in JSON format.</param>
-    /// <param name="genericType">The type of elements in the queryable.</param>
+    /// <param name="elementType">The type of elements in the queryable.</param>
     /// <param name="source">The initial queryable object to which the WebQL query is applied.</param>
     /// <returns>A TranslatedQueryable object representing the results of the WebQL query.</returns>
-    public WebqlQueryable TranslateToQueryable(string json, Type genericType, IQueryable source)
+    public WebqlQueryable TranslateToQueryable(string json, Type elementType, IQueryable source)
     {
-        var queryableType = Options.QueryableType.MakeGenericType(genericType);
+        var queryableType = Options.QueryableType.MakeGenericType(elementType);
         var parameter = Expression.Parameter(queryableType, "root");
         var expression = TranslateToExpression(json, queryableType, parameter);
         var projectedType = expression.Type.GenericTypeArguments[0];

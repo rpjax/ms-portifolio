@@ -157,7 +157,7 @@ public class Error
 
         return parts.Count > 0
             ? string.Join(", ", parts)
-            : "Undefined ValidationError";
+            : "An Error object was instantiated without providing details. This indicates a programming oversight where an error was flagged but not adequately described. Ensure that all instances of the Error class are created with meaningful text, codes, and sources to accurately reflect the nature of the problem encountered. This practice aids in the effective diagnosis and handling of errors within the system. Developers are encouraged to review the creation and management of Error objects to prevent this issue.";
     }
 
     /// <summary>

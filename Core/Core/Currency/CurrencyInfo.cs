@@ -3,7 +3,64 @@
 /// <summary>
 /// Represents currency information such as the currency code and symbol.
 /// </summary>
-public class CurrencyInfo
+public partial class CurrencyInfo
+{
+    /// <summary>
+    /// Gets or sets the ISO currency code.
+    /// </summary>
+    public string? Code { get; set; }
+
+    /// <summary>
+    /// Gets or sets the currency symbol.
+    /// </summary>
+    public string? Symbol { get; set; }
+
+    /// <summary>
+    /// Gets or sets the number of decimal places to use for rounding the currency value.
+    /// </summary>
+    public int DecimalPlaces { get; set; }
+
+    /// <summary>
+    /// Default parameterless constructor.
+    /// </summary>
+    public CurrencyInfo()
+    {
+        Code = null;
+        Symbol = null;
+        DecimalPlaces = DefaultDecimalPlaces;
+    }
+
+    /// <inheritdoc/>
+    public static bool operator ==(CurrencyInfo left, CurrencyInfo right)
+    {
+        return left.Code == right.Code
+            && left.Symbol == right.Symbol
+            && left.DecimalPlaces == right.DecimalPlaces;
+    }
+
+    /// <inheritdoc/>
+    public static bool operator !=(CurrencyInfo left, CurrencyInfo right)
+    {
+        return !(left == right);
+    }
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj)
+    {
+        return ReferenceEquals(this, obj);
+    }
+
+    /// <inheritdoc/>
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+}
+
+/// <summary>
+/// Represents currency information such as the currency code and symbol.
+/// </summary>
+public partial class CurrencyInfo
 {
     /// <summary>
     /// The default number of decimal places used for rounding the currency value.
@@ -33,32 +90,6 @@ public class CurrencyInfo
     /// </code>
     /// </example>
     public static CurrencyInfo Default { get; set; } = Usd();
-
-
-    /// <summary>
-    /// Gets or sets the ISO currency code.
-    /// </summary>
-    public string? Code { get; set; }
-
-    /// <summary>
-    /// Gets or sets the currency symbol.
-    /// </summary>
-    public string? Symbol { get; set; }
-
-    /// <summary>
-    /// Gets or sets the number of decimal places to use for rounding the currency value.
-    /// </summary>
-    public int DecimalPlaces { get; set; }
-
-    /// <summary>
-    /// Default parameterless constructor.
-    /// </summary>
-    public CurrencyInfo()
-    {
-        Code = null;
-        Symbol = null;
-        DecimalPlaces = DefaultDecimalPlaces;
-    }
 
     /// <summary>
     /// Provides information for the Brazilian Real (BRL).

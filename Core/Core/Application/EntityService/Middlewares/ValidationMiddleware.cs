@@ -12,7 +12,7 @@
 /// </list>
 /// </remarks>
 /// <typeparam name="T">The type of the entity being validated.</typeparam>
-internal class ValidationMiddleware<T> : EntityMiddleware<T> where T : IQueryableModel
+internal class ValidationMiddleware<T> : EntityMiddleware<T> where T : IEntity
 {
     private EntityService<T> Service { get; }
 
@@ -34,11 +34,11 @@ internal class ValidationMiddleware<T> : EntityMiddleware<T> where T : IQueryabl
     {
         if (Service.Validator != null)
         {
-            var error = await Service.Validator.ValidateAsync(entity);
+            var result = Service.Validator.Validate(entity);
 
-            if (error != null)
+            if (result.IsFailure)
             {
-                throw error;
+                throw new ErrorException(result);
             }
         }
 
@@ -60,26 +60,15 @@ internal class ValidationMiddleware<T> : EntityMiddleware<T> where T : IQueryabl
             return await base.BeforeCreateAsync(entities);
         }
 
-        var validationTasks = new List<Task<Exception?>>();
-
         foreach (var entity in entities)
         {
-            validationTasks.Add(Service.Validator.ValidateAsync(entity));
-        }
+            var result = Service.Validator.Validate(entity);
 
-        var validationResults = await Task.WhenAll(validationTasks);
-        var errors = validationResults.Where(e => e != null).Select(e => e!).ToArray();
-
-        if (errors.IsEmpty())
-        {
-            return await base.BeforeCreateAsync(entities);
+            if (result.IsFailure)
+            {
+                throw new ErrorException(result);
+            }
         }
-        if (errors.Length == 1)
-        {
-            throw errors.First();
-        }
-
-        var exception = new AppException("Bulk create operation threw multiple validation errors.", ExceptionCode.InvalidInput, null, errors);
 
         return await base.BeforeCreateAsync(entities);
     }
@@ -94,11 +83,11 @@ internal class ValidationMiddleware<T> : EntityMiddleware<T> where T : IQueryabl
     {
         if (Service.UpdateValidator != null)
         {
-            var error = await Service.UpdateValidator.ValidateAsync(updatedValue);
+            var result = Service.UpdateValidator.Validate(updatedValue);
 
-            if (error != null)
+            if (result.IsFailure)
             {
-                throw error;
+                throw new ErrorException(result);
             }
         }
 
@@ -114,11 +103,11 @@ internal class ValidationMiddleware<T> : EntityMiddleware<T> where T : IQueryabl
     {
         if (Service.QueryValidator != null)
         {
-            var error = await Service.QueryValidator.ValidateAsync(query);
+            var result = Service.QueryValidator.Validate(query);
 
-            if (error != null)
+            if (result.IsFailure)
             {
-                throw error;
+                throw new ErrorException(result);
             }
         }
 

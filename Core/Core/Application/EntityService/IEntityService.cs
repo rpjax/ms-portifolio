@@ -1,10 +1,11 @@
-﻿using System.Linq.Expressions;
+﻿using ModularSystem.Core.Linq;
+using System.Linq.Expressions;
 
 namespace ModularSystem.Core;
 
 /// <summary>
 /// Provides an abstraction over business operations for entities of type <typeparamref name="T"/>. <br/>
-/// Supports CRUD (Create, Read, Update, Delete) actions, data access, validation, and querying.
+/// Supports CRUD (Create, Read, Update, Delete) actions, data access and querying.
 /// </summary>
 /// <typeparam name="T">Entity type to be managed by the service.</typeparam>
 public interface IEntityService<T> : IDisposable
@@ -24,14 +25,14 @@ public interface IEntityService<T> : IDisposable
     Task<string[]> CreateAsync(IEnumerable<T> entities);
 
     /// <summary>
-    /// Provides an asynchronous mechanism to generate an initial query for entities of type <typeparamref name="T"/>.
-    /// This returned query is flexible and can be further refined or filtered using LINQ before triggering its execution with methods like ToArray() or ToList(), leveraging the deferred execution nature of LINQ.
+    /// Creates an <see cref="IAsyncQueryable{T}"/> instance for querying entities of type <typeparamref name="T"/> asynchronously.
     /// </summary>
     /// <remarks>
-    /// This method offers an entry point to construct dynamic queries for entities. The execution is deferred, meaning that the data store won't be hit until the query is materialized (e.g., by invoking ToList() or ToArray()).
+    /// This method initializes a queryable interface for the entities, allowing for the construction of asynchronous LINQ queries. <br/>
+    /// Use this method to start building queries against the data store without immediately executing them.
     /// </remarks>
-    /// <returns>An IQueryable of type <typeparamref name="T"/> which can be further shaped using LINQ.</returns>
-    Task<IQueryable<T>> CreateQueryableAsync();
+    /// <returns>An <see cref="IAsyncQueryable{T}"/> instance that supports building and executing asynchronous queries.</returns>
+    IAsyncQueryable<T> CreateQueryable();
 
     /// <summary>
     /// Queries the data store asynchronously based on the provided query criteria.

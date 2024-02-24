@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore;
 using ModularSystem.Core;
 using ModularSystem.Core.Expressions;
 using ModularSystem.Core.Linq;
@@ -14,8 +15,8 @@ namespace ModularSystem.Web;
 /// Provides a base controller for services handling data of type <typeparamref name="T"/>. <br/>
 /// This abstract controller defines common functionalities for service-oriented controllers.
 /// </summary>
-/// <typeparam name="T">The type of the data model, which must implement <see cref="IQueryableModel"/>.</typeparam>
-public abstract class ServiceController<T> : WebController where T : IQueryableModel
+/// <typeparam name="T">The type of the data model, which must implement <see cref="IEntity"/>.</typeparam>
+public abstract class ServiceController<T> : WebController where T : IEntity
 {
     /// <summary>
     /// Represents the abstract property for accessing the EntityService associated with the specific data type T. <br/>
@@ -40,8 +41,8 @@ public abstract class ServiceController<T> : WebController where T : IQueryableM
 /// Defines a controller to implement basic CRUD (Create, Read, Update, Delete) operations based on a RESTful API design.<br/>
 /// This controller interacts with data of type <typeparamref name="T"/> using <see cref="EntityService{T}"/>.
 /// </summary>
-/// <typeparam name="T">The type of the data entity. Must be a class implementing <see cref="IQueryableModel"/>.</typeparam>
-public abstract class CrudController<T> : ServiceController<T>, IPingController, IDisposable where T : class, IQueryableModel
+/// <typeparam name="T">The type of the data entity. Must be a class implementing <see cref="IEntity"/>.</typeparam>
+public abstract class CrudController<T> : ServiceController<T>, IPingController, IDisposable where T : class, IEntity
 {
     // CREATE
     [HttpPost]
@@ -118,9 +119,12 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
                 return BadRequest(ModelState);
             }
 
-            var source = await Service.CreateQueryableAsync();
-            var queryable = VisitQueryable(request.ToQueryable(source));
-            var data = queryable.ToArray();
+            var source = Service.CreateQueryable();
+            var transformedSource = request.ToQueryable(source);
+            var asyncTransformedSource = source.CreateQuery(transformedSource);
+
+            var query = VisitQueryable(asyncTransformedSource);
+            var data = query.ToArrayAsync();
 
             return Ok(data);
         }
@@ -285,7 +289,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
     /// </summary>
     /// <param name="queryable">The translated queryable object to visit.</param>
     /// <returns>The potentially modified TranslatedQueryable object.</returns>
-    protected virtual IQueryable<object> VisitQueryable(IQueryable<object> queryable)
+    protected virtual IAsyncQueryable<object> VisitQueryable(IAsyncQueryable<object> queryable)
     {
         return queryable;
     }
@@ -296,9 +300,9 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
 /// Enhances the base service controller by enabling complex querying functionalities. <br/>
 /// It processes dynamic queries defined by <see cref="SerializableQueryable"/>.
 /// </summary>
-/// <typeparam name="T">The type of the entity being managed, conforming to <see cref="IQueryableModel"/>.</typeparam>
+/// <typeparam name="T">The type of the entity being managed, conforming to <see cref="IEntity"/>.</typeparam>
 /// <returns>A task resulting in an IActionResult containing the query results or an error message.</returns>
-public abstract class QueryableController<T> : ServiceController<T> where T : class, IQueryableModel
+public abstract class QueryableController<T> : ServiceController<T> where T : class, IEntity
 {
     /// <summary>
     /// Handles an incoming query request and returns the result of the query. <br/>
@@ -315,10 +319,13 @@ public abstract class QueryableController<T> : ServiceController<T> where T : cl
             {
                 return BadRequest(ModelState);
             }
-   
-            var source = await Service.CreateQueryableAsync();
-            var queryable = VisitQueryable(request.ToQueryable(source));
-            var data = queryable.ToArray();
+
+            var source = Service.CreateQueryable();
+            var transformedSource = request.ToQueryable(source);
+            var asyncTransformedSource = source.CreateQuery(transformedSource);
+
+            var query = VisitQueryable(asyncTransformedSource);
+            var data = query.ToArrayAsync();
 
             return Ok(data);
         }
@@ -345,7 +352,7 @@ public abstract class QueryableController<T> : ServiceController<T> where T : cl
 /// Extends service controller functionalities to handle WebQL queries. <br/>
 /// Enables data querying using WebQL syntax for entities of type <typeparamref name="T"/>.
 /// </summary>
-/// <typeparam name="T">The entity type managed by the controller, implementing <see cref="IQueryableModel"/>.</typeparam>
+/// <typeparam name="T">The entity type managed by the controller, implementing <see cref="IEntity"/>.</typeparam>
 /// <returns>A task resulting in an IActionResult with the processed data or an error message.</returns>
 public abstract class WebqlController<T> : WebController
 {
@@ -424,7 +431,7 @@ public abstract class WebqlController<T> : WebController
 /// <typeparam name="TEntity"></typeparam>
 /// <typeparam name="TPresented"></typeparam>
 [Obsolete("As of version 1.40.0, the CrudController with an adapter layer is deprecated due to its tight coupling with the type-based modeling of expression tree operations across applications. This behavior is primarily introduced by the QueryProtocol class. Consider using alternative approaches.")]
-public abstract class CrudController<TEntity, TPresented> : WebController, IPingController, IDisposable where TEntity : class, IQueryableModel where TPresented : class
+public abstract class CrudController<TEntity, TPresented> : WebController, IPingController, IDisposable where TEntity : class, IEntity where TPresented : class
 {
     /// <summary>
     /// Gets the associated entity instance for CRUD operations.

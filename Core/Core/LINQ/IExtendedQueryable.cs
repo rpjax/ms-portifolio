@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Linq.Expressions;
+using System.Threading;
 
 namespace ModularSystem.Core.Linq;
 
@@ -39,7 +40,7 @@ public static class AsyncEnumerableExtensions
         var list = new List<T>();
         await using var enumerator = source.GetAsyncEnumerator();
 
-        while(await enumerator.MoveNextAsync())
+        while (await enumerator.MoveNextAsync())
         {
             list.Add(enumerator.Current);
         }

@@ -33,21 +33,24 @@ public interface IOperationResult<T> : IOperationResult
 }
 
 /// <summary>
-/// Represents the outcome of an operation, indicating whether it was successful or not, and containing any related errors. <br/>
-/// This class offers foundational support for error handling and operation status assessment.
+/// Represents the outcome of an atomic operation with an absolute success or failure. <br/>
+/// Use <see cref="NonAtomicOperationResult"/> for operations with partial successes or failures.
 /// </summary>
 public class OperationResult : IOperationResult
 {
     /// <summary>
     /// Provides a pre-defined instance representing a successful operation. <br/>
-    /// This static member can be used to indicate success without the need to create a new instance of <see cref="OperationResult"/>.
     /// </summary>
     public static readonly OperationResult Success = new();
 
-    /// <inheritdoc/>
-    public bool IsSuccess { get; protected set; }
+    /// <summary>
+    /// Indicates the success status of the operation.
+    /// </summary>
+    public bool IsSuccess { get; set; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// A list of encountered errors during the operation.
+    /// </summary>
     public List<Error> Errors { get; set; } = new();
 
     /// <summary>
@@ -63,65 +66,32 @@ public class OperationResult : IOperationResult
     public bool ContainsErrors { get => Errors.IsNotEmpty(); }
 
     /// <summary>
-    /// Initializes a new instance of OperationResult with the provided arguments.
+    /// Creates a successful operation result.
     /// </summary>
-    [JsonConstructor]
-    public OperationResult(bool isSuccess, List<Error> errors)
+    public OperationResult()
     {
-        IsSuccess = isSuccess;
-        Errors = errors;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the OperationResult class based on another operation result.
-    /// </summary>
-    /// <param name="result">An IOperationResult to initialize the current instance with.</param>
-    public OperationResult(IOperationResult result)
-    {
-        IsSuccess = result.IsSuccess;
-        Errors = new List<Error>(result.Errors);
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the OperationResult class with specified success status and errors.
-    /// </summary>
-    /// <param name="isSuccess">Indicates whether the operation was successful.</param>
-    /// <param name="errors">The errors encountered during the operation.</param>
-    public OperationResult(bool isSuccess = true, params Error[] errors)
-    {
-        IsSuccess = isSuccess;
+        IsSuccess = true;
         Errors = new List<Error>();
+    }
+
+    /// <summary>
+    /// Creates a failed operation result with a specified error.
+    /// </summary>
+    /// <param name="error">The error causing failure.</param>
+    public OperationResult(Error error)
+    {
+        IsSuccess = false;
+        Errors.Add(error);
+    }
+
+    /// <summary>
+    /// Creates a failed operation result with multiple errors.
+    /// </summary>
+    /// <param name="errors">A list of errors causing failure.</param>
+    public OperationResult(IEnumerable<Error> errors) 
+    {
+        IsSuccess = false;
         Errors.AddRange(errors);
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="OperationResult"/> class, potentially with a set of errors. <br/>
-    /// This constructor is used to create an operation result and can represent either a successful or a failed operation based on the provided errors.
-    /// </summary>
-    /// <param name="errors">An array of <see cref="Error"/> objects representing the errors encountered during the operation. If no errors are provided, the operation is considered successful by default.</param>
-    /// <remarks>
-    /// If errors are provided, the operation's success status is set to <c>false</c>, indicating a failed operation. <br/>
-    /// If no errors are passed (an empty array), the constructor treats the operation as successful, setting the success status to <c>true</c>.
-    /// </remarks>
-    public OperationResult(params Error[] errors) : this(false, errors)
-    {
-        if (errors.Length == 0)
-        {
-            IsSuccess = true;
-        }
-    }
-
-    /// <summary>
-    /// Constructs an OperationResult indicating a failed operation with the provided error details.
-    /// </summary>
-    /// <param name="errors">Collection of <see cref="Error"/> objects detailing the reasons for the operation's failure.</param>
-    /// <remarks>
-    /// This constructor is exclusively used for creating an OperationResult representing a failed operation. <br/>
-    /// It sets the operation status to failure and includes the provided errors. <br/>
-    /// If the errors collection is empty, the operation is still considered as a failure.
-    /// </remarks>
-    public OperationResult(IEnumerable<Error> errors) : this(false, errors.ToArray())
-    {
     }
 
     /// <summary>
@@ -143,12 +113,13 @@ public class OperationResult : IOperationResult
     }
 
     /// <summary>
-    /// Adds errors to the operation result.
+    /// Adds errors to the operation, marking it as failed.
     /// </summary>
-    /// <param name="errors">The errors to add to the operation result.</param>
-    /// <returns>The current instance with the added errors.</returns>
+    /// <param name="errors">Errors to add.</param>
+    /// <returns>The instance with added errors.</returns>
     public OperationResult AddErrors(params Error[] errors)
     {
+        IsSuccess = false;
         Errors.AddRange(errors);
         return this;
     }
@@ -175,112 +146,53 @@ public class OperationResult : IOperationResult
 }
 
 /// <summary>
-/// Represents the outcome of an operation, including a flag indicating success or failure, and potentially containing operation-specific data. <br/>
-/// This class extends OperationResult to encapsulate data resulting from the operation, making it suitable for operations that yield a result.
+/// Represents the outcome of an atomic operation, indicating an absolute success or failure, <br/>
+/// and containing operation-specific data if the operation was successful. <br/>
+/// For operations that can have partial successes or failures, consider using the 
+/// <see cref="NonAtomicOperationResult{T}"/> class.
 /// </summary>
 /// <typeparam name="T">The type of data included in the operation result, if any.</typeparam>
 public class OperationResult<T> : OperationResult, IOperationResult<T?>
 {
     /// <summary>
-    /// Gets the data produced by the operation, if any.
+    /// The data produced by the operation.
     /// </summary>
     public T? Data { get; set; }
 
     /// <summary>
-    /// Initializes a new instance of OperationResult with the provided arguments.
+    /// Creates a successful operation result with optional data.
     /// </summary>
-    /// <param name="isSuccess"></param>
-    /// <param name="errors"></param>
-    /// <param name="data"></param>
-    [JsonConstructor]
-    public OperationResult(bool isSuccess, List<Error> errors, T? data)
+    /// <param name="data">The operation result data, if any.</param>
+    public OperationResult(T? data = default) 
     {
-        IsSuccess = isSuccess;
-        Errors = errors;
+        IsSuccess = true;
         Data = data;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="OperationResult{T}"/> class using an existing <see cref="IOperationResult"/>. <br/>
-    /// This constructor is used to create a typed operation result from a non-typed operation result.
+    /// Creates a failed operation result with a specified error.
     /// </summary>
-    /// <param name="operationResult">The non-typed operation result to initialize the current instance with.</param>
-    /// <remarks>
-    /// The success status and errors from the provided operation result are preserved, <br/>
-    /// but the data is set to its default value as the type information is not available in the non-typed operation result.
-    /// </remarks>
-    public OperationResult(IOperationResult operationResult) : base(operationResult)
+    /// <param name="error">The error causing the operation failure.</param>
+    public OperationResult(Error error) : base(error)
     {
-        Data = default;
+      
     }
 
     /// <summary>
-    /// Initializes a new instance of the OperationResult class with specific operation data, <br/>
-    /// optionally with results and data from another operation.
+    /// Creates a failed operation result with multiple errors.
     /// </summary>
-    /// <param name="operationResult">An optional IOperationResult of the same type to initialize the current instance with.</param>
-    public OperationResult(IOperationResult<T> operationResult) : base(operationResult)
+    /// <param name="errors">The errors causing the operation failure.</param>
+    public OperationResult(IEnumerable<Error> errors) : base(errors)
     {
-        Data = operationResult.Data;
+     
     }
 
     /// <summary>
-    /// Initializes a new instance of the OperationResult class with success status, operation data, and errors.
+    /// Retrieves the data from a successful operation, ensuring the operation was successful before accessing the data. <br/>
+    /// Throws an exception if the operation failed or data is null.
     /// </summary>
-    /// <param name="isSuccess">Indicates whether the operation was successful.</param>
-    /// <param name="data">The data produced by the operation.</param>
-    /// <param name="errors">The errors encountered during the operation.</param>
-    public OperationResult(bool isSuccess = true, T? data = default, params Error[] errors) : base(isSuccess, errors)
-    {
-        Data = data;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the OperationResult class assuming a successful operation, with operation data and errors. <br/>
-    /// This constructor is typically used when the operation is successful and data is available.
-    /// </summary>
-    /// <param name="data">The data produced by the successful operation.</param>
-    /// <param name="errors">The errors encountered during the operation, if any.</param>
-    /// <remarks>
-    /// This constructor implicitly sets the operation's success status to <c>true</c>, indicating a sucessful operation.
-    /// </remarks>
-    public OperationResult(T? data, params Error[] errors) : this(true, data, errors)
-    {
-    }
-
-    /// <summary>
-    /// Constructs an OperationResult indicating a failed operation with the provided error details.
-    /// </summary>
-    /// <param name="errors">Array of <see cref="Error"/> objects detailing the reasons for the operation's failure.</param>
-    /// <remarks>
-    /// This constructor is used for creating an OperationResult representing a failed operation. <br/> 
-    /// It will set the operation status to failure, regardless of whether errors are provided.
-    /// </remarks>
-    public OperationResult(params Error[] errors) : this(false, default, errors)
-    {
-    }
-
-    /// <summary>
-    /// Constructs an OperationResult indicating a failed operation with the provided error details.
-    /// </summary>
-    /// <param name="errors">Collection of <see cref="Error"/> objects detailing the reasons for the operation's failure.</param>
-    /// <remarks>
-    /// This constructor is used for creating an OperationResult representing a failed operation. <br/>
-    /// It will set the operation status to failure, regardless of whether the error collection is empty or not.
-    /// </remarks>
-    public OperationResult(IEnumerable<Error> errors) : this(errors.ToArray())
-    {
-    }
-
-    /// <summary>
-    /// Retrieves the data produced by the operation if it was successful. <br/>
-    /// This method is a shorthand for avoiding null checks on the Data property and focuses on success and failure conditions.
-    /// <br/><br/>
-    /// <strong>Note:</strong> Always ensure that the operation was successful by checking <c>IsSuccess</c> before calling this method. <br/>
-    /// Attempting to call <c>GetData</c> on a failed operation result will throw an exception.
-    /// </summary>
-    /// <returns>The data produced by the successful operation.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the operation result is not successful or when data is null.</exception>
+    /// <returns>The data produced by the operation.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the operation was unsuccessful or data is null.</exception>
     public T GetData()
     {
         if (!IsSuccess)
@@ -296,12 +208,12 @@ public class OperationResult<T> : OperationResult, IOperationResult<T?>
         return Data;
     }
 
+
     /// <summary>
-    /// Sets the data for the operation result and returns the current instance. <br/>
-    /// This method is used to assign or update the operation's result data.
+    /// Updates the operation result with new data and returns the instance.
     /// </summary>
-    /// <param name="data">The data to be set as the operation result.</param>
-    /// <returns>The current <see cref="OperationResult{T}"/> instance with the updated data.</returns>
+    /// <param name="data">The new data for the operation result.</param>
+    /// <returns>The updated OperationResult instance.</returns>
     public OperationResult<T> SetData(T? data)
     {
         Data = data;
@@ -309,3 +221,67 @@ public class OperationResult<T> : OperationResult, IOperationResult<T?>
     }
 
 }
+
+/// <summary>
+/// Represents the outcome of a non-atomic operation, indicating that the operation might <br/>
+/// have succeeded, failed, or succeeded in part, containing any related errors.
+/// </summary>
+public class NonAtomicOperationResult : OperationResult
+{
+    /// <summary>
+    /// Initializes a new instance of the NonAtomicOperationResult class with a success status
+    /// and a collection of errors.
+    /// </summary>
+    /// <param name="isSuccess">Indicates whether the operation was overall successful.</param>
+    /// <param name="errors">A collection of errors encountered during the operation.</param>
+    public NonAtomicOperationResult(bool isSuccess, IEnumerable<Error> errors)
+    {
+        IsSuccess = isSuccess;
+        Errors.AddRange(errors);
+    }
+
+    /// <summary>
+    /// Initializes a new instance with a given success status and an array of errors.
+    /// </summary>
+    /// <param name="isSuccess">Indicates whether the operation was overall successful.</param>
+    /// <param name="errors">An array of errors encountered during the operation.</param>
+    public NonAtomicOperationResult(bool isSuccess, params Error[] errors) 
+    {
+        IsSuccess = isSuccess;
+        Errors.AddRange(errors);
+    }
+}
+
+/// <summary>
+/// Represents the outcome of a non-atomic operation that includes operation-specific data, <br/>
+/// indicating that the operation might have succeeded, failed, or succeeded in part.
+/// </summary>
+/// <typeparam name="T">The type of data included in the operation result.</typeparam>
+public class NonAtomicOperationResult<T> : OperationResult<T>
+{
+    /// <summary>
+    /// Initializes a new instance of the NonAtomicOperationResult class with a success status,
+    /// operation-specific data, and a collection of errors.
+    /// </summary>
+    /// <param name="isSuccess">Indicates whether the operation was overall successful.</param>
+    /// <param name="data">The data produced by the operation, if any.</param>
+    /// <param name="errors">A collection of errors encountered during the operation.</param>
+    public NonAtomicOperationResult(bool isSuccess, T? data, IEnumerable<Error> errors)
+    {
+        IsSuccess = isSuccess;
+        Errors.AddRange(errors);
+    }
+
+    /// <summary>
+    /// Initializes a new instance with a given success status, operation-specific data, and an array of errors.
+    /// </summary>
+    /// <param name="isSuccess">Indicates whether the operation was overall successful.</param>
+    /// <param name="data">The data produced by the operation, if any.</param>
+    /// <param name="errors">An array of errors encountered during the operation.</param>
+    public NonAtomicOperationResult(bool isSuccess, T? data, params Error[] errors) 
+    {
+        IsSuccess = isSuccess;
+        Errors.AddRange(errors);
+    }
+}
+

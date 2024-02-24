@@ -20,7 +20,7 @@ public static class TypeCreator
     /// This prefix is utilized when a specific name is not provided for the anonymous type.
     /// It follows the naming convention used by the C# compiler for generated anonymous types.
     /// </remarks>
-    public const string AnonymousTypePrefix = "<>f__AnonymousType";
+    public const string AnonymousTypeDefaultName = "<>f__AnonymousType";
 
     private static ConcurrentDictionary<string, Type> Cache = new();
 
@@ -62,7 +62,7 @@ public static class TypeCreator
         options ??= new();
 
         var properties = options.Properties.ToArray();
-        var signatureKey = CreateSignatureKey(properties);
+        var signatureKey = CreateSignatureKey(options);
 
         if (options.UseCache && Cache.ContainsKey(signatureKey))
         {
@@ -218,17 +218,54 @@ public static class TypeCreator
         return type;
     }
 
-    private static string CreateSignatureKey(AnonymousPropertyDefinition[] propertyDefinitions)
+    private static string CreateSignatureKey(AnonymousTypeCreationOptions options)
     {
         var keyBuilder = new StringBuilder();
+        var propertyDefinitions = options.Properties;
 
-        foreach (var propertyDefinition in propertyDefinitions)
+        var genericsTokens = new List<string>();
+        var propsTokens = new List<string>();
+        var settingsTokens = new List<string>();
+
+        //*
+        // generics section
+        //*
+        if (options.GenericTypeArguments.IsNotEmpty())
         {
-            keyBuilder.Append('[');
-            keyBuilder.Append(propertyDefinition.Name);
-            keyBuilder.Append(propertyDefinition.Type.GetQualifiedAssemblyName());
-            keyBuilder.Append(']');
+            foreach (var type in options.GenericTypeArguments)
+            {
+                genericsTokens.Add(type.FullName ?? type.Name);
+            }
+
+            keyBuilder.Append('<');
+            keyBuilder.Append(string.Join(", ", genericsTokens));
+            keyBuilder.Append('>');
         }
+
+        //*
+        // properties section
+        //*
+        foreach (var propDefinition in propertyDefinitions)
+        {
+            var type = propDefinition.Type.FullName ?? propDefinition.Type.Name;
+            var name = propDefinition.Name;
+
+            propsTokens.Add($"{type} {name}");
+        }
+
+        keyBuilder.Append('(');
+        keyBuilder.Append(string.Join(", ", propsTokens));
+        keyBuilder.Append(')');
+
+        //*
+        // settings section
+        //*
+        settingsTokens.Add($"defcon: {options.CreateDefaultConstructor}");
+        settingsTokens.Add($"setters: {options.CreateSetters}");
+
+        keyBuilder.Append('[');
+        keyBuilder.Append(string.Join("; ", settingsTokens));
+        keyBuilder.Append(']');
 
         return keyBuilder.ToString();
     }
@@ -273,7 +310,7 @@ public class AnonymousTypeCreationOptions
     /// <remarks>
     /// Defaults to a generic anonymous type name if not set.
     /// </remarks>
-    public string Name { get; set; } = TypeCreator.AnonymousTypePrefix;
+    public string Name { get; set; } = TypeCreator.AnonymousTypeDefaultName;
 
     /// <summary>
     /// Provides a collection of property definitions for the dynamically created anonymous type.

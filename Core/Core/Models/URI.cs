@@ -143,6 +143,11 @@ public class URI
         return this;
     }
 
+    public URI SetQueryParam(string key, object? value)
+    {
+        return SetQueryParam(key, value?.ToString());
+    }
+
     public URI SetQueryParam(string key, IEnumerable<string?> values)
     {
         QueryParams.RemoveAll(x => x.Key == key);

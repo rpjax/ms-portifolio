@@ -16,7 +16,7 @@ public static partial class TypeAddons
     {
         return
             type.FullName != null
-            && type.FullName.StartsWith(TypeCreator.AnonymousTypePrefix);
+            && type.FullName.StartsWith(TypeCreator.AnonymousTypeDefaultName);
     }
 
     /// <summary>

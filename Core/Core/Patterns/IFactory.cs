@@ -24,8 +24,8 @@ public interface IFactory<out T>
 /// </summary>
 /// <typeparam name="T">The type of object that the factory creates asynchronously.</typeparam>
 /// <remarks>
-/// This interface is tailored for scenarios where object creation might involve asynchronous operations, 
-/// such as fetching initial data from a remote source, asynchronous computations, or any other asynchronous 
+/// This interface is tailored for scenarios where object creation might involve asynchronous operations, <br/>
+/// such as fetching initial data from a remote source, asynchronous computations, or any other asynchronous <br/>
 /// initializations that should be done during the object's instantiation process.
 /// </remarks>
 public interface IAsyncFactory<T>

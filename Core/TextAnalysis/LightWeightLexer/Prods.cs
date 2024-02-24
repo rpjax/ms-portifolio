@@ -1,6 +1,6 @@
 ﻿using Core.TextAnalysis;
 
-namespace Domain;
+namespace ModularSystem.Core.Legacy;
 
 public static class Prods
 {

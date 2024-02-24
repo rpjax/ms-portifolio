@@ -9,7 +9,7 @@ namespace ModularSystem.Mongo;
 /// Provides serialization and deserialization methods for MongoDB models.
 /// </summary>
 /// <typeparam name="T">The type of the MongoDB model to be serialized/deserialized.</typeparam>
-public class MongoModelJsonSerializer<T> : ISerializer<T> where T : class, IMongoModel
+public class MongoModelJsonSerializer<T> : ISerializer<T> where T : class, IMongoEntity
 {
     /// <summary>
     /// Serializes the given object into a JSON string.

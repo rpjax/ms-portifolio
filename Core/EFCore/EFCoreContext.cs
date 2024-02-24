@@ -58,7 +58,7 @@ public class EFCoreContext : DbContext
                 {
                     Properties = new AnonymousPropertyDefinition[]
                     {
-                        new(nameof(EFModel.Id), typeof(long)),
+                        new(nameof(EFEntity.Id), typeof(long)),
                         new(foreignKeyColumnName, typeof(long)),
                         new("Value", elementType)
                     }
@@ -68,7 +68,7 @@ public class EFCoreContext : DbContext
                 // Criar uma tabela para a coleção
                 modelBuilder
                     .Entity(elementTableType)
-                    .HasKey(nameof(EFModel.Id));
+                    .HasKey(nameof(EFEntity.Id));
 
                 //sets the fk prop
                 modelBuilder

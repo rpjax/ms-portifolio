@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore.Query;
 using ModularSystem.Core;
 using ModularSystem.Core.Expressions;
+using ModularSystem.Core.Linq;
+using ModularSystem.EntityFramework.Linq;
 using MongoDB.Driver;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -11,7 +13,7 @@ namespace ModularSystem.EntityFramework;
 /// <summary>
 /// Entity Framework Core DAO.
 /// </summary>
-public class EFCoreDataAccessObject<T> : IDataAccessObject<T> where T : class, IEFModel
+public class EFCoreDataAccessObject<T> : IDataAccessObject<T> where T : class, IEFEntity
 {
     protected DbContext DbContext { get; }
     protected DbSet<T> DbSet { get; }
@@ -50,7 +52,7 @@ public class EFCoreDataAccessObject<T> : IDataAccessObject<T> where T : class, I
     public Task<T> GetAsync(string id)
     {
         var _id = int.Parse(id);
-        return AsQueryable().Where(x => x.Id == _id).FirstAsync();
+        return AsAsyncQueryable().Where(x => x.Id == _id).FirstAsync();
     }
 
     public Task<IQueryResult<T>> QueryAsync(IQuery<T> query)
@@ -96,6 +98,11 @@ public class EFCoreDataAccessObject<T> : IDataAccessObject<T> where T : class, I
         return DbSet.AsQueryable();
     }
 
+    public IAsyncQueryable<T> AsAsyncQueryable()
+    {
+        return new EFCoreAsyncQueryable<T>(DbSet.AsQueryable());
+    }
+
     public Task<long> CountAsync(string id)
     {
         var _id = ParseId(id);
@@ -104,12 +111,12 @@ public class EFCoreDataAccessObject<T> : IDataAccessObject<T> where T : class, I
 
     public Task<long> CountAsync(Expression<Func<T, bool>> selector)
     {
-        return AsQueryable().LongCountAsync(selector);
+        return AsAsyncQueryable().LongCountAsync(selector);
     }
 
     public Task<long> CountAllAsync()
     {
-        return AsQueryable().LongCountAsync();
+        return AsAsyncQueryable().LongCountAsync();
     }
 
     public bool ValidateIdFormat(string id)
@@ -172,7 +179,7 @@ public class EFCoreDataAccessObject<T> : IDataAccessObject<T> where T : class, I
 
 }
 
-internal class EFCoreQueryOperation<T> where T : class, IEFModel
+internal class EFCoreQueryOperation<T> where T : class, IEFEntity
 {
     private DbSet<T> DbSet { get; }
 
@@ -330,7 +337,7 @@ internal class QueryableBuilder<T>
     }
 }
 
-internal class EFCoreUpdateOperation<T> where T : class, IEFModel
+internal class EFCoreUpdateOperation<T> where T : class, IEFEntity
 {
     private DbSet<T> DbSet { get; }
     private EFCoreDataAccessObject<T>.Configuration Config { get; }

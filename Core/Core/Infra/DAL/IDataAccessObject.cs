@@ -1,3 +1,4 @@
+using ModularSystem.Core.Linq;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Core;
@@ -11,11 +12,16 @@ namespace ModularSystem.Core;
 public interface IDataAccessObject<T> : IDisposable
 {
     /// <summary>
-    /// Provides a queryable interface to the data, enabling the construction of LINQ queries. <br/>
-    /// The actual data fetch operation is deferred until the query is enumerated.
+    /// Provides a LINQ-queryable interface to the underlying data source for entities of type <typeparamref name="T"/>.
     /// </summary>
-    /// <returns>A queryable interface to the data.</returns>
+    /// <returns>A <see cref="IQueryable{T}"/> that can be used to perform LINQ queries on the dataset.</returns>
     IQueryable<T> AsQueryable();
+
+    /// <summary>
+    /// Provides an asynchronous, LINQ-queryable interface to the underlying data source for entities of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <returns>An <see cref="IAsyncQueryable{T}"/> that supports constructing and executing asynchronous queries.</returns>
+    IAsyncQueryable<T> AsAsyncQueryable();
 
     /// <summary>
     /// Inserts a single entity into the data storage asynchronously, returning its generated identifier.

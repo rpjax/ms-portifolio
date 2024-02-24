@@ -11,12 +11,12 @@ public class ValidationResult : IEnumerable<Error>
     /// <summary>
     /// Gets a value indicating whether the validation result contains no errors.
     /// </summary>
-    public bool IsEmpty => Errors.Count <= 0;
+    public bool IsSuccess => Errors.Count <= 0;
 
     /// <summary>
     /// Gets a value indicating whether the validation result contains errors.
     /// </summary>
-    public bool IsNotEmpty => !IsEmpty;
+    public bool IsFailure => !IsSuccess;
 
     /// <summary>
     /// Gets the list of validation errors.
@@ -59,20 +59,16 @@ public class ValidationResult : IEnumerable<Error>
 }
 
 /// <summary>
-/// Defines a contract for asynchronous validation of objects of type <typeparamref name="T"/>.
+/// Defines a contract for synchronous validation of objects of type <typeparamref name="T"/>.
 /// </summary>
 /// <typeparam name="T">The type of the object to be validated.</typeparam>
 public interface IValidator<T>
 {
     /// <summary>
-    /// Validates the specified instance asynchronously.
+    /// Validates the specified instance.
     /// </summary>
     /// <param name="instance">The instance of type <typeparamref name="T"/> to validate.</param>
-    /// <returns>
-    /// A task that represents the asynchronous validation operation. The task result contains
-    /// an exception if the validation fails; otherwise, null.
-    /// </returns>
-    Task<Exception?> ValidateAsync(T instance);
+    ValidationResult Validate(T instance);
 }
 
 /// <summary>
@@ -217,16 +213,9 @@ public abstract class AsyncValidator<T> : ValidatorBase, IAsyncValidator<T>
 /// <typeparam name="T">The type of the object to be validated.</typeparam>
 public class EmptyValidator<T> : ValidatorBase, IValidator<T>
 {
-    /// <summary>
-    /// Validates the specified instance but always returns a successful validation.
-    /// </summary>
-    /// <param name="instance">The instance of type <typeparamref name="T"/> to validate.</param>
-    /// <returns>
-    /// A task that represents the asynchronous validation operation. Since this is an empty validator,
-    /// the task result always contains null, indicating a successful validation.
-    /// </returns>
-    public Task<Exception?> ValidateAsync(T instance)
+    /// <inheritdoc/>
+    public ValidationResult Validate(T instance)
     {
-        return Task.FromResult<Exception?>(null);
+        throw new NotImplementedException();
     }
 }

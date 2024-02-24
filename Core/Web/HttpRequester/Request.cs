@@ -57,6 +57,15 @@ public class HttpRequest : IDisposable
         Method = method;
     }
 
+    public HttpRequest(URI uri, HttpMethod method, HttpHeader header, HttpRequestBody body)
+    {
+        Uri = uri;
+        Header = header;
+        Body = body;
+        Method = method;
+    }
+
+    [Obsolete]
     public HttpRequest(URI uri, HttpMethod method)
     {
         Uri = uri;
@@ -65,18 +74,11 @@ public class HttpRequest : IDisposable
         Method = method;
     }
 
+    [Obsolete]
     public HttpRequest(URI uri, HttpMethod method, HttpRequestBody body)
     {
         Uri = uri;
         Header = new HttpHeader();
-        Body = body;
-        Method = method;
-    }
-
-    public HttpRequest(URI uri, HttpMethod method, HttpHeader header, HttpRequestBody body)
-    {
-        Uri = uri;
-        Header = header;
         Body = body;
         Method = method;
     }

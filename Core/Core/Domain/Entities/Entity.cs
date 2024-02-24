@@ -1,7 +1,7 @@
 ﻿namespace ModularSystem.Core;
 
 /// <summary>
-/// Provides a base implementation of the <see cref="IQueryableModel"/> interface 
+/// Provides a base implementation of the <see cref="IEntity"/> interface 
 /// for models that support querying capabilities.
 /// </summary>
 /// <remarks>
@@ -11,16 +11,8 @@
 /// automatically upon instantiation.
 /// </remarks>
 [Serializable]
-public abstract class QueryableModel : IQueryableModel
+public abstract class Entity : IEntity
 {
-    /// <summary>
-    /// Gets or sets a value indicating whether the model is soft deleted.
-    /// </summary>
-    /// <remarks>
-    /// Soft deletion is a strategy in which records are marked as deleted, rather than removing them from the database.
-    /// </remarks>
-    public bool IsSoftDeleted { get; set; }
-
     /// <summary>
     /// Gets or sets the date and time when the model was created.
     /// </summary>
@@ -32,9 +24,9 @@ public abstract class QueryableModel : IQueryableModel
     public DateTime LastModifiedAt { get; set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="QueryableModel"/> class.
+    /// Initializes a new instance of the <see cref="Entity"/> class.
     /// </summary>
-    public QueryableModel()
+    public Entity()
     {
         CreatedAt = TimeProvider.UtcNow();
         LastModifiedAt = TimeProvider.UtcNow();
@@ -53,7 +45,7 @@ public abstract class QueryableModel : IQueryableModel
     /// <returns>
     /// <c>true</c> if the current object is equal to the <paramref name="other"/> parameter; otherwise, <c>false</c>.
     /// </returns>
-    public bool Equals(IQueryableModel? other)
+    public bool Equals(IEntity? other)
     {
         if (other == null)
         {

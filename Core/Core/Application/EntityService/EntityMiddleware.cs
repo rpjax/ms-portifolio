@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core.Expressions;
+using ModularSystem.Core.Linq;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Core;
@@ -7,8 +8,8 @@ namespace ModularSystem.Core;
 /// Provides a set of hooks for intercepting and extending the behavior of CRUD operations on entities of type <typeparamref name="T"/>. <br/>
 /// Acts as a foundational layer for concrete middlewares, facilitating the incorporation of custom logic during entity operations.
 /// </summary>
-/// <typeparam name="T">The type of the entity extending <see cref="IQueryableModel"/>.</typeparam>
-public abstract class EntityMiddleware<T> where T : IQueryableModel
+/// <typeparam name="T">The type of the entity extending <see cref="IEntity"/>.</typeparam>
+public abstract class EntityMiddleware<T> where T : IEntity
 {
     /// <summary>
     /// Provides a middleware interception point for custom processing or modification of the provided <paramref name="queryable"/> during the creation of a new queryable instance in the `CreateQueryAsync` method of the `EntityService`.
@@ -17,7 +18,7 @@ public abstract class EntityMiddleware<T> where T : IQueryableModel
     /// </summary>
     /// <param name="queryable">The initial queryable derived from the data layer implementation.</param>
     /// <returns>The modified or original <see cref="IQueryable{T}"/> ready for returning to the caller.</returns>
-    public virtual Task<IQueryable<T>> OnCreateQueryAsync(IQueryable<T> queryable) => Task.FromResult(queryable);
+    public virtual IAsyncQueryable<T> OnQueryCreated(IAsyncQueryable<T> queryable) => queryable;
 
     /// <summary>
     /// Intercepting hook executed before the validation of an entity.
@@ -163,7 +164,7 @@ public abstract class EntityMiddleware<T> where T : IQueryableModel
 /// Serves as a foundational visitor for query-related expressions and constructs for entities of type <typeparamref name="T"/>. It facilitates inspecting and potentially transforming these elements, offering a blueprint for customization in derived classes.
 /// </summary>
 /// <typeparam name="T">The type of entity under query operations.</typeparam>
-public class EntityExpressionVisitor<T> where T : IQueryableModel
+public class EntityExpressionVisitor<T> where T : IEntity
 {
     /// <summary>
     /// Offers a foundational way to inspect an expression without making alterations. <br/>
@@ -267,7 +268,7 @@ public class EntityExpressionVisitor<T> where T : IQueryableModel
 /// query-related constructs before they are processed by the main query system.
 /// </summary>
 /// <typeparam name="T">The type of entity being queried.</typeparam>
-internal class VisitorMiddlewareConverter<T> : EntityMiddleware<T> where T : IQueryableModel
+internal class VisitorMiddlewareConverter<T> : EntityMiddleware<T> where T : IEntity
 {
     /// <summary>
     /// The EntityVisitor used for inspecting and transforming query-related constructs.
@@ -309,7 +310,7 @@ internal class VisitorMiddlewareConverter<T> : EntityMiddleware<T> where T : IQu
 /// Especially useful for ensuring that query expressions are in a standard form before processing.
 /// </summary>
 /// <typeparam name="T">The type of entity being queried.</typeparam>
-internal class ExpressionNormalizer<T> : EntityExpressionVisitor<T> where T : IQueryableModel
+internal class ExpressionNormalizer<T> : EntityExpressionVisitor<T> where T : IEntity
 {
     /// <summary>
     /// A function to create an ID selector from a parameter expression.

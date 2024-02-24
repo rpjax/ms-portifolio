@@ -8,9 +8,9 @@ public delegate Task<IQueryResult<T>> SearchDelegate<T>(
     PaginationIn pagination,
     SortDefinition<T>? sort,
     ProjectionDefinition<T>? projection
-) where T : IMongoModel;
+) where T : IEntity;
 
-public class MongoSearch<T> where T : IMongoModel
+public class MongoSearch<T> where T : IEntity
 {
     private SearchDelegate<T> SearchAsync { get; }
     private QueryReader<T> Reader { get; }

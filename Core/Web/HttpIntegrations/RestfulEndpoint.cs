@@ -1,5 +1,6 @@
 ﻿using ModularSystem.Core;
 using ModularSystem.Web.Http;
+using System.Net;
 
 namespace ModularSystem.Web;
 
@@ -61,6 +62,50 @@ public class EndpointConfiguration
     }
 }
 
+public class HttpResult : OperationResult
+{
+    //*
+    // request data.
+    //*
+    public HttpMethod Method { get; set; }
+    public Uri Uri { get; set; }
+    public HttpHeader RequestHeader { get; set; }
+
+    //*
+    // response data.
+    //*
+    public HttpStatusCode StatusCode { get; set; }
+    public string StatusDescription { get; set; }
+    public HttpHeader ResponseHeader { get; set; }
+    public HttpResponseBody ResponseBody { get; set; }
+
+    public HttpResult(
+        HttpRequest request,
+        HttpResponse response,
+        IEnumerable<Error> errors
+    )
+    {
+
+    }
+
+}
+
+public class HttpResult<T> : HttpResult
+{
+    public T? Data { get; set; }
+
+    public HttpResult(
+        HttpRequest request, 
+        HttpResponse response, 
+        IEnumerable<Error> errors,
+        T? data
+    ) 
+    : base(request, response, errors)
+    {
+        Data = data;
+    }
+}
+
 /// <summary>
 /// Provides a base implementation of the <see cref="IRestfulEndpoint{TIn, TOut}"/> interface.
 /// This class streamlines the process of performing HTTP API requests by handling the boilerplate logic,
@@ -98,7 +143,7 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     public virtual async Task<OperationResult<TOut>> RunAsync(TIn input)
     {
         HttpClient? httpClient = null;
-        OperationResult<TOut>? result = null;
+        OperationResult? result = null;
         TOut? outputData = default;
 
         HttpRequest? request = null;
@@ -113,17 +158,13 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
             request = CreateRequest(input);
 
             OnRequestCreated(request);
-            await OnRequestCreatedAsync(request);
 
             requestMessage = request.ToHttpRequestMessage();
             responseMessage = await httpClient.SendAsync(requestMessage);
             response = responseMessage.ToHttpResponse(request);
 
             result = OnResponse(response);
-            if(result != null) return result;
-
-            result = await OnResponseAsync(response);
-            if (result != null) return result;
+            if (result.IsFailure) return new(result.Errors);
 
             if (!response.IsSuccess)
             {
@@ -131,18 +172,12 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
             }
 
             result = BeforeDeserialize(response);
-            if (result != null) return result;
-
-            result = await BeforeDeserializeAsync(response);
-            if (result != null) return result;
+            if (result.IsFailure) return new(result.Errors);
 
             outputData = await DeserializeResponseAsync(response);
 
-            result = AfterDeserialize(response, outputData);
-            if (result != null) return result;
-
-            result = await AfterDeserializeAsync(response, outputData);
-            if (result != null) return result;
+            result = AfterDeserialize(response, ref outputData);
+            if (result.IsFailure) return new(result.Errors);
 
             return new OperationResult<TOut>(outputData);
         }
@@ -191,32 +226,12 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     }
 
     /// <summary>
-    /// Asynchronously invoked after the HttpRequest object is constructed and before it's sent.
-    /// </summary>
-    /// <param name="request">The constructed HttpRequest object.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    protected virtual Task OnRequestCreatedAsync(HttpRequest request)
-    {
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
     /// Invoked immediately after receiving the HttpResponse, regardless of its status code.
     /// </summary>
     /// <param name="response">The received HttpResponse.</param>
-    protected virtual OperationResult<TOut>? OnResponse(HttpResponse response)
+    protected virtual OperationResult OnResponse(HttpResponse response)
     {
-        return null;
-    }
-
-    /// <summary>
-    /// Asynchronously invoked after receiving the HttpResponse, regardless of its status code.
-    /// </summary>
-    /// <param name="response">The received HttpResponse.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    protected virtual Task<OperationResult<TOut>?> OnResponseAsync(HttpResponse response)
-    {
-        return Task.FromResult<OperationResult<TOut>?>(null);
+        return new();
     }
 
     /// <summary>
@@ -224,20 +239,9 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     /// This method provides an opportunity to perform any pre-processing or validation on the raw response data.
     /// </summary>
     /// <param name="response">The received HttpResponse that will be deserialized.</param>
-    protected virtual OperationResult<TOut>? BeforeDeserialize(HttpResponse response)
+    protected virtual OperationResult BeforeDeserialize(HttpResponse response)
     {
-        return null;
-    }
-
-    /// <summary>
-    /// Asynchronously invoked before the deserialization process of a successful response. <br/>
-    /// This method provides an opportunity to perform any asynchronous pre-processing or validation on the raw response data.
-    /// </summary>
-    /// <param name="response">The received HttpResponse that will be deserialized.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    protected virtual Task<OperationResult<TOut>?> BeforeDeserializeAsync(HttpResponse response)
-    {
-        return Task.FromResult<OperationResult<TOut>?>(null);
+        return new();
     }
 
     /// <summary>
@@ -245,32 +249,14 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     /// </summary>
     /// <remarks>
     /// This method provides a synchronization point for performing any post-processing or validation on the deserialized payload.
-    /// It is designed to be a counterpart to the asynchronous <see cref="AfterDeserializeAsync"/> method, offering a synchronous alternative.
     /// Implementers can use this method to add custom logic that operates on the deserialized data, such as additional validation, 
     /// transformation, or augmentation, in scenarios where asynchronous processing is not required or desired.
     /// </remarks>
     /// <param name="response">The HttpResponse from which the payload was deserialized.</param>
     /// <param name="data">The deserialized payload of type <typeparamref name="TOut"/>.</param>
-    protected virtual OperationResult<TOut>? AfterDeserialize(HttpResponse response, TOut data)
+    protected virtual OperationResult AfterDeserialize(HttpResponse response, ref TOut data)
     {
-        return null;
-    }
-
-    /// <summary>
-    /// Asynchronously invoked after the deserialization process of a successful response.
-    /// </summary>
-    /// <remarks>
-    /// This method serves as a hook for performing any post-processing or validation on the deserialized payload.
-    /// It allows implementers to add custom logic that executes after the API response has been successfully deserialized
-    /// but before the control is returned to the caller. This is particularly useful for scenarios where the deserialized
-    /// data needs to be augmented, validated, or transformed before being used.
-    /// </remarks>
-    /// <param name="response">The HttpResponse from which the payload was deserialized.</param>
-    /// <param name="data">The deserialized payload of type <typeparamref name="TOut"/>.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    protected virtual Task<OperationResult<TOut>?> AfterDeserializeAsync(HttpResponse response, TOut data)
-    {
-        return Task.FromResult<OperationResult<TOut>?>(null);
+        return new();
     }
 
     /// <summary>
@@ -325,4 +311,5 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
         return exception;
     }
 
+}
 }

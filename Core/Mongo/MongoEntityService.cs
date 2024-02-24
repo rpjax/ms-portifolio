@@ -8,8 +8,8 @@ namespace ModularSystem.Mongo;
 /// <summary>
 /// Provides a base for entities in a MongoDB context.
 /// </summary>
-/// <typeparam name="T">The type of the entity, which should implement the <see cref="IMongoModel"/> interface.</typeparam>
-public abstract class MongoEntityService<T> : EntityService<T> where T : class, IMongoModel
+/// <typeparam name="T">The type of the entity, which should implement the <see cref="IMongoEntity"/> interface.</typeparam>
+public abstract class MongoEntityService<T> : EntityService<T> where T : class, IMongoEntity
 {
     /// <summary>
     /// Asynchronously creates an <see cref="IMongoQueryable{T}"/> instance for querying the MongoDB collection of type <typeparamref name="T"/>.
@@ -23,9 +23,9 @@ public abstract class MongoEntityService<T> : EntityService<T> where T : class, 
     /// for the MongoDB collection. <br/>
     /// The returned <see cref="IMongoQueryable{T}"/> is cast from the result of <c>CreateQueryableAsync</c>.
     /// </remarks>
-    public async Task<IMongoQueryable<T>> CreateMongoQueryableAsync()
+    public IMongoQueryable<T> CreateMongoQueryable()
     {
-        return (IMongoQueryable<T>)await CreateQueryableAsync();
+        return (IMongoQueryable<T>)DataAccessObject.AsQueryable();
     }
 
     /// <summary>
@@ -34,11 +34,11 @@ public abstract class MongoEntityService<T> : EntityService<T> where T : class, 
     /// <param name="parameter">The parameter expression used as the source for the member access.</param>
     /// <returns>A <see cref="MemberExpression"/> representing the ID property of the entity.</returns>
     /// <remarks>
-    /// This method leverages the fact that the entity type <typeparamref name="T"/> has an "Id" property, as declared in <see cref="IMongoModel"/>.
+    /// This method leverages the fact that the entity type <typeparamref name="T"/> has an "Id" property, as declared in <see cref="IMongoEntity"/>.
     /// </remarks>
     protected override MemberExpression CreateIdSelectorExpression(ParameterExpression parameter)
     {
-        return Expression.Property(parameter, nameof(IMongoModel.Id));
+        return Expression.Property(parameter, nameof(IMongoEntity.Id));
     }
 
     /// <summary>
@@ -60,4 +60,48 @@ public abstract class MongoEntityService<T> : EntityService<T> where T : class, 
         return null;
     }
 
+}
+
+/// <summary>
+/// Provides services for entities with a GUID identifier in a MongoDB collection.
+/// </summary>
+/// <typeparam name="T">The entity type with a GUID identifier.</typeparam>
+public abstract class MongoGuidEntityService<T> : EntityService<T> where T : class, IMongoGuidEntity
+{
+    /// <summary>
+    /// Creates a queryable object for MongoDB collection entities of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <returns>An <see cref="IMongoQueryable{T}"/> for LINQ queries.</returns>
+    /// <remarks>
+    /// Utilizes <c>CreateQueryableAsync</c> for asynchronous query creation.
+    /// </remarks>
+    public IMongoQueryable<T> CreateMongoQueryable()
+    {
+        return (IMongoQueryable<T>)DataAccessObject.AsQueryable();
+    }
+
+    /// <summary>
+    /// Creates an expression for selecting the ID of an entity.
+    /// </summary>
+    /// <param name="parameter">The parameter expression.</param>
+    /// <returns>An expression selecting the ID.</returns>
+    protected override MemberExpression CreateIdSelectorExpression(ParameterExpression parameter)
+    {
+        return Expression.Property(parameter, nameof(IMongoGuidEntity.Id));
+    }
+
+    /// <summary>
+    /// Attempts to parse a string ID to a GUID.
+    /// </summary>
+    /// <param name="id">The string ID.</param>
+    /// <returns>The parsed GUID or null.</returns>
+    protected override object? TryParseId(string id)
+    {
+        if (Guid.TryParse(id, out var value))
+        {
+            return value;
+        }
+
+        return null;
+    }
 }
