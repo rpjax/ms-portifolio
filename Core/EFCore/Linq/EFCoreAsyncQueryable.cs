@@ -40,7 +40,7 @@ public class EFCoreAsyncQueryable<T> : IAsyncQueryable<T>
         return Source.FirstAsync();
     }
 
-    public Task<T> FirstOrDefaultAsync()
+    public Task<T?> FirstOrDefaultAsync()
     {
         return Source.FirstOrDefaultAsync();
     }

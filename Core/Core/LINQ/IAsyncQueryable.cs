@@ -49,7 +49,7 @@ public interface IAsyncQueryable<T> : IQueryable<T>
     /// </summary>
     /// <returns>A task that represents the asynchronous operation. <br/>
     /// The task result contains the first element in the input sequence or default value if the sequence contains no elements.</returns>
-    Task<T> FirstOrDefaultAsync();
+    Task<T?> FirstOrDefaultAsync();
 
     /// <summary>
     /// Asynchronously returns the only element of a sequence, and throws an exception if there is not exactly one element in the sequence.
@@ -61,7 +61,7 @@ public interface IAsyncQueryable<T> : IQueryable<T>
     /// Asynchronously returns the only element of a sequence, or a default value if the sequence is empty; this method throws an exception if there is more than one element in the sequence.
     /// </summary>
     /// <returns>A task that represents the asynchronous operation. The task result contains the single element of the input sequence, or a default value if the sequence is empty.</returns>
-    Task<T> SingleOrDefaultAsync();
+    Task<T?> SingleOrDefaultAsync();
 
     /// <summary>
     /// Asynchronously returns the number of elements in a sequence.

@@ -241,6 +241,11 @@ public abstract class Initializer
         public List<string> Flags { get; set; } = new();
 
         /// <summary>
+        /// Environment variables available for the initialization process.
+        /// </summary>
+        public Dictionary<string, string> Variables { get; set; } = new Dictionary<string, string>();
+
+        /// <summary>
         /// Gets or sets the assemblies that will be considered during the initialization process.
         /// </summary>
         public List<Assembly> Assemblies { get; set; } = new();
@@ -316,6 +321,34 @@ public abstract class Initializer
         {
             Flags.Remove(flag);
             return this;
+        }
+
+        /// <summary>
+        /// Attempts to get the value of an environment variable.
+        /// </summary>
+        /// <param name="name">The name of the variable.</param>
+        /// <returns>The value of the variable if it exists; otherwise, null.</returns>
+        public string? TryGetVariable(string name)
+        {
+            return Variables.TryGetValue(name, out var value) ? value : null;
+        }
+
+        /// <summary>
+        /// Retrieves the value of a specified environment variable.
+        /// </summary>
+        /// <param name="name">The name of the environment variable to retrieve.</param>
+        /// <returns>The value of the environment variable if it exists.</returns>
+        /// <exception cref="ErrorException">Thrown when the specified environment variable is not found.</exception>
+        public string GetVariable(string name)
+        {
+            var value = TryGetVariable(name);
+
+            if (value == null)
+            {
+                throw new ErrorException($"Environment variable '{name}' not found.");
+            }
+
+            return value;
         }
 
         /// <summary>

@@ -65,6 +65,7 @@
   <ItemGroup>
     <Folder Include="CLI\" />
     <Folder Include="Core\Application\Initializer\Internal\" />
+    <Folder Include="EntityService\" />
   </ItemGroup>
 
 </Project>

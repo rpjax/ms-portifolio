@@ -119,6 +119,28 @@ public class OperationResult : IOperationResult
     /// <returns>The instance with added errors.</returns>
     public OperationResult AddErrors(params Error[] errors)
     {
+        if (errors.IsEmpty())
+        {
+            return this;
+        }
+
+        IsSuccess = false;
+        Errors.AddRange(errors);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds errors to the operation, marking it as failed.
+    /// </summary>
+    /// <param name="errors">Errors to add.</param>
+    /// <returns>The instance with added errors.</returns>
+    public OperationResult AddErrors(IEnumerable<Error> errors)
+    {
+        if (errors.IsEmpty())
+        {
+            return this;
+        }
+
         IsSuccess = false;
         Errors.AddRange(errors);
         return this;

@@ -256,14 +256,13 @@ public class UpdateReader<T>
     {
         foreach (var expression in Update.Modifications)
         {
-            if (expression is UpdateSetExpression cast)
+            if (expression is UpdateSetExpression updateSetExpression)
             {
-                yield return cast;
+                yield return updateSetExpression;
+                continue;
             }
-            else
-            {
-                throw new InvalidOperationException("Encountered a non-matching type during extraction.");
-            }
+
+            throw new InvalidOperationException("Encountered a non-matching type during extraction.");
         }
     }
 
@@ -289,7 +288,9 @@ public class UpdateReader<T>
             return null;
         }
 
-        return CreateExpressionVisitor().Visit(expression).TypeCast<TResult>();
+        return CreateExpressionVisitor()
+            .Visit(expression)
+            .TypeCast<TResult>();
     }
 
     /// <summary>
