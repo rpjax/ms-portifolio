@@ -251,6 +251,15 @@ public class OperationResult<T> : OperationResult, IOperationResult<T?>
 public class NonAtomicOperationResult : OperationResult
 {
     /// <summary>
+    /// Gets a value indicating whether the operation was partially successful. <br/>
+    /// This means the operation succeeded, but there were some errors.
+    /// </summary>
+    /// <value>
+    /// True if the operation was successful and there are errors; otherwise, false.
+    /// </value>
+    public bool IsPartialSuccess => IsSuccess && Errors.IsNotEmpty();
+
+    /// <summary>
     /// Initializes a new instance of the NonAtomicOperationResult class with a success status
     /// and a collection of errors.
     /// </summary>
