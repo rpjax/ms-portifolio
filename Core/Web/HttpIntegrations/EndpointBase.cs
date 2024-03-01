@@ -47,7 +47,7 @@ public abstract class EndpointBase<TIn, TOut> : RestfulEndpoint<TIn, TOut>
     /// </item>
     /// </list>
     /// </remarks>
-    protected override async Task<OperationResult<TOut>> HandleFailureResponseAsync(HttpResponse response)
+    protected override async Task<OperationResult<TOut>> ProccessFailureResponseAsync(HttpResponse response)
     {
         var json = await response.ReadAsStringAsync(Encoding.UTF8);
 

@@ -24,6 +24,12 @@ public interface IRestfulEndpoint<TIn, TOut>
     Task<OperationResult<TOut>> RunAsync(TIn input);
 }
 
+public interface IRestfulEndpoint<in TInput>
+{
+    Task<HttpResult> RunAsync(TInput input);
+}
+
+
 /// <summary>
 /// Represents the configuration settings for a RESTful endpoint.
 /// </summary>
@@ -67,17 +73,19 @@ public class HttpResult : OperationResult
     //*
     // request data.
     //*
-    public HttpMethod Method { get; set; }
-    public Uri Uri { get; set; }
-    public HttpHeader RequestHeader { get; set; }
+
+    public HttpMethod Method { get; init; }
+    public Uri Uri { get; init; }
+    public HttpHeader RequestHeader { get; init; }
 
     //*
     // response data.
     //*
-    public HttpStatusCode StatusCode { get; set; }
-    public string StatusDescription { get; set; }
-    public HttpHeader ResponseHeader { get; set; }
-    public HttpResponseBody ResponseBody { get; set; }
+
+    public HttpStatusCode StatusCode { get; init; }
+    public string? StatusDescription { get; init; }
+    public HttpHeader ResponseHeader { get; init; }
+    public HttpResponseBody ResponseBody { get; init; }
 
     public HttpResult(
         HttpRequest request,
@@ -85,24 +93,59 @@ public class HttpResult : OperationResult
         IEnumerable<Error> errors
     )
     {
+        var responseMessage = response.ResponseMessage;
 
+        Method = request.Method;
+        Uri = request.Uri;
+        RequestHeader = request.Header;
+        StatusCode = responseMessage.StatusCode;
+        StatusDescription = responseMessage.ReasonPhrase;
+        ResponseHeader = response.Header;
+        ResponseBody = response.Body;
+
+        AddErrors(errors);
     }
 
 }
 
-public class HttpResult<T> : HttpResult
+public class HttpResult<T> : OperationResult<T>
 {
-    public T? Data { get; set; }
+    //*
+    // request data.
+    //*
+
+    public HttpMethod Method { get; init; }
+    public Uri Uri { get; init; }
+    public HttpHeader RequestHeader { get; init; }
+
+    //*
+    // response data.
+    //*
+
+    public HttpStatusCode StatusCode { get; init; }
+    public string? StatusDescription { get; init; }
+    public HttpHeader ResponseHeader { get; init; }
+    public HttpResponseBody ResponseBody { get; init; }
 
     public HttpResult(
-        HttpRequest request, 
-        HttpResponse response, 
+        HttpRequest request,
+        HttpResponse response,
         IEnumerable<Error> errors,
-        T? data
-    ) 
-    : base(request, response, errors)
+        T data
+    )
     {
+        var responseMessage = response.ResponseMessage;
+
+        Method = request.Method;
+        Uri = request.Uri;
+        RequestHeader = request.Header;
+        StatusCode = responseMessage.StatusCode;
+        StatusDescription = responseMessage.ReasonPhrase;
+        ResponseHeader = response.Header;
+        ResponseBody = response.Body;
         Data = data;
+
+        AddErrors(errors);
     }
 }
 
@@ -143,8 +186,6 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     public virtual async Task<OperationResult<TOut>> RunAsync(TIn input)
     {
         HttpClient? httpClient = null;
-        OperationResult? result = null;
-        TOut? outputData = default;
 
         HttpRequest? request = null;
         HttpResponse? response = null;
@@ -163,23 +204,14 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
             responseMessage = await httpClient.SendAsync(requestMessage);
             response = responseMessage.ToHttpResponse(request);
 
-            result = OnResponse(response);
-            if (result.IsFailure) return new(result.Errors);
+            OnResponse(response);
 
             if (!response.IsSuccess)
             {
-                return await HandleFailureResponseAsync(response);
+                return await ProccessFailureResponseAsync(response);
             }
 
-            result = BeforeDeserialize(response);
-            if (result.IsFailure) return new(result.Errors);
-
-            outputData = await DeserializeResponseAsync(response);
-
-            result = AfterDeserialize(response, ref outputData);
-            if (result.IsFailure) return new(result.Errors);
-
-            return new OperationResult<TOut>(outputData);
+            return await ProccessSuccessResponseAsync(response);
         }
         catch (Exception e)
         {
@@ -198,7 +230,7 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     /// </summary>
     /// <param name="response">The <see cref="HttpResponse"/> object representing the HTTP response from the endpoint.</param>
     /// <returns>A task representing the asynchronous operation, resulting in an <see cref="OperationResult{TOut}"/> that represents the failure.</returns>
-    protected abstract Task<OperationResult<TOut>> HandleFailureResponseAsync(HttpResponse response);
+    protected abstract Task<OperationResult<TOut>> ProccessFailureResponseAsync(HttpResponse response);
 
     /// <summary>
     /// Retrieves an instance of the HttpRequester class to send HTTP requests.
@@ -229,9 +261,26 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     /// Invoked immediately after receiving the HttpResponse, regardless of its status code.
     /// </summary>
     /// <param name="response">The received HttpResponse.</param>
-    protected virtual OperationResult OnResponse(HttpResponse response)
+    protected virtual void OnResponse(HttpResponse response)
     {
-        return new();
+        return;
+    }
+
+    protected virtual async Task<HttpResult<TOut>> ProccessSuccessResponseAsync(HttpResponse response)
+    {
+        var outputData = await DeserializeResponseAsync(response);
+
+        if(outputData == null)
+        {
+            throw new ErrorException($"Could not deserialize response to type '{typeof(TOut).FullName}'.");
+        }
+
+        return new HttpResult<TOut>(
+            request: response.Request,
+            response: response,
+            errors: Array.Empty<Error>(), 
+            data: outputData
+        );
     }
 
     /// <summary>
@@ -239,9 +288,9 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     /// This method provides an opportunity to perform any pre-processing or validation on the raw response data.
     /// </summary>
     /// <param name="response">The received HttpResponse that will be deserialized.</param>
-    protected virtual OperationResult BeforeDeserialize(HttpResponse response)
+    protected virtual void BeforeDeserialize(HttpResponse response)
     {
-        return new();
+        return;
     }
 
     /// <summary>
@@ -254,9 +303,9 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     /// </remarks>
     /// <param name="response">The HttpResponse from which the payload was deserialized.</param>
     /// <param name="data">The deserialized payload of type <typeparamref name="TOut"/>.</param>
-    protected virtual OperationResult AfterDeserialize(HttpResponse response, ref TOut data)
+    protected virtual void AfterDeserialize(HttpResponse response, ref TOut? data)
     {
-        return new();
+        return;
     }
 
     /// <summary>
@@ -275,14 +324,17 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     /// <exception cref="System.Text.Json.JsonException">
     /// Thrown if the JSON deserialization fails due to an invalid format, type mismatch, or other issues related to the content of the response.
     /// </exception>
-    protected virtual Task<TOut> DeserializeResponseAsync(HttpResponse response)
+    protected virtual async Task<TOut?> DeserializeResponseAsync(HttpResponse response)
     {
         if (typeof(TOut) == typeof(Core.Void))
         {
-            return Task.FromResult((TOut)Activator.CreateInstance(typeof(Core.Void))!);
+            return (TOut)Activator.CreateInstance(typeof(Core.Void))!;
         }
 
-        return response.DeserializeAsJsonAsync<TOut>();
+        BeforeDeserialize(response);
+        var data = await response.DeserializeAsJsonAsync<TOut>();
+        AfterDeserialize(response, ref data);
+        return data;
     }
 
     /// <summary>
@@ -312,4 +364,144 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     }
 
 }
+
+public abstract class RestfulEndpoint<TIn> : IRestfulEndpoint<TIn>
+{
+    /// <summary>
+    /// Disposes any resources used by this instance.
+    /// </summary>
+    public void Dispose()
+    {
+
+    }
+
+    /// <summary>
+    /// Asynchronously processes the provided input and produces an output. <br/>
+    /// Handles the entire request-response lifecycle including <br/> request creation, sending the request,
+    /// receiving the response, and processing the response.
+    /// </summary>
+    /// <param name="input">The input data of type <typeparamref name="TIn"/> to be processed by the endpoint.</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation, resulting in an <see cref="OperationResult{TOut}"/>. <br/>
+    /// The <see cref="OperationResult{TOut}"/> encapsulates the outcome of the operation, containing either <br/>
+    /// the result of type <typeparamref name="TOut"/> if successful, or error information if the operation fails.
+    /// </returns>
+    public virtual async Task<HttpResult> RunAsync(TIn input)
+    {
+        HttpClient? httpClient = null;
+
+        HttpRequest? request = null;
+        HttpResponse? response = null;
+
+        HttpRequestMessage? requestMessage = null;
+        HttpResponseMessage? responseMessage = null;
+
+        try
+        {
+            httpClient = CreateRequester();
+            request = CreateRequest(input);
+
+            OnRequestCreated(request);
+
+            requestMessage = request.ToHttpRequestMessage();
+            responseMessage = await httpClient.SendAsync(requestMessage);
+            response = responseMessage.ToHttpResponse(request);
+
+            OnResponse(response);
+
+            if (!response.IsSuccess)
+            {
+                return await ProccessFailureResponseAsync(response);
+            }
+
+            return await ProccessSuccessResponseAsync(response);
+        }
+        catch (Exception e)
+        {
+            throw await HandleExceptionAsync(e, request, response);
+        }
+        finally
+        {
+            requestMessage?.Dispose();
+            responseMessage?.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Handles the failure response received from an HTTP endpoint. <br/>
+    /// This method should be implemented to define how to process unsuccessful HTTP responses <br/> and convert them into an appropriate <see cref="OperationResult{TOut}"/>.
+    /// </summary>
+    /// <param name="response">The <see cref="HttpResponse"/> object representing the HTTP response from the endpoint.</param>
+    /// <returns>A task representing the asynchronous operation, resulting in an <see cref="OperationResult{TOut}"/> that represents the failure.</returns>
+    protected abstract Task<HttpResult> ProccessFailureResponseAsync(HttpResponse response);
+
+    /// <summary>
+    /// Retrieves an instance of the HttpRequester class to send HTTP requests.
+    /// </summary>
+    /// <returns>An instance of <see cref="HttpRequester"/>.</returns>
+    protected virtual HttpClient CreateRequester()
+    {
+        return HttpClientSingleton.Value;
+    }
+
+    /// <summary>
+    /// Creates the HttpRequest object from the provided input.
+    /// </summary>
+    /// <param name="input">The input parameters for creating the request.</param>
+    /// <returns>An HttpRequest object.</returns>
+    protected abstract HttpRequest CreateRequest(TIn input);
+
+    /// <summary>
+    /// Invoked after the HttpRequest object is constructed and before it's sent.
+    /// </summary>
+    /// <param name="request">The constructed HttpRequest object.</param>
+    protected virtual void OnRequestCreated(HttpRequest request)
+    {
+        return;
+    }
+
+    /// <summary>
+    /// Invoked immediately after receiving the HttpResponse, regardless of its status code.
+    /// </summary>
+    /// <param name="response">The received HttpResponse.</param>
+    protected virtual void OnResponse(HttpResponse response)
+    {
+        return;
+    }
+
+    protected virtual async Task<HttpResult> ProccessSuccessResponseAsync(HttpResponse response)
+    {
+        return new HttpResult(
+            request: response.Request,
+            response: response,
+            errors: Array.Empty<Error>()
+        );
+    }
+
+    /// <summary>
+    /// Handles exceptions that occur during the API request and response cycle. <br/>
+    /// This method should be implemented to define custom exception handling logic, which might include logging, 
+    /// <br/> custom error messages, and deciding whether to rethrow the exception.
+    /// </summary>
+    /// <param name="e">The original exception.</param>
+    /// <param name="request">The HttpRequest object, if available.</param>
+    /// <param name="response">The HttpResponse object, if available.</param>
+    /// <returns>A task representing the asynchronous operation, resulting in an <see cref="Exception"/> that should be thrown or propagated.</returns>
+    protected virtual async Task<Exception> HandleExceptionAsync(Exception e, HttpRequest? request, HttpResponse? response)
+    {
+        var error = $"Failed to process the HTTP API request. Refer to the associated metadata and inner exception for detailed information.";
+        var exception = new AppException(error, ExceptionCode.Internal, e);
+
+        if (response != null)
+        {
+            exception.AddData(await response.CreateSummaryCopyAsync());
+        }
+        else if (request != null)
+        {
+            exception.AddData(request);
+        }
+
+        return exception;
+    }
+
 }

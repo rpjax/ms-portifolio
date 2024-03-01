@@ -80,6 +80,18 @@ public class HttpResponseBody
         return ResponseMessage.Content.ReadAsByteArrayAsync();
     }
 
+    public byte[] ReadAsBytes()
+    {
+        if (ResponseMessage == null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        using var memoryStream = new MemoryStream();
+        ResponseMessage.Content.ReadAsStream().CopyTo(memoryStream); 
+        return memoryStream.ToArray(); 
+    }
+
     /// <summary>
     /// Reads the body as a string using the specified encoding.
     /// </summary>
@@ -93,6 +105,16 @@ public class HttpResponseBody
         }
 
         return encoding.GetString(await ReadAsBytesAsync());
+    }
+
+    public string ReadAsString(Encoding? encoding = null)
+    {
+        if (encoding == null)
+        {
+            return Encoding.UTF8.GetString(ReadAsBytes());
+        }
+
+        return encoding.GetString(ReadAsBytes());
     }
 
     /// <summary>

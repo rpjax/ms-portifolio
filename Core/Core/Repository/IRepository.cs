@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 namespace ModularSystem.Core;
 
 /// <summary>
-/// Defines a contract for a repository that manages transactions and CRUD operations for entities of type <typeparamref name="T"/>.
+/// Defines a contract for a repository that manages CRUD operations for entities of type <typeparamref name="T"/>.
 /// </summary>
 /// <typeparam name="T">The entity type the repository manages. This type must implement <see cref="IEntity"/>.</typeparam>
 public interface IRepository<T> //where T : IEntity

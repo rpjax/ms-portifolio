@@ -11,6 +11,11 @@ namespace ModularSystem.Web;
 public class HttpResponse : IDisposable
 {
     /// <summary>
+    /// Gets the corresponding HTTP request for the response.
+    /// </summary>
+    public HttpRequest Request { get; }
+
+    /// <summary>
     /// Gets a value indicating whether the HTTP response was successful.
     /// </summary>
     public bool IsSuccess { get; private set; }
@@ -28,12 +33,7 @@ public class HttpResponse : IDisposable
     /// <summary>
     /// Gets or sets the body of the HTTP response.
     /// </summary>
-    public HttpResponseBody? Body { get; set; }
-
-    /// <summary>
-    /// Gets the corresponding HTTP request for the response.
-    /// </summary>
-    public HttpRequest? Request { get; }
+    public HttpResponseBody Body { get; set; }
 
     /// <summary>
     /// Gets or sets the raw HttpResponseMessage.
@@ -82,6 +82,16 @@ public class HttpResponse : IDisposable
         }
 
         return Body.ReadAsStringAsync(encoding);
+    }
+
+    public string ReadAsString(Encoding? encoding = null)
+    {
+        if (Body == null)
+        {
+            return string.Empty;
+        }
+
+        return Body.ReadAsString(encoding);
     }
 
     /// <summary>

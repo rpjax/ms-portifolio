@@ -20,6 +20,22 @@ public interface IFactory<out T>
 }
 
 /// <summary>
+/// Defines a factory interface responsible for creating instances of type <typeparamref name="TResult"/>
+/// based on an input of type <typeparamref name="TInput"/>.
+/// </summary>
+/// <typeparam name="TInput">The type of input used to create an instance.</typeparam>
+/// <typeparam name="TResult">The type of object that the factory creates.</typeparam>
+public interface IFactory<TInput, TResult>
+{
+    /// <summary>
+    /// Creates and returns an instance of type <typeparamref name="TResult"/> based on the provided <paramref name="input"/>.
+    /// </summary>
+    /// <param name="input">The input required to create an instance of <typeparamref name="TResult"/>.</param>
+    /// <returns>An instance of type <typeparamref name="TResult"/>.</returns>
+    TResult Create(TInput input);
+}
+
+/// <summary>
 /// Defines an asynchronous factory interface responsible for creating instances of type <typeparamref name="T"/>.
 /// </summary>
 /// <typeparam name="T">The type of object that the factory creates asynchronously.</typeparam>
