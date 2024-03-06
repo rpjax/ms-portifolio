@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Primitives;
 using ModularSystem.Core;
 using ModularSystem.Core.Logging;
-using ModularSystem.Core.Security;
+using ModularSystem.Core.AccessManagement;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -92,56 +92,6 @@ public static class HttpContextExtensions
         }
 
         return authorizationHeader;
-    }
-
-    /// <summary>
-    /// Attempts to retrieve the user's identity from the current HTTP context.
-    /// </summary>
-    /// <param name="context">The current HTTP context.</param>
-    /// <returns>The user's identity or null if not found.</returns>
-    public static async Task<IIdentity?> TryGetIdentityAsync(this HttpContext context)
-    {
-        if (context.Items.TryGetValue(WebController.HttpContextIdentityKey, out object? value))
-        {
-            var identity = value?.TryTypeCast<IIdentity>();
-
-            if (identity != null)
-            {
-                return identity;
-            }
-        }
-
-        if (!DependencyContainer.TryGetInterface<IIamService>(out var iam))
-        {
-            return null;
-        }
-
-        var result = await iam.AuthenticationProvider.GetIdentityAsync(context);
-
-        if(result.IsFailure)
-        {
-            return null;
-        }
-
-        return result.GetData();
-    }
-
-    /// <summary>
-    /// Retrieves the user's identity from the current HTTP context. Throws an exception if not found.
-    /// </summary>
-    /// <param name="context">The current HTTP context.</param>
-    /// <returns>The user's identity.</returns>
-    /// <exception cref="AppException">Thrown if the identity is not found.</exception>
-    public static async Task<IIdentity> GetIdentityAsync(this HttpContext context)
-    {
-        var identity = await TryGetIdentityAsync(context);
-
-        if (identity == null)
-        {
-            throw new AppException("Could not get the 'IIdentity' object from 'HttpContext.Items'.", ExceptionCode.Internal);
-        }
-
-        return identity;
     }
 
     /// <summary>
@@ -245,8 +195,8 @@ public static class HttpContextExtensions
     /// The HTTP status code for the response is set to 500 (Internal Server Error).
     /// </remarks>
     public static Task WriteExceptionResponseAsync(
-        this HttpContext context, 
-        Exception exception, 
+        this HttpContext context,
+        Exception exception,
         bool enableExceptionLogging)
     {
         OperationResult? operationResult = null;

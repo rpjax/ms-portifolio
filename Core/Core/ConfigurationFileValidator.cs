@@ -7,7 +7,7 @@ namespace ModularSystem.Core;
 /// <summary>
 /// Validates a JSON configuration file against a specified type.
 /// </summary>
-public class EnvironmentConfigValidator
+public class ConfigurationFileValidator
 {
     /// <summary>
     /// The target type against which the JSON file is validated.
@@ -19,7 +19,7 @@ public class EnvironmentConfigValidator
     /// </summary>
     public FileInfo FileInfo { get; }
 
-    public EnvironmentConfigValidator(Type type, FileInfo fileInfo)
+    public ConfigurationFileValidator(Type type, FileInfo fileInfo)
     {
         Type = type ?? throw new ArgumentNullException(nameof(type));
         FileInfo = fileInfo ?? throw new ArgumentNullException(nameof(fileInfo));
@@ -37,7 +37,7 @@ public class EnvironmentConfigValidator
 
         if (obj == null)
         {
-            throw new InvalidOperationException($"Failed to deserialize the environment file '{FileInfo.FullName}' into type '{Type.FullName}'.");
+            throw new InvalidOperationException($"Failed to deserialize the configuration file '{FileInfo.FullName}' into type '{Type.FullName}'.");
         }
     }
 
@@ -65,7 +65,7 @@ public class EnvironmentConfigValidator
                     continue;
                 }
 
-                throw new MissingFieldException($"Environment configuration lacks required property '{propertyInfo.Name}'.");
+                throw new MissingFieldException($"Configuration file lacks required property '{propertyInfo.Name}'.");
             }
 
             var jprop = jprops.First();
@@ -97,7 +97,7 @@ public class EnvironmentConfigValidator
         // Verifica se é um tipo de referência nullable
         if (!propertyInfo.PropertyType.IsValueType)
         {
-            var nullableAttribute = propertyInfo.GetCustomAttribute<NullablePropertyAttribute>();
+            var nullableAttribute = propertyInfo.GetCustomAttribute<NullableAttribute>();
 
             if (nullableAttribute != null)
             {

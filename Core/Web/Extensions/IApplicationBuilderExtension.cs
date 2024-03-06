@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using ModularSystem.Core;
 
 namespace ModularSystem.Web;
 
@@ -13,11 +12,10 @@ public static class IApplicationBuilderExtension
     /// </summary>
     /// <param name="builder">The application builder to which the middlewares should be added.</param>
     /// <returns>The updated <see cref="IApplicationBuilder"/> with the IAM system middlewares added.</returns>
-    public static IApplicationBuilder UseIamService(this IApplicationBuilder builder)
+    public static IApplicationBuilder UseAccessManagementService(this IApplicationBuilder builder)
     {
         return builder
-            .UseMiddleware<IamAuthenticationMiddleware>()
-            .UseMiddleware<IamAuthorizationMiddleware>();
+            .UseMiddleware<AccessManagementMiddleware>();
     }
 
     /// <summary>

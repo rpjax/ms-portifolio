@@ -5,7 +5,7 @@ namespace ModularSystem.Mailing;
 /// <summary>
 /// Represents an email address in its constituent parts: username, domain, and extension.
 /// </summary>
-public class Email
+public class EmailAddress
 {
     //*
     // email formatting: username@domain.extension
@@ -30,7 +30,7 @@ public class Email
     /// Default constructor for LINQ providers and JsonSerializer.
     /// </summary>
     [JsonConstructor]
-    public Email()
+    public EmailAddress()
     {
         //*
         // this constructor exists so that LINQ providers and JsonSerializer can instantiate this object with no params.
@@ -47,7 +47,7 @@ public class Email
     /// <param name="username">The username part of the email.</param>
     /// <param name="domain">The domain part of the email.</param>
     /// <param name="extension">The extension part of the email.</param>
-    public Email(string username, string domain, string extension)
+    public EmailAddress(string username, string domain, string extension)
     {
         if (string.IsNullOrWhiteSpace(username))
             throw new ArgumentException("Username cannot be empty.", nameof(username));
@@ -67,7 +67,7 @@ public class Email
     /// Constructs an email address from a single string.
     /// </summary>
     /// <param name="email">The email address string.</param>
-    public Email(string email)
+    public EmailAddress(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
             throw new ArgumentException("Email cannot be empty.", nameof(email));
@@ -92,9 +92,9 @@ public class Email
     /// Returns an empty Email object.
     /// </summary>
     /// <returns>An empty Email object.</returns>
-    public static Email Empty()
+    public static EmailAddress Empty()
     {
-        return new Email();
+        return new EmailAddress();
     }
 
     /// <summary>

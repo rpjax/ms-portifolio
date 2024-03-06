@@ -6,12 +6,14 @@
 public enum EnvironmentType
 {
     /// <summary>
-    /// Represents a development environment. Typically used for testing and local development.
+    /// Represents a development environment. <br/>
+    /// Typically used for testing and local development.
     /// </summary>
     Development,
 
     /// <summary>
-    /// Represents a staging environment. This is often a pre-production environment used for final testing before deploying to production.
+    /// Represents a staging environment. <br/>
+    /// This is often a pre-production environment used for final testing before deploying to production.
     /// </summary>
     Staging,
 

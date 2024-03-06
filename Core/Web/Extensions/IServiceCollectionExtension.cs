@@ -5,7 +5,7 @@ namespace ModularSystem.Web;
 
 public static class IServiceCollectionExtensions
 {
-    public static IServiceCollection AddIamService(this IServiceCollection services, IIamService iamSystem)
+    public static IServiceCollection AddIamService(this IServiceCollection services, IAccessManagementService iamSystem)
     {
         DependencyContainer.TryRegister(iamSystem);
 

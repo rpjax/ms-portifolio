@@ -48,26 +48,19 @@ public abstract class Initializer
     public static void Run(Assembly[] assemblies, Options? options = null)
     {
         options ??= new Options();
-        options.Assemblies = assemblies.ToList();
 
         var initializers = GetInitializersFrom(assemblies)
             .OrderByDescending(x => x.Priority)
             .ToList();
 
-        if (options.EnableInitializationLogs)
-        {
-            Console.WriteLine("Starting application initialization...");
-        }
+        Console.WriteLine("Starting application initialization...");
 
         InvokeBeforeInit(initializers, options);
         InvokeInternalInit(initializers, options);
         InvokeOnInit(initializers, options);
         InvokeAfterInit(initializers, options);
 
-        if (options.EnableInitializationLogs)
-        {
-            ConsoleLogger.Info("Application successfully initialized.");
-        }
+        ConsoleLogger.Info("Application successfully initialized.");
     }
 
     /// <summary>
@@ -246,21 +239,6 @@ public abstract class Initializer
         public Dictionary<string, string> Variables { get; set; } = new Dictionary<string, string>();
 
         /// <summary>
-        /// Gets or sets the assemblies that will be considered during the initialization process.
-        /// </summary>
-        public List<Assembly> Assemblies { get; set; } = new();
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to look for initializers in the assemblies loaded in the current AppDomain.
-        /// </summary>
-        public bool LookForInitializersInAppDomainAssembly { get; set; } = true;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to show initialization messages.
-        /// </summary>
-        public bool EnableInitializationLogs { get; set; } = true;
-
-        /// <summary>
         /// Gets or sets a value indicating whether to initialize the console logger.
         /// </summary>
         public bool InitConsoleLogger { get; set; }
@@ -269,23 +247,13 @@ public abstract class Initializer
         /// Gets or sets a value indicating whether disk logging is enabled for exceptions.
         /// When set to true, exceptions are logged to disk using the <see cref="ErrorLogger.EnableDiskLogging"/> mechanism.
         /// </summary>
-        public bool EnableDiskExceptionLogger { get; set; }
+        public bool EnableDiskErrorLogger { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether console logging is enabled for exceptions.
         /// When set to true (default), exceptions are logged to the console using the <see cref="ErrorLogger.EnableConsoleLogging"/> mechanism.
         /// </summary>
-        public bool EnableConsoleExceptionLogger { get; set; } = true;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to initialize entity configurations during the application startup.
-        /// </summary>
-        public bool InitializeEntityConfigurations { get; set; } = false;
-
-        /// <summary>
-        /// Gets or sets the JSON serialization options for the application.
-        /// </summary>
-        public JsonSerializationOptions JsonSerialization { get; set; } = new();
+        public bool EnableConsoleErrorLogger { get; set; } = true;
 
         /// <summary>
         /// Determines if a specific flag exists in the Flags list.
@@ -351,22 +319,6 @@ public abstract class Initializer
             return value;
         }
 
-        /// <summary>
-        /// Provides additional JSON serialization options.
-        /// </summary>
-        public class JsonSerializationOptions
-        {
-            /// <summary>
-            /// Gets or sets a value indicating whether to automatically register all entity JSON serializers during the initialization process.<br/>
-            /// When set to true, all the entity-specific JSON serializers defined within the application will be registered.
-            /// </summary>
-            public bool UseEntityConverters { get; set; } = false;
-
-            /// <summary>
-            /// Gets or sets a value indicating whether to use the UTC DateTime converter during JSON serialization.
-            /// </summary>
-            public bool UseUtcDateTimeConverter { get; set; } = true;
-        }
     }
 
 }

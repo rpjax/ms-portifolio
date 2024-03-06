@@ -73,6 +73,22 @@ public class AesEncrypter : Encrypter
     }
 
     /// <summary>
+    /// Creates an instance of the AesEncrypter class with specified key sizes for encryption.
+    /// </summary>
+    /// <param name="keySize">The size of the encryption key. This determines the strength of the encryption.</param>
+    /// <returns>A new instance of the AesEncrypter class initialized with a random key and IV based on the specified key sizes.</returns>
+    /// <remarks>
+    /// The method generates a random key based on the provided key size for the encryption process. It also generates
+    /// a random initialization vector (IV) with a size of 128 bits, which is a standard size for AES IVs, ensuring compatibility
+    /// and security. This method is useful for creating an encrypter with newly generated keys and IVs for each instance,
+    /// providing strong encryption for different data encryption tasks.
+    /// </remarks>
+    public static AesEncrypter Create(AesKeySize keySize)
+    {
+        return new AesEncrypter(RandomKey(keySize), RandomKey(AesKeySize.bits128));
+    }
+
+    /// <summary>
     /// Disposes the underlying AES provider and releases any acquired resources.
     /// </summary>
     public override void Dispose()

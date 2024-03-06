@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using ModularSystem.Core;
 using ModularSystem.Core.Logging;
-using ModularSystem.Core.Security;
+using ModularSystem.Core.AccessManagement;
 using System.Text;
+using ModularSystem.Web.AccessManagement;
 
 namespace ModularSystem.Web;
 
@@ -13,11 +14,6 @@ namespace ModularSystem.Web;
 /// </summary>
 public abstract class WebController : ControllerBase
 {
-    /// <summary>
-    /// Key used for storing and retrieving the identity from the HttpContext.Items dictionary.
-    /// </summary>
-    public const string HttpContextIdentityKey = "__identity_injection";
-
     /// <summary>
     /// Determines whether to log exceptions or not.
     /// </summary>
@@ -119,19 +115,7 @@ public abstract class WebController : ControllerBase
     /// <returns>An IIdentity object if found; otherwise, null.</returns>
     protected virtual IIdentity? TryGetIdentity()
     {
-        if (HttpContext.Items.TryGetValue(HttpContextIdentityKey, out object? value))
-        {
-            var identity = value?.TryTypeCast<IIdentity>();
-
-            if (identity == null)
-            {
-                return null;
-            }
-
-            return identity;
-        }
-
-        return null;
+        return HttpContext.TryGetIdentity();
     }
 
     /// <summary>
@@ -141,37 +125,7 @@ public abstract class WebController : ControllerBase
     /// <exception cref="AppException">Thrown when the identity object cannot be found in the HttpContext.Items dictionary.</exception>
     protected virtual IIdentity GetIdentity()
     {
-        var identity = TryGetIdentity();
-
-        if (identity == null)
-        {
-            throw new AppException("Could not get the 'IIdentity' object from 'HttpContext.Items'.", ExceptionCode.Internal);
-        }
-
-        return identity;
-    }
-
-    /// <summary>
-    /// Asynchronously authorizes a user based on the provided resource policy.
-    /// </summary>
-    /// <param name="resourcePolicy">The policy against which the user's identity is verified.</param>
-    /// <returns>A Task representing the asynchronous operation.</returns>
-    /// <exception cref="AppException">Thrown when the user is not authenticated or does not have the necessary authorization.</exception>
-    protected virtual async Task AuthorizeAsync(IResourcePolicy? resourcePolicy)
-    {
-        // If no resource policy is provided, no authorization is needed.
-        if (resourcePolicy == null)
-        {
-            return;
-        }
-
-        var identity = TryGetIdentity();
-        var isAuthorized = await resourcePolicy.AuthorizeAsync(identity);
-
-        if (!isAuthorized)
-        {
-            throw new AppException("The authenticated user lacks the required permissions to execute this operation. Ensure you have the right privileges.", ExceptionCode.Unauthorized);
-        }
+        return HttpContext.GetIdentity();
     }
 
     /// <summary>
@@ -347,6 +301,16 @@ public abstract class WebController : ControllerBase
         return FailedOperationResponse(new OperationResult(errors));
     }
 
+    protected IActionResult ErrorResponse(params Error[] errors)
+    {
+        foreach (var error in errors)
+        {
+            error.AddFlags(ErrorFlags.Public);
+        }
+
+        return FailedOperationResponse(errors);
+    }
+
     /// <summary>
     /// Generates an IActionResult for an exception and sends it as a JSON response. <br/>
     /// The response includes the exception details, formatted as an OperationResult. 
@@ -388,5 +352,17 @@ public abstract class WebController : ControllerBase
 
         return OperationResponse(operationResult, 500);
     }
+
+    /// <summary>
+    /// Generates an <see cref="IActionResult"/> containing the provided data transfer object (DTO).
+    /// </summary>
+    /// <typeparam name="T">The type of the data transfer object.</typeparam>
+    /// <param name="value">The data transfer object to include in the response.</param>
+    /// <returns>An <see cref="IActionResult"/> that wraps the provided DTO in a standardized format for API responses.</returns>
+    protected virtual IActionResult DtoResponse<T>(T? value)
+    {
+        return Ok(new Dto<T>(value));
+    }
+
 
 }

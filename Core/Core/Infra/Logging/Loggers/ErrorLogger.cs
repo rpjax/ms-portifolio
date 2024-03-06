@@ -8,8 +8,8 @@ class ExceptionLoggerInitializer : Initializer
 {
     protected internal override Task InternalInitAsync(Options options)
     {
-        ErrorLogger.EnableDiskLogging = options.EnableDiskExceptionLogger;
-        ErrorLogger.EnableConsoleLogging = options.EnableConsoleExceptionLogger;
+        ErrorLogger.EnableDiskLogging = options.EnableDiskErrorLogger;
+        ErrorLogger.EnableConsoleLogging = options.EnableConsoleErrorLogger;
 
         return Task.CompletedTask;
     }

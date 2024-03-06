@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using ModularSystem.Core;
 using ModularSystem.Core.Cryptography;
-using ModularSystem.Core.Security;
+using ModularSystem.Core.AccessManagement;
+using System.Text.Json;
+using System.Text;
 
 namespace ModularSystem.Web.Authentication;
 
@@ -9,7 +11,7 @@ namespace ModularSystem.Web.Authentication;
 /// Provides authentication services using AES encrypted tokens. <br/>
 /// This implementation supports token encryption and salt generation for enhanced security.
 /// </summary>
-public class AesAuthenticationProvider : IAuthenticationProvider
+public class AesAuthenticationService : IAuthenticationService
 {
     /// <summary>
     /// The default token lifetime, set to 24 hours.
@@ -37,10 +39,10 @@ public class AesAuthenticationProvider : IAuthenticationProvider
     protected ISaltGenerator SaltGenerator { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AesAuthenticationProvider"/> class.
+    /// Initializes a new instance of the <see cref="AesAuthenticationService"/> class.
     /// </summary>
     /// <param name="options">Parameters for token life cycle and other configurations.</param>
-    public AesAuthenticationProvider(Options? options = null)
+    public AesAuthenticationService(Options? options = null)
     {
         options ??= new Options();
 
@@ -51,13 +53,13 @@ public class AesAuthenticationProvider : IAuthenticationProvider
     }
 
     /// <inheritdoc/>
-    public virtual async Task<OperationResult<IIdentity>> GetIdentityAsync(HttpContext httpContext)
+    public virtual async Task<IIdentity?> TryGetIdentityAsync(HttpContext httpContext)
     {
         var tokenResult = TryGetTokenFromContext(httpContext);
 
         if (tokenResult.IsFailure)
         {
-            return new(tokenResult.Errors);
+            return null;
         }
 
         var token = tokenResult.GetData();
@@ -69,17 +71,17 @@ public class AesAuthenticationProvider : IAuthenticationProvider
                 .AddJsonData("Token", token)
                 .AddFlags(ErrorFlags.Critical, ErrorFlags.Debug);
 
-            return new(error);
+            throw new ErrorException(error);
         }
 
         if (token.IsExpired())
         {
-            var message = "The provided credential is expired and can no longer be used.";
-            var error = new Error(message)
-                .AddJsonData("Token", token)
-                .AddFlags(ErrorFlags.Public);
+            //var message = "The provided credential is expired and can no longer be used.";
+            //var error = new Error(message)
+            //    .AddJsonData("Token", token)
+            //    .AddFlags(ErrorFlags.Public);
 
-            return new(error);
+            return null;
         }
 
         var identity = JsonSerializerSingleton.Deserialize<Identity>(token.Payload);
@@ -91,27 +93,31 @@ public class AesAuthenticationProvider : IAuthenticationProvider
                 .AddJsonData("Token", token)
                 .AddFlags(ErrorFlags.Critical, ErrorFlags.Debug);
 
-            return new(error);
+            throw new ErrorException(error);
         }
 
-        return new(identity);
+        return identity;
     }
 
     /// <summary>
     /// Creates a token with prefixed and suffixed salts from the provided identity.
     /// </summary>
-    public virtual Token CreateToken(Identity identity)
+    public virtual Token CreateToken(IIdentity identity)
     {
         var random = new Random();
         var now = TimeProvider.Now();
 
         var prefixSaltSize = random.Next(100, 150);
         var suffixSaltSize = random.Next(100, 150);
-
         var prefixSalt = SaltGenerator.Generate(prefixSaltSize);
-        var payload = JsonSerializerSingleton.Serialize(identity);
         var suffixSalt = SaltGenerator.Generate(suffixSaltSize);
         var expiresAt = now.Add(TokenLifetime);
+
+        using var stream = new MemoryStream();
+        JsonSerializer.Serialize(stream, identity, identity.GetType(), JsonSerializerSingleton.GetOptions());
+        stream.Seek(0, SeekOrigin.Begin);
+        using var reader = new StreamReader(stream, Encoding.UTF8);
+        var payload = reader.ReadToEnd();
 
         return new Token()
         {
@@ -182,7 +188,7 @@ public class AesAuthenticationProvider : IAuthenticationProvider
     }
 
     /// <summary>
-    /// Configuration parameters for the <see cref="AesAuthenticationProvider"/>.
+    /// Configuration parameters for the <see cref="AesAuthenticationService"/>.
     /// </summary>
     public class Options
     {

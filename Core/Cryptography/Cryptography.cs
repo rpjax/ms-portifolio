@@ -68,21 +68,21 @@ public abstract class Encrypter : IEncrypter
 /// Provides functionalities to encrypt and decrypt textual data using an underlying byte-based encryption scheme.
 /// </summary>
 /// <remarks>
-/// The <see cref="TextEncrypter"/> class uses an instance of the <see cref="IEncrypter"/> to perform the actual encryption and decryption
+/// The <see cref="WebTextEncrypter"/> class uses an instance of the <see cref="IEncrypter"/> to perform the actual encryption and decryption
 /// of byte arrays. It converts text to byte arrays using UTF-8 encoding before encryption, and decodes them back to text after decryption.
 /// Encrypted byte data is then converted to a Base64 encoded string for easier handling and storage.
 /// </remarks>
-public class TextEncrypter : ITextEncrypter
+public class WebTextEncrypter : ITextEncrypter
 {
     private IEncrypter Encrypter { get; }
     private Encoding Encoding { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TextEncrypter"/> class with a specified encrypter.
+    /// Initializes a new instance of the <see cref="WebTextEncrypter"/> class with a specified encrypter.
     /// </summary>
     /// <param name="encrypter">The underlying byte-based encrypter.</param>
     /// <param name="encoding">The encoding to be used.</param>
-    public TextEncrypter(IEncrypter encrypter, Encoding? encoding = null)
+    public WebTextEncrypter(IEncrypter encrypter, Encoding? encoding = null)
     {
         Encrypter = encrypter;
         Encoding = encoding ?? Encoding.UTF8;

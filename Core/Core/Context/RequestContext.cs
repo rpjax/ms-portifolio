@@ -1,4 +1,4 @@
-﻿using ModularSystem.Core.Security;
+﻿using ModularSystem.Core.AccessManagement;
 
 namespace ModularSystem.Core;
 

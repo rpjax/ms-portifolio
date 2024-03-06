@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core;
+using ModularSystem.Core.Cryptography;
 
 namespace ModularSystem.Web.Authentication;
 
@@ -76,6 +77,26 @@ public class Token
     {
         CreatedAt = TimeProvider.UtcNow();
         ExpiresAt = TimeProvider.UtcNow();
+    }
+
+    public static Token FromPayload(string payload, TimeSpan lifetime)
+    {
+        var random = new Random();
+        var saltGenerator = new SaltGenerator();
+        var prefixSaltSize = random.Next(20, 50);
+        var suffixSaltSize = random.Next(20, 50);
+        var prefixSalt = saltGenerator.Generate(prefixSaltSize);
+        var suffixSalt = saltGenerator.Generate(suffixSaltSize);
+        var now = TimeProvider.UtcNow();
+
+        return new Token()
+        {
+            PrefixSalt = prefixSalt,
+            Payload = payload,
+            SuffixSalt = suffixSalt,
+            CreatedAt = now,
+            ExpiresAt = now.Add(lifetime)
+        };
     }
 
     /// <summary>

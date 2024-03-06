@@ -24,12 +24,7 @@ public class ConsoleLoggerInitializer : Initializer
         }
 
         ConsoleLogger.SetAsCurrentStdIo();
-
-        if (options.EnableInitializationLogs)
-        {
-            ConsoleLogger.Info("Console logger has been initialized.");
-        }
-
+        ConsoleLogger.Info("Console logger has been initialized.");
         return Task.CompletedTask;
     }
 }
