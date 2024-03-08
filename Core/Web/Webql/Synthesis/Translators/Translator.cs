@@ -1,8 +1,10 @@
 ﻿using ModularSystem.Core;
 using ModularSystem.Core.Expressions;
+using ModularSystem.Core.Linq;
 using ModularSystem.Webql.Analysis;
 using System.Collections;
 using System.Linq.Expressions;
+using System.Reflection.Metadata;
 
 namespace ModularSystem.Webql.Synthesis;
 
@@ -58,13 +60,42 @@ public class Translator
         return NodeTranslator.Translate(context, syntaxTree);
     }
 
-    public Expression Translate(string json, Type elementType)
+    //*
+    // requires testing; outputs a lambda that aplies the translated expression to a queryable source
+    //*
+    public Expression Translate(string query, Type elementType)
     {
-        var syntaxTree = RunAnalysis(json, elementType);
-        var exprParameter = Expression.Parameter(elementType, "root");
-        var context = new TranslationContext(elementType, exprParameter);
+        var queryableType = Options.QueryableType.MakeGenericType(elementType);
+        var parameterExpr = Expression.Parameter(queryableType, "root");
+        var context = new TranslationContext(queryableType, parameterExpr);
 
-        return NodeTranslator.Translate(context, syntaxTree);
+        var syntaxTree = RunAnalysis(query, queryableType);
+        var expression = NodeTranslator.Translate(context, syntaxTree);
+
+        var projectedElementType = expression.Type.GenericTypeArguments[0];
+        var projectedQueryableType = Options.QueryableType.MakeGenericType(projectedElementType);
+
+        var lambdaExpressionType = typeof(Func<,>).MakeGenericType(queryableType, projectedQueryableType);
+        var lambdaExpression = Expression.Lambda(lambdaExpressionType, expression, parameterExpr);
+        
+        return lambdaExpression;
+    }
+
+    public IAsyncQueryable<object> CreateQuery<T>(string query, IAsyncQueryable<T> source)
+    {
+        var elementType = source.ElementType;
+        var expression = Translate(query, elementType);
+        var lambdaExpression = expression.TypeCast<LambdaExpression>();
+        var lambda = lambdaExpression.Compile();
+
+        var transformedSource = lambda.DynamicInvoke(source) as IAsyncQueryable;
+
+        if (transformedSource == null)
+        {
+            throw QueryableTransformationFailedException();
+        }
+
+        return new WebqlAsyncQueryable(transformedSource);
     }
 
     /// <summary>

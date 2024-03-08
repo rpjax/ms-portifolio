@@ -38,7 +38,7 @@ public interface ITokenEncrypter : IDisposable
 /// </summary>
 public class TokenEncrypter : ITokenEncrypter
 {
-    private WebTextEncrypter Encrypter { get; }
+    private WebEncodedTextEncrypter Encrypter { get; }
 
     /// <summary>
     /// Constructs an instance with a specific underlying encrypter.
@@ -51,7 +51,7 @@ public class TokenEncrypter : ITokenEncrypter
             throw new ArgumentNullException(nameof(encrypter));
         }
 
-        Encrypter = new WebTextEncrypter(encrypter);
+        Encrypter = new WebEncodedTextEncrypter(encrypter);
     }
 
     /// <summary>

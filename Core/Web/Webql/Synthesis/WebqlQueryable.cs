@@ -11,7 +11,7 @@ namespace ModularSystem.Webql.Synthesis;
 /// This class provides the capability to interact with query results as both IQueryable and IEnumerable, <br/>
 /// supporting operations like enumeration, conversion to array, and count operations.
 /// </summary>
-public class WebqlQueryable : IExtendedQueryable<object>
+public class WebqlQueryable : IQueryable<object>
 {
     /// <summary>
     /// Gets the input type of the query.
@@ -189,4 +189,103 @@ public class WebqlQueryable : IExtendedQueryable<object>
         return (IEnumerator<object>)AsEnumerable().GetEnumerator();
     }
 
+}
+
+public class WebqlAsyncQueryable : IAsyncQueryable<object>
+{
+    public IAsyncQueryable Source { get; }
+    public Type ElementType { get; }
+    public Expression Expression { get; }
+    public IQueryProvider Provider { get; }
+
+    public WebqlAsyncQueryable(IAsyncQueryable source)
+    {
+        Source = source;
+        ElementType = source.ElementType;
+        Expression = source.Expression;
+        Provider = source.Provider;
+    }
+
+    public Task<double> AverageAsync(Expression<Func<object, double>> selector)
+    {
+        var methodInfo = typeof(AsyncQueryableExtensions).GetMethods()
+            .Where(x => x.Name == "AverageAsync")
+            .First();
+
+        return (Task<double>)methodInfo.Invoke(null, new object[] { Source, selector })!;
+    }
+
+    public Task<int> CountAsync()
+    {
+        var methodInfo = typeof(AsyncQueryableExtensions).GetMethods()
+            .Where(x => x.Name == "CountAsync")
+            .First();
+
+        return (Task<int>)methodInfo.Invoke(null, new object[] { Source })!;
+    }
+
+    public IAsyncQueryable<TResult> CreateQuery<TResult>(IQueryable<TResult> source)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<object> FirstAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<object?> FirstOrDefaultAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public IEnumerator<object> GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<long> LongCountAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<object> MaxAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<object> MinAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<object> SingleAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<object?> SingleOrDefaultAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<decimal> SumAsync(Expression<Func<object, decimal>> selector)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<object[]> ToArrayAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<List<object>> ToListAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
 }

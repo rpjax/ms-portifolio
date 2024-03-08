@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core;
+using ModularSystem.Core.Linq;
 using ModularSystem.Webql.Analysis;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -12,7 +13,7 @@ namespace ModularSystem.Webql.Synthesis;
 /// </summary>
 public class LinqProvider
 {
-    protected enum LinqTypeSource
+    protected enum LinqSourceType
     {
         IEnumerable,
         IQueryable
@@ -383,7 +384,7 @@ public class LinqProvider
 
         var queryableType = context.GetQueryableElementType();
 
-        var methodSource = GetLinqTypeSource(context);
+        var methodSource = GetLinqSourceType(context);
 
         var methodInfo = GetCountMethodInfo(methodSource)
             .MakeGenericMethod(new[] { queryableType });
@@ -427,7 +428,7 @@ public class LinqProvider
         var lambdaBody = translator.Translate(subContext, node);
         var lambda = Expression.Lambda(lambdaBody, lambdaParameter);
 
-        var methodSource = GetLinqTypeSource(context);
+        var methodSource = GetLinqSourceType(context);
 
         var methodInfo = GetAnyMethodInfo(methodSource)
             .MakeGenericMethod(new[] { queryableType });
@@ -459,7 +460,7 @@ public class LinqProvider
         var lambdaBody = translator.Translate(subContext, node);
         var lambda = Expression.Lambda(lambdaBody, lambdaParameter);
 
-        var methodSource = GetLinqTypeSource(context);
+        var methodSource = GetLinqSourceType(context);
 
         var methodInfo = GetAllMethodInfo(methodSource)
             .MakeGenericMethod(new[] { queryableType });
@@ -491,7 +492,7 @@ public class LinqProvider
         var lambdaBody = translator.Translate(subContext, node);
         var lambda = Expression.Lambda(lambdaBody, lambdaParameter);
 
-        var methodSource = GetLinqTypeSource(context);
+        var methodSource = GetLinqSourceType(context);
 
         var methodInfo = GetMinMethodInfo()
             .MakeGenericMethod(subContextType, lambdaBody.Type);
@@ -533,21 +534,21 @@ public class LinqProvider
             .First();
     }
 
-    protected LinqTypeSource GetLinqTypeSource(TranslationContext context)
+    protected LinqSourceType GetLinqSourceType(TranslationContext context)
     {
         if (context.Expression.Type.IsArray)
         {
-            return LinqTypeSource.IEnumerable;
+            return LinqSourceType.IEnumerable;
         }
 
         var genericDefinition = context.Expression.Type.TryGetGenericTypeDefinition();
 
         if(genericDefinition == typeof(List<>))
         {
-            return LinqTypeSource.IEnumerable;
+            return LinqSourceType.IEnumerable;
         }
 
-        return LinqTypeSource.IQueryable;
+        return LinqSourceType.IQueryable;
     }
 
     //*
@@ -699,9 +700,9 @@ public class LinqProvider
     /// Retrieves the MethodInfo for the 'Count' LINQ method.
     /// </summary>
     /// <returns>MethodInfo for the 'Count' method.</returns>
-    protected virtual MethodInfo GetCountMethodInfo(LinqTypeSource source)
+    protected virtual MethodInfo GetCountMethodInfo(LinqSourceType source)
     {
-        if(source == LinqTypeSource.IEnumerable)
+        if(source == LinqSourceType.IEnumerable)
         {
             return typeof(Enumerable)
                 .GetMethods()
@@ -724,9 +725,9 @@ public class LinqProvider
     /// Retrieves the MethodInfo for the 'Any' LINQ method.
     /// </summary>
     /// <returns>MethodInfo for the 'Any' method.</returns>
-    protected virtual MethodInfo GetAnyMethodInfo(LinqTypeSource source)
+    protected virtual MethodInfo GetAnyMethodInfo(LinqSourceType source)
     {
-        if (source == LinqTypeSource.IEnumerable)
+        if (source == LinqSourceType.IEnumerable)
         {
             return typeof(Enumerable)
                 .GetMethods(BindingFlags.Static | BindingFlags.Public)
@@ -752,9 +753,9 @@ public class LinqProvider
     /// Retrieves the MethodInfo for the 'All' LINQ method.
     /// </summary>
     /// <returns>MethodInfo for the 'All' method.</returns>
-    protected virtual MethodInfo GetAllMethodInfo(LinqTypeSource source)
+    protected virtual MethodInfo GetAllMethodInfo(LinqSourceType source)
     {
-        if (source == LinqTypeSource.IEnumerable)
+        if (source == LinqSourceType.IEnumerable)
         {
             return typeof(Enumerable)
                 .GetMethods(BindingFlags.Static | BindingFlags.Public)
@@ -932,6 +933,35 @@ public class LinqProvider
     protected virtual MethodInfo GetDecimalAverageMethodInfo()
     {
         return FindAverageMethod(typeof(decimal));
+    }
+
+}
+
+public class QueryableLinqProvider : LinqProvider
+{
+
+}
+
+public class AsyncQueryableLinqProvider : LinqProvider
+{
+    public override Type GetQueryableType()
+    {
+        return typeof(IAsyncQueryable<>);
+    }
+
+    protected override MethodInfo GetWhereMethodInfo()
+    {
+        return typeof(AsyncQueryableExtensions).GetMethods()
+            .Where(x => x.Name == "Where")
+            .First();
+    }
+
+    protected override MethodInfo GetQueryableSelectMethodInfo()
+    {
+        return typeof(AsyncQueryableExtensions)
+            .GetMethods()
+            .Where(m => m.Name == "Select")
+            .First();
     }
 
 }
