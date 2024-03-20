@@ -11,35 +11,35 @@ public static class AnalysisPipeline
     /// <summary>
     /// Runs the analysis pipeline on a WebQL query represented in JSON format.
     /// </summary>
-    /// <param name="json">The JSON representation of the WebQL query.</param>
+    /// <param name="query">The JSON representation of the WebQL query.</param>
     /// <param name="type">The type context within which the query is analyzed.</param>
     /// <returns>The transformed WebQL node after the analysis.</returns>
-    public static Node Run(string json, Type type)
+    public static Node Run(string query)
     {
-        var node = SyntaxAnalyser.Parse(json) as Node;
+        var node = SyntaxAnalyser.Parse(query) as Node;
 
         //*
         // Runs the phases of analysis that are based on the syntax tree.
         //*
-        node = RunSemanticFeaturesPhase(type, node);
-        node = RunSemanticValidationPhase(type, node);
+        node = RunSemanticFeaturesPhase(node);
+        node = RunSemanticValidationPhase(node);
 
         return node;
     }
 
-    private static Node RunSemanticFeaturesPhase(Type type, Node node)
+    private static Node RunSemanticFeaturesPhase(Node axiom)
     {
-        node = new ImplicitEqualsSyntaxFeature()
-            .Visit(new(type), node);
+        axiom = new ImplicitEqualsSyntaxFeature()
+            .Visit(new SemanticContext(), axiom);
 
-        node = new ImplicitAndSyntaxFeature()
-           .Visit(new(type), node);
+        axiom = new ImplicitAndSyntaxFeature()
+           .Visit(new SemanticContext(), axiom);
 
-        return node;
+        return axiom;
     }
 
-    private static Node RunSemanticValidationPhase(Type type, Node node)
+    private static Node RunSemanticValidationPhase(Node axiom)
     {
-        return node;
+        return axiom;
     }
 }

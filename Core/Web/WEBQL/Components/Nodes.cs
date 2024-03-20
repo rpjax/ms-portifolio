@@ -53,6 +53,11 @@ public class LiteralNode : Node
     public bool IsReference { get; }
 
     /// <summary>
+    /// Indicates whether the node does not represent a reference operator.
+    /// </summary>
+    public bool IsNotReference => !IsReference;
+
+    /// <summary>
     /// Initializes a new instance of the LiteralNode class with a given value.
     /// </summary>
     /// <param name="value">The value of the literal node.</param>
@@ -69,13 +74,13 @@ public class LiteralNode : Node
         return Value ?? string.Empty;
     }
 
-    public string GetReferenceValue()
+    public string? GetNormalizedValue()
     {
         var value = Value;
 
         if (value == null)
         {
-            return string.Empty;
+            return null;
         }
         if (value.StartsWith('"'))
         {
@@ -178,9 +183,19 @@ public class LhsNode : Node
     public bool IsOperator { get; }
 
     /// <summary>
+    /// Indicates whether the node does not represent an operator.
+    /// </summary>
+    public bool IsNotOperator => !IsOperator;
+
+    /// <summary>
     /// Indicates whether the node represents a symbol reference.
     /// </summary>
     public bool IsReference { get; }
+
+    /// <summary>
+    /// Indicates whether the node does not represent a symbol reference.
+    /// </summary>
+    public bool IsNotReference => !IsReference;
 
     /// <summary>
     /// Gets the value of the LHS node.
@@ -301,7 +316,7 @@ public class ObjectNode : Node, IEnumerable<ExpressionNode>
     /// <param name="expressions">The collection of expression nodes.</param>
     public ObjectNode(IEnumerable<ExpressionNode> expressions)
     {
-        NodeType = NodeType.ScopeDefinition;
+        NodeType = NodeType.Object;
         Expressions = expressions.ToArray();
     }
 
@@ -344,5 +359,15 @@ public class ObjectNode : Node, IEnumerable<ExpressionNode>
     IEnumerator IEnumerable.GetEnumerator()
     {
         return Expressions.GetEnumerator();
+    }
+}
+
+public class NullNode : Node
+{
+    public override NodeType NodeType => NodeType.Null;
+
+    public override string ToString()
+    {
+        return "null";
     }
 }

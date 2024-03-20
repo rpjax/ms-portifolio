@@ -24,7 +24,7 @@ public static class SyntaxAnalyser
         }
         if (node is JsonObject jsonObject)
         {
-            return ParseScopeDefinition(context, jsonObject);
+            return ParseObject(context, jsonObject);
         }
 
         throw new SyntaxException("Invalid query structure: The root element of the query must be a JSON object. Found: " + node.GetType().Name, context);
@@ -52,7 +52,7 @@ public static class SyntaxAnalyser
         throw new SyntaxException("The right-hand side (RHS) of the expression is invalid. Ensure that the RHS is a proper literal, object, or array as per the WebQL syntax.", context);
     }
 
-    private static ObjectNode ParseScopeDefinition(SyntaxContext context, JsonObject jsonObject)
+    private static ObjectNode ParseObject(SyntaxContext context, JsonObject jsonObject)
     {
         var children = new List<ExpressionNode>();
 
@@ -64,76 +64,6 @@ public static class SyntaxAnalyser
         return new ObjectNode(children);
     }
 
-    private static LhsNode ParseLeftHandSide(SyntaxContext context, string key)
-    {
-        return new LhsNode(key);
-    }
-
-    private static RhsNode ParseRightHandSide(SyntaxContext context, JsonNode? jsonNode)
-    {
-        if (jsonNode == null)
-        {
-            return ParseLiteralRhs(context, null);
-        }
-
-        switch (GetRhsType(context, jsonNode))
-        {
-            case RhsType.Literal:
-                return ParseLiteralRhs(context, jsonNode.AsValue());
-
-            case RhsType.Object:
-                return ParseObjectRhs(context, jsonNode.AsObject());
-
-            case RhsType.Array:
-                return ParseArrayRhs(context, jsonNode.AsArray());
-
-            default:
-                throw new Exception();
-        }
-    }
-
-    private static RhsNode ParseLiteralRhs(SyntaxContext context, JsonValue? jsonValue)
-    {
-        if (jsonValue == null)
-        {
-            return new RhsNode(new LiteralNode("null"));
-        }
-
-        return new RhsNode(ParseLiteral(context, jsonValue));
-    }
-
-    private static RhsNode ParseObjectRhs(SyntaxContext context, JsonObject jsonObject)
-    {
-        return new RhsNode(ParseScopeDefinition(context, jsonObject));
-    }
-
-    private static RhsNode ParseArrayRhs(SyntaxContext context, JsonArray jsonArray)
-    {
-        var nodes = new List<Node>();
-
-        for (int i = 0; i < jsonArray.Count; i++)
-        {
-            var item = jsonArray[i];
-            var subContext = context.CreateSubContext($"[{i}]");
-
-            if (item is JsonObject)
-            {
-                nodes.Add(ParseScopeDefinition(subContext, item.AsObject()));
-                continue;
-            }
-
-            if (item is JsonValue)
-            {
-                nodes.Add(ParseLiteral(subContext, item.AsValue()));
-                continue;
-            }
-
-            throw new SyntaxException("Invalid item type in array on the right-hand side. Each item must be either a literal or an object.", context);
-        }
-
-        return new RhsNode(new ArrayNode(nodes));
-    }
-
     private static ExpressionNode ParseExpression(SyntaxContext context, KeyValuePair<string, JsonNode?> item)
     {
         var lhs = ParseLeftHandSide(context, item.Key);
@@ -143,8 +73,80 @@ public static class SyntaxAnalyser
         return new ExpressionNode(lhs, rhs);
     }
 
-    private static LiteralNode ParseLiteral(SyntaxContext context, JsonValue jsonNode)
+    private static LhsNode ParseLeftHandSide(SyntaxContext context, string key)
     {
+        return new LhsNode(key);
+    }
+
+    private static RhsNode ParseRightHandSide(SyntaxContext context, JsonNode? jsonNode)
+    {
+        if (jsonNode == null)
+        {
+            return new RhsNode(ParseLiteral(context, null));
+        }
+
+        switch (GetRhsType(context, jsonNode))
+        {
+            case RhsType.Literal:
+                return new RhsNode(ParseLiteral(context, jsonNode.AsValue()));
+
+            case RhsType.Object:
+                return new RhsNode(ParseObject(context, jsonNode.AsObject()));
+
+            case RhsType.Array:
+                return new RhsNode(ParseArray(context, jsonNode.AsArray()));
+
+            default:
+                throw new Exception();
+        }
+    }
+
+    private static ArrayNode ParseArray(SyntaxContext context, JsonArray jsonArray)
+    {
+        var nodes = new List<Node>();
+
+        for (int i = 0; i < jsonArray.Count; i++)
+        {
+            var item = jsonArray[i];
+            var subContext = context.CreateSubContext($"[{i}]");
+
+            if (item is null)
+            {
+                nodes.Add(new NullNode());
+                continue;
+            }
+
+            if (item is JsonObject)
+            {
+                nodes.Add(ParseObject(subContext, item.AsObject()));
+                continue;
+            }
+
+            if (item is JsonValue)
+            {
+                nodes.Add(ParseLiteral(subContext, item.AsValue()));
+                continue;
+            }
+
+            if(item is JsonArray)
+            {
+                nodes.Add(ParseArray(context, item.AsArray()));
+                continue;
+            }
+
+            throw new SyntaxException("Invalid item type in array on the right-hand side. Each item must be either a literal or an object.", context);
+        }
+
+        return new ArrayNode(nodes);
+    }
+
+    private static LiteralNode ParseLiteral(SyntaxContext context, JsonValue? jsonNode)
+    {
+        if(jsonNode == null)
+        {
+            return new LiteralNode(null);
+        }
+
         return new LiteralNode(jsonNode.ToJsonString());
     }
 

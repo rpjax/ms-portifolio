@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Reflection;
+﻿using System.Linq.Expressions;
 
 namespace ModularSystem.Webql.Analysis;
 
@@ -10,19 +9,11 @@ namespace ModularSystem.Webql.Analysis;
 public class SemanticContext
 {
     /// <summary>
-    /// Gets the type associated with the current context.
-    /// </summary>
-    public Type Type { get; }
-
-    /// <summary>
     /// Gets the parent context of the current context, if any.
     /// </summary>
-    public SemanticContext? ParentContext { get; }
+    public SemanticContext? ParentSemanticContext { get; }
 
-    /// <summary>
-    /// Gets the stack trace of the context for debugging and tracing purposes.
-    /// </summary>
-    public string Label { get; }
+    public SymbolTable SymbolTable { get; init; } = new();
 
     /// <summary>
     /// Indicates whether navigation through nested properties and contexts is enabled in the semantic context. <br/>
@@ -39,147 +30,13 @@ public class SemanticContext
     /// <summary>
     /// Initializes a new instance of the SemanticContext class.
     /// </summary>
-    /// <param name="type">The type associated with this context.</param>
     /// <param name="parentContext">The parent semantic context, if any.</param>
-    /// <param name="name">The stack trace for the context.</param>
-    public SemanticContext(Type type, SemanticContext? parentContext = null, string? name = null)
+    public SemanticContext(SemanticContext? parentContext = null)
     {
-        Type = type;
-        ParentContext = parentContext;
-        Label = name ?? "$";
+        ParentSemanticContext = parentContext;
+        SymbolTable = parentContext?.SymbolTable.Copy() ?? new SymbolTable();
         EnableNavigation = parentContext?.EnableNavigation ?? true;
         EnableImplicitAndSyntax = parentContext?.EnableImplicitAndSyntax ?? true;
-    }
-
-    /// <summary>
-    /// Determines if the type of the current context is 'void'.
-    /// </summary>
-    /// <returns>True if the type is void; otherwise, false.</returns>
-    public bool IsVoid()
-    {
-        return Type == typeof(void);
-    }
-
-    /// <summary>
-    /// Determines if the type of the current context is a form of IEnumerable, indicating a queryable type.
-    /// </summary>
-    /// <returns>True if the type is queryable; otherwise, false.</returns>
-    public bool IsQueryable()
-    {
-        return
-            typeof(IEnumerable).IsAssignableFrom(Type)
-            || Type.GetInterfaces().Any(i =>
-               i.IsGenericType &&
-               i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
-    }
-
-    /// <summary>
-    /// Determines if the type of the current context is NOT a form of IEnumerable, indicating a non queryable type.
-    /// </summary>
-    /// <returns>True if the type is queryable; otherwise, false.</returns>
-    public bool IsNotQueryable()
-    {
-        return !IsQueryable();
-    }
-
-    /// <summary>
-    /// Attempts to retrieve the element type of the queryable type represented by the current context. <br/>
-    /// This method determines if the context type is queryable and, if so, extracts the relevant element type.
-    /// </summary>
-    /// <returns>
-    /// The element type of the queryable type if the context is queryable; otherwise, null. 
-    /// </returns>
-    /// <remarks>
-    /// This method checks if the context's type is either an array or implements IEnumerable{T}. <br/>
-    /// If the type is an array, it returns the array's element type. <br/>
-    /// If the type is a generic IEnumerable, it returns the generic argument type. <br/>
-    /// If the context's type is not queryable, it returns null.
-    /// </remarks>
-    public Type? TryGetQueryableElementType()
-    {
-        if (IsNotQueryable())
-        {
-            return null;        
-        }
-
-        if (Type.IsArray)
-        {
-            return Type.GetElementType();
-        }
-
-        var queryableInterface = Type.GetInterfaces()
-            .Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IQueryable<>))
-            .FirstOrDefault();
-
-        if (queryableInterface != null)
-        {
-            return queryableInterface.GetGenericArguments()[0];
-        }
-
-        var enumerableInterface = Type.GetInterfaces()
-            .Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-            .FirstOrDefault();
-
-        if(enumerableInterface != null)
-        {
-            return enumerableInterface.GetGenericArguments()[0];
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Retrieves the element type of the queryable type of the current context, if applicable.
-    /// </summary>
-    /// <returns>The element type of the queryable.</returns>
-    /// <exception cref="SemanticException">Thrown if the context is not queryable or the queryable type is undefined.</exception>
-    public Type GetQueryableElementType()
-    {
-        var type = TryGetQueryableElementType();
-
-        if (type == null)
-        {
-            throw SemanticThrowHelper.ErrorInternalUnknown(this, "The current context does not represent a queryable type or the queryable type is undefined. Ensure that the context is correctly initialized and represents a valid queryable type. This error may indicate a misalignment between the expected and actual types within the context.");
-        }
-
-        return type;
-    }
-
-    /// <summary>
-    /// Retrieves the PropertyInfo for a given property name in the current context's type.
-    /// This method searches the type's properties, considering the case-insensitivity of the name.
-    /// </summary>
-    /// <param name="name">The name of the property to retrieve.</param>
-    /// <param name="useParentContexts">Indicates whether to search in parent contexts if the property is not found in the current context.</param>
-    /// <returns>The PropertyInfo of the specified property, if found.</returns>
-    /// <exception cref="Exception">Thrown if the property is not found in the current context and parent contexts.</exception>
-    public PropertyInfo? GetPropertyInfo(string name, bool useParentContexts = true)
-    {
-        var propertyInfo = null as PropertyInfo;
-        var context = this;
-
-        while (true)
-        {
-            propertyInfo = context.Type
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(x => x.Name == name || x.Name.ToLower() == name.ToLower())
-                .FirstOrDefault();
-
-            if (propertyInfo != null)
-            {
-                break;
-            }
-            if (useParentContexts)
-            {
-                context = context.ParentContext;
-            }
-            if (context == null)
-            {
-                break;
-            }
-        }
-
-        return propertyInfo;
     }
 
     /// <summary>
@@ -238,25 +95,34 @@ public class SemanticContext
         return this;
     }
 
-    /// <summary>
-    /// Creates a sub-context based on a specified property name and a sub-stack trace. <br/>
-    /// This method is used for navigating deeper into the semantic structure of a context, allowing targeted analysis or modification.
-    /// </summary>
-    /// <param name="identifier">The property name to create a sub-context for.</param>
-    /// <param name="label">The sub-stack trace for the new context, providing additional context for error reporting and analysis.</param>
-    /// <param name="useParents">Indicates whether to use parent contexts to find the property if it's not present in the current context.</param>
-    /// <returns>A new SemanticContext instance representing the sub-context.</returns>
-    /// <exception cref="SemanticException">Thrown if the specified property is not found within the context hierarchy.</exception>
-    public SemanticContext GetReferenceContext(string identifier, string label, bool useParents = true)
+    public SemanticContext CreateSemanticContext()
     {
-        var propertyInfo = GetPropertyInfo(identifier, useParents);
+        return new SemanticContext(this);
+    }
 
-        if (propertyInfo == null)
+    public bool ContainsSymbol(string identifier)
+    {
+        return SymbolTable.ContainsSymbol(identifier);
+    }
+
+    public SymbolOld? TryGetSymbol(string identifier)
+    {
+        return SymbolTable.TryGetSymbol(identifier);
+    }
+
+    public SymbolOld GetSymbol(string identifier)
+    {
+        return TryGetSymbol(identifier) ?? throw new SemanticException("", this);
+    }
+
+    public SymbolOld SetSymbol(string identifier, Expression expression, bool canWrite = true)
+    {
+        if(!SymbolTable.CanWriteSymbol(identifier))
         {
-            throw new SemanticException($"Reference '{identifier}' not found in the current context. Ensure the reference name is correct and exists in the context type {Label}.", this);
+            throw new SemanticException("", this);
         }
 
-        return new SemanticContext(propertyInfo.PropertyType, this, $"{Label}{label}");
+        return SymbolTable.SetSymbol(identifier, expression, canWrite);
     }
 
 }

@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using ModularSystem.Core;
 using ModularSystem.Core.Expressions;
 using ModularSystem.Core.Linq;
-using ModularSystem.Core.AccessManagement;
 using ModularSystem.Web.Expressions;
 using ModularSystem.Webql;
 using ModularSystem.Webql.Synthesis;
@@ -302,7 +300,7 @@ public abstract class CrudController<T> : ServiceController<T>, IPingController,
 /// </summary>
 /// <typeparam name="T">The type of the entity being managed, conforming to <see cref="IEntity"/>.</typeparam>
 /// <returns>A task resulting in an IActionResult containing the query results or an error message.</returns>
-public abstract class QueryableController<T> : ServiceController<T> where T : class, IEntity
+public abstract class SerializableQueryableController<T> : ServiceController<T> where T : class, IEntity
 {
     /// <summary>
     /// Handles an incoming query request and returns the result of the query. <br/>
@@ -363,9 +361,9 @@ public abstract class WebqlController<T> : WebController
         {
             var json = (await ReadBodyAsStringAsync()) ?? Translator.EmptyQuery;
             var translator = GetTranslator();
-            var source = VisitSource(await CreateQueryAsync());
-            var webqlQueryable = VisitQueryable(translator.TranslateToQueryable(json, source));
-            var data = await webqlQueryable.ToArrayAsync();
+            var source = CreateQueryableSource();
+            var query = translator.Translate(json, source);
+            var data = await query.ToArrayAsync();
 
             return Ok(data);
         }
@@ -380,7 +378,7 @@ public abstract class WebqlController<T> : WebController
         }
     }
 
-    protected abstract Task<IQueryable<T>> CreateQueryAsync();
+    protected abstract IAsyncQueryable<T> CreateQueryableSource();
 
     /// <summary>
     /// Gets the WebQL translator to translate queries.
@@ -395,31 +393,9 @@ public abstract class WebqlController<T> : WebController
     /// Sets the options used by the translator to interpret WebQL queries.
     /// </summary>
     /// <returns></returns>
-    protected virtual TranslatorOptions GetTranslatorOptions()
+    protected virtual TranslationOptions GetTranslatorOptions()
     {
-        return new TranslatorOptions();
-    }
-
-    /// <summary>
-    /// Provides a method to modify or inspect a ServiceQueryable object before its execution. <br/>
-    /// This method serves as an extension point in derived classes, allowing for customization of the query execution process.
-    /// </summary>
-    /// <param name="source">The ServiceQueryable object representing the query to be executed.</param>
-    /// <returns>A potentially modified ServiceQueryable object that is ready for execution.</returns>
-    protected virtual IQueryable<T> VisitSource(IQueryable<T> source)
-    {
-        return source;
-    }
-
-    /// <summary>
-    /// Provides a method to modify or inspect a WebqlQueryable object before its execution. <br/>
-    /// This virtual method serves as an extension point in derived classes, allowing for customization of the query execution process.
-    /// </summary>
-    /// <param name="queryable">The WebqlQueryable object representing the query to be executed.</param>
-    /// <returns>A potentially modified WebqlQueryable object that is ready for execution.</returns>
-    protected virtual WebqlQueryable VisitQueryable(WebqlQueryable queryable)
-    {
-        return queryable;
+        return new TranslationOptions();
     }
 
 }

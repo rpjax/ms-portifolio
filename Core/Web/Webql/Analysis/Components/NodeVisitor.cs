@@ -33,7 +33,7 @@ public class NodeVisitor
             case NodeType.Expression:
                 return VisitExpression(node.As<ExpressionNode>());
 
-            case NodeType.ScopeDefinition:
+            case NodeType.Object:
                 return VisitScope(node.As<ObjectNode>());
 
             default:

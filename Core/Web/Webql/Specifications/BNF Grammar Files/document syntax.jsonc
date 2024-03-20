@@ -1,0 +1,146 @@
+{
+    "$filter": [
+        "$",
+        [
+            "arg1",
+            {
+                "prop": {
+                    "$op": {},
+                    "subProp": {
+                        "$count": {
+                            "$greater": 0,
+                            "$eq": true
+                        }
+                    }
+                },
+                "otherProp": {
+                    "$op": {},
+                    "$otherOp": {}
+                },
+                // transformation 1
+                // "$op": [
+                //     "$prop",
+                //     {}
+                // ],
+                "$count": [
+                    "$prop.subProp",
+                    "count"
+                ],
+                "$greater": [
+                    "$",
+                    0,
+                    "isGreater"
+                ],
+                "$eq": [
+                    "$isGreater",
+                    true,
+                    "isGreaterEqualsTrue"
+                ]
+                // transformation 2
+                // "$op": [
+                //     "$otherProp",
+                //     {}
+                // ],
+                // "$otherOp": [
+                //     "$otherOp",
+                //     {}
+                // ]
+            }
+        ],
+        "filtered"
+    ],
+    "$project": [
+        "$",
+        [
+            "arg1",
+            {
+                "newField": "$arg1.prop"
+            }
+        ],
+        "$"
+    ],
+    "$limit": [
+        "$",
+        50,
+        "$"
+    ]
+}
+
+// Lambda:
+//
+// syntax 1
+[
+    [
+        "arg1",
+        "arg2"
+    ],
+    {
+        "$eq": [
+            "arg1",
+            "arg2",
+            null
+        ]
+    }
+]
+// syntax 2
+[
+    "arg1",
+    "arg2",
+    {
+        "$eq": [
+            "arg1",
+            "arg2",
+            null
+        ]
+    }
+]
+
+// document syntax:
+//
+// UNARY OPERATORS:
+// The LHS is the context expression.
+// The RHS is carried to the next operator.
+//
+// ex: 
+// "$count": {
+//     "$greater": 0
+// }
+// translates to:
+// "$count": [
+//     "$"
+// ],
+// "$greater": [
+//     "$",
+//     0
+// ]
+// BINARY OPERATORS: 
+// The LHS is the context expression.
+// The RHS is the expression RHS.
+// 
+// ex:
+// "$filter": {
+//     "nickname": "Jacques"
+// }
+// translates to:
+// "$filter": [
+//     "$",
+//     {
+//         "nickname": "Jacques"
+//     }
+// ]
+// MEMBER ACCESS EXPRESSIONS:
+// They are used to access members of the entity represented by the current context expression. This syntax allows for a query to be defined in a way that imitates the data structure being queried. 
+// Ex:
+//
+// public class User 
+// {
+//     public string Nickname { get;set; }
+// }
+//
+// A queryable of User can be filtered by nickname value:
+//
+// {
+//     "$filter": {
+//         "nickname": "Jacques"
+//     }
+// }

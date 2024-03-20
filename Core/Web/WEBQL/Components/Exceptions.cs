@@ -84,30 +84,6 @@ public class SemanticException : ParseException
     }
 }
 
-[Obsolete("Old stuff from a previous version of the synthesis phase.")]
-public class GeneratorException : ParseException
-{
-    public GeneratorContext Context { get; }
-
-    public GeneratorException(string message, GeneratorContext context, Exception? inner = null) : base(message, inner)
-    {
-        Context = context;
-    }
-
-    public override string GetMessage()
-    {
-        var dot = "";
-
-        if (!Message.EndsWith('.'))
-        {
-            dot = ".";
-        }
-
-        return $"Translation Error: {Message}{dot} This error was identified at: {Context.Stack}";
-    }
-
-}
-
 /// <summary>
 /// Represents an exception related to translation errors in the WebQL system.
 /// </summary>

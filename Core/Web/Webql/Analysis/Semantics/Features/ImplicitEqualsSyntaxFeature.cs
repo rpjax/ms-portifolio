@@ -42,7 +42,7 @@ internal class ImplicitEqualsSyntaxFeature : SemanticsVisitor
         // Transform literal right-hand side into explicit equality check
         if (rhs is LiteralNode literal)
         {
-            var childLhs = new LhsNode(HelperTools.Stringify(Operator.Equals));
+            var childLhs = new LhsNode(WebqlHelper.Stringify(Operator.Equals));
             var childRhs = new RhsNode(literal);
             var childExpression = new ExpressionNode(childLhs, childRhs);
             var child = new ObjectNode(childExpression);
@@ -53,12 +53,12 @@ internal class ImplicitEqualsSyntaxFeature : SemanticsVisitor
         // Transform array right-hand side into a series of OR'ed equalities
         if (rhs is ArrayNode array)
         {
-            var orLhs = new LhsNode(HelperTools.Stringify(Operator.Or));
+            var orLhs = new LhsNode(WebqlHelper.Stringify(Operator.Or));
             var orObjects = new List<ObjectNode>();
 
             foreach (var item in array)
             {
-                var childLhs = new LhsNode(HelperTools.Stringify(Operator.Equals));
+                var childLhs = new LhsNode(WebqlHelper.Stringify(Operator.Equals));
                 var childRhs = new RhsNode(item);
                 var expressions = new List<ExpressionNode>
                 {

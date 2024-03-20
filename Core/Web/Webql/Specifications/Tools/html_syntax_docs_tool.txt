@@ -1,0 +1,4 @@
+The tool: https://www.npmjs.com/package/ebnf2railroad
+
+The prompt (from the "Specifications/" folder): 
+ebnf2railroad --title 'WebQL Language' webql_v2.ebnf -o w

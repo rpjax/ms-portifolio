@@ -2,191 +2,32 @@
 using MongoDB.Driver.Linq;
 using System.Collections;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace ModularSystem.Webql.Synthesis;
 
-/// <summary>
-/// Represents a translated queryable object that encapsulates a WebQL query. <br/>
-/// This class provides the capability to interact with query results as both IQueryable and IEnumerable, <br/>
-/// supporting operations like enumeration, conversion to array, and count operations.
-/// </summary>
 public class WebqlQueryable : IQueryable<object>
 {
-    /// <summary>
-    /// Gets the input type of the query.
-    /// </summary>
-    public Type InputType { get; }
+    public IQueryable Source { get; }
+    public Type ElementType { get; }
+    public Expression Expression { get; }
+    public IQueryProvider Provider { get; }
 
-    /// <summary>
-    /// Gets the output type of the query, which can be a projection or a transformed type.
-    /// </summary>
-    public Type OutputType { get; }
-
-    /// <summary>
-    /// Gets the underlying query body, typically a WebQL query structure or expression tree.
-    /// </summary>
-    public object Body { get; }
-
-    /// <inheritdoc/>
-    public Type ElementType => AsQueryable().ElementType;
-
-    /// <inheritdoc/>
-    public Expression Expression => AsQueryable().Expression;
-
-    /// <inheritdoc/>
-    public IQueryProvider Provider => AsQueryable().Provider;
-
-    /// <summary>
-    /// Constructs a new instance of TranslatedQueryable with specified input and output types and a query body.
-    /// </summary>
-    /// <param name="inputType">The type of input data for the query.</param>
-    /// <param name="outputType">The type of output data from the query.</param>
-    /// <param name="body">The query body.</param>
-    public WebqlQueryable(Type inputType, Type outputType, object body)
+    public WebqlQueryable(IQueryable source)
     {
-        InputType = inputType;
-        OutputType = outputType;
-        Body = body;
+        Source = source;
+        ElementType = source.ElementType;
+        Expression = source.Expression;
+        Provider = source.Provider;
     }
 
-    /// <summary>
-    /// Constructs a new instance of TranslatedQueryable based on an existing instance.
-    /// </summary>
-    /// <param name="queryable">The existing TranslatedQueryable instance to clone.</param>
-    public WebqlQueryable(WebqlQueryable queryable)
-    {
-        InputType = queryable.InputType;
-        OutputType = queryable.OutputType;
-        Body = queryable.Body;
-    }
-
-    /// <summary>
-    /// Converts the queryable object to an <see cref="IEnumerable"/>. This method enables the conversion of the queryable object into an enumerable collection, <br/>
-    /// facilitating operations like enumeration and iteration that are standard to collections in .NET.
-    /// </summary>
-    /// <returns>An <see cref="IEnumerable"/> representation of the query, allowing for enumeration and iteration over the query results.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the method invocation or conversion fails.</exception>
-    public virtual IEnumerable AsEnumerable()
-    {
-        var method = typeof(Enumerable)
-            .GetMethod("AsEnumerable")!
-            .MakeGenericMethod(OutputType);
-
-        return (IEnumerable)method.Invoke(null, new object[] { Body })!;
-    }
-
-    /// <summary>
-    /// Converts the queryable object to an <see cref="IEnumerable{T}"/>. This generic method enables the conversion of the queryable object into an enumerable collection of a specific type, <br/>
-    /// allowing for enumeration and iteration over the query results with the specified type.
-    /// </summary>
-    /// <typeparam name="T">The type of elements in the enumerable collection.</typeparam>
-    /// <returns>An <see cref="IEnumerable{T}"/> representation of the query, allowing for enumeration and iteration over the query results of the specified type.</returns>
-    public virtual IEnumerable<T> AsEnumerable<T>()
-    {
-        return (IEnumerable<T>)AsEnumerable();
-    }
-
-    /// <summary>
-    /// Converts the queryable object to an <see cref="IQueryable"/> with the <see cref="OutputType"/> as the generic type parameter. <br/>
-    /// This method enables the seamless integration of the queryable object with standard LINQ operations.
-    /// </summary>
-    /// <returns>An <see cref="IQueryable"/> representation of the query, enabling standard LINQ query operations.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the method invocation or conversion fails.</exception>
-    public virtual IQueryable AsQueryable()
-    {
-        var method = typeof(Queryable)
-            .GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .First(m => m.Name == "AsQueryable" && m.IsGenericMethod)
-            .MakeGenericMethod(OutputType);
-
-        return (IQueryable)method.Invoke(null, new[] { Body })!;
-    }
-
-    /// <summary>
-    /// Converts the queryable object to a typed <see cref="IQueryable{T}"/>. <br/>
-    /// This generic method enables the seamless integration of the queryable object with standard LINQ operations for a specific type.
-    /// </summary>
-    /// <typeparam name="T">The type of elements in the queryable collection.</typeparam>
-    /// <returns>An <see cref="IQueryable{T}"/> representation of the query, enabling standard LINQ query operations for the specified type.</returns>
-    public virtual IQueryable<T> AsQueryable<T>()
-    {
-        return (IQueryable<T>)AsEnumerable();
-    }
-
-    /// <inheritdoc/>
     public IEnumerator GetEnumerator()
     {
-        return AsEnumerable().GetEnumerator();
-    }
-
-    /// <summary>
-    /// Converts the query results to an array.
-    /// </summary>
-    /// <returns>An array containing the query results.</returns>
-    public object[] ToArray()
-    {
-        var method = typeof(Enumerable)
-            .GetMethod("ToArray")!
-            .MakeGenericMethod(OutputType);
-
-        var enumerable = AsEnumerable();
-        var result = method.Invoke(null, new[] { enumerable });
-
-        if (result is not object[] array)
-        {
-            throw new Exception();
-        }
-
-        return array;
-    }
-
-    /// <summary>
-    /// Converts the query results to an array asynchronously.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation. The task result contains an array of the query results.</returns>
-    public virtual Task<object[]> ToArrayAsync()
-    {
-        return Task.FromResult(ToArray());
-    }
-
-    /// <summary>
-    /// Counts the number of elements in the query results.
-    /// </summary>
-    /// <returns>The number of elements.</returns>
-    public int Count()
-    {
-        var method = typeof(Queryable)
-            .GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .First(m => m.Name == "Count" &&
-                        m.GetParameters().Length == 1 &&
-                        m.GetParameters()[0].ParameterType.IsGenericType &&
-                        m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IQueryable<>))
-            .MakeGenericMethod(OutputType);
-
-        return (int)method.Invoke(null, new object[] { AsQueryable() })!;
-    }
-
-    /// <summary>
-    /// Counts the number of elements in the query results for large datasets.
-    /// </summary>
-    /// <returns>The number of elements as a long.</returns>
-    public long LongCount()
-    {
-        var method = typeof(Queryable)
-            .GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .First(m => m.Name == "LongCount" &&
-                        m.GetParameters().Length == 1 &&
-                        m.GetParameters()[0].ParameterType.IsGenericType &&
-                        m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IQueryable<>))
-            .MakeGenericMethod(OutputType);
-
-        return (long)method.Invoke(null, new object[] { AsQueryable() })!;
+        return Source.GetEnumerator();
     }
 
     IEnumerator<object> IEnumerable<object>.GetEnumerator()
     {
-        return (IEnumerator<object>)AsEnumerable().GetEnumerator();
+        return (IEnumerator<object>)Source.GetEnumerator();
     }
 
 }
@@ -206,86 +47,218 @@ public class WebqlAsyncQueryable : IAsyncQueryable<object>
         Provider = source.Provider;
     }
 
-    public Task<double> AverageAsync(Expression<Func<object, double>> selector)
+    public IEnumerator<object> GetEnumerator()
+    {
+        return (IEnumerator<object>)Source.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return Source.GetEnumerator();
+    }
+
+    public async Task<double> AverageAsync(Expression<Func<object, double>> selector)
     {
         var methodInfo = typeof(AsyncQueryableExtensions).GetMethods()
             .Where(x => x.Name == "AverageAsync")
             .First();
 
-        return (Task<double>)methodInfo.Invoke(null, new object[] { Source, selector })!;
+        var task = (Task)methodInfo.Invoke(Source, new object[] { selector })!;
+
+        await task;
+
+        var resultProperty = task.GetType().GetProperty("Result")!;
+        var result = resultProperty.GetValue(task);
+
+        return (double)result!;
     }
 
-    public Task<int> CountAsync()
+    public async Task<int> CountAsync()
     {
         var methodInfo = typeof(AsyncQueryableExtensions).GetMethods()
             .Where(x => x.Name == "CountAsync")
             .First();
 
-        return (Task<int>)methodInfo.Invoke(null, new object[] { Source })!;
+        var task = (Task)methodInfo.Invoke(Source, new object[] { })!;
+
+        await task;
+
+        var resultProperty = task.GetType().GetProperty("Result")!;
+        var result = resultProperty.GetValue(task);
+
+        return (int)result!;
     }
 
     public IAsyncQueryable<TResult> CreateQuery<TResult>(IQueryable<TResult> source)
     {
-        throw new NotImplementedException();
+        var methodInfo = typeof(IAsyncQueryable<>)
+            .MakeGenericType(ElementType)
+            .GetMethod("CreateQuery")!
+            .MakeGenericMethod(typeof(TResult));
+
+        return (IAsyncQueryable<TResult>)methodInfo.Invoke(Source, new object[] { source })!;
     }
 
-    public Task<object> FirstAsync()
+    public async Task<object> FirstAsync()
     {
-        throw new NotImplementedException();
+        var methodInfo = typeof(AsyncQueryableExtensions).GetMethods()
+            .Where(x => x.Name == "FirstAsync")
+            .First();
+
+        var task = (Task)methodInfo.Invoke(Source, null)!;
+
+        await task;
+
+        var resultProperty = task.GetType().GetProperty("Result")!;
+        var result = resultProperty.GetValue(task);
+
+        return result!;
     }
 
-    public Task<object?> FirstOrDefaultAsync()
+    public async Task<object?> FirstOrDefaultAsync()
     {
-        throw new NotImplementedException();
+        var methodInfo = typeof(AsyncQueryableExtensions).GetMethods()
+            .Where(x => x.Name == "FirstOrDefaultAsync")
+            .First();
+
+        var task = (Task)methodInfo.Invoke(Source, null)!;
+
+        await task;
+
+        var resultProperty = task.GetType().GetProperty("Result")!;
+        var result = resultProperty.GetValue(task);
+
+        return result;
     }
 
-    public IEnumerator<object> GetEnumerator()
+    public async Task<long> LongCountAsync()
     {
-        throw new NotImplementedException();
+        var methodInfo = typeof(AsyncQueryableExtensions).GetMethods()
+            .Where(x => x.Name == "LongCountAsync")
+            .First();
+
+        var task = (Task)methodInfo.Invoke(Source, new object[] { })!;
+
+        await task;
+
+        var resultProperty = task.GetType().GetProperty("Result")!;
+        var result = resultProperty.GetValue(task);
+
+        return (long)result!;
     }
 
-    public Task<long> LongCountAsync()
+    public async Task<object> MaxAsync()
     {
-        throw new NotImplementedException();
+        var methodInfo = typeof(AsyncQueryableExtensions).GetMethods()
+            .Where(x => x.Name == "MaxAsync")
+            .First();
+
+        var task = (Task)methodInfo.Invoke(Source, null)!;
+
+        await task;
+
+        var resultProperty = task.GetType().GetProperty("Result")!;
+        var result = resultProperty.GetValue(task);
+
+        return result!;
     }
 
-    public Task<object> MaxAsync()
+    public async Task<object> MinAsync()
     {
-        throw new NotImplementedException();
+        var methodInfo = typeof(AsyncQueryableExtensions).GetMethods()
+            .Where(x => x.Name == "MinAsync")
+            .First();
+
+        var task = (Task)methodInfo.Invoke(Source, null)!;
+
+        await task;
+
+        var resultProperty = task.GetType().GetProperty("Result")!;
+        var result = resultProperty.GetValue(task);
+
+        return result!;
     }
 
-    public Task<object> MinAsync()
+    public async Task<object> SingleAsync()
     {
-        throw new NotImplementedException();
+        var methodInfo = typeof(AsyncQueryableExtensions).GetMethods()
+            .Where(x => x.Name == "SingleAsync")
+            .First();
+
+        var task = (Task)methodInfo.Invoke(Source, null)!;
+
+        await task;
+
+        var resultProperty = task.GetType().GetProperty("Result")!;
+        var result = resultProperty.GetValue(task);
+
+        return result!;
     }
 
-    public Task<object> SingleAsync()
+    public async Task<object?> SingleOrDefaultAsync()
     {
-        throw new NotImplementedException();
+        var methodInfo = typeof(AsyncQueryableExtensions).GetMethods()
+            .Where(x => x.Name == "SingleOrDefaultAsync")
+            .First();
+
+        var task = (Task)methodInfo.Invoke(Source, null)!;
+
+        await task;
+
+        var resultProperty = task.GetType().GetProperty("Result")!;
+        var result = resultProperty.GetValue(task);
+
+        return result;
     }
 
-    public Task<object?> SingleOrDefaultAsync()
+    public async Task<decimal> SumAsync(Expression<Func<object, decimal>> selector)
     {
-        throw new NotImplementedException();
+        var methodInfo = typeof(AsyncQueryableExtensions).GetMethods()
+            .Where(x => x.Name == "SumAsync")
+            .First();
+
+        var task = (Task)methodInfo.Invoke(Source, new object[] { selector })!;
+
+        await task;
+
+        var resultProperty = task.GetType().GetProperty("Result")!;
+        var result = resultProperty.GetValue(task);
+
+        return (decimal)result!;
     }
 
-    public Task<decimal> SumAsync(Expression<Func<object, decimal>> selector)
+    public async Task<object[]> ToArrayAsync()
     {
-        throw new NotImplementedException();
+        var methodInfo = typeof(IAsyncQueryable<>).MakeGenericType(ElementType)
+            .GetMethods()
+            .Where(x => x.Name == "ToArrayAsync")
+            .First();
+
+        var task = (Task)methodInfo.Invoke(Source, null)!;
+
+        await task;
+
+        var resultProperty = task.GetType().GetProperty("Result")!;
+        var result = resultProperty.GetValue(task);
+
+        return (object[])result!;
     }
 
-    public Task<object[]> ToArrayAsync()
+    public async Task<List<object>> ToListAsync()
     {
-        throw new NotImplementedException();
+        var methodInfo = typeof(IAsyncQueryable<>).MakeGenericType(ElementType)
+            .GetMethods()
+            .Where(x => x.Name == "ToListAsync")
+            .First();
+
+        var task = (Task)methodInfo.Invoke(Source, null)!;
+
+        await task;
+
+        var resultProperty = task.GetType().GetProperty("Result")!;
+        var result = resultProperty.GetValue(task);
+
+        return (List<object>)result!;
     }
 
-    public Task<List<object>> ToListAsync()
-    {
-        throw new NotImplementedException();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        throw new NotImplementedException();
-    }
 }

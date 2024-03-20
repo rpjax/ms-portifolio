@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace ModularSystem.Webql.Analysis;
 
@@ -35,7 +34,7 @@ public class SemanticsVisitor
             case NodeType.Expression:
                 return Visit(context, node.As<ExpressionNode>());
 
-            case NodeType.ScopeDefinition:
+            case NodeType.Object:
                 return Visit(context, node.As<ObjectNode>());
 
             default:
@@ -50,11 +49,11 @@ public class SemanticsVisitor
     /// <param name="node">The ScopeDefinitionNode to visit.</param>
     /// <returns>The visited ScopeDefinitionNode, possibly modified based on semantic rules.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual Node? Visit(SemanticContext context, ObjectNode node)
+    protected virtual Node Visit(SemanticContext context, ObjectNode node)
     {
         for (int i = 0; i < node.Expressions.Length; i++)
         {
-            node.Expressions[i] = Visit(context, node.Expressions[i]);
+            node.Expressions[i] = Visit(context, node.Expressions[i]).As<ExpressionNode>();
         }
 
         return node;
@@ -67,16 +66,11 @@ public class SemanticsVisitor
     /// <param name="node">The ArrayNode to visit.</param>
     /// <returns>The visited ArrayNode, potentially modified based on the context.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual Node? Visit(SemanticContext context, ArrayNode node)
+    protected virtual Node Visit(SemanticContext context, ArrayNode node)
     {
-        var baseStack = context.Label;
-
         for (int i = 0; i < node.Values.Length; i++)
         {
-            var stack = $"{baseStack}[{i}]";
-            var subContext = new SemanticContext(context.Type, context, stack);
-
-            node.Values[i] = Visit(subContext, node.Values[i]);
+            node.Values[i] = Visit(new SemanticContext(context), node.Values[i]);
         }
 
         return node;
@@ -94,7 +88,7 @@ public class SemanticsVisitor
     /// <param name="node">The ExpressionNode to be visited and potentially transformed.</param>
     /// <returns>The modified ExpressionNode after applying semantic context-based rules.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual ExpressionNode? Visit(SemanticContext context, ExpressionNode node)
+    protected virtual ExpressionNode Visit(SemanticContext context, ExpressionNode node)
     {
         var baseStack = context.Label;
         var subStack = $".{node.Lhs.Value}";
@@ -102,7 +96,10 @@ public class SemanticsVisitor
 
         if (node.Lhs.IsReference && !context.EnableNavigation)
         {
-            return new ExpressionNode(Visit(context, node.Lhs), Visit(context, node.Rhs));
+            return new ExpressionNode(
+                Visit(context, node.Lhs).As<LhsNode>(), 
+                Visit(context, node.Rhs).As<RhsNode>()
+            );
         }
 
         if (node.Lhs.IsReference)
@@ -112,7 +109,7 @@ public class SemanticsVisitor
 
         if (node.Lhs.IsOperator)
         {
-            var op = HelperTools.ParseOperatorString(node.Lhs.Value);
+            var op = WebqlHelper.TryParseOperatorString(node.Lhs.Value);
 
             if(op == null)
             {
@@ -126,7 +123,7 @@ public class SemanticsVisitor
                 op = Operator.Expr;
             }
 
-            var opType = HelperTools.GetOperatorType(op.Value);
+            var opType = WebqlHelper.GetOperatorType(op.Value);
             var operatorIsQueryable = opType == OperatorType.Queryable;
             var contextIsQueryable = context.IsQueryable();
 
@@ -143,7 +140,7 @@ public class SemanticsVisitor
 
             if (operatorIsQueryable && contextIsQueryable)
             {
-                context = new SemanticContext(context.GetQueryableElementType(), context, stack);
+                context = new SemanticContext(context.GetElementType(), context, stack);
             }
             else
             {
@@ -151,7 +148,10 @@ public class SemanticsVisitor
             }
         }
 
-        return new ExpressionNode(Visit(context, node.Lhs), Visit(context, node.Rhs));
+        return new ExpressionNode(
+            Visit(context, node.Lhs).As<LhsNode>(),
+            Visit(context, node.Rhs).As<RhsNode>()
+        );
     }
 
     /// <summary>
@@ -161,7 +161,7 @@ public class SemanticsVisitor
     /// <param name="node">The LhsNode to visit.</param>
     /// <returns>The visited LhsNode, unchanged as LhsNodes typically do not require semantic modifications.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual LhsNode? Visit(SemanticContext context, LhsNode node)
+    protected virtual LhsNode Visit(SemanticContext context, LhsNode node)
     {
         return node;
     }
@@ -173,7 +173,7 @@ public class SemanticsVisitor
     /// <param name="node">The RhsNode to visit.</param>
     /// <returns>The visited RhsNode, potentially modified based on the context.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual RhsNode? Visit(SemanticContext context, RhsNode node)
+    protected virtual RhsNode Visit(SemanticContext context, RhsNode node)
     {
         return new RhsNode(Visit(context, node.Value));
     }
@@ -185,7 +185,7 @@ public class SemanticsVisitor
     /// <param name="node">The LiteralNode to visit.</param>
     /// <returns>The visited LiteralNode, unchanged as LiteralNodes typically do not require semantic modifications.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual Node? Visit(SemanticContext context, LiteralNode node)
+    protected virtual Node Visit(SemanticContext context, LiteralNode node)
     {
         return node;
     }
@@ -203,7 +203,7 @@ public class SemanticsVisitor
     /// <exception cref="SemanticException">Thrown when the operator string is not recognized.</exception>
     protected Operator ParseOperatorString(SemanticContext context, string value)
     {
-        var op = HelperTools.ParseOperatorString(value);
+        var op = WebqlHelper.TryParseOperatorString(value);
 
         if (op == null)
         {
@@ -212,5 +212,16 @@ public class SemanticsVisitor
 
         return op.Value;
     }
+
+}
+
+public class AnalysisContext
+{
+    
+}
+
+
+public class AnalysisVisitor
+{
 
 }

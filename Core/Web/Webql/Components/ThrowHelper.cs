@@ -88,7 +88,7 @@ public static class TranslationThrowHelper
     /// </remarks>
     public static Exception QueryableExclusiveOperator(TranslationContext context, Operator @operator)
     {
-        var operatorName = HelperTools.Stringify(@operator);
+        var operatorName = WebqlHelper.Stringify(@operator);
         return new TranslationException($"The '{operatorName}' operator is exclusive to queryable contexts and cannot be used in the current context. Ensure that this operator is applied in a part of the query where it can operate on a collection or queryable data type.", context);
     }
 
@@ -156,7 +156,16 @@ public static class TranslationThrowHelper
 
     public static Exception UnknownOrUnsupportedOperator(TranslationContext context, Operator @operator)
     {
-        return UnknownOrUnsupportedOperator(context, HelperTools.Stringify(@operator));
+        return UnknownOrUnsupportedOperator(context, WebqlHelper.Stringify(@operator));
+    }
+
+    public static TranslationException IncorrectReturnType(
+        TranslationContext context,
+        Type expectedType,
+        Type encounteredType
+    )
+    {
+        return new TranslationException("", context);
     }
 
 }

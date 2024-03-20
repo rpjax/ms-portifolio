@@ -34,4 +34,17 @@ public static partial class ListExtensions
         list.RemoveAt(0);
         return element;
     }
+
+    public static T RemoveLast<T>(this List<T> list)
+    {
+        if(list.IsEmpty())
+        {
+            throw new InvalidOperationException("The list is empty.");
+        }
+
+        var element = list[list.Count - 1];
+        list.RemoveAt(list.Count - 1);
+        return element;
+    }
+
 }

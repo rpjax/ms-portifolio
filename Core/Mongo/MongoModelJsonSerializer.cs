@@ -68,18 +68,17 @@ public class ObjectIdJsonConverter : JsonConverter<ObjectId>
     /// </summary>
     public override ObjectId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        using (JsonDocument doc = JsonDocument.ParseValue(ref reader))
+        using var doc = JsonDocument.ParseValue(ref reader);
+
+        var root = doc.RootElement;
+        var json = root.ToString();
+
+        if (ObjectId.TryParse(json, out var id))
         {
-            var root = doc.RootElement;
-            var json = root.ToString();
-
-            if (ObjectId.TryParse(json, out var id))
-            {
-                return id;
-            }
-
-            return new ObjectId();
+            return id;
         }
+
+        return new ObjectId();
     }
 
     /// <summary>

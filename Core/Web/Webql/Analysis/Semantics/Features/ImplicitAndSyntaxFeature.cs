@@ -19,8 +19,44 @@ internal class ImplicitAndSyntaxFeature : SemanticsVisitor
     /// <param name="node">The ObjectNode to visit.</param>
     /// <returns>A Node transformed according to relational operators semantics.</returns>
     [return: NotNullIfNotNull("node")]
-    protected override Node? Visit(SemanticContext context, ObjectNode node)
+    protected override Node Visit(SemanticContext context, ObjectNode node)
     {
+        //if (!context.EnableImplicitAndSyntax)
+        //{
+        //    return node;
+        //}
+
+        //var collectedExpressions = new List<ExpressionNode>();
+        //var collectedObjects = new List<ObjectNode>();
+
+        //foreach (var item in node.Expressions)
+        //{
+        //    var visited = Visit(context, item);
+
+        //    collectedExpressions.Add(visited);
+
+        //    if (ExpressionEvaluatesToBool(context, visited))
+        //    {
+        //        collectedObjects.Add(new ObjectNode(collectedExpressions));
+        //        collectedExpressions.Clear();
+        //    }
+        //}
+
+        //if (collectedObjects.Count <= 1)
+        //{
+        //    return node;
+        //}
+
+        //var lhs = new LhsNode(WebqlHelper.Stringify(Operator.And));
+        //var rhs = new RhsNode(new ArrayNode(collectedObjects));
+        //var expression = new ExpressionNode(lhs, rhs);
+
+        //return new ObjectNode(expression);
+
+        //*
+        //*
+        //*
+
         if (!context.EnableImplicitAndSyntax)
         {
             return node;
@@ -31,7 +67,7 @@ internal class ImplicitAndSyntaxFeature : SemanticsVisitor
 
         foreach (var item in node)
         {
-            var visitedItem = Visit(context, item).As<ExpressionNode>();
+            var visitedItem = Visit(context, item);
 
             expressions.Add(visitedItem);
 
@@ -47,7 +83,7 @@ internal class ImplicitAndSyntaxFeature : SemanticsVisitor
             return new ObjectNode(objects.SelectMany(x => x.Expressions).Concat(expressions));
         }
 
-        var lhs = new LhsNode(HelperTools.Stringify(Operator.And));
+        var lhs = new LhsNode(WebqlHelper.Stringify(Operator.And));
         var rhs = new RhsNode(new ArrayNode(objects));
         var expression = new ExpressionNode(lhs, rhs);
 
@@ -62,35 +98,39 @@ internal class ImplicitAndSyntaxFeature : SemanticsVisitor
     /// <returns>True if the node evaluates to a boolean; otherwise, false.</returns>
     private bool ExpressionEvaluatesToBool(SemanticContext context, ExpressionNode node)
     {
-        var lastExpression = null as ExpressionNode;
-        var workingExpression = node;
+        ExpressionNode? expression = node;
 
-        while (true)
+        if (expression.Lhs.IsOperator)
         {
-            if(workingExpression.Rhs.Value is not ObjectNode objectNode)
-            {
-                break;
-            }
+            var op = ParseOperatorString(context, expression.Lhs.Value);
+            var operatorType = WebqlHelper.GetOperatorType(op);
+            var operatorIsQueryable = operatorType == OperatorType.Queryable;
 
-            if (objectNode.IsEmpty())
+            if(operatorIsQueryable)
             {
-                break;
+                return false;
             }
-
-            lastExpression = objectNode.Last();
-            workingExpression = objectNode.Last();
+            else
+            {
+                if (expression.Rhs.Value is ObjectNode objectNode)
+                {
+                    expression = objectNode.LastOrDefault();
+                }
+            }
+        }
+        else
+        {
+            if (expression.Rhs.Value is ObjectNode objectNode)
+            {
+                expression = objectNode.LastOrDefault();
+            }
         }
 
-        if(lastExpression == null)
+        if (expression == null)
         {
             return false;
         }
 
-        if(lastExpression.Lhs.IsReference)
-        {
-            return false;
-        }
-
-        return HelperTools.OperatorEvaluatesToBool(ParseOperatorString(context, lastExpression.Lhs.Value));
+        return WebqlHelper.OperatorEvaluatesToBool(ParseOperatorString(context, expression.Lhs.Value));
     }
 }

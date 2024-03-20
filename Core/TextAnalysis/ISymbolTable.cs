@@ -1,11 +1,11 @@
-﻿namespace TextAnalysis;
+﻿//namespace TextAnalysis;
 
-public interface ISymbolTable
-{
+//public interface ISymbolTable
+//{
 
-}
+//}
 
-public class SymbolTable : ISymbolTable
-{
+//public class SymbolTable : ISymbolTable
+//{
 
-}
+//}

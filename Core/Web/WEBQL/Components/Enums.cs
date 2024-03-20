@@ -3,11 +3,12 @@
 public enum NodeType
 {
     Literal,
+    Null,
     Array,
     LeftHandSide,
     RightHandSide,
     Expression,
-    ScopeDefinition
+    Object,
 }
 
 /// <summary>
@@ -20,69 +21,57 @@ public enum RhsType
     Array
 }
 
-public enum OperatorOld
-{
-    Invalid,
-    Equals,
-    Not,
-    Less,
-    LesserEquals,
-    Greater,
-    GreaterEquals,
-    Like,
-    Any,
-    All
-}
-
 public enum Operator
 {
     // Arithmetic operators
-    Add,
-    Subtract,
-    Divide,
-    Multiply,
-    Modulo,
+    Add, // ok
+    Subtract, // ok
+    Divide, // ok
+    Multiply, // ok
+    Modulo, // ok
 
     // Relational Operators
-    Equals,
-    NotEquals,
-    Less,
-    LessEquals,
-    Greater,
-    GreaterEquals,
+    Equals, // ok
+    NotEquals, // ok
+    Less, // ok
+    LessEquals, // ok
+    Greater, // ok
+    GreaterEquals, // ok
 
     // Pattern Relational Operators
-    Like,
+    Like, // ok
     RegexMatch,
 
     // Logical Operators
-    Or,
-    And,
-    Not,
+    Or, // ok
+    And, // ok
+    Not, // ok
 
     // Semantic Operators
-    Expr,
-    Literal,
-    Select,
+    Expr, // ok
+    Literal, // ok
+    Select, // ok
 
     // Queryable Operators
-    Filter,
-    Project,
-    Transform,
+    Filter, // ok
+    Project, // ok
+    Transform, // ok
     SelectMany,
-    Limit,
-    Skip,
-    Count,
+    Limit, // ok
+    Skip, // ok
+    Count, // ok
     Index,
-    Any,
-    All,
+    Any, // ok
+    All, // ok
+    // Queryable Ordering Operator *TODO...
+    //OrderAsc,
+    //OrderDesc,
 
     // Aggregation Operators
-    Min,
-    Max,
+    Min, // ok
+    Max, // ok
     Sum,
     Average,
-
 
 }
 
@@ -100,46 +89,9 @@ public enum OperatorType
     Aggregation
 }
 
-//public enum ArithmeticOperator
-//{
-//    Add,
-//    Subtract,
-//    Divide,
-//    Multiply,
-//    Modulo
-//}
-
-//public enum RelationalOperator
-//{
-//    Equals,
-//    NotEquals,
-//    Less,
-//    LessEquals,
-//    Greater,
-//    GreaterEquals,
-//}
-
-//public enum LogicalOperator
-//{
-//    Or,
-//    And,
-//    Not
-//}
-
-//public enum QueryableOperator
-//{
-//    Filter,
-//    Project,
-//    Limit,
-//    Skip,
-//    Size,
-//    Index,
-//    Any,
-//    All
-//}
-
-public enum OrderDirection
+public enum OperatorCategory
 {
-    Ascending,
-    Descending
+    Unary,
+    Binary,
+    Ternary
 }
