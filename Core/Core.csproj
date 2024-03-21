@@ -35,8 +35,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="EntityService\**" />
     <Compile Remove="Entity\**" />
+    <EmbeddedResource Remove="EntityService\**" />
     <EmbeddedResource Remove="Entity\**" />
+    <None Remove="EntityService\**" />
     <None Remove="Entity\**" />
   </ItemGroup>
 
@@ -65,7 +68,6 @@
   <ItemGroup>
     <Folder Include="CLI\" />
     <Folder Include="Core\Application\Initializer\Internal\" />
-    <Folder Include="EntityService\" />
   </ItemGroup>
 
 </Project>
