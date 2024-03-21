@@ -83,14 +83,13 @@ lambda_args = "[" , [ string , { "," , string } ]  , "]";
 unary_lambda_args = "[" , string , "]";
 
 projection_object = "{" , [ projection_object_expr , { "," , projection_object_expr } ]  , "}";
-projection_object_expr = (projection_object_expr_lhs , ":" , projection_object_expr_rhs) | expr;
-projection_object_expr_lhs = string;
-projection_object_expr_rhs = reference | projection_object;
+projection_object_expr = (string , ":" , projection_object_expr_value) | expr;
+projection_object_expr_value = reference | projection_object;
 
 (* Lambda Definitions *)
 lambda = "[" , lambda_args , "," , object , "]";
 unary_lambda = "[" , unary_lambda_args , "," , object , "]";
-projection_lambda = "[" , lambda_args , "," , projection_object , "]";
+projection_lambda = "[" , lambda_args , "," , object , "," , projection_object , "]";
 predicate_lambda = unary_lambda;
 selection_lambda = unary_lambda;
 

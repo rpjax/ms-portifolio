@@ -32,3 +32,13 @@ public class LambdaArgumentsSymbol : Symbol
         return $"({string.Join(", ", Arguments)})";
     }
 }
+
+public class ProjectionLambdaSymbol : Symbol
+{
+    public LambdaArgumentsSymbol Arguments { get; }
+
+    public override string ToString()
+    {
+        throw new NotImplementedException();
+    }
+}
