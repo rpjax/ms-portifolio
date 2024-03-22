@@ -52,4 +52,15 @@ public class ErrorException : Exception
     {
     }
 
+    public override string ToString()
+    {
+        var parts = new List<string>();
+        var errors = string.Join(" <---> ", Errors.Select(e => e.ToString()));
+
+        parts.Add($"ErrorException: {Environment.NewLine}");
+        parts.Add(errors);
+
+        return string.Join("", parts);
+    }
+
 }

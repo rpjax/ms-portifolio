@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using ModularSystem.Core;
+using ModularSystem.Web.Attributes;
 using System.Reflection;
 
 namespace ModularSystem.Web;
