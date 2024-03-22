@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Core;
+﻿using System.Linq;
+
+namespace ModularSystem.Core;
 
 /// <summary>
 /// Represents an exception that encapsulates multiple errors. <br/>

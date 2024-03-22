@@ -1,8 +1,4 @@
-﻿using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-
-namespace ModularSystem.Web.Authentication;
+﻿namespace ModularSystem.Web.Authentication;
 
 //public sealed class RsaTokenEncrypter
 //{

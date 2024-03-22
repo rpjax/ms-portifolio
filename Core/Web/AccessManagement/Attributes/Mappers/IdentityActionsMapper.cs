@@ -61,7 +61,7 @@ public class HttpIdentityAction
     /// <returns>A string that contains the HTTP method and route template of the controller action.</returns>
     public override string ToString()
     {
-        return $"{Method}-{Route}";
+        return $"{Method} {Route}";
     }
 }
 
@@ -208,7 +208,7 @@ public class IdentityActionsMapper
             throw new InvalidOperationException($"Unable to determine route for action method \"{methodInfo.DeclaringType?.FullName}.{methodInfo.Name}\".");
         }
 
-        if (!fullRoute.StartsWith("/"))
+        if(!fullRoute.StartsWith("/"))
         {
             fullRoute = $"/{fullRoute}";
         }

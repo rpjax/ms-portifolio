@@ -21,7 +21,7 @@ public abstract class EntityService<T> : IEntityService<T> where T : IEntity
     /// <summary>
     /// Gets or sets the settings associated with the entity.
     /// </summary>
-    public EnititySettings Settings { get; set; } 
+    public EnititySettings Settings { get; set; }
 
     /// <summary>
     /// Gets the data access object associated with the entity.
@@ -434,7 +434,7 @@ public abstract class EntityService<T> : IEntityService<T> where T : IEntity
 
     private IEnumerable<EntityMiddleware<T>> CreatePostUserPipeline()
     {
-        if(Settings.UseValidators)
+        if (Settings.UseValidators)
         {
             yield return new ValidationMiddleware<T>(this);
         }

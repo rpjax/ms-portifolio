@@ -41,7 +41,7 @@ public class URI
 
     public URI()
     {
-        
+
     }
 
     public URI(string uriString)
@@ -56,7 +56,7 @@ public class URI
         OriginalString = uriString;
     }
 
-    public URI(System.Uri uri) 
+    public URI(System.Uri uri)
     {
         Port = uri.Port;
         Scheme = uri.Scheme;
@@ -199,7 +199,7 @@ public class URI
     {
         var values = new List<KeyValuePair<string, string>>();
         var queryDictionary = System.Web.HttpUtility.ParseQueryString(queryString);
-       
+
         foreach (var key in queryDictionary.AllKeys)
         {
             values.Add(new KeyValuePair<string, string>(key ?? string.Empty, queryDictionary.Get(key) ?? string.Empty));

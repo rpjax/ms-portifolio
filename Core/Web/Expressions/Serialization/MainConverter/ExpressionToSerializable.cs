@@ -595,7 +595,7 @@ public class ExpressionToSerializable : ConverterBase, IExpressionToSerializable
                 ? expression.Members
                     .Transform(x => MemberInfoConverter.Convert(context, x))
                     .ToArray()
-                : Array.Empty<SerializableMemberInfo>()   
+                : Array.Empty<SerializableMemberInfo>()
         };
     }
 

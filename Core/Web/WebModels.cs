@@ -2,7 +2,6 @@ using ModularSystem.Core;
 using ModularSystem.Core.Expressions;
 using ModularSystem.Core.Linq;
 using ModularSystem.Web.Expressions;
-using ModularSystem.Webql.Synthesis;
 using System.Linq.Expressions;
 using System.Text.Json.Serialization;
 
@@ -225,7 +224,7 @@ public class SerializableQueryable
     /// allowing the returned queryable to be treated as an <see cref="IQueryable{object}"/>.
     /// </remarks>
     public IQueryable<object> ToQueryable<T>(IQueryable<T> source)
-    {      
+    {
         return new QueryableWrapper(BuildQueryable(source));
     }
 

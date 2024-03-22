@@ -304,7 +304,7 @@ public class SerializableNewExpression : SerializableExpression
 {
     public bool IsChildToMemberInit { get; set; }
     public SerializableConstructorInfo? ConstructorInfo { get; set; }
-    public SerializableExpression[] Arguments { get; set;} = Array.Empty<SerializableExpression>();
+    public SerializableExpression[] Arguments { get; set; } = Array.Empty<SerializableExpression>();
     public SerializableMemberInfo[] Members { get; set; } = Array.Empty<SerializableMemberInfo>();
 }
 

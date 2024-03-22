@@ -68,7 +68,7 @@ public class JsonStorage<T> where T : class
         {
             return default;
         }
-        
+
         var json = File.ReadAllText(FileInfo.FullName);
 
         if (string.IsNullOrEmpty(json))
@@ -85,7 +85,7 @@ public class JsonStorage<T> where T : class
     /// <returns>A task that represents the asynchronous read operation. The task result contains the deserialized data.</returns>
     public async Task<T?> ReadAsync()
     {
-        if(!FileInfo.Exists)
+        if (!FileInfo.Exists)
         {
             return default;
         }

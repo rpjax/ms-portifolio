@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-
-namespace ModularSystem.Core;
+﻿namespace ModularSystem.Core;
 
 /// <summary>
 /// Represents a currency value along with its related currency information. <br/>

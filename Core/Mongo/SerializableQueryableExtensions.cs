@@ -10,7 +10,7 @@ public static class SerializableQueryableExtensions
         this SerializableQueryable serializableQueryable,
         IQueryable<T> source)
     {
-        return (IMongoQueryable) serializableQueryable.BuildQueryable(source);
+        return (IMongoQueryable)serializableQueryable.BuildQueryable(source);
     }
 
     public static async Task<object[]> ToArrayAsync<T>(

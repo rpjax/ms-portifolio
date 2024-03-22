@@ -50,7 +50,7 @@ public class HttpApplication : IAsyncDisposable
     /// <summary>
     /// Gets or sets an arbitrary name to label this instance of application.
     /// </summary>
-    public string? Name { get; set; }    
+    public string? Name { get; set; }
 
     /// <summary>
     /// The URI where the server will be hosted.
@@ -78,7 +78,7 @@ public class HttpApplication : IAsyncDisposable
     /// <inheritdoc/>
     public async ValueTask DisposeAsync()
     {
-        if(App != null)
+        if (App != null)
         {
             await App.DisposeAsync();
         }
@@ -123,7 +123,7 @@ public class HttpApplication : IAsyncDisposable
     /// <param name="builder">The WebApplicationBuilder instance to configure.</param>
     protected virtual void OnBuilderCreated(WebApplicationBuilder builder)
     {
-        if(AddAspnetControllers)
+        if (AddAspnetControllers)
         {
             OnMvcBuilderCreated(builder.Services.AddControllers());
         }

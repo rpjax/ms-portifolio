@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace ModularSystem.Core.Threading;
+﻿namespace ModularSystem.Core.Threading;
 
 /// <summary>
 /// Represents an abstract base job that can be queued for execution. <br/>
@@ -127,11 +125,11 @@ public abstract class Job : IDisposable
 
             await Task.Delay(TimeOut(), CancellationTokenSource.Token);
         }
-    
-        try 
-        { 
-            await OnExitAsync(CancellationTokenSource.Token); 
-        } 
+
+        try
+        {
+            await OnExitAsync(CancellationTokenSource.Token);
+        }
         catch { }
 
         try
@@ -139,7 +137,7 @@ public abstract class Job : IDisposable
             Exit.Invoke(this);
         }
         catch { }
-        
+
         Dispose();
     }
 

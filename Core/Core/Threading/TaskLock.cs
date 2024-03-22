@@ -119,7 +119,7 @@ public class TaskLockTimeout
     private TaskCompletionSource TaskCompletionSource { get; }
     private TimeSpan Timeout { get; }
     private Action Release { get; }
-    private TaskRoutine TimeoutTask { get; } 
+    private TaskRoutine TimeoutTask { get; }
 
     public TaskLockTimeout(TimeSpan timeout, Action release)
     {
@@ -137,8 +137,8 @@ public class TaskLockTimeout
     private async Task TimeoutFunction(CancellationToken cancellationToken)
     {
         await Task.Delay(Timeout, cancellationToken);
-        
-        if(cancellationToken.IsCancellationRequested)
+
+        if (cancellationToken.IsCancellationRequested)
         {
             return;
         }

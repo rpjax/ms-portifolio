@@ -1,8 +1,5 @@
 ﻿using ModularSystem.Core;
 using ModularSystem.Core.Logging;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson;
 namespace ModularSystem.Mongo;
 
 internal class MongoInitializer : Initializer

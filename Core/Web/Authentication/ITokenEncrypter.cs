@@ -46,7 +46,7 @@ public class TokenEncrypter : ITokenEncrypter
     /// <param name="encrypter">The encrypter to use.</param>
     public TokenEncrypter(IEncrypter encrypter)
     {
-        if(encrypter == null)
+        if (encrypter == null)
         {
             throw new ArgumentNullException(nameof(encrypter));
         }

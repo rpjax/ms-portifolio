@@ -353,9 +353,9 @@ public static class EntityServiceExtensions
     /// </returns>
     public static Task<ValidationResult> ValidateAsync<T>(this EntityService<T> service, T entity) where T : IEntity
     {
-        if(service.AsyncValidator != null)
+        if (service.AsyncValidator != null)
         {
-            return service.AsyncValidator.ValidateAsync(entity);    
+            return service.AsyncValidator.ValidateAsync(entity);
         }
 
         return Task.FromResult(new ValidationResult());

@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace ModularSystem.EntityFramework.Linq;
 
-public class EFCoreAsyncQueryable<T> : IAsyncQueryable<T> 
+public class EFCoreAsyncQueryable<T> : IAsyncQueryable<T>
 {
     public Type ElementType => Source.ElementType;
 
@@ -30,7 +30,7 @@ public class EFCoreAsyncQueryable<T> : IAsyncQueryable<T>
         return Source.CountAsync();
     }
 
-    public IAsyncQueryable<TResult> CreateQuery<TResult>(IQueryable<TResult> source) 
+    public IAsyncQueryable<TResult> CreateQuery<TResult>(IQueryable<TResult> source)
     {
         return new EFCoreAsyncQueryable<TResult>(source);
     }

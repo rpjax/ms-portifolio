@@ -93,7 +93,7 @@ public class CrudClient<T> : WebClient where T : class
         {
             throw new ErrorException(result);
         }
-        if(result.Data?.Value == null)
+        if (result.Data?.Value == null)
         {
             throw new InvalidOperationException();
         }
@@ -130,9 +130,9 @@ public class CrudClient<T> : WebClient where T : class
     /// <returns>A task representing the asynchronous operation, with a result of the query.</returns>
     public async Task<QueryResult<T>> QueryAsync(SerializableQuery query)
     {
-        var result = await  new QueryEndpoint<T>(BaseUri())
+        var result = await new QueryEndpoint<T>(BaseUri())
             .RunAsync(query);
-        
+
         if (result.IsFailure)
         {
             throw new ErrorException(result);

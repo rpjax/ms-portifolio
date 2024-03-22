@@ -1,6 +1,5 @@
 ﻿using ModularSystem.Web;
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json.Serialization;
 
 namespace ModularSystem.Core.Cryptography;

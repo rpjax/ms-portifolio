@@ -2,10 +2,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using ModularSystem.Core;
-using ModularSystem.Core.Logging;
 using ModularSystem.Core.AccessManagement;
-using System.Text;
+using ModularSystem.Core.Logging;
 using ModularSystem.Web.AccessManagement;
+using System.Text;
 
 namespace ModularSystem.Web;
 
@@ -177,11 +177,11 @@ public abstract class WebController : ControllerBase
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    protected async Task<T?> DeserializeBodyAsJsonAsync<T>() 
+    protected async Task<T?> DeserializeBodyAsJsonAsync<T>()
     {
         var str = await ReadBodyAsStringAsync();
 
-        if(str == null)
+        if (str == null)
         {
             return default;
         }
@@ -333,7 +333,7 @@ public abstract class WebController : ControllerBase
             operationResult = new OperationResult(errorException.Errors);
         }
 
-        if(operationResult == null)
+        if (operationResult == null)
         {
             var error = new Error(exception);
 

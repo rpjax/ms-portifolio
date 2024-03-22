@@ -22,7 +22,7 @@ public class EncryptionKeyStorage
 
     public enum OnKeyLengthMismatch
     {
-        Throw, 
+        Throw,
         CreateNew
     }
 
@@ -37,7 +37,7 @@ public class EncryptionKeyStorage
         FileInfo = fileInfo;
         Length = byteLength;
 
-        if(Length <= 0)
+        if (Length <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(byteLength));
         }

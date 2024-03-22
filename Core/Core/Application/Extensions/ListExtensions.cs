@@ -37,7 +37,7 @@ public static partial class ListExtensions
 
     public static T RemoveLast<T>(this List<T> list)
     {
-        if(list.IsEmpty())
+        if (list.IsEmpty())
         {
             throw new InvalidOperationException("The list is empty.");
         }

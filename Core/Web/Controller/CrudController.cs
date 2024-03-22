@@ -4,8 +4,6 @@ using ModularSystem.Core;
 using ModularSystem.Core.Expressions;
 using ModularSystem.Core.Linq;
 using ModularSystem.Web.Expressions;
-using ModularSystem.Webql;
-using ModularSystem.Webql.Synthesis;
 
 namespace ModularSystem.Web;
 
@@ -342,60 +340,6 @@ public abstract class SerializableQueryableController<T> : ServiceController<T> 
     protected virtual IQueryable<object> VisitQueryable(IQueryable<object> queryable)
     {
         return queryable;
-    }
-
-}
-
-/// <summary>
-/// Extends service controller functionalities to handle WebQL queries. <br/>
-/// Enables data querying using WebQL syntax for entities of type <typeparamref name="T"/>.
-/// </summary>
-/// <typeparam name="T">The entity type managed by the controller, implementing <see cref="IEntity"/>.</typeparam>
-/// <returns>A task resulting in an IActionResult with the processed data or an error message.</returns>
-public abstract class WebqlController<T> : WebController
-{
-    [HttpPost("query")]
-    public virtual async Task<IActionResult> QueryAsync()
-    {
-        try
-        {
-            var json = (await ReadBodyAsStringAsync()) ?? Translator.EmptyQuery;
-            var translator = GetTranslator();
-            var source = CreateQueryableSource();
-            var query = translator.Translate(json, source);
-            var data = await query.ToArrayAsync();
-
-            return Ok(data);
-        }
-        catch (Exception e)
-        {
-            if (e is ParseException parseException)
-            {
-                return ExceptionResponse(new AppException(parseException.GetMessage(), ExceptionCode.InvalidInput));
-            }
-
-            return ExceptionResponse(e);
-        }
-    }
-
-    protected abstract IAsyncQueryable<T> CreateQueryableSource();
-
-    /// <summary>
-    /// Gets the WebQL translator to translate queries.
-    /// </summary>
-    /// <returns></returns>
-    protected virtual Translator GetTranslator()
-    {
-        return new Translator(GetTranslatorOptions());
-    }
-
-    /// <summary>
-    /// Sets the options used by the translator to interpret WebQL queries.
-    /// </summary>
-    /// <returns></returns>
-    protected virtual TranslationOptions GetTranslatorOptions()
-    {
-        return new TranslationOptions();
     }
 
 }
