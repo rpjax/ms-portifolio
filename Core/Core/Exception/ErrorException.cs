@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Core;
+﻿using System.Linq;
+
+namespace ModularSystem.Core;
 
 /// <summary>
 /// Represents an exception that encapsulates multiple errors. <br/>
@@ -50,6 +52,17 @@ public class ErrorException : Exception
     /// </remarks>
     public ErrorException(IOperationResult operation) : this(operation.Errors)
     {
+    }
+
+    public override string ToString()
+    {
+        var parts = new List<string>();
+        var errors = string.Join(" <---> ", Errors.Select(e => e.ToString()));
+
+        parts.Add($"ErrorException: {Environment.NewLine}");
+        parts.Add(errors);
+
+        return string.Join("", parts);
     }
 
 }

@@ -33,8 +33,8 @@ public class AesEncrypter : Encrypter
     public AesEncrypter(byte[]? key = null)
     {
         Aes = Aes.Create();
-        
-        if(key != null)
+
+        if (key != null)
         {
             Aes.Key = key;
         }

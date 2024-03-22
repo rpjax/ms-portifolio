@@ -29,7 +29,7 @@ public static class IEnumerableExtensions
         {
             return array.Length == 0;
         }
-        if(enumerable is ICollection<T> collection)
+        if (enumerable is ICollection<T> collection)
         {
             return collection.Count == 0;
         }
@@ -59,11 +59,11 @@ public static class IEnumerableExtensions
     }
 
     public static bool DoesNotContain<T>(
-        this IEnumerable<T> enumerable, 
+        this IEnumerable<T> enumerable,
         Func<T, bool> predicate
     )
     {
-        return !enumerable.Any(x =>  predicate.Invoke(x));
+        return !enumerable.Any(x => predicate.Invoke(x));
     }
 
     public static bool DoesNotContain<T>(

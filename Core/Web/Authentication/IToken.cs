@@ -43,7 +43,7 @@ namespace ModularSystem.Web.Authentication;
 /// <summary>
 /// Default implementation of a JSON token which provides a structure for a secure web token.
 /// </summary>
-public class Token 
+public class Token
 {
     /// <summary>
     /// Gets or sets the prefix salt used in the token for added security.

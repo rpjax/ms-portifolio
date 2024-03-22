@@ -195,14 +195,14 @@ public static class TypeComparer
     public static bool GenericCompare(Type type1, Type type2)
     {
         if (type1.IsGenericType && type2.IsGenericType)
-        {           
+        {
             var genericType1 = type1.GetGenericTypeDefinition();
             var genericType2 = type2.GetGenericTypeDefinition();
 
             var genericArgs1 = type1.GetGenericArguments();
             var genericArgs2 = type2.GetGenericArguments();
 
-            if(genericType1 != genericType2)
+            if (genericType1 != genericType2)
             {
                 return false;
             }
@@ -213,7 +213,7 @@ public static class TypeComparer
 
             for (int i = 0; i < genericArgs1.Length; i++)
             {
-                if(genericArgs1[i].IsGenericParameter || genericArgs2[i].IsGenericParameter)
+                if (genericArgs1[i].IsGenericParameter || genericArgs2[i].IsGenericParameter)
                 {
                     continue;
                 }
@@ -224,7 +224,7 @@ public static class TypeComparer
                 }
             }
 
-            return true;     
+            return true;
         }
 
         return type1 == type2;

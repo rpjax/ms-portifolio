@@ -88,8 +88,8 @@ public class HttpResponseBody
         }
 
         using var memoryStream = new MemoryStream();
-        ResponseMessage.Content.ReadAsStream().CopyTo(memoryStream); 
-        return memoryStream.ToArray(); 
+        ResponseMessage.Content.ReadAsStream().CopyTo(memoryStream);
+        return memoryStream.ToArray();
     }
 
     /// <summary>

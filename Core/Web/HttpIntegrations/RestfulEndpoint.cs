@@ -270,7 +270,7 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
     {
         var outputData = await DeserializeResponseAsync(response);
 
-        if(outputData == null)
+        if (outputData == null)
         {
             throw new ErrorException($"Could not deserialize response to type '{typeof(TOut).FullName}'.");
         }
@@ -278,7 +278,7 @@ public abstract class RestfulEndpoint<TIn, TOut> : IRestfulEndpoint<TIn, TOut>
         return new HttpResult<TOut>(
             request: response.Request,
             response: response,
-            errors: Array.Empty<Error>(), 
+            errors: Array.Empty<Error>(),
             data: outputData
         );
     }

@@ -134,9 +134,9 @@ public class HttpResponse : IDisposable
             return null;
         }
 
-        options 
-            ??= options 
-            ??= JsonSerializerOptions 
+        options
+            ??= options
+            ??= JsonSerializerOptions
             ??= DefaultJsonSerializerOptions();
 
         return JsonSerializerSingleton.Deserialize(await Body.ReadAsStringAsync(encoding), type, options);

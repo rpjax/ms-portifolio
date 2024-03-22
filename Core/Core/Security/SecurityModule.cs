@@ -69,7 +69,7 @@ public class IdentityPermission : IEquatable<IdentityPermission>
     /// Regular expression to validate segment patterns within permission strings. <br/>
     /// This ensures that permissions are well-formed according to the rules of the access control system.
     /// </summary>
-    public static readonly Regex SegmentRegex = new Regex(@"^(\*\*|\*|[a-z]+(-[a-z]+)*)$", RegexOptions.Compiled);
+    public static readonly Regex SegmentRegex = new Regex(@"^(\*\*|\*|[a-z]+([a-z0-9_-]*[a-z0-9]+)*)$", RegexOptions.Compiled);
 
     /// <summary>
     /// The segments of the permission string, separated by colons. Each segment represents a hierarchical <br/>
@@ -102,8 +102,12 @@ public class IdentityPermission : IEquatable<IdentityPermission>
         {
             if (!SegmentRegex.IsMatch(segment))
             {
-                throw new Exception($"Invalid segment '{segment}' in permission string '{permissionString}'.");
+                // Mensagem de exceção atualizada para ser mais descritiva
+                throw new ArgumentException($"The segment '{segment}' in the permission string '{permissionString}' is not valid. " +
+                                            "Segments must start and end with a letter and can contain letters, digits, hyphens ('-'), " +
+                                            "and underscores ('_'), but underscores cannot be at the beginning or end.");
             }
+
             Segments.Add(segment);
         }
     }
@@ -157,7 +161,7 @@ public class AccessPolicy
     /// Example: An access policy may require both "read:documents" and "write:documents" permissions <br/>
     /// to grant full access to document resources.
     /// </summary>
-    public List<IdentityPermission> RequiredPermissions { get; set; } 
+    public List<IdentityPermission> RequiredPermissions { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AccessPolicy"/> class with an optional collection
@@ -269,14 +273,14 @@ public class Identity : IIdentity
     /// This property defines what actions the identity can perform or what resources it can access, <br/>
     /// forming the basis of the access control mechanism.
     /// </summary>
-    public List<IdentityPermission> Permissions { get; set; } 
+    public List<IdentityPermission> Permissions { get; set; }
 
     /// <summary>
     /// Collection of role names associated with the identity. Roles are used to group <br/>
     /// permissions into meaningful sets that represent specific functions or capabilities <br/>
     /// within the system, simplifying permission management.
     /// </summary>
-    public List<string> Roles { get; set; } 
+    public List<string> Roles { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Identity"/> class with specified
@@ -475,7 +479,7 @@ public class IdentityAction
     /// <summary>
     /// Gets or sets the name of the action.
     /// </summary>
-    public string Name { get; set; } 
+    public string Name { get; set; }
 
     /// <summary>
     /// Gets or sets the permissions required for executing this action on the specified resource.

@@ -21,6 +21,7 @@ public static class Program
 {
     public static void Main()
     {
+        ErrorException
         Initializer.Run(new() { InitConsoleLogger = true });
         WebApplicationServer.StartSingleton();
     }

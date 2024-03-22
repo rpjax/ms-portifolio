@@ -135,8 +135,8 @@ public class SerializableAppException : SerializableException
     /// <param name="details">The details associated with this exception.</param>
     [JsonConstructor]
     public SerializableAppException(
-        string message, 
-        ExceptionCode code = ExceptionCode.Internal, 
+        string message,
+        ExceptionCode code = ExceptionCode.Internal,
         List<KeyValuePair<string, string>>? details = null) : base(message)
     {
         Code = code;

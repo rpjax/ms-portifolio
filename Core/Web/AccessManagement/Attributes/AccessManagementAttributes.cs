@@ -1,6 +1,4 @@
-﻿using ModularSystem.Core.AccessManagement;
-
-namespace ModularSystem.Web.Attributes;
+﻿namespace ModularSystem.Web.Attributes;
 
 /// <summary>
 /// Serves as a base for attributes related to access management within an ASP.NET Core application. <br/>

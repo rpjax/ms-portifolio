@@ -5,7 +5,7 @@ namespace ModularSystem.Core.Linq;
 /// <summary>
 /// work in progress
 /// </summary>
-public interface IAsyncQueryProvider : IQueryProvider   
+public interface IAsyncQueryProvider : IQueryProvider
 {
     Task<object> ExecuteAsync(Expression expression);
     Task<TResult> ExecuteAsync<TResult>(Expression expression);

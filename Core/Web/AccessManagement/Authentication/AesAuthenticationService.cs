@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using ModularSystem.Core;
-using ModularSystem.Core.Cryptography;
 using ModularSystem.Core.AccessManagement;
-using System.Text.Json;
+using ModularSystem.Core.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace ModularSystem.Web.Authentication;
 
@@ -86,7 +86,7 @@ public class AesAuthenticationService : IAuthenticationService
 
         var identity = JsonSerializerSingleton.Deserialize<Identity>(token.Payload);
 
-        if(identity == null)
+        if (identity == null)
         {
             var message = "Identity processing error: Unable to extract identity information from the token due to deserialization issues.";
             var error = new Error(message)

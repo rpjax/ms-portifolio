@@ -160,15 +160,15 @@ public static class TypeCreator
         for (int i = 0; i < properties.Length; i++)
         {
             var propertyBuilder = typeBuilder.DefineProperty(
-                properties[i].Name, 
-                PropertyAttributes.HasDefault, 
+                properties[i].Name,
+                PropertyAttributes.HasDefault,
                 properties[i].Type,
                 null
             );
 
             // Define o getter
             var getterMethodBuilder = typeBuilder.DefineMethod(
-                $"get_{properties[i].Name}", 
+                $"get_{properties[i].Name}",
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
                 properties[i].Type,
                 Type.EmptyTypes
@@ -183,8 +183,8 @@ public static class TypeCreator
             if (createSetters)
             {
                 var setterMethodBuilder = typeBuilder.DefineMethod(
-                    $"set_{properties[i].Name}", 
-                    MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig, 
+                    $"set_{properties[i].Name}",
+                    MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
                     null, new[] { properties[i].Type }
                 );
                 var setterIL = setterMethodBuilder.GetILGenerator();
@@ -205,7 +205,7 @@ public static class TypeCreator
             throw new Exception();
         }
 
-        if(options.GenericTypeArguments.Length > 0)
+        if (options.GenericTypeArguments.Length > 0)
         {
             type = type.MakeGenericType(options.GenericTypeArguments);
         }

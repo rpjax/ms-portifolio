@@ -4,7 +4,7 @@
 /// Defines the structure for the result of a query designed to work with data of type <typeparamref name="T"/>.
 /// </summary>
 /// <typeparam name="T">The type of data contained in the query result.</typeparam>
-public interface IQueryResult<T> 
+public interface IQueryResult<T>
 {
     /// <summary>
     /// Gets a value indicating whether the query result is empty.

@@ -23,7 +23,7 @@ public abstract class ChecksumProducer : IChecksumProducer
 
     public ChecksumProducer(Algorithm algorithm = Algorithm.SHA512)
     {
-      
+
     }
 
     /// <summary>

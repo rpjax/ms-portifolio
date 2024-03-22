@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using ModularSystem.Webql.Synthesis;
-using System.Collections;
+﻿using System.Collections;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Web.Linq;

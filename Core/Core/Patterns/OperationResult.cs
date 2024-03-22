@@ -88,7 +88,7 @@ public class OperationResult : IOperationResult
     /// Creates a failed operation result with multiple errors.
     /// </summary>
     /// <param name="errors">A list of errors causing failure.</param>
-    public OperationResult(IEnumerable<Error> errors) 
+    public OperationResult(IEnumerable<Error> errors)
     {
         IsSuccess = false;
         Errors.AddRange(errors);
@@ -185,7 +185,7 @@ public class OperationResult<T> : OperationResult, IOperationResult<T?>
     /// Creates a successful operation result with optional data.
     /// </summary>
     /// <param name="data">The operation result data, if any.</param>
-    public OperationResult(T? data = default) 
+    public OperationResult(T? data = default)
     {
         IsSuccess = true;
         Data = data;
@@ -197,7 +197,7 @@ public class OperationResult<T> : OperationResult, IOperationResult<T?>
     /// <param name="error">The error causing the operation failure.</param>
     public OperationResult(Error error) : base(error)
     {
-      
+
     }
 
     /// <summary>
@@ -206,7 +206,7 @@ public class OperationResult<T> : OperationResult, IOperationResult<T?>
     /// <param name="errors">The errors causing the operation failure.</param>
     public OperationResult(IEnumerable<Error> errors) : base(errors)
     {
-     
+
     }
 
     /// <summary>
@@ -276,7 +276,7 @@ public class NonAtomicOperationResult : OperationResult
     /// </summary>
     /// <param name="isSuccess">Indicates whether the operation was overall successful.</param>
     /// <param name="errors">An array of errors encountered during the operation.</param>
-    public NonAtomicOperationResult(bool isSuccess, params Error[] errors) 
+    public NonAtomicOperationResult(bool isSuccess, params Error[] errors)
     {
         IsSuccess = isSuccess;
         Errors.AddRange(errors);
@@ -309,7 +309,7 @@ public class NonAtomicOperationResult<T> : OperationResult<T>
     /// <param name="isSuccess">Indicates whether the operation was overall successful.</param>
     /// <param name="data">The data produced by the operation, if any.</param>
     /// <param name="errors">An array of errors encountered during the operation.</param>
-    public NonAtomicOperationResult(bool isSuccess, T? data, params Error[] errors) 
+    public NonAtomicOperationResult(bool isSuccess, T? data, params Error[] errors)
     {
         IsSuccess = isSuccess;
         Errors.AddRange(errors);

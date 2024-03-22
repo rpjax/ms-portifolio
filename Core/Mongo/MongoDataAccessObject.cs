@@ -199,7 +199,7 @@ public class MongoDataAccessObject<T> : IDataAccessObject<T> where T : IMongoEnt
         {
             dynamic? setValue = updateSet.Value;
 
-            if(setValue is ConstantExpression constantExpression)
+            if (setValue is ConstantExpression constantExpression)
             {
                 setValue = constantExpression.Value;
             }
@@ -270,7 +270,7 @@ public class MongoDataAccessObject<T> : IDataAccessObject<T> where T : IMongoEnt
         var filter = MongoModule.GetFilterBuilder<T>()
             .Where(predicate);
         var result = await Collection.DeleteManyAsync(filter);
-       
+
         if (result.IsAcknowledged)
         {
             return result.DeletedCount;

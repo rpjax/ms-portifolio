@@ -61,7 +61,7 @@ public class PresentedAppException
 {
     public string Message { get; set; }
     public ExceptionCode Code { get; set; }
-    public List<KeyValuePair<string, string>>? Details { get; set; } 
+    public List<KeyValuePair<string, string>>? Details { get; set; }
 
     public PresentedAppException(string message, ExceptionCode code, List<KeyValuePair<string, string>>? details = null)
     {

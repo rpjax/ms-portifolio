@@ -36,7 +36,7 @@ internal class CreateEndpoint<T> : EndpointBase<T, Dto<string>> where T : class
 }
 
 // READ
-internal class GetByIdEndpoint<T> : EndpointBase<string, T> 
+internal class GetByIdEndpoint<T> : EndpointBase<string, T>
 {
     public GetByIdEndpoint(URI uri) : base(uri)
     {

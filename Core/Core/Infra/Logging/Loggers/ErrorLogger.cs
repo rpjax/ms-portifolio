@@ -88,7 +88,7 @@ public class ErrorLogger : EFEntityService<ErrorEntry>
     /// <param name="flags">Additional flags to classify the error.</param>
     public static void Log(Exception exception, params string[] flags)
     {
-        if(exception is ErrorException errorException)
+        if (exception is ErrorException errorException)
         {
             foreach (var error in errorException.Errors)
             {

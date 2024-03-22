@@ -18,9 +18,9 @@ public static class DateTimeExtensions
     /// </remarks>
     public static long ToEpoch(this DateTime dateTime, TimeZoneInfo? timeZoneInfo = null)
     {
-        if(dateTime.Kind != DateTimeKind.Utc)
+        if (dateTime.Kind != DateTimeKind.Utc)
         {
-            if(timeZoneInfo != null)
+            if (timeZoneInfo != null)
             {
                 dateTime = new DateTime(dateTime.Ticks, DateTimeKind.Unspecified);
                 dateTime = TimeZoneInfo.ConvertTimeToUtc(dateTime, timeZoneInfo ?? TimeZoneInfo.Local);
