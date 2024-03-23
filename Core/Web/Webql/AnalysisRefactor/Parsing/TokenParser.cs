@@ -41,6 +41,12 @@ public static class TokenParser
             .ParseObject(context, token);
     }
 
+    public static ProjectionObjectSymbol ParseProjectionObject(ParsingContext context, ObjectToken token)
+    {
+        return new ProjectionObjectParser()
+            .ParseProjectionObject(context, token);
+    }
+
     public static ExprSymbol ParseExpr(ParsingContext context, ObjectProperty property)
     {
         return new ExprParser()

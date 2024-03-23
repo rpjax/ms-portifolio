@@ -109,4 +109,9 @@ public class ArrayParser
         return TokenParser.ParseObject(context, ConsumeNextObjectToken(context));
     }
 
+    public ProjectionObjectSymbol ParseNextProjectionObject(ParsingContext context)
+    {
+        return TokenParser.ParseProjectionObject(context, ConsumeNextObjectToken(context));
+    }
+
 }

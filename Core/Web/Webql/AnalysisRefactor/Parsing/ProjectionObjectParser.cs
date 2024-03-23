@@ -27,19 +27,31 @@ public class ProjectionObjectExprParser : Parser
     {
         var key = property.Key;
 
-        if (property.Value is StringToken stringToken)
+        //* case expr
+        if (IsOperator(key))
         {
-            var reference = TokenParser.ParseReference(context, stringToken);
-            var value = new ProjectionReferenceValueSymbol(reference);
+            var expr = new ExprParser()
+                .ParseExpr(context, property);
+            var value = new ProjectionObjectExprValueSymbol(expr);
 
             return new ProjectionObjectExprSymbol(key, value);
         }
 
+        //* case reference
+        if (property.Value is StringToken stringToken)
+        {
+            var reference = TokenParser.ParseReference(context, stringToken);
+            var value = new ProjectionObjectExprValueSymbol(reference);
+
+            return new ProjectionObjectExprSymbol(key, value);
+        }
+
+        //* case projection object
         if (property.Value is ObjectToken objectToken)
         {
             var projectionObj = new ProjectionObjectParser()
                 .ParseProjectionObject(context, objectToken);
-            var value = new ProjectionObjectValueSymbol(projectionObj);
+            var value = new ProjectionObjectExprValueSymbol(projectionObj);
 
             return new ProjectionObjectExprSymbol(key, value);
         }

@@ -25,4 +25,14 @@ public class LambdaParser
         return new LambdaSymbol(arg, body);
     }
 
+    public ProjectionLambdaSymbol ParseProjectionLambda(ParsingContext context, ArrayToken token)
+    {
+        var parser = new ArrayParser(token);
+
+        var arg = parser.ParseNextLambdaArguments(context);
+        var body = parser.ParseNextProjectionObject(context);
+
+        return new ProjectionLambdaSymbol(arg, body);
+    }
+
 }

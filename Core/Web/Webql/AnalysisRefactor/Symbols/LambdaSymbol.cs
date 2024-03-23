@@ -36,6 +36,13 @@ public class LambdaArgumentsSymbol : Symbol
 public class ProjectionLambdaSymbol : Symbol
 {
     public LambdaArgumentsSymbol Arguments { get; }
+    public ProjectionObjectSymbol Body { get; }
+
+    public ProjectionLambdaSymbol(LambdaArgumentsSymbol arguments, ProjectionObjectSymbol body)
+    {
+        Arguments = arguments;
+        Body = body;
+    }
 
     public override string ToString()
     {
