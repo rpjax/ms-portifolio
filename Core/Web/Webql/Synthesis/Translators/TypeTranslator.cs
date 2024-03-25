@@ -12,7 +12,7 @@ public class TypeTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Type TranslateType(TranslationContext context, LiteralNode node)
+    public Type TranslateType(TranslationContextOld context, LiteralNode node)
     {
         var value = node.GetNormalizedValue();
 

@@ -1,70 +1,124 @@
-﻿using ModularSystem.Webql.Analysis;
+﻿using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using ModularSystem.Webql.Analysis;
+using ModularSystem.Webql.Analysis.Semantics;
+using ModularSystem.Webql.Components;
+using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Synthesis;
+namespace ModularSystem.Webql.Synthesis.Compilation.LINQ;
 
-/// <summary>
-/// Represents the context for a translation process within the WebQL framework.
-/// This class encapsulates information about the current state of translation, including
-/// the type being translated, the current expression, and the hierarchy of translation contexts.
-/// </summary>
-public class TranslationContext : SemanticContext
+public class TranslationContext
 {
-    public TranslationContext? ParentTranslationContext { get; }
-
-    /// <summary>
-    /// Gets the current production being translated.
-    /// </summary>
     public SymbolProduction Production { get; }
+    public SemanticsTable SemanticsTable { get; }
+    public TranslationTable TranslationTable { get; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether the current context is for a projection operation.
-    /// </summary>
-    /// <value>
-    /// <c>true</c> if this context is used for a projection operation; otherwise, <c>false</c>.
-    /// </value>
-    /// <remarks>
-    /// This property is used to distinguish contexts that are specifically handling projection operations
-    /// (e.g., translating a '$project' operator in WebQL to a LINQ 'Select' expression). It affects how expressions
-    /// are generated and interpreted within the framework, ensuring that operations appropriate for projections
-    /// are applied.
-    /// </remarks>
-    public bool IsProjectionContext { get; set; }
-
-    public TranslationContext(
-        SymbolProduction production,
-        TranslationContext? parentContext = null
-    )
-    : base(parentContext)
+    public void CreateTranslationTableEntry(
+           string identifier,
+           Expression expression,
+           SymbolAccessMode accessMode = SymbolAccessMode.ReadWrite
+       )
     {
-        ParentTranslationContext = parentContext;
-        Production = production;
-        IsProjectionContext = parentContext?.IsProjectionContext ?? false;      
+        if (TranslationTable.ContainsKey(identifier))
+        {
+            throw new Exception();
+        }
+
+        TranslationTable.AddEntry(identifier, expression, accessMode);
     }
 
-    /// <summary>
-    /// Creates a child context.
-    /// </summary>
-    /// <returns>A new <see cref="TranslationContext"/> instance representing the child context.</returns>
-    public TranslationContext CreateTranslationContext(SymbolProduction production)
+    public void CreateOrUpdateTranslationTableEntry(
+        string identifier,
+        Expression expression,
+        SymbolAccessMode accessMode = SymbolAccessMode.ReadWrite
+    )
     {
-        return new TranslationContext(production, this);
+        var entry = TranslationTable.TryGetEntry(identifier);
+
+        if (entry != null)
+        {
+            if (entry.AccessMode != SymbolAccessMode.ReadWrite)
+            {
+                throw new Exception();
+            }
+
+            entry.Expression = expression;
+            return;
+        }
+
+        TranslationTable.AddEntry(identifier, expression, accessMode);
+    }
+
+    public TranslationTableEntry GetTranslationTableEntry(string identifier)
+    {
+        var entry = TranslationTable.TryGetEntry(identifier);
+
+        if (entry == null)
+        {
+            throw new Exception();
+        }
+
+        return entry;
+    }
+
+    public T GetSemantics<T>(Symbol symbol) where T : SymbolSemantics
+    {
+        var semantics = SemanticsTable.TryGetEntry(symbol);
+
+        if (semantics is not T result)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return result;
     }
 
 }
 
-/// <summary>
-/// Represents a specialized translation context used for projection operations within the WebQL framework.
-/// </summary>
-/// <remarks>
-/// This context extends <see cref="TranslationContext"/> by setting <see cref="TranslationContext.IsProjectionContext"/>
-/// to <c>true</c>, indicating that it is specifically handling a projection operation. This distinction is important
-/// for the translation process, as it enables the application of logic and expressions unique to projection scenarios.
-/// </remarks>
-public class ProjectionTranslationContext : TranslationContext
+public enum SymbolAccessMode
 {
-    public ProjectionTranslationContext(TranslationContext? parentContext = null)
-        : base(new SymbolProduction("projection-expression", new List<SymbolTypeCollection>()))
+    ReadOnly,
+    ReadWrite
+}
+
+public class TranslationTableEntry
+{
+    public string Identifier { get; }
+    public Expression Expression { get; set; }
+    public SymbolAccessMode AccessMode { get; }
+
+    public TranslationTableEntry(string identifier, Expression value, SymbolAccessMode accessMode)
     {
-        IsProjectionContext = true;
+        Identifier = identifier;
+        Expression = value;
+        AccessMode = accessMode;
+    }
+}
+
+public class TranslationTable : TableBase<TranslationTableEntry>
+{
+    private Dictionary<string, TranslationTableEntry> Table { get; } = new();
+
+    public TranslationTableEntry? TryGetEntry(string identifier)
+    {
+        if (Table.TryGetValue(identifier, out var entry))
+        {
+            return entry;
+        }
+
+        return null;
+    }
+
+    public void AddEntry(
+        string identifier,
+        Expression expression,
+        SymbolAccessMode accessMode = SymbolAccessMode.ReadWrite)
+    {
+        Table.Add(identifier, new TranslationTableEntry(identifier, expression, accessMode));
+    }
+
+    public TranslationTableEntry GetEntry(TranslationContextOld context, string identifier)
+    {
+        return TryGetEntry(identifier)
+            ?? throw new TranslationException("", context);
     }
 }

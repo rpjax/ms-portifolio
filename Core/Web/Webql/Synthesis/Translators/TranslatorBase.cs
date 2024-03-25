@@ -22,7 +22,7 @@ public abstract class TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateAxiom(TranslationContext context, ObjectNode node)
+    public Expression TranslateAxiom(TranslationContextOld context, ObjectNode node)
     {
         return new AxiomTranslator(Options)
             .TranslateAxiom(context, node);
@@ -34,7 +34,7 @@ public abstract class TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateReference(TranslationContext context, LiteralNode node)
+    public Expression TranslateReference(TranslationContextOld context, LiteralNode node)
     {
         return new ReferenceTranslator(Options)
             .TranslateReference(context, node);
@@ -47,7 +47,7 @@ public abstract class TranslatorBase
     /// <param name="context"></param>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateObject(TranslationContext context, ObjectNode node)
+    public Expression TranslateObject(TranslationContextOld context, ObjectNode node)
     {
         return new ObjectTranslator(Options)
             .TranslateObject(context, node);
@@ -60,7 +60,7 @@ public abstract class TranslatorBase
     /// <param name="context"></param>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public ProjectionExpression TranslateProjectionObject(TranslationContext context, ObjectNode node)
+    public ProjectionExpression TranslateProjectionObject(TranslationContextOld context, ObjectNode node)
     {
         return new ProjectionObjectTranslator(Options)
             .TranslateProjectionObject(context, node);
@@ -72,7 +72,7 @@ public abstract class TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateArgument(TranslationContext context, Node node)
+    public Expression TranslateArgument(TranslationContextOld context, Node node)
     {
         return new ArgumentTranslator(Options)
             .TranslateArgument(context, node); 
@@ -84,7 +84,7 @@ public abstract class TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Type TranslateType(TranslationContext context, LiteralNode node)
+    public Type TranslateType(TranslationContextOld context, LiteralNode node)
     {
         return new TypeTranslator(Options)
             .TranslateType(context, node);
@@ -103,7 +103,7 @@ public abstract class TranslatorBase
     // Translation helpers.
     //*
 
-    protected T TypeCastNode<T>(TranslationContext context, Node node) where T : Node
+    protected T TypeCastNode<T>(TranslationContextOld context, Node node) where T : Node
     {
         if (node is not T result)
         {

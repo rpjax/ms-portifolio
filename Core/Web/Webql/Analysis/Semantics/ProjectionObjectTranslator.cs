@@ -26,7 +26,7 @@ public class ProjectionObjectTranslator : TranslatorBase
     /// <returns>A Type instance representing the dynamically constructed projection.<br/>
     /// This type can be used to instantiate objects that conform to the projected data structure, <br/>
     /// allowing for dynamic data shaping according to the projection defined in the WebQL query.</returns>
-    public ProjectionExpression TranslateProjectionObject(TranslationContext context, ObjectNode node)
+    public ProjectionExpression TranslateProjectionObject(TranslationContextOld context, ObjectNode node)
     {
         var propertyDefinitions = new List<AnonymousPropertyDefinition>();
         var expressions = new List<Expression>();
@@ -119,7 +119,7 @@ public class ProjectionObjectTranslator : TranslatorBase
         return new ProjectionExpression(propertyDefinitions, expressions, projectedType);
     }
 
-    public Expression TranslateProjectionObject2(TranslationContext context, ObjectNode node)
+    public Expression TranslateProjectionObject2(TranslationContextOld context, ObjectNode node)
     {
         var propertyDefinitions = new List<AnonymousPropertyDefinition>();
         var mainpropertyBindings = new List<MemberBinding>();

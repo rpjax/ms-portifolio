@@ -10,7 +10,7 @@ public class LiteralTranslator : TranslatorBase
     {
     }
 
-    public Expression TranslateLiteral(TranslationContext context, LiteralNode node, Type type)
+    public Expression TranslateLiteral(TranslationContextOld context, LiteralNode node, Type type)
     {
         if(node.Value is null)
         {
@@ -27,12 +27,12 @@ public class LiteralTranslator : TranslatorBase
         return Expression.Constant(value, type);
     }
 
-    public Expression TranslateString(TranslationContext context, LiteralNode node)
+    public Expression TranslateString(TranslationContextOld context, LiteralNode node)
     {
         return TranslateLiteral(context, node, typeof(string));
     }
 
-    public Expression TranslateInt32(TranslationContext context, LiteralNode node)
+    public Expression TranslateInt32(TranslationContextOld context, LiteralNode node)
     {
         return TranslateLiteral(context, node, typeof(int));
     }

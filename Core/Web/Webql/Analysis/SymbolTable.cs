@@ -103,7 +103,7 @@ public class SymbolOld
     /// </summary>
     /// <returns>The element type of the queryable.</returns>
     /// <exception cref="SemanticException">Thrown if the context is not queryable or the queryable type is undefined.</exception>
-    public Type GetElementType(SemanticContext context)
+    public Type GetElementType(SemanticContextOld context)
     {
         var type = TryGetElementType();
 
@@ -155,7 +155,7 @@ public class SymbolOld
     /// Thrown when the associated type does not implement either <see cref="IQueryable{T}"/> or <see cref="IEnumerable{T}"/>,
     /// indicating that it cannot be used as a source in LINQ operations.
     /// </exception>
-    public LinqSourceType GetLinqSourceType(TranslationContext context)
+    public LinqSourceType GetLinqSourceType(TranslationContextOld context)
     {
         if (WebqlHelper.TypeIsQueryable(context, Type))
         {

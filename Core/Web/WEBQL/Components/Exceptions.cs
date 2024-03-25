@@ -60,7 +60,7 @@ public class SyntaxException : ParseException
 /// </summary>
 public class SemanticException : ParseException
 {
-    private SemanticContext Context { get; }
+    private SemanticContextOld Context { get; }
 
     /// <summary>
     /// Initializes a new instance of the SemanticException class with a specified error message, semantic context, and optional inner exception.
@@ -68,7 +68,7 @@ public class SemanticException : ParseException
     /// <param name="message">The message that describes the error.</param>
     /// <param name="context">The semantic context where the error occurred.</param>
     /// <param name="inner">The inner exception reference, if any, that caused this exception (optional).</param>
-    public SemanticException(string message, SemanticContext context, Exception? inner = null) : base(message, inner)
+    public SemanticException(string message, SemanticContextOld context, Exception? inner = null) : base(message, inner)
     {
         Context = context;
     }
@@ -89,7 +89,7 @@ public class SemanticException : ParseException
 /// </summary>
 public class TranslationException : ParseException
 {
-    private TranslationContext Context { get; }
+    private TranslationContextOld Context { get; }
 
     /// <summary>
     /// Initializes a new instance of the TranslationException class with a specified error message, translation context, and optional inner exception.
@@ -97,7 +97,7 @@ public class TranslationException : ParseException
     /// <param name="message">The message that describes the error.</param>
     /// <param name="context">The translation context where the error occurred.</param>
     /// <param name="inner">The inner exception reference, if any, that caused this exception (optional).</param>
-    public TranslationException(string message, TranslationContext context, Exception? inner = null)
+    public TranslationException(string message, TranslationContextOld context, Exception? inner = null)
         : base(message, inner)
     {
         Context = context;

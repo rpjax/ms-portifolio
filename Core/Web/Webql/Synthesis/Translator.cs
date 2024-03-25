@@ -35,7 +35,7 @@ public class Translator : TranslatorBase
         var queryableParameter = Expression
             .Parameter(queryableType, "root");
 
-        var context = new TranslationContext(new AxiomProduction());
+        var context = new TranslationContextOld(new AxiomProduction());
         context.SetSymbol("$", queryableParameter, true);
 
         var axiom = TypeCastNode<ObjectNode>(context, syntaxTree);

@@ -15,7 +15,7 @@ public class AxiomTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateAxiom(TranslationContext context, ObjectNode node)
+    public Expression TranslateAxiom(TranslationContextOld context, ObjectNode node)
     {
         context = context.CreateTranslationContext(new AxiomProduction());
 

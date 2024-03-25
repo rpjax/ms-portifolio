@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Webql.Analysis;
+﻿using ModularSystem.Webql.Analysis.Parsing;
+
+namespace ModularSystem.Webql.Analysis;
 
 public class SyntaxContext
 {

@@ -36,7 +36,7 @@ public class ExpressionTranslator : TranslatorBase
     /// <param name="context"></param>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateExpression(TranslationContext context, ExpressionNode node)
+    public Expression TranslateExpression(TranslationContextOld context, ExpressionNode node)
     {
         var lhs = node.Lhs.Value;
         var rhs = node.Rhs.Value;

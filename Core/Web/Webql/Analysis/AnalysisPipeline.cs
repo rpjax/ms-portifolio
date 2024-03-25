@@ -30,10 +30,10 @@ public static class AnalysisPipeline
     private static Node RunSemanticFeaturesPhase(Node axiom)
     {
         axiom = new ImplicitEqualsSyntaxFeature()
-            .Visit(new SemanticContext(), axiom);
+            .Visit(new SemanticContextOld(), axiom);
 
         axiom = new ImplicitAndSyntaxFeature()
-           .Visit(new SemanticContext(), axiom);
+           .Visit(new SemanticContextOld(), axiom);
 
         return axiom;
     }

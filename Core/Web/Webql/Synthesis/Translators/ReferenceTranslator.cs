@@ -23,7 +23,7 @@ public class ReferenceTranslator
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateReference(TranslationContext context, LiteralNode node)
+    public Expression TranslateReference(TranslationContextOld context, LiteralNode node)
     {
         var identifier = node.GetNormalizedValue();
 

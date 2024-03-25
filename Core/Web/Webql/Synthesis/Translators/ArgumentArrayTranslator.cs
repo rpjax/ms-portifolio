@@ -17,7 +17,7 @@ public class ArgumentArrayTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression[] TranslateArgumentArray(TranslationContext context, ArrayNode arrayNode)
+    public Expression[] TranslateArgumentArray(TranslationContextOld context, ArrayNode arrayNode)
     {
         var expressions = new List<Expression>(arrayNode.Length);
 

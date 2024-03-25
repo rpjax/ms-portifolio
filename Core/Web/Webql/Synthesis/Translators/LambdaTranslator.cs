@@ -18,7 +18,7 @@ public class LambdaTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public LambdaExpression TranslateLambda(TranslationContext context, ArrayNode node, IEnumerable<Type> paramTypes)
+    public LambdaExpression TranslateLambda(TranslationContextOld context, ArrayNode node, IEnumerable<Type> paramTypes)
     {
         context = context.CreateTranslationContext(new LambdaProduction());
 
@@ -49,7 +49,7 @@ public class LambdaTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public LambdaExpression TranslateUnaryLambda(TranslationContext context, ArrayNode node, Type paramType)
+    public LambdaExpression TranslateUnaryLambda(TranslationContextOld context, ArrayNode node, Type paramType)
     {
         context = context.CreateTranslationContext(new LambdaProduction());
 
@@ -80,7 +80,7 @@ public class LambdaTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public LambdaExpression TranslatePredicateLambda(TranslationContext context, ArrayNode node, Type paramType)
+    public LambdaExpression TranslatePredicateLambda(TranslationContextOld context, ArrayNode node, Type paramType)
     {
         var expression = TranslateUnaryLambda(context, node, paramType);
 
@@ -102,7 +102,7 @@ public class LambdaTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public LambdaExpression TranslateProjectionLambda(TranslationContext context, ArrayNode node, Type paramType)
+    public LambdaExpression TranslateProjectionLambda(TranslationContextOld context, ArrayNode node, Type paramType)
     {
         //*
         //*

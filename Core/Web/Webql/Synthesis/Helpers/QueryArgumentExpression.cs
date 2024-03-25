@@ -17,7 +17,7 @@ public class QueryArgumentExpression : Expression
     /// Determines if the type of the current context is a form of IEnumerable, indicating a queryable type.
     /// </summary>
     /// <returns>True if the type is queryable; otherwise, false.</returns>
-    public bool IsQueryable(TranslationContext context)
+    public bool IsQueryable(TranslationContextOld context)
     {
         return
             typeof(IEnumerable).IsAssignableFrom(Type)
@@ -30,7 +30,7 @@ public class QueryArgumentExpression : Expression
     /// Determines if the type of the current context is NOT a form of IEnumerable, indicating a non queryable type.
     /// </summary>
     /// <returns>True if the type is queryable; otherwise, false.</returns>
-    public bool IsNotQueryable(TranslationContext context)
+    public bool IsNotQueryable(TranslationContextOld context)
     {
         return !IsQueryable(context);
     }
@@ -48,7 +48,7 @@ public class QueryArgumentExpression : Expression
     /// If the type is a generic IEnumerable, it returns the generic argument type. <br/>
     /// If the context's type is not queryable, it returns null.
     /// </remarks>
-    public Type? TryGetElementType(TranslationContext context)
+    public Type? TryGetElementType(TranslationContextOld context)
     {
         var type = Expression.Type;
 
@@ -88,7 +88,7 @@ public class QueryArgumentExpression : Expression
     /// </summary>
     /// <returns>The element type of the queryable.</returns>
     /// <exception cref="SemanticException">Thrown if the context is not queryable or the queryable type is undefined.</exception>
-    public Type GetElementType(TranslationContext context)
+    public Type GetElementType(TranslationContextOld context)
     {
         var type = TryGetElementType(context);
 
@@ -100,7 +100,7 @@ public class QueryArgumentExpression : Expression
         return type;
     }
 
-    public LinqSourceType GetLinqSourceType(TranslationContext context)
+    public LinqSourceType GetLinqSourceType(TranslationContextOld context)
     {
         return WebqlHelper.GetLinqSourceType(context, Type);
     }

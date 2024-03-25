@@ -19,7 +19,7 @@ internal class ImplicitAndSyntaxFeature : SemanticsVisitor
     /// <param name="node">The ObjectNode to visit.</param>
     /// <returns>A Node transformed according to relational operators semantics.</returns>
     [return: NotNullIfNotNull("node")]
-    protected override Node Visit(SemanticContext context, ObjectNode node)
+    protected override Node Visit(SemanticContextOld context, ObjectNode node)
     {
         //if (!context.EnableImplicitAndSyntax)
         //{
@@ -96,7 +96,7 @@ internal class ImplicitAndSyntaxFeature : SemanticsVisitor
     /// <param name="context">The current semantic context.</param>
     /// <param name="node">The ExpressionNode to evaluate.</param>
     /// <returns>True if the node evaluates to a boolean; otherwise, false.</returns>
-    private bool ExpressionEvaluatesToBool(SemanticContext context, ExpressionNode node)
+    private bool ExpressionEvaluatesToBool(SemanticContextOld context, ExpressionNode node)
     {
         ExpressionNode? expression = node;
 

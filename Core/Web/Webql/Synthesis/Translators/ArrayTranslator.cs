@@ -24,7 +24,7 @@ public class ArrayTranslator : TranslatorBase
     // consumption helpers.
     //*
 
-    public T ConsumeNextNode<T>(TranslationContext context) where T : Node
+    public T ConsumeNextNode<T>(TranslationContextOld context) where T : Node
     {
         if (Nodes.IsEmpty())
         {
@@ -34,33 +34,33 @@ public class ArrayTranslator : TranslatorBase
         return TypeCastNode<T>(context, Nodes.Dequeue());
     }
 
-    public Node ConsumeNextNode(TranslationContext context)
+    public Node ConsumeNextNode(TranslationContextOld context)
     {
         return ConsumeNextNode<Node>(context);
     }
 
-    public LiteralNode ConsumeNextLiteral(TranslationContext context)
+    public LiteralNode ConsumeNextLiteral(TranslationContextOld context)
     {
         return ConsumeNextNode<LiteralNode>(context);
     }
 
-    public string ConsumeNextString(TranslationContext context)
+    public string ConsumeNextString(TranslationContextOld context)
     {
         return ConsumeNextNode<LiteralNode>(context).GetNormalizedValue()
             ?? throw new TranslationException("", context);
     }
 
-    public ArrayNode ConsumeNextArray(TranslationContext context)
+    public ArrayNode ConsumeNextArray(TranslationContextOld context)
     {
         return ConsumeNextNode<ArrayNode>(context); 
     }
 
-    public ObjectNode ConsumeNextObject(TranslationContext context)
+    public ObjectNode ConsumeNextObject(TranslationContextOld context)
     {
         return ConsumeNextNode<ObjectNode>(context);
     }
 
-    public ArrayNode ConsumeNextLambda(TranslationContext context)
+    public ArrayNode ConsumeNextLambda(TranslationContextOld context)
     {
         return ConsumeNextArray(context);
     }
@@ -76,7 +76,7 @@ public class ArrayTranslator : TranslatorBase
     /// <param name="context"></param>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public string? TranslateNextDestination(TranslationContext context)
+    public string? TranslateNextDestination(TranslationContextOld context)
     {
         return ConsumeNextNode<LiteralNode>(context).GetNormalizedValue();
     }
@@ -88,7 +88,7 @@ public class ArrayTranslator : TranslatorBase
     /// <param name="context"></param>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateNextReference(TranslationContext context)
+    public Expression TranslateNextReference(TranslationContextOld context)
     {
         return TranslateReference(context, ConsumeNextNode<LiteralNode>(context));
     }
@@ -100,7 +100,7 @@ public class ArrayTranslator : TranslatorBase
     /// <param name="context"></param>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateNextInt32(TranslationContext context)
+    public Expression TranslateNextInt32(TranslationContextOld context)
     {
         return new LiteralTranslator(Options)
             .TranslateInt32(context, ConsumeNextLiteral(context));
@@ -113,7 +113,7 @@ public class ArrayTranslator : TranslatorBase
     /// <param name="context"></param>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateNextArgument(TranslationContext context)
+    public Expression TranslateNextArgument(TranslationContextOld context)
     {
         return TranslateArgument(context, ConsumeNextNode<Node>(context));
     }
@@ -127,7 +127,7 @@ public class ArrayTranslator : TranslatorBase
     /// <param name="context"></param>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public QueryArgumentExpression TranslateNextQueryArgument(TranslationContext context)
+    public QueryArgumentExpression TranslateNextQueryArgument(TranslationContextOld context)
     {
         var arg = new QueryArgumentExpression(TranslateNextArgument(context));
 
@@ -146,7 +146,7 @@ public class ArrayTranslator : TranslatorBase
     /// <param name="context"></param>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateNextObject(TranslationContext context)
+    public Expression TranslateNextObject(TranslationContextOld context)
     {
         return TranslateObject(context, ConsumeNextObject(context));
     }
@@ -158,7 +158,7 @@ public class ArrayTranslator : TranslatorBase
     /// <param name="context"></param>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public ProjectionExpression TranslateNextProjectionObject(TranslationContext context)
+    public ProjectionExpression TranslateNextProjectionObject(TranslationContextOld context)
     {
         return TranslateProjectionObject(context, ConsumeNextObject(context));
     }
@@ -170,7 +170,7 @@ public class ArrayTranslator : TranslatorBase
     /// <param name="context"></param>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Type TranslateNextType(TranslationContext context)
+    public Type TranslateNextType(TranslationContextOld context)
     {
         return TranslateType(context, ConsumeNextLiteral(context));
     }
@@ -182,7 +182,7 @@ public class ArrayTranslator : TranslatorBase
     /// <param name="context"></param>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression[] TranslateNextArgumentArray(TranslationContext context)
+    public Expression[] TranslateNextArgumentArray(TranslationContextOld context)
     {
         return new ArgumentArrayTranslator(Options)
             .TranslateArgumentArray(context, ConsumeNextArray(context));
@@ -194,7 +194,7 @@ public class ArrayTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public ParameterExpression[] TranslateNextLambdaArgs(TranslationContext context, IEnumerable<Type> types)
+    public ParameterExpression[] TranslateNextLambdaArgs(TranslationContextOld context, IEnumerable<Type> types)
     {
         return new LambdaArgsTranslator(Options)
             .TranslateLambdaArgs(context, ConsumeNextArray(context), types);
@@ -206,7 +206,7 @@ public class ArrayTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public ParameterExpression[] TranslateNextUnaryLambdaArgs(TranslationContext context, Type paramType)
+    public ParameterExpression[] TranslateNextUnaryLambdaArgs(TranslationContextOld context, Type paramType)
     {
         return new LambdaArgsTranslator(Options)
             .TranslateUnaryLambdaArgs(context, ConsumeNextArray(context), paramType);
@@ -218,7 +218,7 @@ public class ArrayTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateNextLambda(TranslationContext context, IEnumerable<Type> @params)
+    public Expression TranslateNextLambda(TranslationContextOld context, IEnumerable<Type> @params)
     {
         return new LambdaTranslator(Options)
             .TranslateLambda(context, ConsumeNextArray(context), @params);
@@ -230,7 +230,7 @@ public class ArrayTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateNextUnaryLambda(TranslationContext context, Type paramType)
+    public Expression TranslateNextUnaryLambda(TranslationContextOld context, Type paramType)
     {
         return new LambdaTranslator(Options)
             .TranslateUnaryLambda(context, ConsumeNextArray(context), paramType);

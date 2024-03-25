@@ -66,7 +66,7 @@ public class OperatorsTranslator : TranslatorBase
     /// <param name="node">The node associated with the operator.</param>
     /// <returns>The translated LINQ expression.</returns>
     /// <exception cref="Exception">Thrown if the operator is unknown or unsupported.</exception>
-    public Expression Translate(TranslationContext context, ArrayNode node, Operator @operator)
+    public Expression Translate(TranslationContextOld context, ArrayNode node, Operator @operator)
     {
         switch (@operator)
         {
@@ -191,7 +191,7 @@ public class ArithmeticOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateAdd(TranslationContext context, ArrayNode node)
+    public Expression TranslateAdd(TranslationContextOld context, ArrayNode node)
     {
         context = context.CreateTranslationContext(new SymbolProduction("add-expression", new()));
 
@@ -222,7 +222,7 @@ public class ArithmeticOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateSubtract(TranslationContext context, ArrayNode node)
+    public Expression TranslateSubtract(TranslationContextOld context, ArrayNode node)
     {
         context = context.CreateTranslationContext(new SymbolProduction("subtract-expression", new()));
 
@@ -253,7 +253,7 @@ public class ArithmeticOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateDivide(TranslationContext context, ArrayNode node)
+    public Expression TranslateDivide(TranslationContextOld context, ArrayNode node)
     {
         context = context.CreateTranslationContext(new SymbolProduction("divide-expression", new()));
 
@@ -284,7 +284,7 @@ public class ArithmeticOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateMultiply(TranslationContext context, ArrayNode node)
+    public Expression TranslateMultiply(TranslationContextOld context, ArrayNode node)
     {
         context = context.CreateTranslationContext(new SymbolProduction("multiply-expression", new()));
 
@@ -315,7 +315,7 @@ public class ArithmeticOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateModulo(TranslationContext context, ArrayNode node)
+    public Expression TranslateModulo(TranslationContextOld context, ArrayNode node)
     {
         context = context.CreateTranslationContext(new SymbolProduction("modulo-expression", new()));
 
@@ -354,7 +354,7 @@ public class RelationalOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateEquals(TranslationContext context, ArrayNode node)
+    public Expression TranslateEquals(TranslationContextOld context, ArrayNode node)
     {
         context = context.CreateTranslationContext(new SymbolProduction("equal-expression", new()));
 
@@ -385,7 +385,7 @@ public class RelationalOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateNotEquals(TranslationContext context, ArrayNode node)
+    public Expression TranslateNotEquals(TranslationContextOld context, ArrayNode node)
     {
         context = context.CreateTranslationContext(new SymbolProduction("not-equal-expression", new()));
 
@@ -416,7 +416,7 @@ public class RelationalOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateLess(TranslationContext context, ArrayNode node)
+    public Expression TranslateLess(TranslationContextOld context, ArrayNode node)
     {
         context = context.CreateTranslationContext(new SymbolProduction("less-than-expression", new()));
 
@@ -447,7 +447,7 @@ public class RelationalOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateLessEquals(TranslationContext context, ArrayNode node)
+    public Expression TranslateLessEquals(TranslationContextOld context, ArrayNode node)
     {
         context = context.CreateTranslationContext(new SymbolProduction("less-equal-expression", new()));
 
@@ -478,7 +478,7 @@ public class RelationalOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateGreater(TranslationContext context, ArrayNode node)
+    public Expression TranslateGreater(TranslationContextOld context, ArrayNode node)
     {
         context = context.CreateTranslationContext(new SymbolProduction("greater-than-expression", new()));
 
@@ -509,7 +509,7 @@ public class RelationalOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateGreaterEquals(TranslationContext context, ArrayNode node)
+    public Expression TranslateGreaterEquals(TranslationContextOld context, ArrayNode node)
     {
         context = context.CreateTranslationContext(new SymbolProduction("greater-equal-expression", new()));
 
@@ -548,7 +548,7 @@ public class PatternRelationalOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateLike(TranslationContext context, ArrayNode node)
+    public Expression TranslateLike(TranslationContextOld context, ArrayNode node)
     {
         var translator = new ArrayTranslator(Options, node);
 
@@ -586,7 +586,7 @@ public class PatternRelationalOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateRegexMatch(TranslationContext context, ArrayNode node)
+    public Expression TranslateRegexMatch(TranslationContextOld context, ArrayNode node)
     {
         throw new NotImplementedException();
     }
@@ -606,7 +606,7 @@ public class LogicalOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateOr(TranslationContext context, ArrayNode node)
+    public Expression TranslateOr(TranslationContextOld context, ArrayNode node)
     {
         context = context.CreateTranslationContext(new SymbolProduction("or-expression", new()));
 
@@ -651,7 +651,7 @@ public class LogicalOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateAnd(TranslationContext context, ArrayNode node)
+    public Expression TranslateAnd(TranslationContextOld context, ArrayNode node)
     {
         context = context.CreateTranslationContext(new SymbolProduction("and-expression", new()));
 
@@ -695,7 +695,7 @@ public class LogicalOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateNot(TranslationContext context, ArrayNode node)
+    public Expression TranslateNot(TranslationContextOld context, ArrayNode node)
     {
         var translator = new ArrayTranslator(Options, node);
         var expression = translator.TranslateNextArgument(context);
@@ -717,7 +717,7 @@ public class SemanticOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateParse(TranslationContext context, ArrayNode node)
+    public Expression TranslateParse(TranslationContextOld context, ArrayNode node)
     {
         var translator = new ArrayTranslator(Options, node);
 
@@ -738,7 +738,7 @@ public class SemanticOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateSelect(TranslationContext context, ArrayNode node)
+    public Expression TranslateSelect(TranslationContextOld context, ArrayNode node)
     {
         return new ArrayTranslator(Options, node)
             .TranslateArgument(context, node);
@@ -750,7 +750,7 @@ public class SemanticOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateExpr(TranslationContext context, ArrayNode node)
+    public Expression TranslateExpr(TranslationContextOld context, ArrayNode node)
     {
         return new ArrayTranslator(Options, node)
             .TranslateArgument(context, node);
@@ -770,7 +770,7 @@ public class QueryableOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateFilter(TranslationContext context, ArrayNode arguments)
+    public Expression TranslateFilter(TranslationContextOld context, ArrayNode arguments)
     {
         context = context.CreateTranslationContext(new FilterProduction());
 
@@ -809,7 +809,7 @@ public class QueryableOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateProject(TranslationContext context, ArrayNode node)
+    public Expression TranslateProject(TranslationContextOld context, ArrayNode node)
     {
         context = context.CreateTranslationContext(new ProjectionProduction());
 
@@ -850,7 +850,7 @@ public class QueryableOperatorsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateTransform(TranslationContext context, ArrayNode node)
+    public Expression TranslateTransform(TranslationContextOld context, ArrayNode node)
     {
         context = context.CreateTranslationContext(new ProjectionProduction());
 
@@ -885,7 +885,7 @@ public class QueryableOperatorsTranslator : TranslatorBase
     }
 
     [Obsolete("NOT IMPLEMENTED, DO NOT USE IT.")]
-    public Expression TranslateSelectMany(TranslationContext context, ArrayNode node)
+    public Expression TranslateSelectMany(TranslationContextOld context, ArrayNode node)
     {
         throw new NotImplementedException();
     }
@@ -895,7 +895,7 @@ public class QueryableOperatorsTranslator : TranslatorBase
     /// &lt;limit_expr&gt; ::= &lt;limit_op&gt; '[' &lt;destination&gt; ',' &lt;query_arg&gt; ',' &lt;int32&gt; ']' <br/>
     /// </summary>
     /// <returns></returns>
-    public Expression TranslateLimit(TranslationContext context, ArrayNode node)
+    public Expression TranslateLimit(TranslationContextOld context, ArrayNode node)
     {
         var translator = new ArrayTranslator(Options, node);
 
@@ -926,7 +926,7 @@ public class QueryableOperatorsTranslator : TranslatorBase
     /// &lt;skip_expr&gt; ::= &lt;skip_op&gt; '[' &lt;destination&gt; ',' &lt;query_arg&gt; ',' &lt;int32&gt; ']' <br/>
     /// </summary>
     /// <returns></returns>
-    public Expression TranslateSkip(TranslationContext context, ArrayNode node)
+    public Expression TranslateSkip(TranslationContextOld context, ArrayNode node)
     {
         var translator = new ArrayTranslator(Options, node);
 
@@ -968,7 +968,7 @@ public class AggregationOperatorsTranslator
     /// &lt;any_expr&gt; ::= $any: [ &lt;destination&gt;, &lt;query_arg&gt;, &lt;predicate_lambda&gt; ] <br/>
     /// </summary>
     /// <returns></returns>
-    public Expression TranslateAny(TranslationContext context, ArrayNode node)
+    public Expression TranslateAny(TranslationContextOld context, ArrayNode node)
     {
         var translator = new ArrayTranslator(Options, node);
 
@@ -1004,7 +1004,7 @@ public class AggregationOperatorsTranslator
     /// &lt;all_expr&gt; ::= $all: [ &lt;destination&gt;, &lt;query_arg&gt;, &lt;predicate_lambda&gt; ] <br/>
     /// </summary>
     /// <returns></returns>
-    public Expression TranslateAll(TranslationContext context, ArrayNode node)
+    public Expression TranslateAll(TranslationContextOld context, ArrayNode node)
     {
         var translator = new ArrayTranslator(Options, node);
 
@@ -1040,7 +1040,7 @@ public class AggregationOperatorsTranslator
     /// &lt;count_expr&gt; ::= $count: [ &lt;destination&gt; , &lt;query_arg&gt; ] <br/>
     /// </summary>
     /// <returns></returns>
-    public Expression TranslateCount(TranslationContext context, ArrayNode node)
+    public Expression TranslateCount(TranslationContextOld context, ArrayNode node)
     {
         var translator = new ArrayTranslator(Options, node);
 
@@ -1068,7 +1068,7 @@ public class AggregationOperatorsTranslator
     /// &lt;min_expr&gt; ::= $min: [ &lt;destination&gt; , &lt;query_arg&gt; , &lt;selection_lambda&gt; ] <br/>
     /// </summary>
     /// <returns></returns>
-    public Expression TranslateMin(TranslationContext context, ArrayNode node)
+    public Expression TranslateMin(TranslationContextOld context, ArrayNode node)
     {
         var translator = new ArrayTranslator(Options, node);
 
@@ -1105,7 +1105,7 @@ public class AggregationOperatorsTranslator
     /// &lt;max_expr&gt; ::= $max: [ &lt;destination&gt; , &lt;query_arg&gt; , &lt;selection_lambda&gt; ] <br/>
     /// </summary>
     /// <returns></returns>
-    public Expression TranslateMax(TranslationContext context, ArrayNode node)
+    public Expression TranslateMax(TranslationContextOld context, ArrayNode node)
     {
         var translator = new ArrayTranslator(Options, node);
 

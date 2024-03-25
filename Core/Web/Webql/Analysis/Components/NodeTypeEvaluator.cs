@@ -7,7 +7,7 @@ public class NodeTypeEvaluator : SemanticsVisitor
     // { $project: { } }
     //*
 
-    public Type Evaluate(SemanticContext context, Node node)
+    public Type Evaluate(SemanticContextOld context, Node node)
     {
         if (node is LiteralNode literal)
         {
@@ -25,7 +25,7 @@ public class NodeTypeEvaluator : SemanticsVisitor
         throw new Exception();
     }
 
-    protected Type EvaluateLiteral(SemanticContext context, LiteralNode node)
+    protected Type EvaluateLiteral(SemanticContextOld context, LiteralNode node)
     {
         var type = context.Type;
 
@@ -42,7 +42,7 @@ public class NodeTypeEvaluator : SemanticsVisitor
         return type;
     }
 
-    protected Type EvaluateReference(SemanticContext context, LiteralNode node)
+    protected Type EvaluateReference(SemanticContextOld context, LiteralNode node)
     {
         var propPath = node.Value;
 
@@ -78,7 +78,7 @@ public class NodeTypeEvaluator : SemanticsVisitor
         return subContext.Type;
     }
 
-    protected Type EvaluateObject(SemanticContext context, ObjectNode node)
+    protected Type EvaluateObject(SemanticContextOld context, ObjectNode node)
     {
         var type = null as Type;
 
@@ -102,7 +102,7 @@ public class NodeTypeEvaluator : SemanticsVisitor
     /// <param name="context">The current translation context.</param>
     /// <param name="node">The expression node to parse.</param>
     /// <returns>An Expression representing the expression node.</returns>
-    protected Type EvaluateExpression(SemanticContext context, ExpressionNode node)
+    protected Type EvaluateExpression(SemanticContextOld context, ExpressionNode node)
     {
         var lhs = node.Lhs.Value;
         var rhs = node.Rhs.Value;
@@ -176,7 +176,7 @@ public class NodeTypeEvaluator : SemanticsVisitor
     /// <param name="context">The current translation context.</param>
     /// <param name="node">The expression node representing member access.</param>
     /// <returns>An Expression representing the member access.</returns>
-    protected Type EvaluateMemberAccess(SemanticContext context, ExpressionNode node)
+    protected Type EvaluateMemberAccess(SemanticContextOld context, ExpressionNode node)
     {
         var memberName = node.Lhs.Value;
 

@@ -17,7 +17,7 @@ public class ArgumentTranslator
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateArgument(TranslationContext context, Node node)
+    public Expression TranslateArgument(TranslationContextOld context, Node node)
     {
         if (node is LiteralNode literalNode)
         {
@@ -37,7 +37,7 @@ public class ArgumentTranslator
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateArgument(TranslationContext context, LiteralNode node)
+    public Expression TranslateArgument(TranslationContextOld context, LiteralNode node)
     {          
         return new ReferenceTranslator(Options)
             .TranslateReference(context, node);
@@ -49,7 +49,7 @@ public class ArgumentTranslator
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateArgument(TranslationContext context, ObjectNode node)
+    public Expression TranslateArgument(TranslationContextOld context, ObjectNode node)
     {
         return new ObjectTranslator(Options)
                  .TranslateObject(context, node);

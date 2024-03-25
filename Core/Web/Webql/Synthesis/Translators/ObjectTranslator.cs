@@ -24,7 +24,7 @@ public class ObjectTranslator
     /// <param name="context"></param>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public Expression TranslateObject(TranslationContext context, ObjectNode node)
+    public Expression TranslateObject(TranslationContextOld context, ObjectNode node)
     {
         context = context.CreateTranslationContext(new ObjectProduction());
 

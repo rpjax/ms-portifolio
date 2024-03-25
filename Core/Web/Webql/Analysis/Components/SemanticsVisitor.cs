@@ -15,7 +15,7 @@ public class SemanticsVisitor
     /// <param name="node">The node to visit.</param>
     /// <returns>The visited node, potentially rewritten based on the semantic context.</returns>
     [return: NotNullIfNotNull("node")]
-    public virtual Node? Visit(SemanticContext context, Node node)
+    public virtual Node? Visit(SemanticContextOld context, Node node)
     {
         switch (node.NodeType)
         {
@@ -49,7 +49,7 @@ public class SemanticsVisitor
     /// <param name="node">The ScopeDefinitionNode to visit.</param>
     /// <returns>The visited ScopeDefinitionNode, possibly modified based on semantic rules.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual Node Visit(SemanticContext context, ObjectNode node)
+    protected virtual Node Visit(SemanticContextOld context, ObjectNode node)
     {
         for (int i = 0; i < node.Expressions.Length; i++)
         {
@@ -66,11 +66,11 @@ public class SemanticsVisitor
     /// <param name="node">The ArrayNode to visit.</param>
     /// <returns>The visited ArrayNode, potentially modified based on the context.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual Node Visit(SemanticContext context, ArrayNode node)
+    protected virtual Node Visit(SemanticContextOld context, ArrayNode node)
     {
         for (int i = 0; i < node.Values.Length; i++)
         {
-            node.Values[i] = Visit(new SemanticContext(context), node.Values[i]);
+            node.Values[i] = Visit(new SemanticContextOld(context), node.Values[i]);
         }
 
         return node;
@@ -88,7 +88,7 @@ public class SemanticsVisitor
     /// <param name="node">The ExpressionNode to be visited and potentially transformed.</param>
     /// <returns>The modified ExpressionNode after applying semantic context-based rules.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual ExpressionNode Visit(SemanticContext context, ExpressionNode node)
+    protected virtual ExpressionNode Visit(SemanticContextOld context, ExpressionNode node)
     {
         var baseStack = context.Label;
         var subStack = $".{node.Lhs.Value}";
@@ -161,7 +161,7 @@ public class SemanticsVisitor
     /// <param name="node">The LhsNode to visit.</param>
     /// <returns>The visited LhsNode, unchanged as LhsNodes typically do not require semantic modifications.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual LhsNode Visit(SemanticContext context, LhsNode node)
+    protected virtual LhsNode Visit(SemanticContextOld context, LhsNode node)
     {
         return node;
     }
@@ -173,7 +173,7 @@ public class SemanticsVisitor
     /// <param name="node">The RhsNode to visit.</param>
     /// <returns>The visited RhsNode, potentially modified based on the context.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual RhsNode Visit(SemanticContext context, RhsNode node)
+    protected virtual RhsNode Visit(SemanticContextOld context, RhsNode node)
     {
         return new RhsNode(Visit(context, node.Value));
     }
@@ -185,7 +185,7 @@ public class SemanticsVisitor
     /// <param name="node">The LiteralNode to visit.</param>
     /// <returns>The visited LiteralNode, unchanged as LiteralNodes typically do not require semantic modifications.</returns>
     [return: NotNullIfNotNull("node")]
-    protected virtual Node Visit(SemanticContext context, LiteralNode node)
+    protected virtual Node Visit(SemanticContextOld context, LiteralNode node)
     {
         return node;
     }
@@ -201,7 +201,7 @@ public class SemanticsVisitor
     /// <param name="value">The string representation of the operator.</param>
     /// <returns>The Operator enum value.</returns>
     /// <exception cref="SemanticException">Thrown when the operator string is not recognized.</exception>
-    protected Operator ParseOperatorString(SemanticContext context, string value)
+    protected Operator ParseOperatorString(SemanticContextOld context, string value)
     {
         var op = WebqlHelper.TryParseOperatorString(value);
 

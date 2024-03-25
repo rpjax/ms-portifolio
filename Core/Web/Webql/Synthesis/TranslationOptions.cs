@@ -4,7 +4,7 @@ using MongoDB.Bson;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ModularSystem.Webql.Synthesis;
+namespace ModularSystem.Webql.Synthesis.Compilation.LINQ;
 
 /// <summary>
 /// Contains options for translating WebQL nodes into LINQ expressions.
@@ -14,7 +14,7 @@ public class TranslationOptions
     /// <summary>
     /// Gets or sets the LINQ provider used for translating nodes.
     /// </summary>
-    public ILinqProvider LinqProvider { get; set; } = Synthesis.LinqProvider.Queryable;
+    public ILinqProvider LinqProvider { get; set; } = LINQ.LinqProvider.Queryable;
 
     public JsonSerializerOptions? SerializerOptions { get; set; } = null;
 

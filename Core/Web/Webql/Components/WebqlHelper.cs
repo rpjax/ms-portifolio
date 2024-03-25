@@ -1,13 +1,14 @@
 ﻿using ModularSystem.Core;
 using ModularSystem.Webql.Analysis;
 using ModularSystem.Webql.Synthesis;
+using ModularSystem.Webql.Synthesis.Compilation.LINQ;
 using System.Collections;
 
 namespace ModularSystem.Webql;
 
 public static class WebqlHelper
 {
-    public static bool TypeIsEnumerable(TranslationContext context, Type type)
+    public static bool TypeIsEnumerable(TranslationContextOld context, Type type)
     {
         if (type == typeof(string))
         {
@@ -32,12 +33,12 @@ public static class WebqlHelper
         return false;
     }
 
-    public static bool TypeIsNotEnumerable(TranslationContext context, Type type)
+    public static bool TypeIsNotEnumerable(TranslationContextOld context, Type type)
     {
         return !TypeIsEnumerable(context, type);
     }
 
-    public static bool TypeIsQueryable(TranslationContext context, Type type)
+    public static bool TypeIsQueryable(TranslationContextOld context, Type type)
     {
         return
            typeof(IEnumerable).IsAssignableFrom(type)
@@ -46,12 +47,12 @@ public static class WebqlHelper
               i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
     }
 
-    public static bool TypeIsNotQueryable(TranslationContext context, Type type)
+    public static bool TypeIsNotQueryable(TranslationContextOld context, Type type)
     {
         return !TypeIsQueryable(context, type);
     }
 
-    public static Type? TryGetElementType(TranslationContext context, Type type)
+    public static Type? TryGetElementType(TranslationContextOld context, Type type)
     {
         if (type.IsArray)
         {
@@ -79,13 +80,13 @@ public static class WebqlHelper
         return null;
     }
 
-    public static Type GetElementType(TranslationContext context, Type type)
+    public static Type GetElementType(TranslationContextOld context, Type type)
     {
         return TryGetElementType(context, type) 
             ?? throw SemanticThrowHelper.ErrorInternalUnknown(context, "The current context does not represent a queryable type or the queryable type is undefined. Ensure that the context is correctly initialized and represents a valid queryable type. This error may indicate a misalignment between the expected and actual types within the context.");
     }
 
-    public static LinqSourceType GetLinqSourceType(TranslationContext context, Type type)
+    public static LinqSourceType GetLinqSourceType(TranslationContextOld context, Type type)
     {
         if (TypeIsQueryable(context, type))
         {
@@ -132,7 +133,7 @@ public static class WebqlHelper
         return null;
     }
 
-    public static Operator ParseOperatorString(TranslationContext context, string value)
+    public static Operator ParseOperatorString(TranslationContextOld context, string value)
     {
         return TryParseOperatorString(value)
             ?? throw new TranslationException("", context);

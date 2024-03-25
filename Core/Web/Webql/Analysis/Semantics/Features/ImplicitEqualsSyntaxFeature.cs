@@ -15,7 +15,7 @@ internal class ImplicitEqualsSyntaxFeature : SemanticsVisitor
     /// <param name="node">The ExpressionNode to visit.</param>
     /// <returns>An ExpressionNode modified to include implicit equality checks, if applicable.</returns>
     [return: NotNullIfNotNull("node")]
-    protected override ExpressionNode? Visit(SemanticContext context, ExpressionNode node)
+    protected override ExpressionNode? Visit(SemanticContextOld context, ExpressionNode node)
     {
         var subStack = $".{node.Lhs.Value}";
         var lhs = node.Lhs;

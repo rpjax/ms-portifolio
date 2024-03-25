@@ -17,7 +17,7 @@ public class LambdaArgsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public ParameterExpression[] TranslateLambdaArgs(TranslationContext context, ArrayNode arrayNode, IEnumerable<Type> types)
+    public ParameterExpression[] TranslateLambdaArgs(TranslationContextOld context, ArrayNode arrayNode, IEnumerable<Type> types)
     {
         var expressions = new List<ParameterExpression>(arrayNode.Length);
         var nodesArray = arrayNode.Values;
@@ -56,12 +56,12 @@ public class LambdaArgsTranslator : TranslatorBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TranslationException"></exception>
-    public ParameterExpression[] TranslateUnaryLambdaArgs(TranslationContext context, ArrayNode arrayNode, Type type)
+    public ParameterExpression[] TranslateUnaryLambdaArgs(TranslationContextOld context, ArrayNode arrayNode, Type type)
     {
         return TranslateLambdaArgs(context, arrayNode, new[] { type });
     }
 
-    private void SetSymbols(TranslationContext context, List<ParameterExpression> parameters)
+    private void SetSymbols(TranslationContextOld context, List<ParameterExpression> parameters)
     {
         foreach (var item in parameters)
         {
