@@ -22,7 +22,7 @@ public class LambdaTranslator
 
 public class ExprTranslator
 {
-    public Expression TranslateExpr(TranslationContext context, ExprSymbol expr)
+    public Expression TranslateExpr(TranslationContext context, OperatorExpressionSymbol expr)
     {
         //*
         // arithmetic ops.
@@ -44,7 +44,7 @@ public class ExprTranslator
                 .TranslateLikeExpr(context, likeExpr);
         }
 
-        throw new TranslationException("", context);
+        throw new Exception();
     }
 }
 
@@ -77,11 +77,11 @@ public class BinaryArgumentsTranslator
         var destination = new DestinationTranslator()
             .TranslateDestination(context, symbol.Destination);
 
-        var left = new ArgumentTranslator()
-            .TranslateArgument(context, symbol.Left);
+        var left = new ExpressionTranslator()
+            .TranslateExpression(context, symbol.LeftOperand);
 
-        var right = new ArgumentTranslator()
-          .TranslateArgument(context, symbol.Right);
+        var right = new ExpressionTranslator()
+            .TranslateExpression(context, symbol.RightOperand);
 
         return new BinaryArgumentsExpression(
             destination: destination,
@@ -95,12 +95,14 @@ public class ArithmeticExprTranslator
 {
     public Expression TranslateAddExpr(TranslationContext context, AddExprSymbol addExpr)
     {
-        var argsExpr = new BinaryArgumentsTranslator()
-            .TranslateBinaryArguments(context, addExpr.Arguments);
+        var destination = new DestinationTranslator()
+            .TranslateDestination(context, addExpr.Destination);
 
-        var destination = argsExpr.Destination;
-        var left = argsExpr.Left; 
-        var right = argsExpr.Right;
+        var left = new ExpressionTranslator()
+            .TranslateExpression (context, addExpr.LeftOperand);
+
+        var right = new ExpressionTranslator()
+            .TranslateExpression(context, addExpr.RightOperand);
 
         var expr = Expression.Add(left, right); 
 
@@ -117,12 +119,14 @@ public class PatternRelationalExprTranslator
 {
     public Expression TranslateLikeExpr(TranslationContext context, LikeExprSymbol likeExpr)
     {
-        var argsExpr = new BinaryArgumentsTranslator()
-            .TranslateBinaryArguments(context, likeExpr.Arguments);
+        var destination = new DestinationTranslator()
+            .TranslateDestination(context, likeExpr.Destination);
 
-        var destination = argsExpr.Destination;
-        var left = argsExpr.Left;
-        var right = argsExpr.Right;
+        var left = new ExpressionTranslator()
+            .TranslateExpression(context, likeExpr.LeftOperand);
+
+        var right = new ExpressionTranslator()
+            .TranslateExpression(context, likeExpr.RightOperand);
 
         var toLowerMethod = typeof(string).GetMethod("ToLower", new Type[] { })!;
         var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) })!;
@@ -151,14 +155,14 @@ public class QueryExprTranslator
         var destination = new DestinationTranslator()
             .TranslateDestination(context, filterExpr.Destination);
 
-        var source = new ArgumentTranslator()
-            .TranslateArgument(context, filterExpr.Source);
+        var source = new ExpressionTranslator()
+            .TranslateExpression(context, filterExpr.Source);
 
         var lambda = new LambdaTranslator()
             .TranslateLambda(context, filterExpr.Lambda);
 
         var sourceSemantics = filterExpr.Source
-            .GetSemantics<ArgumentSemantics>(context);
+            .GetSemantics<ArgumentSemantic>(context);
 
         var methodInfo = new TranslationOptions().LinqProvider
            .GetWhereMethodInfo(context, sourceSemantics);

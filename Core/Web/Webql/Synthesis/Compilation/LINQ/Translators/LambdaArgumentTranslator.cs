@@ -7,21 +7,17 @@ namespace ModularSystem.Webql.Synthesis.Compilation.LINQ;
 
 public class LambdaArgumentTranslator
 {
-    public ParameterExpression[] TranslateLambdaArguments(TranslationContext context, LambdaArgumentsSymbol args)
+    public ParameterExpression[] TranslateLambdaArguments(TranslationContext context, LambdaArgumentSymbol[] args)
     {
         var expressions = new List<ParameterExpression>();
-        var semantics = args.GetSemantics<LambdaArgumentsSemantics>(context);
 
-        if (args.Arguments.Length != semantics.Types.Length)
+        for (int i = 0; i < args.Length; i++)
         {
-            throw new Exception();
-        }
+            var arg = args[i];
+            var semantics = arg.GetSemantics<LambdaArgumentSemantic>(context);
 
-        for (int i = 0; i < args.Arguments.Length; i++)
-        {
-            var arg = args.Arguments[i];
             var identifier = arg.Identifier;
-            var type = semantics.Types[i];
+            var type = semantics.Type;
 
             var expr = Expression.Parameter(type, identifier);
 

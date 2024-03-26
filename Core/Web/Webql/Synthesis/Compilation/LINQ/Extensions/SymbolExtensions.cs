@@ -5,7 +5,7 @@ namespace ModularSystem.Webql.Synthesis.Compilation.LINQ.Extensions;
 
 public static class SymbolExtensions
 {
-    public static T GetSemantics<T>(this Symbol symbol, TranslationContext context) where T : SymbolSemantics
+    public static T GetSemantics<T>(this Symbol symbol, TranslationContext context) where T : SymbolSemantic
     {
         return context.GetSemantics<T>(symbol);
     }

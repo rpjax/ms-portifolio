@@ -3,18 +3,18 @@
 public class BinaryArgumentsSymbol : Symbol
 {
     public DestinationSymbol Destination { get; }
-    public ArgumentSymbol Left { get; }
-    public ArgumentSymbol Right { get; }
+    public ExpressionSymbol LeftOperand { get; }
+    public ExpressionSymbol RightOperand { get; }
 
-    public BinaryArgumentsSymbol(DestinationSymbol destination, ArgumentSymbol left, ArgumentSymbol right)
+    public BinaryArgumentsSymbol(DestinationSymbol destination, ExpressionSymbol left, ExpressionSymbol right)
     {
         Destination = destination;
-        Left = left;
-        Right = right;
+        LeftOperand = left;
+        RightOperand = right;
     }
 
     public override string ToString()
     {
-        return $"({Destination}, {Left}, {Right})";
+        return $"({Destination}, {LeftOperand}, {RightOperand})";
     }
 }

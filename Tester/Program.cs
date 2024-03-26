@@ -1,90 +1,41 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using ModularSystem.Core;
-using ModularSystem.Mongo;
-using ModularSystem.Mongo.Webql;
-using ModularSystem.Web;
-using ModularSystem.Webql;
-using ModularSystem.Webql.Synthesis;
-using MongoDB.Driver.Linq;
+﻿using ModularSystem.Webql.Analysis.Parsing;
+using ModularSystem.Webql.Analysis.Semantics.Visitors;
+using ModularSystem.Webql.Analysis.Tokenization;
+using ModularSystem.Webql.Analysis.Tokens;
 
 namespace ModularSystem.Tester;
 
-public class MyData : MongoModel
+public class TestUser
 {
-    public string FirstName { get; set; } = "";
-    public string[] Surnames { get; set; } = new string[0];
-    public string Cpf { get; set; } = "";
-    public int Score { get; set; }
+    public static List<TestUser> Source { get; } = new List<TestUser>()
+    {
+        new TestUser(){ Nickname = "Alice"},
+        new TestUser(){ Nickname = "Bob"},
+        new TestUser(){ Nickname = "Jacques"},
+    };
+
+    public string Nickname { get; set; } = "";
 }
 
 public static class Program
 {
     public static void Main()
     {
-        ErrorException
-        Initializer.Run(new() { InitConsoleLogger = true });
-        WebApplicationServer.StartSingleton();
-    }
+        var source = TestUser.Source.AsQueryable();
 
-}
+        var query = "[\r\n  [\r\n    \"source\"\r\n  ],\r\n  {\r\n    \"$filter\": [\r\n      \"result\",\r\n      \"$source\",\r\n      [\r\n        [\r\n          \"item\"\r\n        ],\r\n        {\r\n          \"$add\": [\r\n            \"addResult\",\r\n            \"$item.value\",\r\n            1\r\n          ]\r\n        }\r\n      ]\r\n    ]\r\n  }\r\n]";
+        var token = new LexicalAnalyser()
+            .Tokenize(query);
 
-public class MyDataService : MongoEntityService<MyData>
-{
-    public override IDataAccessObject<MyData> DataAccessObject { get; }
+        var axiom = new AxiomParser()
+            .ParseAxiom(new ParsingContext(), (ArrayToken)token);
 
-    public MyDataService()
-    {
-        DataAccessObject = CreateDao();
-    }
+        new RootLambdasArgumentTypeFixer(new Type[] { source.GetType() })
+            .Execute(axiom);
 
-    private static IDataAccessObject<MyData> CreateDao()
-    {
-        return new MongoDataAccessObject<MyData>(MongoDb.GetCollection<MyData>("my_data_temp"));
-    }
-}
+        new LambdaArgumentTypeFixer()
+            .Execute(axiom.Lambda);
 
-[Route("my-data")]
-public class MyDataController : WebqlCrudController<MyData>
-{
-    protected override EntityService<MyData> Service { get; }
-
-    public MyDataController()
-    {
-        Service = new MyDataService();
-    }
-
-    [HttpPost("webql-debug")]
-    public async Task<IActionResult> DebugQuery()
-    {
-        try
-        {
-            var json = (await ReadBodyAsStringAsync()) ?? Translator.EmptyQuery;
-            var translator = new Translator(GetTranslatorOptions());
-            var syntaxTree = translator.RunAnalysis(json, typeof(IEnumerable<MyData>));
-
-            return Ok(syntaxTree.ToString());
-        }
-        catch (Exception e)
-        {
-            if (e is ParseException parseException)
-            {
-                return HandleException(new AppException(parseException.GetMessage(), ExceptionCode.InvalidInput));
-            }
-
-            return HandleException(e);
-        }
-    }
-
-    protected override TranslatorOptions GetTranslatorOptions()
-    {
-        return new TranslatorOptions()
-        {
-            LinqProvider = new MongoLinqProvider(),
-        };
-    }
-
-    protected override TranslatedQueryable VisitTranslatedQueryable(TranslatedQueryable queryable)
-    {
-        return new MongoTranslatedQueryable(queryable);
+        Console.WriteLine(axiom); ;
     }
 }

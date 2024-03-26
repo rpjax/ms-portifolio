@@ -17,18 +17,18 @@ public class SemanticsAnalysisVisitor : AstSemanticVisitor
     /// <param name="context">The semantic analysis context containing the semantic table.</param>
     /// <param name="symbol">The symbol to visit and analyze.</param>
     /// <returns>The symbol, possibly with updated semantic information.</returns>
-    public override Symbol Visit(SemanticContext context, Symbol symbol)
+    protected override Symbol Visit(SemanticContext context, Symbol symbol)
     {
         // Perform the base visit, which will recursively analyze child symbols first.
         symbol = base.Visit(context, symbol);
 
         // After visiting all children, we try to analyze the current symbol.
-        var semantics = SemanticsAnalyser.TryAnalyse(context, symbol);
+        var semantics = SemanticAnalyser.TryAnalyse(context, symbol);
 
         // If semantic analysis was successful, associate the derived semantics with the symbol.
         if (semantics is not null)
         {
-            symbol.AddSemantics(context, semantics);
+            symbol.AddSemantic(context, semantics);
         }
 
         return symbol;

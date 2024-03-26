@@ -140,9 +140,9 @@ expr_expr = expr_op , unary_args;
 
 (* Query Expressions *)
 query_expr = filter_expr | projection_expr | transform_expr | limit_expr | skip_expr;
-filter_expr = filter_op , "[" , destination , "," , query_arg , "," , predicate_lambda , "]";
-projection_expr = projection_op , "[" , destination , "," , query_arg , "," , projection_lambda , "]";
-transform_expr = transform_op , "[" , destination , "," , query_arg , "," , selection_lambda , "]";
+filter_expr = filter_op , "[" , destination , "," , query_arg , "," , lambda , "]";
+projection_expr = projection_op , "[" , destination , "," , query_arg , "," , lambda , "]";
+transform_expr = transform_op , "[" , destination , "," , query_arg , "," , lambda , "]";
 limit_expr = limit_op , "[" , destination , "," , query_arg , "," , int , "]";
 skip_expr = skip_op , "[" , destination , "," , query_arg , "," , int , "]";
 

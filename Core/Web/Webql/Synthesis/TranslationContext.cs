@@ -60,9 +60,9 @@ public class TranslationContext
         return entry;
     }
 
-    public T GetSemantics<T>(Symbol symbol) where T : SymbolSemantics
+    public T GetSemantics<T>(Symbol symbol) where T : SymbolSemantic
     {
-        var semantics = SemanticsTable.TryGetEntry(symbol);
+        var semantics = SemanticsTable.TryGetEntryByHash(symbol);
 
         if (semantics is not T result)
         {

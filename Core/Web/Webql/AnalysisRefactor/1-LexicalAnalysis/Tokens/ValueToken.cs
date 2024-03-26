@@ -1,17 +1,27 @@
 ﻿namespace ModularSystem.Webql.Analysis.Tokens;
 
+public enum ValueType
+{
+    Null,
+    String,
+    Bool,
+    Number
+}
+
 public abstract class ValueToken : Token
 {
-
+    public abstract ValueType ValueType { get; }
+    public override TokenType TokenType { get; } = TokenType.Value;
 }
 
 public class NullToken : ValueToken
 {
-
+    public override ValueType ValueType { get; } = ValueType.Null;
 }
 
 public class StringToken : ValueToken
 {
+    public override ValueType ValueType { get; } = ValueType.String;
     public string Value { get; }
 
     public StringToken(string? value)
@@ -22,6 +32,7 @@ public class StringToken : ValueToken
 
 public class BoolToken : ValueToken
 {
+    public override ValueType ValueType { get; } = ValueType.Bool;
     public bool Value { get; }
 
     public BoolToken(bool value)
@@ -32,6 +43,7 @@ public class BoolToken : ValueToken
 
 public class NumberToken : ValueToken
 {
+    public override ValueType ValueType { get; } = ValueType.Null;
     public string Value { get; }
 
     public NumberToken(string value)

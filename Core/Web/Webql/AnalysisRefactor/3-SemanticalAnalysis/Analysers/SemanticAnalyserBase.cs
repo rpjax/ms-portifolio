@@ -2,8 +2,8 @@
 
 public abstract class SemanticAnalyserBase
 {
-    public Type GetType(string identifier)
+    public Type GetType(SemanticContext context, string identifier)
     {
-        throw new NotImplementedException();
+        return SemanticAnalyser.GetType(context, identifier);
     }
 }

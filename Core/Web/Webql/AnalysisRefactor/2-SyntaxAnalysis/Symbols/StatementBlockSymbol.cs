@@ -2,13 +2,13 @@
 
 namespace ModularSystem.Webql.Analysis.Symbols;
 
-public class StatementBlockSymbol : ArgumentSymbol, IEnumerable<StatementSymbol>
+public class StatementBlockSymbol : Symbol, IEnumerable<StatementSymbol>
 {
     public StatementSymbol[] Statements { get; }
 
-    public StatementBlockSymbol(StatementSymbol[] expressions)
+    public StatementBlockSymbol(StatementSymbol[] statements)
     {
-        Statements = expressions;
+        Statements = statements;
     }
 
     public IEnumerator<StatementSymbol> GetEnumerator()

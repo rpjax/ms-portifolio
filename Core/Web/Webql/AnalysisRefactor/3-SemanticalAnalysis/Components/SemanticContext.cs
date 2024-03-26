@@ -2,11 +2,26 @@
 
 public class SemanticContext
 {
-    public SemanticsTable SemanticsTable { get; } = new();
+    private SymbolTable SymbolTable { get; } = new();
 
-    public T? TryGetSemantics<T>(Symbol symbol) where T : SymbolSemantics
+    public void AddSymbolSemantic(Symbol symbol, SymbolSemantic semantic)
     {
-        var semantics = SemanticsTable.TryGetEntry(symbol);
+        if (SymbolTable.ContainsSemantic(symbol))
+        {
+            throw new Exception();
+        }
+
+        SymbolTable.AddSymbolSemantic(symbol, semantic);
+    }
+
+    public void AddSymbolDeclaration(string identifier, Symbol symbol)
+    {
+        SymbolTable.AddDeclaration(symbol, identifier);
+    }
+
+    public T? TryGetSemantic<T>(Symbol symbol) where T : SymbolSemantic
+    {
+        var semantics = SymbolTable.TryGetSemantic(symbol);
 
         if (semantics is null)
         {
@@ -20,9 +35,37 @@ public class SemanticContext
         return result;
     }
 
-    public T GetSemantics<T>(Symbol symbol) where T : SymbolSemantics
+    public T? TryGetDeclaration<T>(string identifier) where T : Symbol
     {
-        var semantics = TryGetSemantics<T>(symbol); 
+        var symbol = SymbolTable.TryGetDeclaration(identifier);
+
+        if (symbol is null)
+        {
+            return null;
+        }
+        if (symbol is not T result)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return result;
+    }
+
+    public T GetSemantic<T>(Symbol symbol) where T : SymbolSemantic
+    {
+        var semantics = TryGetSemantic<T>(symbol); 
+
+        if (semantics is null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return semantics;
+    }
+
+    public T GetDeclaration<T>(string identifier) where T : Symbol
+    {
+        var semantics = TryGetDeclaration<T>(identifier);
 
         if (semantics is null)
         {

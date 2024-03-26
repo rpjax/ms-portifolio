@@ -3,16 +3,16 @@
 public class UnaryArgumentsSymbol : Symbol
 {
     public DestinationSymbol Destination { get; }
-    public ArgumentSymbol Argument { get; }
+    public ExpressionSymbol Operand { get; }
 
-    public UnaryArgumentsSymbol(DestinationSymbol destination, ArgumentSymbol argument)
+    public UnaryArgumentsSymbol(DestinationSymbol destination, ExpressionSymbol expression)
     {
         Destination = destination;
-        Argument = argument;
+        Operand = expression;
     }
 
     public override string ToString()
     {
-        return $"({Destination}, {Argument})";
+        return $"({Destination}, {Operand})";
     }
 }

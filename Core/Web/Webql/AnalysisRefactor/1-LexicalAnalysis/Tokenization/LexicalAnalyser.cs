@@ -35,11 +35,11 @@ public class LexicalAnalyser
 
     private ObjectToken Tokenize(JsonObject jsonObject)
     {
-        var props = new List<ObjectProperty>();
+        var props = new List<ObjectPropertyToken>();
 
         foreach (var item in jsonObject)
         {
-            props.Add(new ObjectProperty(item.Key, Tokenize(item.Value)));
+            props.Add(new ObjectPropertyToken(item.Key, Tokenize(item.Value)));
         }
 
         return new ObjectToken(props.ToArray());

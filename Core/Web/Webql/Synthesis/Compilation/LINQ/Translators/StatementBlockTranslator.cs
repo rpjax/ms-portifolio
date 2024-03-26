@@ -5,14 +5,19 @@ namespace ModularSystem.Webql.Synthesis.Compilation.LINQ;
 
 public class StatementBlockTranslator
 {
-    public Expression TranslateStatementBlock(TranslationContext context, StatementBlockSymbol obj)
+    public Expression TranslateStatementBlock(TranslationContext context, StatementBlockSymbol symbol)
     {
         var expr = null as Expression;
         var translator = new StatementTranslator();
 
-        foreach (var item in obj)
+        foreach (var statement in symbol)
         {
-            expr = translator.TranslateStatement(context, item);
+            var _expr = translator.TranslateStatement(context, statement);
+
+            if (_expr is not null)
+            {
+                expr = _expr;
+            }
         }
 
         if(expr is null)

@@ -2,16 +2,17 @@
 
 namespace ModularSystem.Webql.Analysis.Tokens;
 
-public class ObjectToken : Token, IEnumerable<ObjectProperty>
+public class ObjectToken : Token, IEnumerable<ObjectPropertyToken>
 {
-    public ObjectProperty[] Properties { get; }
+    public override TokenType TokenType { get; } = TokenType.Object;
+    public ObjectPropertyToken[] Properties { get; }
 
-    public ObjectToken(ObjectProperty[] properties)
+    public ObjectToken(ObjectPropertyToken[] properties)
     {
         Properties = properties;
     }
 
-    public IEnumerator<ObjectProperty> GetEnumerator()
+    public IEnumerator<ObjectPropertyToken> GetEnumerator()
     {
         return Properties.AsEnumerable().GetEnumerator();
     }
@@ -19,17 +20,5 @@ public class ObjectToken : Token, IEnumerable<ObjectProperty>
     IEnumerator IEnumerable.GetEnumerator()
     {
         return Properties.GetEnumerator();
-    }
-}
-
-public class ObjectProperty
-{
-    public string Key { get; }
-    public Token Value { get; }
-
-    public ObjectProperty(string key, Token value)
-    {
-        Key = key;
-        Value = value;
     }
 }

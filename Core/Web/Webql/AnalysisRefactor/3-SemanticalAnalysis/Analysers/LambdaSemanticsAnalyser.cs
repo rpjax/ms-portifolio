@@ -4,13 +4,16 @@ namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
 
 public class LambdaSemanticsAnalyser : SemanticAnalyserBase
 {
-    public LambdaSemantics AnalyseLambda(SemanticContext context, LambdaSymbol symbol)
+    public LambdaSemantic AnalyseLambda(SemanticContext context, LambdaSymbol symbol)
     {
-        var argsSemantics = SemanticsAnalyser.AnalyseLambdaArguments(context, symbol.Arguments);
-        var bodySemantics = SemanticsAnalyser.AnalyseStatementBlock(context, symbol.Body);
+        var paramsTypes = SemanticAnalyser.AnalyseLambdaArguments(context, symbol.Arguments)
+            .Select(x => x.Type)
+            .ToArray();
 
-        return new LambdaSemantics(
-            parameterTypes: argsSemantics.Types,
+        var bodySemantics = SemanticAnalyser.AnalyseStatementBlock(context, symbol.Body);
+
+        return new LambdaSemantic(
+            parameterTypes: paramsTypes,
             returnType: bodySemantics.ResolvedType
         );
     }

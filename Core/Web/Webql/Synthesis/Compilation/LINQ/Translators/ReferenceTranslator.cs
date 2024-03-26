@@ -5,8 +5,8 @@ namespace ModularSystem.Webql.Synthesis.Compilation.LINQ;
 
 public class ReferenceTranslator
 {
-    public Expression TranslateReference(TranslationContext context, ReferenceSymbol symbol)
+    public Expression TranslateReference(TranslationContext context, ReferenceExpressionSymbol symbol)
     {
-        return context.GetTranslationTableEntry(symbol.Value).Expression;
+        return context.GetTranslationTableEntry(symbol.GetNormalizedValue()).Expression;
     }
 }

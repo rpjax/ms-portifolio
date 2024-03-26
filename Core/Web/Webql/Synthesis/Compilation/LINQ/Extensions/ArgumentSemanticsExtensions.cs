@@ -5,7 +5,7 @@ namespace ModularSystem.Webql.Synthesis.Compilation.LINQ.Extensions;
 
 public static class ArgumentSemanticsExtensions
 {
-    public static bool IsQueryable(this ArgumentSemantics semantics)
+    public static bool IsQueryable(this ArgumentSemantic semantics)
     {
         return
             typeof(IEnumerable).IsAssignableFrom(semantics.Type)
@@ -14,12 +14,12 @@ public static class ArgumentSemanticsExtensions
                i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
     }
 
-    public static bool IsNotQueryable(this ArgumentSemantics semantics)
+    public static bool IsNotQueryable(this ArgumentSemantic semantics)
     {
         return !IsQueryable(semantics);
     }
 
-    public static bool IsEnumerable(this ArgumentSemantics semantics)
+    public static bool IsEnumerable(this ArgumentSemantic semantics)
     {
         var type = semantics.Type;
 
@@ -46,12 +46,12 @@ public static class ArgumentSemanticsExtensions
         return false;
     }
 
-    public static bool IsNotEnumerable(this ArgumentSemantics semantics)
+    public static bool IsNotEnumerable(this ArgumentSemantic semantics)
     {
         return !IsEnumerable(semantics);
     }
 
-    public static Type? TryGetElementType(this ArgumentSemantics semantics)
+    public static Type? TryGetElementType(this ArgumentSemantic semantics)
     {
         var type = semantics.Type;
 
@@ -86,19 +86,19 @@ public static class ArgumentSemanticsExtensions
         return null;
     }
 
-    public static Type GetElementType(this ArgumentSemantics semantics, TranslationContext context)
+    public static Type GetElementType(this ArgumentSemantic semantics, TranslationContext context)
     {
         var type = TryGetElementType(semantics);
 
         if (type == null)
         {
-            throw SemanticThrowHelper.ErrorInternalUnknown(context, "The current context does not represent a queryable type or the queryable type is undefined. Ensure that the context is correctly initialized and represents a valid queryable type. This error may indicate a misalignment between the expected and actual types within the context.");
+            throw new Exception("The current context does not represent a queryable type or the queryable type is undefined. Ensure that the context is correctly initialized and represents a valid queryable type. This error may indicate a misalignment between the expected and actual types within the context.");
         }
 
         return type;
     }
 
-    public static LinqSourceType GetLinqSourceType(this ArgumentSemantics semantics, TranslationContext context)
+    public static LinqSourceType GetLinqSourceType(this ArgumentSemantic semantics, TranslationContext context)
     {
         if (IsQueryable(semantics))
         {

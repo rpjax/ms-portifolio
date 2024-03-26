@@ -13,7 +13,7 @@ public class SemanticContextOld
     /// </summary>
     public SemanticContextOld? ParentSemanticContext { get; }
 
-    public SymbolTable SymbolTable { get; init; } = new();
+    public SymbolTableOld SymbolTable { get; init; } = new();
 
     /// <summary>
     /// Indicates whether navigation through nested properties and contexts is enabled in the semantic context. <br/>
@@ -34,7 +34,7 @@ public class SemanticContextOld
     public SemanticContextOld(SemanticContextOld? parentContext = null)
     {
         ParentSemanticContext = parentContext;
-        SymbolTable = parentContext?.SymbolTable.Copy() ?? new SymbolTable();
+        SymbolTable = parentContext?.SymbolTable.Copy() ?? new SymbolTableOld();
         EnableNavigation = parentContext?.EnableNavigation ?? true;
         EnableImplicitAndSyntax = parentContext?.EnableImplicitAndSyntax ?? true;
     }

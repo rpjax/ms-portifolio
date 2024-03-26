@@ -2,20 +2,24 @@
 
 public static class SymbolExtensions
 {
-    public static void AddSemantics(this Symbol symbol, SemanticContext context, SymbolSemantics semantics)
+    public static void AddSemantic(this Symbol symbol, SemanticContext context, SymbolSemantic semantics)
     {
-        context.SemanticsTable.AddEntry(symbol, semantics);
+        context.AddSymbolSemantic(symbol, semantics);
     }
 
-    public static T? TryGetSemantics<T>(this Symbol symbol, SemanticContext context) where T : SymbolSemantics
+    public static void AddDeclaration(this Symbol symbol, SemanticContext context, string identifier)
     {
-        return context.TryGetSemantics<T>(symbol);
+        context.AddSymbolDeclaration(identifier, symbol);
     }
 
-    public static T GetSemantics<T>(this Symbol symbol, SemanticContext context) where T : SymbolSemantics
+    public static T? TryGetSemantic<T>(this Symbol symbol, SemanticContext context) where T : SymbolSemantic
     {
-        return context.GetSemantics<T>(symbol);
+        return context.TryGetSemantic<T>(symbol);
     }
 
+    public static T GetSemantic<T>(this Symbol symbol, SemanticContext context) where T : SymbolSemantic
+    {
+        return context.GetSemantic<T>(symbol);
+    }
 
 }

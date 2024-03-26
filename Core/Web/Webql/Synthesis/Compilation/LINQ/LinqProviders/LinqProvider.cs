@@ -21,7 +21,7 @@ public abstract class LinqProvider : ILinqProvider
     // LINQ 'Where' method. 
     //*
 
-    public MethodInfo GetWhereMethodInfo(TranslationContext context, ArgumentSemantics semantics)
+    public MethodInfo GetWhereMethodInfo(TranslationContext context, ArgumentSemantic semantics)
     {
         switch (semantics.GetLinqSourceType(context))
         {

@@ -7,10 +7,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
-  </ItemGroup>
-
   <!--THIS MAKES REFERENCE TO THE ASPNET SHARED ASSEMBLIES.-->
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

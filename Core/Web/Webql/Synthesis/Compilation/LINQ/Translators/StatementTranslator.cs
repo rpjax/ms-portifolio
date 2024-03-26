@@ -5,9 +5,9 @@ namespace ModularSystem.Webql.Synthesis.Compilation.LINQ;
 
 public class StatementTranslator
 {
-    public Expression TranslateStatement(TranslationContext context, StatementSymbol symbol)
+    public Expression? TranslateStatement(TranslationContext context, StatementSymbol symbol)
     {
-        if(symbol is ExprSymbol exprSymbol)
+        if(symbol is OperatorExpressionSymbol exprSymbol)
         {
             return new ExprTranslator()
                 .TranslateExpr(context, exprSymbol);

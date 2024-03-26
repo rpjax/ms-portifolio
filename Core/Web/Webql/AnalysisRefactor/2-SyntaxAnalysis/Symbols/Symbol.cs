@@ -5,13 +5,11 @@ namespace ModularSystem.Webql.Analysis;
 
 public abstract class Symbol 
 {
-    public string Hash { get; } 
-    private Guid Id { get; }
+    public string Hash { get; }
 
     protected Symbol()
     {
-        Id = Guid.NewGuid();
-        Hash = Id.ToString();
+        Hash = Guid.NewGuid().ToString();
     }
 
     public abstract override string ToString();
@@ -35,8 +33,13 @@ public abstract class Symbol
         return camelCase;
     }
 
-    protected string StringifyExprOp(ExprOp op)
+    protected string Stringify(ExpressionOperator exprType)
     {
-        return $"${ToCamelCase(op.ToString())}";
+        return $"${ToCamelCase(exprType.ToString())}";
     }
+}
+
+public class ProductionSemantics
+{
+
 }

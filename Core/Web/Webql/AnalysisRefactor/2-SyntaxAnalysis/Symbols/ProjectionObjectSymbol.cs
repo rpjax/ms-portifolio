@@ -58,11 +58,11 @@ public class ProjectionObjectExprValueSymbol : Symbol
     }
 
     public ValueType Type { get; }
-    private ReferenceSymbol? Reference { get; }
+    private ReferenceExpressionSymbol? Reference { get; }
     private ProjectionObjectSymbol? ProjectionObject { get; }
-    private ExprSymbol? Expr { get; }
+    private OperatorExpressionSymbol? Expr { get; }
 
-    public ProjectionObjectExprValueSymbol(ReferenceSymbol reference)
+    public ProjectionObjectExprValueSymbol(ReferenceExpressionSymbol reference)
     {
         Type = ValueType.Reference;
         Reference = reference;
@@ -74,15 +74,15 @@ public class ProjectionObjectExprValueSymbol : Symbol
         ProjectionObject = projectionObject;
     }
 
-    public ProjectionObjectExprValueSymbol(ExprSymbol expr)
+    public ProjectionObjectExprValueSymbol(OperatorExpressionSymbol expr)
     {
         Type = ValueType.Expr;
         Expr = expr;
     }
 
-    public ReferenceSymbol GetReference() => Reference!;
+    public ReferenceExpressionSymbol GetReference() => Reference!;
     public ProjectionObjectSymbol GetProjectionObject() => ProjectionObject!;
-    public ExprSymbol GetExpr() => Expr!;
+    public OperatorExpressionSymbol GetExpr() => Expr!;
 
     public override string ToString()
     {
