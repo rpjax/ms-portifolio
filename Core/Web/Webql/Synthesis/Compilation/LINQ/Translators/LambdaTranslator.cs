@@ -10,7 +10,7 @@ public class LambdaTranslator
     public LambdaExpression TranslateLambda(TranslationContext context, LambdaSymbol symbol)
     {
         var paramExprs = new LambdaArgumentTranslator()
-            .TranslateLambdaArguments(context, symbol.Arguments);
+            .TranslateLambdaArguments(context, symbol.Parameters);
 
         var bodyExpr = new StatementBlockTranslator()
             .TranslateStatementBlock(context, symbol.Body);
