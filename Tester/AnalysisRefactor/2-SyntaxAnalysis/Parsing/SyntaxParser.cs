@@ -11,7 +11,7 @@ public static class SyntaxParser
             .ParseAxiom(context, token);
     }
 
-    public static LambdaSymbol ParseLambda(ParsingContext context, ArrayToken token)
+    public static LambdaExpressionSymbol ParseLambda(ParsingContext context, ArrayToken token)
     {
         return new LambdaParser()
             .ParseLambda(context, token);
@@ -41,16 +41,28 @@ public static class SyntaxParser
             .ParseProjectionObject(context, token);
     }
 
-    public static StatementSymbol ParseStatement(ParsingContext context, ObjectPropertyToken property)
-    {
-        return new StatementParser()
-            .ParseStatement(context, property);
-    }
-
-    public static ExpressionSymbol ParseExpression(ParsingContext context, ObjectPropertyToken property)
+    public static ExpressionSymbol ParseExpression(ParsingContext context, ObjectPropertyToken token)
     {
         return new ExpressionParser()
-            .ParseExpression(context, property);
+            .ParseExpression(context, token);
+    }
+
+    public static ExpressionSymbol ParseExpression(ParsingContext context, ValueToken token)
+    {
+        return new ExpressionParser()
+            .ParseExpression(context, token);
+    }
+
+    public static ExpressionSymbol[] ParseExpressionArray(ParsingContext context, ArrayToken token)
+    {
+        return new ExpressionArrayParser()
+            .ParseExpressionArray(context, token);
+    }
+
+    public static ExpressionSymbol ParseLiteral(ParsingContext context, ValueToken token)
+    {
+        return new LiteralExpressionParser()
+            .ParseLiteral(context, token);
     }
 
     public static OperatorExpressionSymbol ParseOperatorExpression(ParsingContext context, ObjectPropertyToken property)
@@ -59,7 +71,7 @@ public static class SyntaxParser
             .ParseOperatorExpression(context, property);
     }
 
-    public static ReferenceExpressionSymbol ParseReference(ParsingContext context, StringToken token)
+    public static ExpressionSymbol ParseReference(ParsingContext context, StringToken token)
     {
         return new ReferenceParser()
             .ParseReference(context, token);    
@@ -69,24 +81,6 @@ public static class SyntaxParser
     {
         return new DestinationParser()
             .ParseDestination(context, token);
-    }
-
-    public static ExpressionSymbol ParseExpression(ParsingContext context, Token token)
-    {
-        return new ExpressionParser()
-            .ParseExpression(context, token);
-    }
-
-    public static BinaryArgumentsSymbol ParseBinaryArguments(ParsingContext context, ArrayToken token)
-    {
-        return new BinaryArgumentsParser()
-            .ParseBinaryArguments(context, token);
-    }
-
-    public static ExpressionSymbol[] ParseArgumentArray(ParsingContext context, ArrayToken token)
-    {
-        return new ExpressionArrayParser()
-            .ParseExpressionArray(context, token);
     }
 
 }

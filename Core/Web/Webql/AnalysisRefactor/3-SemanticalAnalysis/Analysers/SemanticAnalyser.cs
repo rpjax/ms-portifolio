@@ -15,10 +15,27 @@ public static class SemanticAnalyser
 
     public static SymbolSemantic? TryAnalyse(SemanticContext context, Symbol symbol)
     {
+        if(symbol is LambdaExpressionSymbol lambdaSymbol)
+        {
+            return AnalyseLambda(context, lambdaSymbol);
+        }
+        if(symbol is DeclarationStatementSymbol declarationSymbol)
+        {
+            return AnalyseDeclaration(context, declarationSymbol);
+        }
+        if (symbol is StatementBlockSymbol statementBlockSymbol)
+        {
+            return AnalyseStatementBlock(context, statementBlockSymbol);
+        }
+        if (symbol is ReferenceExpressionSymbol referenceSymbol)
+        {
+            return AnalyseReference(context, referenceSymbol);
+        }
+
         return null;
     }
 
-    public static LambdaSemantic AnalyseLambda(SemanticContext context, LambdaSymbol symbol)
+    public static LambdaSemantic AnalyseLambda(SemanticContext context, LambdaExpressionSymbol symbol)
     {
         if (GetCachedSemantics<LambdaSemantic>(context, symbol, out var cached))
         {
@@ -36,13 +53,13 @@ public static class SemanticAnalyser
             return cached;
         }
 
-        return new DeclarationStatementAnalyser()
+        return new DeclarationSemanticAnalyser()
             .AnalyseDeclaration(context, symbol);
     }
 
     public static DeclarationStatementSemantic[] AnalyseDeclarations(SemanticContext context, DeclarationStatementSymbol[] symbol)
     {
-        return new DeclarationStatementAnalyser()
+        return new DeclarationSemanticAnalyser()
             .AnalyseDeclarations(context, symbol);
     }
 

@@ -22,73 +22,73 @@ public static class ExpressionTypeResolver
     {
         switch (symbol.Operator)
         {
-            case ExpressionOperator.Add:
+            case Symbols.OperatorType.Add:
                 break;
-            case ExpressionOperator.Subtract:
+            case Symbols.OperatorType.Subtract:
                 break;
-            case ExpressionOperator.Divide:
+            case Symbols.OperatorType.Divide:
                 break;
-            case ExpressionOperator.Multiply:
+            case Symbols.OperatorType.Multiply:
                 break;
-            case ExpressionOperator.Modulo:
+            case Symbols.OperatorType.Modulo:
                 break;
-            case ExpressionOperator.Equals:
+            case Symbols.OperatorType.Equals:
                 break;
-            case ExpressionOperator.NotEquals:
+            case Symbols.OperatorType.NotEquals:
                 break;
-            case ExpressionOperator.Less:
+            case Symbols.OperatorType.Less:
                 break;
-            case ExpressionOperator.LessEquals:
+            case Symbols.OperatorType.LessEquals:
                 break;
-            case ExpressionOperator.Greater:
+            case Symbols.OperatorType.Greater:
                 break;
-            case ExpressionOperator.GreaterEquals:
+            case Symbols.OperatorType.GreaterEquals:
                 break;
-            case ExpressionOperator.Like:
+            case Symbols.OperatorType.Like:
                 break;
-            case ExpressionOperator.RegexMatch:
+            case Symbols.OperatorType.RegexMatch:
                 break;
-            case ExpressionOperator.Or:
+            case Symbols.OperatorType.Or:
                 break;
-            case ExpressionOperator.And:
+            case Symbols.OperatorType.And:
                 break;
-            case ExpressionOperator.Not:
+            case Symbols.OperatorType.Not:
                 break;
-            case ExpressionOperator.Expr:
+            case Symbols.OperatorType.Expr:
                 break;
-            case ExpressionOperator.Parse:
+            case Symbols.OperatorType.Parse:
                 break;
-            case ExpressionOperator.Select:
+            case Symbols.OperatorType.Select:
                 break;
-            case ExpressionOperator.Type:
+            case Symbols.OperatorType.Type:
                 break;
-            case ExpressionOperator.Filter:
+            case Symbols.OperatorType.Filter:
                 break;
-            case ExpressionOperator.Project:
+            case Symbols.OperatorType.Project:
                 break;
-            case ExpressionOperator.Transform:
+            case Symbols.OperatorType.Transform:
                 break;
-            case ExpressionOperator.SelectMany:
+            case Symbols.OperatorType.SelectMany:
                 break;
-            case ExpressionOperator.Limit:
+            case Symbols.OperatorType.Limit:
                 break;
-            case ExpressionOperator.Skip:
+            case Symbols.OperatorType.Skip:
                 break;
-            case ExpressionOperator.Count:
+            case Symbols.OperatorType.Count:
                 break;
-            case ExpressionOperator.Index:
+            case Symbols.OperatorType.Index:
                 break;
-            case ExpressionOperator.Any:
+            case Symbols.OperatorType.Any:
                 break;
-            case ExpressionOperator.All:
+            case Symbols.OperatorType.All:
                 break;
-            case ExpressionOperator.Min:
+            case Symbols.OperatorType.Min:
                 break;
-            case ExpressionOperator.Max:
+            case Symbols.OperatorType.Max:
                 break;
-            case ExpressionOperator.Sum:
+            case Symbols.OperatorType.Sum:
                 break;
-            case ExpressionOperator.Average:
+            case Symbols.OperatorType.Average:
                 break;
         }
 

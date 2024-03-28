@@ -21,7 +21,7 @@ public enum RhsType
     Array
 }
 
-public enum Operator
+public enum OperatorOld
 {
     // Arithmetic operators
     Add, // ok

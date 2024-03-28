@@ -1,4 +1,5 @@
-﻿using ModularSystem.Webql.Analysis.Symbols;
+﻿using ModularSystem.Webql.Analysis.Semantics.Extensions;
+using ModularSystem.Webql.Analysis.Symbols;
 
 namespace ModularSystem.Webql.Analysis.Semantics;
 
@@ -10,7 +11,7 @@ public abstract class AstSemanticVisitor
         {
             return VisitAxiom(context, axiomSymbol);
         }
-        if (symbol is LambdaSymbol lambdaSymbol)
+        if (symbol is LambdaExpressionSymbol lambdaSymbol)
         {
             return VisitLambda(context, lambdaSymbol);
         }
@@ -44,13 +45,13 @@ public abstract class AstSemanticVisitor
         return new AxiomSymbol(VisitLambda(context, axiom.Lambda));
     }
 
-    protected virtual LambdaSymbol VisitLambda(SemanticContext context, LambdaSymbol symbol)
+    protected virtual LambdaExpressionSymbol VisitLambda(SemanticContext context, LambdaExpressionSymbol symbol)
     {
-        return new LambdaSymbol(
+        return new LambdaExpressionSymbol(
             parameters: symbol.Parameters
-                .Select(x => VisitDeclaration(context, x))
+                .Select(x => Visit(context, x).As<DeclarationStatementSymbol>(context))
                 .ToArray(),
-            body: VisitStatementBlock(context, symbol.Body)
+            body: Visit(context, symbol.Body).As<StatementBlockSymbol>(context)
         );
     }
 
@@ -155,74 +156,112 @@ public abstract class AstSemanticVisitor
     {
         switch (symbol.Operator)
         {
-            case ExpressionOperator.Add:
+            //*
+            //*
+            //* arithmentic expressions.
+            //*
+            case Symbols.OperatorType.Add:
                 return VisitAddExpr(context, (AddExprSymbol)symbol);
 
-            case ExpressionOperator.Subtract:
+            case Symbols.OperatorType.Subtract:
                 return VisitSubtractExpr(context, (SubtractExprSymbol)symbol);
 
-            case ExpressionOperator.Divide:
+            case Symbols.OperatorType.Divide:
                 break;
-            case ExpressionOperator.Multiply:
+            case Symbols.OperatorType.Multiply:
                 break;
-            case ExpressionOperator.Modulo:
+            case Symbols.OperatorType.Modulo:
                 break;
-            case ExpressionOperator.Equals:
+
+            //*
+            //*
+            //* relational expressions.
+            //*
+            case Symbols.OperatorType.Equals:
                 break;
-            case ExpressionOperator.NotEquals:
+            case Symbols.OperatorType.NotEquals:
                 break;
-            case ExpressionOperator.Less:
+            case Symbols.OperatorType.Less:
                 break;
-            case ExpressionOperator.LessEquals:
+            case Symbols.OperatorType.LessEquals:
                 break;
-            case ExpressionOperator.Greater:
+            case Symbols.OperatorType.Greater:
                 break;
-            case ExpressionOperator.GreaterEquals:
+            case Symbols.OperatorType.GreaterEquals:
                 break;
-            case ExpressionOperator.Like:
+
+            //*
+            //*
+            //* pattern match expressions.
+            //*
+            case Symbols.OperatorType.Like:
                 break;
-            case ExpressionOperator.RegexMatch:
+            case Symbols.OperatorType.RegexMatch:
                 break;
-            case ExpressionOperator.Or:
+
+            //*
+            //*
+            //* logical expressions.
+            //*
+            case Symbols.OperatorType.Or:
                 break;
-            case ExpressionOperator.And:
+            case Symbols.OperatorType.And:
                 break;
-            case ExpressionOperator.Not:
+            case Symbols.OperatorType.Not:
                 break;
-            case ExpressionOperator.Expr:
+
+            //*
+            //*
+            //* semantic expressions.
+            //*
+            case Symbols.OperatorType.Expr:
                 break;
-            case ExpressionOperator.Parse:
+            case Symbols.OperatorType.Parse:
                 break;
-            case ExpressionOperator.Select:
+            case Symbols.OperatorType.Select:
                 break;
-            case ExpressionOperator.Filter:
+            case Symbols.OperatorType.Type:
+                break;
+            case Symbols.OperatorType.MemberAccess:
+                return VisitMemberAccess(context, (MemberAccessExprSymbol)symbol);
+
+            //*
+            //*
+            //* query expressions.
+            //*
+            case Symbols.OperatorType.Filter:
                 return VisitFilterExpr(context, (FilterExprSymbol)symbol);
 
-            case ExpressionOperator.Project:
+            case Symbols.OperatorType.Project:
                 break;
-            case ExpressionOperator.Transform:
+            case Symbols.OperatorType.Transform:
                 break;
-            case ExpressionOperator.SelectMany:
+            case Symbols.OperatorType.SelectMany:
                 break;
-            case ExpressionOperator.Limit:
+            case Symbols.OperatorType.Limit:
                 break;
-            case ExpressionOperator.Skip:
+            case Symbols.OperatorType.Skip:
                 break;
-            case ExpressionOperator.Count:
+
+            //*
+            //*
+            //* aggregation expressions.
+            //*
+            case Symbols.OperatorType.Count:
                 break;
-            case ExpressionOperator.Index:
+            case Symbols.OperatorType.Index:
                 break;
-            case ExpressionOperator.Any:
+            case Symbols.OperatorType.Any:
                 break;
-            case ExpressionOperator.All:
+            case Symbols.OperatorType.All:
                 break;
-            case ExpressionOperator.Min:
+            case Symbols.OperatorType.Min:
                 break;
-            case ExpressionOperator.Max:
+            case Symbols.OperatorType.Max:
                 break;
-            case ExpressionOperator.Sum:
+            case Symbols.OperatorType.Sum:
                 break;
-            case ExpressionOperator.Average:
+            case Symbols.OperatorType.Average:
                 break;
 
             default:
@@ -232,6 +271,10 @@ public abstract class AstSemanticVisitor
         throw new Exception();
     }
 
+    //*
+    //*
+    //* arithmetic expressions.
+    //*
     protected virtual ExpressionSymbol VisitAddExpr(SemanticContext context, AddExprSymbol symbol)
     {
         return new AddExprSymbol(
@@ -250,6 +293,22 @@ public abstract class AstSemanticVisitor
         );
     }
 
+    //*
+    //*
+    //* semantic expressions.
+    //*
+    public virtual ExpressionSymbol VisitMemberAccess(SemanticContext context, MemberAccessExprSymbol symbol)
+    {
+        return new MemberAccessExprSymbol(
+            operand: VisitExpression(context, symbol.Operand),
+            memberName: symbol.MemberName
+        );
+    }
+
+    //*
+    //*
+    //* query expressions.
+    //*
     protected virtual ExpressionSymbol VisitFilterExpr(SemanticContext context, FilterExprSymbol symbol)
     {
         return new FilterExprSymbol(

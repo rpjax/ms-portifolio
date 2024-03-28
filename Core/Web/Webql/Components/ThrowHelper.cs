@@ -86,7 +86,7 @@ public static class TranslationThrowHelper
     /// where they can operate on queryable data. This method assists in identifying and reporting such <br/>
     /// misuse in the translation process.
     /// </remarks>
-    public static Exception QueryableExclusiveOperator(TranslationContextOld context, Operator @operator)
+    public static Exception QueryableExclusiveOperator(TranslationContextOld context, OperatorOld @operator)
     {
         var operatorName = WebqlHelper.Stringify(@operator);
         return new TranslationException($"The '{operatorName}' operator is exclusive to queryable contexts and cannot be used in the current context. Ensure that this operator is applied in a part of the query where it can operate on a collection or queryable data type.", context);
@@ -154,7 +154,7 @@ public static class TranslationThrowHelper
         return new TranslationException($"{detailedMessage} Check the operator's validity and ensure it's appropriate for the translation context. Review the query and the operator's applicability to the types and structures involved.", context);
     }
 
-    public static Exception UnknownOrUnsupportedOperator(TranslationContextOld context, Operator @operator)
+    public static Exception UnknownOrUnsupportedOperator(TranslationContextOld context, OperatorOld @operator)
     {
         return UnknownOrUnsupportedOperator(context, WebqlHelper.Stringify(@operator));
     }

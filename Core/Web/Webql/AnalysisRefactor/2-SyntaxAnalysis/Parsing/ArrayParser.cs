@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Webql.Analysis.Symbols;
+using ModularSystem.Webql.Analysis.Syntax.Extensions;
 using ModularSystem.Webql.Analysis.Tokens;
 
 namespace ModularSystem.Webql.Analysis.Parsing;
@@ -69,7 +70,7 @@ public class ArrayParser
     // parser methods.
     //*
 
-    public ReferenceExpressionSymbol ParseNextReference(ParsingContext context)
+    public ExpressionSymbol ParseNextReference(ParsingContext context)
     {
         return SyntaxParser.ParseReference(context, ConsumeNextStringToken(context));
     }
@@ -79,9 +80,32 @@ public class ArrayParser
         return SyntaxParser.ParseDestination(context, ConsumeNextStringToken(context));
     }
 
+    public StringSymbol ParseNextStringLiteral(ParsingContext context)
+    {
+        return SyntaxParser.ParseLiteral(context, ConsumeNextStringToken(context))
+            .As<StringSymbol>(context);
+    }
+
+    public NumberSymbol ParseNextNumberLiteral(ParsingContext context)
+    {
+        return SyntaxParser.ParseLiteral(context, ConsumeNextNumberToken(context))
+            .As<NumberSymbol>(context);
+    }
+
     public ExpressionSymbol ParseNextExpression(ParsingContext context)
     {
-        return SyntaxParser.ParseExpression(context, ConsumeNextToken(context));
+        var token = ConsumeNextToken(context);
+
+        if(token is ObjectPropertyToken objectProperty)
+        {
+            return SyntaxParser.ParseExpression(context, objectProperty);
+        }
+        if (token is ValueToken valueToken)
+        {
+            return SyntaxParser.ParseExpression(context, valueToken);
+        }
+
+        throw new Exception();
     }
 
     public DeclarationStatementSymbol[] ParseNextDeclarationArray(ParsingContext context)
@@ -89,7 +113,7 @@ public class ArrayParser
         return SyntaxParser.ParseDeclarationArray(context, ConsumeNextArrayToken(context));
     }
 
-    public LambdaSymbol ParseNextLambda(ParsingContext context)
+    public LambdaExpressionSymbol ParseNextLambda(ParsingContext context)
     {
         return SyntaxParser.ParseLambda(context, ConsumeNextArrayToken(context));
     }
@@ -99,7 +123,7 @@ public class ArrayParser
         return SyntaxParser.ParseProjectionLambda(context, ConsumeNextArrayToken(context));
     }
 
-    public StatementBlockSymbol ParseStatementBlock(ParsingContext context)
+    public StatementBlockSymbol ParseNextStatementBlock(ParsingContext context)
     {
         return SyntaxParser.ParseStatementBlock(context, ConsumeNextObjectToken(context));
     }
@@ -111,7 +135,7 @@ public class ArrayParser
 
     public ExpressionSymbol[] ParseNextExpressionArray(ParsingContext context)
     {
-        return SyntaxParser.ParseArgumentArray(context, ConsumeNextArrayToken(context));
+        return SyntaxParser.ParseExpressionArray(context, ConsumeNextArrayToken(context));
     }
 
 }

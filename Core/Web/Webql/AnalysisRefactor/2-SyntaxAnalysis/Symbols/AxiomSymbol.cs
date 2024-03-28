@@ -2,9 +2,9 @@
 
 public class AxiomSymbol : Symbol
 {
-    public LambdaSymbol? Lambda { get; }
+    public LambdaExpressionSymbol? Lambda { get; }
 
-    public AxiomSymbol(LambdaSymbol? lambda)
+    public AxiomSymbol(LambdaExpressionSymbol? lambda)
     {
         Lambda = lambda;
     }

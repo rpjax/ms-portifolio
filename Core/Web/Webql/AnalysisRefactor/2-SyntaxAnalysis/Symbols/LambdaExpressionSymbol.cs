@@ -1,11 +1,12 @@
 ﻿namespace ModularSystem.Webql.Analysis.Symbols;
 
-public class LambdaSymbol : Symbol
+public class LambdaExpressionSymbol : ExpressionSymbol
 {
+    public override ExpressionType ExpressionType { get; } = ExpressionType.Lambda;
     public DeclarationStatementSymbol[] Parameters { get; }
     public StatementBlockSymbol Body { get; }
 
-    public LambdaSymbol(DeclarationStatementSymbol[] parameters, StatementBlockSymbol body)
+    public LambdaExpressionSymbol(DeclarationStatementSymbol[] parameters, StatementBlockSymbol body)
     {
         Parameters = parameters;
         Body = body;

@@ -83,7 +83,7 @@ internal class ImplicitAndSyntaxFeature : SemanticsVisitor
             return new ObjectNode(objects.SelectMany(x => x.Expressions).Concat(expressions));
         }
 
-        var lhs = new LhsNode(WebqlHelper.Stringify(Operator.And));
+        var lhs = new LhsNode(WebqlHelper.Stringify(OperatorOld.And));
         var rhs = new RhsNode(new ArrayNode(objects));
         var expression = new ExpressionNode(lhs, rhs);
 

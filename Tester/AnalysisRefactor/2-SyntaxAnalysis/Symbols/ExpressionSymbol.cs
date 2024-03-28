@@ -4,7 +4,8 @@ public enum ExpressionType
 {
     Literal,
     Reference,
-    Operator
+    Operator,
+    Lambda
 }
 
 public abstract class ExpressionSymbol : StatementSymbol

@@ -103,91 +103,91 @@ public static class WebqlHelper
     }
 
     /// <summary>
-    /// Converts an <see cref="Operator"/> enum value into a string representation.
+    /// Converts an <see cref="OperatorOld"/> enum value into a string representation.
     /// </summary>
     /// <param name="op">The OperatorV2 enum value.</param>
     /// <returns>The string representation of the operator.</returns>
-    public static string Stringify(Operator op)
+    public static string Stringify(OperatorOld op)
     {
         return $"${op.ToString().ToCamelCase()}";
     }
 
     /// <summary>
-    /// Converts a string representation of an operator into its corresponding <see cref="Operator"/> enum value.
+    /// Converts a string representation of an operator into its corresponding <see cref="OperatorOld"/> enum value.
     /// </summary>
     /// <param name="value">The string representation of the operator.</param>
     /// <returns>The OperatorV2 enum value.</returns>
     /// <exception cref="GeneratorException">Thrown when the operator string is not recognized.</exception>
-    public static Operator? TryParseOperatorString(string value)
+    public static OperatorOld? TryParseOperatorString(string value)
     {
-        var operators = Enum.GetValues(typeof(Operator));
+        var operators = Enum.GetValues(typeof(OperatorOld));
 
-        foreach (Operator op in operators)
+        foreach (OperatorOld op in operators)
         {
             if (Stringify(op) == value)
             {
-                return op.TypeCast<Operator>();
+                return op.TypeCast<OperatorOld>();
             }
         }
 
         return null;
     }
 
-    public static Operator ParseOperatorString(TranslationContextOld context, string value)
+    public static OperatorOld ParseOperatorString(TranslationContextOld context, string value)
     {
         return TryParseOperatorString(value)
             ?? throw new TranslationException("", context);
     }
 
-    public static OperatorType GetOperatorType(Operator op)
+    public static OperatorType GetOperatorType(OperatorOld op)
     {
         switch (op)
         {
-            case Operator.Add:
-            case Operator.Subtract:
-            case Operator.Divide:
-            case Operator.Multiply:
-            case Operator.Modulo:
+            case OperatorOld.Add:
+            case OperatorOld.Subtract:
+            case OperatorOld.Divide:
+            case OperatorOld.Multiply:
+            case OperatorOld.Modulo:
                 return OperatorType.Arithmetic;
 
-            case Operator.Equals:
-            case Operator.NotEquals:
-            case Operator.Less:
-            case Operator.LessEquals:
-            case Operator.Greater:
-            case Operator.GreaterEquals:
+            case OperatorOld.Equals:
+            case OperatorOld.NotEquals:
+            case OperatorOld.Less:
+            case OperatorOld.LessEquals:
+            case OperatorOld.Greater:
+            case OperatorOld.GreaterEquals:
                 return OperatorType.Relational;
 
-            case Operator.Like:
-            case Operator.RegexMatch:
+            case OperatorOld.Like:
+            case OperatorOld.RegexMatch:
                 return OperatorType.PatternRelational;
 
-            case Operator.Or:
-            case Operator.And:
-            case Operator.Not:
+            case OperatorOld.Or:
+            case OperatorOld.And:
+            case OperatorOld.Not:
                 return OperatorType.Logical;
 
-            case Operator.Expr:
-            case Operator.Literal:
+            case OperatorOld.Expr:
+            case OperatorOld.Literal:
                 return OperatorType.Semantic;
 
-            case Operator.Select:
-            case Operator.Filter:
-            case Operator.Transform:
-            case Operator.SelectMany:
-            case Operator.Project:
-            case Operator.Limit:
-            case Operator.Skip:
-            case Operator.Any:
-            case Operator.All:
+            case OperatorOld.Select:
+            case OperatorOld.Filter:
+            case OperatorOld.Transform:
+            case OperatorOld.SelectMany:
+            case OperatorOld.Project:
+            case OperatorOld.Limit:
+            case OperatorOld.Skip:
+            case OperatorOld.Any:
+            case OperatorOld.All:
                 return OperatorType.Queryable;
 
-            case Operator.Count:
-            case Operator.Index:
-            case Operator.Min:
-            case Operator.Max:
-            case Operator.Sum:
-            case Operator.Average:
+            case OperatorOld.Count:
+            case OperatorOld.Index:
+            case OperatorOld.Min:
+            case OperatorOld.Max:
+            case OperatorOld.Sum:
+            case OperatorOld.Average:
                 return OperatorType.Aggregation;
 
             default:
@@ -195,20 +195,20 @@ public static class WebqlHelper
         }
     }
 
-    public static OperatorCategory GetOperatorCategory(Operator @operator)
+    public static OperatorCategory GetOperatorCategory(OperatorOld @operator)
     {
         switch (@operator)
         {
             //*
             // Unary Operators.
             //*
-            case Operator.Not:
-            case Operator.Limit:
-            case Operator.Skip:
-            case Operator.Or:
-            case Operator.And:
-            case Operator.Expr:
-            case Operator.Literal:
+            case OperatorOld.Not:
+            case OperatorOld.Limit:
+            case OperatorOld.Skip:
+            case OperatorOld.Or:
+            case OperatorOld.And:
+            case OperatorOld.Expr:
+            case OperatorOld.Literal:
 
                 return OperatorCategory.Unary;
 
@@ -216,32 +216,32 @@ public static class WebqlHelper
             // Binary Operators.
             //*
 
-            case Operator.Add:
-            case Operator.Subtract:
-            case Operator.Divide:
-            case Operator.Multiply:
-            case Operator.Modulo:
-            case Operator.Equals:
-            case Operator.NotEquals:
-            case Operator.Less:
-            case Operator.LessEquals:
-            case Operator.Greater:
-            case Operator.GreaterEquals:
-            case Operator.Like:
-            case Operator.RegexMatch:
-            case Operator.Select:
-            case Operator.Filter:
-            case Operator.Project:
-            case Operator.Transform:
-            case Operator.Index:
-            case Operator.Any:
-            case Operator.All:
-            case Operator.Min:
-            case Operator.Max:
-            case Operator.Sum:
-            case Operator.Average:
-            case Operator.SelectMany:
-            case Operator.Count:
+            case OperatorOld.Add:
+            case OperatorOld.Subtract:
+            case OperatorOld.Divide:
+            case OperatorOld.Multiply:
+            case OperatorOld.Modulo:
+            case OperatorOld.Equals:
+            case OperatorOld.NotEquals:
+            case OperatorOld.Less:
+            case OperatorOld.LessEquals:
+            case OperatorOld.Greater:
+            case OperatorOld.GreaterEquals:
+            case OperatorOld.Like:
+            case OperatorOld.RegexMatch:
+            case OperatorOld.Select:
+            case OperatorOld.Filter:
+            case OperatorOld.Project:
+            case OperatorOld.Transform:
+            case OperatorOld.Index:
+            case OperatorOld.Any:
+            case OperatorOld.All:
+            case OperatorOld.Min:
+            case OperatorOld.Max:
+            case OperatorOld.Sum:
+            case OperatorOld.Average:
+            case OperatorOld.SelectMany:
+            case OperatorOld.Count:
 
                 return OperatorCategory.Ternary;
 
@@ -256,7 +256,7 @@ public static class WebqlHelper
         }
     }
 
-    public static bool OperatorEvaluatesToBool(Operator @operator)
+    public static bool OperatorEvaluatesToBool(OperatorOld @operator)
     {
         var opType = GetOperatorType(@operator);
 

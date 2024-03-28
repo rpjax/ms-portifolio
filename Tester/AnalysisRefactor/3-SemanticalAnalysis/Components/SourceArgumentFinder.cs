@@ -29,7 +29,7 @@ public class SourceArgumentFinder : AstSemanticVisitor
         return Argument;
     }
 
-    protected override LambdaSymbol VisitLambda(SemanticContext context, LambdaSymbol symbol)
+    protected override LambdaExpressionSymbol VisitLambda(SemanticContext context, LambdaExpressionSymbol symbol)
     {
         Argument = symbol.Parameters[0];
         return symbol;

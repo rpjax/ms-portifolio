@@ -1,63 +1,28 @@
 ﻿namespace ModularSystem.Webql.Analysis.Symbols;
 
-public enum ExpressionOperator
-{
-    // Arithmetic operators
-    Add, // ok
-    Subtract, // ok
-    Divide, // ok
-    Multiply, // ok
-    Modulo, // ok
-
-    // Relational Operators
-    Equals, // ok
-    NotEquals, // ok
-    Less, // ok
-    LessEquals, // ok
-    Greater, // ok
-    GreaterEquals, // ok
-
-    // Pattern Relational Operators
-    Like, // ok
-    RegexMatch,
-
-    // Logical Operators
-    Or, // ok
-    And, // ok
-    Not, // ok
-
-    // Semantic Operators
-    Expr, // ok
-    Parse, // ok
-    Select, // ok
-    Type,
-
-    // Queryable Operators
-    Filter, // ok
-    Project, // ok
-    Transform, // ok
-    SelectMany,
-    Limit, // ok
-    Skip, // ok
-    Count, // ok
-    Index,
-    Any, // ok
-    All, // ok
-    // Queryable Ordering Operator *TODO...
-    //OrderAsc,
-    //OrderDesc,
-
-    // Aggregation Operators
-    Min, // ok
-    Max, // ok
-    Sum,
-    Average,
-}
-
 public abstract class OperatorExpressionSymbol : ExpressionSymbol
 {
-    public abstract ExpressionOperator Operator { get; }
     public override ExpressionType ExpressionType { get; } = ExpressionType.Operator;
+    public abstract OperatorType Operator { get; }
+    public ExpressionSymbol[] Operands { get; init; }
+}
+
+public class OpExpressionSymbol : OperatorExpressionSymbol
+{
+    public override OperatorType Operator { get; }
+
+    public OpExpressionSymbol(OperatorType @operator, ExpressionSymbol[] operands)
+    {
+        Operator = @operator;
+        Operands = operands;
+    }
+
+    public override string ToString()
+    {
+        var operands = string.Join(", ", Operands.Select(x => x.ToString()));
+
+        return $"{Stringify(Operator)}({operands})";
+    }
 }
 
 //*
@@ -105,9 +70,9 @@ public abstract class QueryExpressionSymbol : OperatorExpressionSymbol
 {
     public DestinationSymbol Destination { get; }
     public ExpressionSymbol Source { get; }
-    public LambdaSymbol Lambda { get; }
+    public LambdaExpressionSymbol Lambda { get; }
 
-    protected QueryExpressionSymbol(DestinationSymbol destination, ExpressionSymbol source, LambdaSymbol lambda)
+    protected QueryExpressionSymbol(DestinationSymbol destination, ExpressionSymbol source, LambdaExpressionSymbol lambda)
     {
         Destination = destination;
         Source = source;
@@ -127,7 +92,7 @@ public abstract class QueryExpressionSymbol : OperatorExpressionSymbol
 
 public class AddExprSymbol : BinaryExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.Add;
+    public override OperatorType Operator { get; } = OperatorType.Add;
 
     public AddExprSymbol(
         DestinationSymbol destination, 
@@ -141,7 +106,7 @@ public class AddExprSymbol : BinaryExpressionSymbol
 
 public class SubtractExprSymbol : BinaryExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.Subtract;
+    public override OperatorType Operator { get; } = OperatorType.Subtract;
 
     public SubtractExprSymbol(
         DestinationSymbol destination,
@@ -155,7 +120,7 @@ public class SubtractExprSymbol : BinaryExpressionSymbol
 
 public class DivideExprSymbol : BinaryExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.Divide;
+    public override OperatorType Operator { get; } = OperatorType.Divide;
 
     public DivideExprSymbol(
         DestinationSymbol destination,
@@ -169,7 +134,7 @@ public class DivideExprSymbol : BinaryExpressionSymbol
 
 public class MultiplyExprSymbol : BinaryExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.Multiply;
+    public override OperatorType Operator { get; } = OperatorType.Multiply;
 
     public MultiplyExprSymbol(
         DestinationSymbol destination,
@@ -183,7 +148,7 @@ public class MultiplyExprSymbol : BinaryExpressionSymbol
 
 public class ModuloExprSymbol : BinaryExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.Modulo;
+    public override OperatorType Operator { get; } = OperatorType.Modulo;
 
     public ModuloExprSymbol(
         DestinationSymbol destination,
@@ -202,7 +167,7 @@ public class ModuloExprSymbol : BinaryExpressionSymbol
 
 public class EqualsExprSymbol : BinaryExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.Equals;
+    public override OperatorType Operator { get; } = OperatorType.Equals;
 
     public EqualsExprSymbol(
         DestinationSymbol destination,
@@ -216,7 +181,7 @@ public class EqualsExprSymbol : BinaryExpressionSymbol
 
 public class NotEqualsExprSymbol : BinaryExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.NotEquals;
+    public override OperatorType Operator { get; } = OperatorType.NotEquals;
 
     public NotEqualsExprSymbol(
         DestinationSymbol destination,
@@ -230,7 +195,7 @@ public class NotEqualsExprSymbol : BinaryExpressionSymbol
 
 public class LessExprSymbol : BinaryExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.Less;
+    public override OperatorType Operator { get; } = OperatorType.Less;
 
     public LessExprSymbol(
         DestinationSymbol destination,
@@ -244,7 +209,7 @@ public class LessExprSymbol : BinaryExpressionSymbol
 
 public class LessEqualsExprSymbol : BinaryExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.LessEquals;
+    public override OperatorType Operator { get; } = OperatorType.LessEquals;
 
     public LessEqualsExprSymbol(
         DestinationSymbol destination,
@@ -258,7 +223,7 @@ public class LessEqualsExprSymbol : BinaryExpressionSymbol
 
 public class GreaterExprSymbol : BinaryExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.Greater;
+    public override OperatorType Operator { get; } = OperatorType.Greater;
 
     public GreaterExprSymbol(
         DestinationSymbol destination,
@@ -272,7 +237,7 @@ public class GreaterExprSymbol : BinaryExpressionSymbol
 
 public class GreaterEqualsExprSymbol : BinaryExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.GreaterEquals;
+    public override OperatorType Operator { get; } = OperatorType.GreaterEquals;
 
     public GreaterEqualsExprSymbol(
         DestinationSymbol destination,
@@ -291,7 +256,7 @@ public class GreaterEqualsExprSymbol : BinaryExpressionSymbol
 
 public class LikeExprSymbol : BinaryExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.Like;
+    public override OperatorType Operator { get; } = OperatorType.Like;
 
     public LikeExprSymbol(
         DestinationSymbol destination,
@@ -310,7 +275,7 @@ public class LikeExprSymbol : BinaryExpressionSymbol
 
 public class AndExprSymbol : OperatorExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.And;
+    public override OperatorType Operator { get; } = OperatorType.And;
     public DestinationSymbol Destination { get; }
     public ExpressionSymbol[] Expressions { get; }
 
@@ -330,7 +295,7 @@ public class AndExprSymbol : OperatorExpressionSymbol
 
 public class OrExprSymbol : OperatorExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.Or;
+    public override OperatorType Operator { get; } = OperatorType.Or;
     public DestinationSymbol Destination { get; }
     public ExpressionSymbol[] Expressions { get; }
 
@@ -350,7 +315,7 @@ public class OrExprSymbol : OperatorExpressionSymbol
 
 public class NotExprSymbol : UnaryExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.Not;
+    public override OperatorType Operator { get; } = OperatorType.Not;
 
     public NotExprSymbol(
         DestinationSymbol destination, 
@@ -368,7 +333,7 @@ public class NotExprSymbol : UnaryExpressionSymbol
 
 public class TypeExprSymbol : OperatorExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.Type;
+    public override OperatorType Operator { get; } = OperatorType.Type;
     public ProjectionObjectSymbol ProjectionObject { get; }
 
     public TypeExprSymbol(ProjectionObjectSymbol projectionObject)
@@ -382,6 +347,24 @@ public class TypeExprSymbol : OperatorExpressionSymbol
     }
 }
 
+public class MemberAccessExprSymbol : OperatorExpressionSymbol
+{
+    public override OperatorType Operator { get; } = OperatorType.MemberAccess;
+    public ExpressionSymbol Operand { get; }
+    public string MemberName { get; }
+
+    public MemberAccessExprSymbol(ExpressionSymbol operand, string memberName)
+    {
+        Operand = operand;
+        MemberName = memberName;
+    }
+
+    public override string ToString()
+    {
+        return $"{Operand}.{MemberName}";
+    }
+}
+
 //*
 //*
 //* query expression symbols.
@@ -389,12 +372,12 @@ public class TypeExprSymbol : OperatorExpressionSymbol
 
 public class FilterExprSymbol : QueryExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.Filter;
+    public override OperatorType Operator { get; } = OperatorType.Filter;
 
     public FilterExprSymbol(
         DestinationSymbol destination, 
         ExpressionSymbol source, 
-        LambdaSymbol lambda
+        LambdaExpressionSymbol lambda
     ) 
     : base(destination, source, lambda)
     {
@@ -403,12 +386,12 @@ public class FilterExprSymbol : QueryExpressionSymbol
 
 public class ProjectionExprSymbol : QueryExpressionSymbol
 {
-    public override ExpressionOperator Operator { get; } = ExpressionOperator.Project;
+    public override OperatorType Operator { get; } = OperatorType.Project;
 
     public ProjectionExprSymbol(
         DestinationSymbol destination,
         ExpressionSymbol source,
-        LambdaSymbol lambda
+        LambdaExpressionSymbol lambda
     )
     : base(destination, source, lambda)
     {

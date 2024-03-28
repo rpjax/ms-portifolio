@@ -66,111 +66,111 @@ public class OperatorsTranslator : TranslatorBase
     /// <param name="node">The node associated with the operator.</param>
     /// <returns>The translated LINQ expression.</returns>
     /// <exception cref="Exception">Thrown if the operator is unknown or unsupported.</exception>
-    public Expression Translate(TranslationContextOld context, ArrayNode node, Operator @operator)
+    public Expression Translate(TranslationContextOld context, ArrayNode node, OperatorOld @operator)
     {
         switch (@operator)
         {
             // Arithmetic Operators
-            case Operator.Add:
+            case OperatorOld.Add:
                 return ArithmeticOperatorsTranslator.TranslateAdd(context, node);
 
-            case Operator.Subtract:
+            case OperatorOld.Subtract:
                 return ArithmeticOperatorsTranslator.TranslateSubtract(context, node);
 
-            case Operator.Divide:
+            case OperatorOld.Divide:
                 return ArithmeticOperatorsTranslator.TranslateDivide(context, node);
 
-            case Operator.Multiply:
+            case OperatorOld.Multiply:
                 return ArithmeticOperatorsTranslator.TranslateMultiply(context, node);
 
-            case Operator.Modulo:
+            case OperatorOld.Modulo:
                 return ArithmeticOperatorsTranslator.TranslateModulo(context, node);
 
             // Relational Operators
-            case Operator.Equals:
+            case OperatorOld.Equals:
                 return RelationalOperatorsTranslator.TranslateEquals(context, node);
 
-            case Operator.NotEquals:
+            case OperatorOld.NotEquals:
                 return RelationalOperatorsTranslator.TranslateNotEquals(context, node);
 
-            case Operator.Less:
+            case OperatorOld.Less:
                 return RelationalOperatorsTranslator.TranslateLess(context, node);
 
-            case Operator.LessEquals:
+            case OperatorOld.LessEquals:
                 return RelationalOperatorsTranslator.TranslateLessEquals(context, node);
 
-            case Operator.Greater:
+            case OperatorOld.Greater:
                 return RelationalOperatorsTranslator.TranslateGreater(context, node);
 
-            case Operator.GreaterEquals:
+            case OperatorOld.GreaterEquals:
                 return RelationalOperatorsTranslator.TranslateGreaterEquals(context, node);
 
             // Pattern Relational Operators
-            case Operator.Like:
+            case OperatorOld.Like:
                 return PatternRelationalOperatorsTranslator.TranslateLike(context, node);
 
-            case Operator.RegexMatch:
+            case OperatorOld.RegexMatch:
                 return PatternRelationalOperatorsTranslator.TranslateRegexMatch(context, node);
 
             // Logical Operators
-            case Operator.Or:
+            case OperatorOld.Or:
                 return LogicalOperatorTranslator.TranslateOr(context, node);
 
-            case Operator.And:
+            case OperatorOld.And:
                 return LogicalOperatorTranslator.TranslateAnd(context, node);
 
-            case Operator.Not:
+            case OperatorOld.Not:
                 return LogicalOperatorTranslator.TranslateNot(context, node);
 
             // Semantic Operators
-            case Operator.Expr:
+            case OperatorOld.Expr:
                 return SemanticOperatorsTranslator.TranslateExpr(context, node);
 
-            case Operator.Literal:
+            case OperatorOld.Literal:
                 return SemanticOperatorsTranslator.TranslateParse(context, node);
 
-            case Operator.Select:
+            case OperatorOld.Select:
                 return SemanticOperatorsTranslator.TranslateSelect(context, node);
 
             // Queryable Operators
-            case Operator.Filter:
+            case OperatorOld.Filter:
                 return QueryableOperatorsTranslator.TranslateFilter(context, node);
 
-            case Operator.Project:
+            case OperatorOld.Project:
                 return QueryableOperatorsTranslator.TranslateProject(context, node);
 
-            case Operator.Transform:
+            case OperatorOld.Transform:
                 return QueryableOperatorsTranslator.TranslateTransform(context, node);
 
-            case Operator.SelectMany:
+            case OperatorOld.SelectMany:
                 return QueryableOperatorsTranslator.TranslateSelectMany(context, node);
 
-            case Operator.Limit:
+            case OperatorOld.Limit:
                 return QueryableOperatorsTranslator.TranslateLimit(context, node);
 
-            case Operator.Skip:
+            case OperatorOld.Skip:
                 return QueryableOperatorsTranslator.TranslateSkip(context, node);
 
             // Aggregation Operators
-            case Operator.Any:
+            case OperatorOld.Any:
                 return AggregationOperatorsTranslator.TranslateAny(context, node);
 
-            case Operator.All:
+            case OperatorOld.All:
                 return AggregationOperatorsTranslator.TranslateAll(context, node);
 
-            case Operator.Count:
+            case OperatorOld.Count:
                 return AggregationOperatorsTranslator.TranslateCount(context, node);
 
-            case Operator.Min:
+            case OperatorOld.Min:
                 return AggregationOperatorsTranslator.TranslateMin(context, node);
 
-            case Operator.Max:
+            case OperatorOld.Max:
                 return AggregationOperatorsTranslator.TranslateMax(context, node);
 
             // TODO Aggregation Operators:
-            case Operator.Sum:
-            case Operator.Average:
-            case Operator.Index:
+            case OperatorOld.Sum:
+            case OperatorOld.Average:
+            case OperatorOld.Index:
                 break;
         }
 

@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Webql.Analysis.Semantics.Extensions;
+using ModularSystem.Webql.Analysis.Symbols;
 
 namespace ModularSystem.Webql.Analysis.Semantics.Visitors;
 
@@ -11,6 +12,12 @@ namespace ModularSystem.Webql.Analysis.Semantics.Visitors;
 /// </summary>
 public class SemanticsAnalysisVisitor : AstSemanticVisitor
 {
+    public void Run(Symbol symbol)
+    {
+        var context = new SemanticContext();
+        Visit(context, symbol);
+    }
+
     /// <summary>
     /// Visits an AST symbol and performs semantic analysis.
     /// </summary>
@@ -19,9 +26,6 @@ public class SemanticsAnalysisVisitor : AstSemanticVisitor
     /// <returns>The symbol, possibly with updated semantic information.</returns>
     protected override Symbol Visit(SemanticContext context, Symbol symbol)
     {
-        // Perform the base visit, which will recursively analyze child symbols first.
-        symbol = base.Visit(context, symbol);
-
         // After visiting all children, we try to analyze the current symbol.
         var semantics = SemanticAnalyser.TryAnalyse(context, symbol);
 
@@ -31,6 +35,13 @@ public class SemanticsAnalysisVisitor : AstSemanticVisitor
             symbol.AddSemantic(context, semantics);
         }
 
-        return symbol;
+        // Perform the base visit, which will recursively analyze child symbols first.
+        return base.Visit(context, symbol);
+    }
+
+    protected override DeclarationStatementSymbol VisitDeclaration(SemanticContext context, DeclarationStatementSymbol symbol)
+    {
+        symbol.AddDeclaration(context, symbol.Identifier);
+        return base.VisitDeclaration(context, symbol);
     }
 }

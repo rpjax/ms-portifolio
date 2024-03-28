@@ -115,55 +115,55 @@ public class NodeTypeEvaluator : SemanticsVisitor
 
         switch (ParseOperatorString(context, lhs))
         {
-            case Operator.Add:
-            case Operator.Subtract:
-            case Operator.Divide:
-            case Operator.Multiply:
-            case Operator.Modulo:
+            case OperatorOld.Add:
+            case OperatorOld.Subtract:
+            case OperatorOld.Divide:
+            case OperatorOld.Multiply:
+            case OperatorOld.Modulo:
                 return typeof(decimal);
 
-            case Operator.Equals:
-            case Operator.NotEquals:
-            case Operator.Less:
-            case Operator.LessEquals:
-            case Operator.Greater:
-            case Operator.GreaterEquals:
-            case Operator.Or:
-            case Operator.And:
-            case Operator.Not:
+            case OperatorOld.Equals:
+            case OperatorOld.NotEquals:
+            case OperatorOld.Less:
+            case OperatorOld.LessEquals:
+            case OperatorOld.Greater:
+            case OperatorOld.GreaterEquals:
+            case OperatorOld.Or:
+            case OperatorOld.And:
+            case OperatorOld.Not:
                 return typeof(bool);
 
-            case Operator.Expr:
+            case OperatorOld.Expr:
                 return Evaluate(context, rhs);
 
-            case Operator.Literal:
+            case OperatorOld.Literal:
                 return context.Type;
 
-            case Operator.Select:
-            case Operator.Filter:
-            case Operator.Project:
-            case Operator.Limit:
-            case Operator.Skip:
+            case OperatorOld.Select:
+            case OperatorOld.Filter:
+            case OperatorOld.Project:
+            case OperatorOld.Limit:
+            case OperatorOld.Skip:
                 return context.Type;
 
-            case Operator.Count:
+            case OperatorOld.Count:
                 return typeof(int);
 
-            case Operator.Index:
+            case OperatorOld.Index:
                 return context.GetElementType()!;
 
-            case Operator.Any:
-            case Operator.All:
+            case OperatorOld.Any:
+            case OperatorOld.All:
                 return typeof(bool);
 
-            case Operator.Min:
-            case Operator.Max:
-            case Operator.Sum:
-            case Operator.Average:
+            case OperatorOld.Min:
+            case OperatorOld.Max:
+            case OperatorOld.Sum:
+            case OperatorOld.Average:
                 return typeof(void);
 
-            case Operator.Like:
-            case Operator.RegexMatch:
+            case OperatorOld.Like:
+            case OperatorOld.RegexMatch:
                 return typeof(bool);
         }
 

@@ -5,14 +5,14 @@ namespace ModularSystem.Webql.Analysis.Parsing;
 
 public class LambdaParser
 {
-    public LambdaSymbol ParseLambda(ParsingContext context, ArrayToken token)
+    public LambdaExpressionSymbol ParseLambda(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
         var @params = parser.ParseNextDeclarationArray(context);
-        var body = parser.ParseStatementBlock(context);
+        var body = parser.ParseNextStatementBlock(context);
 
-        return new LambdaSymbol(@params, body);
+        return new LambdaExpressionSymbol(@params, body);
     }
 
     public ProjectionLambdaSymbol ParseProjectionLambda(ParsingContext context, ArrayToken token)

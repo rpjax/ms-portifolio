@@ -18,9 +18,10 @@ public class LambdaArgumentTypeFixer : AstSemanticVisitor
 {
     private bool UseRecursiveVisitor { get; set; }
 
-    public void Execute(LambdaSymbol symbol)
+    public void Execute(LambdaExpressionSymbol symbol)
     {
-        Visit(new SemanticContext(), symbol);
+        var context = new SemanticContext();
+        Visit(context, symbol);
     }
 
     protected override StatementBlockSymbol VisitStatementBlock(SemanticContext context, StatementBlockSymbol symbol)
@@ -72,7 +73,7 @@ public class LambdaArgumentTypeFixer : AstSemanticVisitor
         return base.VisitReference(context, symbol);
     }
 
-    protected void ApplyFix(SemanticContext context, ExpressionSymbol source, LambdaSymbol lambdaSymbol)
+    protected void ApplyFix(SemanticContext context, ExpressionSymbol source, LambdaExpressionSymbol lambdaSymbol)
     {
         var args = lambdaSymbol.Parameters;
 

@@ -22,4 +22,14 @@ public static class SymbolExtensions
         return context.GetSemantic<T>(symbol);
     }
 
+    public static T As<T>(this Symbol symbol, SemanticContext context) where T : Symbol
+    {
+        if(symbol is not T result)
+        {
+            throw new Exception();
+        }
+
+        return result;
+    }
+
 }

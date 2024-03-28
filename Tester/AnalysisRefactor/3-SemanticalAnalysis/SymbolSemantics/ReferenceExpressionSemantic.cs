@@ -9,5 +9,3 @@ public class ReferenceExpressionSemantic : ExpressionSemantic
         Type = type;
     }
 }
-
-

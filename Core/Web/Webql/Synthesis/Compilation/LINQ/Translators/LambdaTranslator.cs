@@ -7,7 +7,7 @@ namespace ModularSystem.Webql.Synthesis.Compilation.LINQ;
 
 public class LambdaTranslator
 {
-    public LambdaExpression TranslateLambda(TranslationContext context, LambdaSymbol symbol)
+    public LambdaExpression TranslateLambda(TranslationContext context, LambdaExpressionSymbol symbol)
     {
         var paramExprs = new LambdaArgumentTranslator()
             .TranslateLambdaArguments(context, symbol.Parameters);

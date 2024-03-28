@@ -36,6 +36,9 @@ public static class Program
         new LambdaArgumentTypeFixer()
             .Execute(axiom.Lambda);
 
+        new SemanticsAnalysisVisitor()
+            .Run(axiom);
+
         Console.WriteLine(axiom); ;
     }
 }

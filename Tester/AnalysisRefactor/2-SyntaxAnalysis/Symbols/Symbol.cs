@@ -33,7 +33,7 @@ public abstract class Symbol
         return camelCase;
     }
 
-    protected string Stringify(ExpressionOperator exprType)
+    protected string Stringify(Symbols.OperatorType exprType)
     {
         return $"${ToCamelCase(exprType.ToString())}";
     }

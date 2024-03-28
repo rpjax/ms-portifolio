@@ -34,7 +34,7 @@ public class RootLambdasArgumentTypeFixer : AstSemanticVisitor
         }
     }
 
-    protected override LambdaSymbol VisitLambda(SemanticContext context, LambdaSymbol symbol)
+    protected override LambdaExpressionSymbol VisitLambda(SemanticContext context, LambdaExpressionSymbol symbol)
     {
         if (ArgumentsTypes.Length != symbol.Parameters.Length)
         {

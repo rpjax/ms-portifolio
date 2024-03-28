@@ -120,14 +120,14 @@ public class SemanticsVisitor
                 // In essence, the "$Expr" operator serves as a means to compartmentalize and isolate parts of the syntax tree, ensuring that each segment is processed in its own right, without unintended interference or assumptions.
                 // This is crucial for maintaining the integrity and modularity of the semantic analysis process.
                 //*
-                op = Operator.Expr;
+                op = OperatorOld.Expr;
             }
 
             var opType = WebqlHelper.GetOperatorType(op.Value);
             var operatorIsQueryable = opType == OperatorType.Queryable;
             var contextIsQueryable = context.IsQueryable();
 
-            if (op == Operator.Project)
+            if (op == OperatorOld.Project)
             {
                 //*
                 // Disables specific analysis features when entering a projection context via "$project" operator. 
@@ -195,13 +195,13 @@ public class SemanticsVisitor
     //*
 
     /// <summary>
-    /// Converts a string representation of an operator into its corresponding <see cref="Operator"/> enum value.
+    /// Converts a string representation of an operator into its corresponding <see cref="OperatorOld"/> enum value.
     /// </summary>
     /// <param name="context">The semantic context for the operator parsing.</param>
     /// <param name="value">The string representation of the operator.</param>
     /// <returns>The Operator enum value.</returns>
     /// <exception cref="SemanticException">Thrown when the operator string is not recognized.</exception>
-    protected Operator ParseOperatorString(SemanticContextOld context, string value)
+    protected OperatorOld ParseOperatorString(SemanticContextOld context, string value)
     {
         var op = WebqlHelper.TryParseOperatorString(value);
 
