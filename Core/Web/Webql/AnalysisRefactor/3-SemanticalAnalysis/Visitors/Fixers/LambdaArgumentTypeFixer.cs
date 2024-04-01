@@ -38,22 +38,14 @@ public class LambdaArgumentTypeFixer : AstSemanticVisitor
 
     protected override ExpressionSymbol VisitOperatorExpression(SemanticContext context, OperatorExpressionSymbol symbol)
     {
-        var isQueryOperator = OperatorHelper
-            .GetQueryOperators()
-            .Contains(symbol.Operator);
+        //var isQueryOperator = OperatorHelper
+        //    .GetQueryOperators()
+        //    .Contains(symbol.Operator);
 
         if (symbol is PredicateExpressionSymbol queryExpression)
         {
             var source = queryExpression.Source;
             var lambda = queryExpression.Lambda;
-
-            ApplyFix(context, source, lambda);
-        }
-
-        if (isQueryOperator)
-        {
-            var source = symbol.Operands[1].As<ExpressionSymbol>(context);
-            var lambda = symbol.Operands[2].As<LambdaExpressionSymbol>(context);
 
             ApplyFix(context, source, lambda);
         }
@@ -78,7 +70,7 @@ public class LambdaArgumentTypeFixer : AstSemanticVisitor
     protected override ExpressionSymbol VisitReferenceExpression(SemanticContext context, ReferenceExpressionSymbol symbol)
     {
         //* creates the semantics object.
-        var semantics = SemanticAnalyser.AnalyseReference(context, symbol);
+        var semantics = SemanticAnalyser.AnalyseExpression(context, symbol);
 
         //* binds the semantics object to the symbol.
         symbol.AddSemantic(context, semantics);

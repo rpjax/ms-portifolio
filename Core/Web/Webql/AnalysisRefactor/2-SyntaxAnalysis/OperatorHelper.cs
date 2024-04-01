@@ -25,72 +25,74 @@ public enum OperatorReturnStuff
 
 public static class OperatorHelper
 {
-    public static OperatorParametrizationType GetParametrization(OperatorTypeOld operatorType)
+    public static OperatorParametrizationType GetParametrization(OperatorType operatorType)
     {
         switch (operatorType)
         {
-            case OperatorTypeOld.Not:
-            case OperatorTypeOld.Select:
-            case OperatorTypeOld.Expr:
-            case OperatorTypeOld.Type:
+            case OperatorType.Not:
+            case OperatorType.Select:
+            case OperatorType.Expr:
+            case OperatorType.Type:
                 return OperatorParametrizationType.Unary;
 
-            case OperatorTypeOld.Add:
-            case OperatorTypeOld.Subtract:
-            case OperatorTypeOld.Divide:
-            case OperatorTypeOld.Multiply:
-            case OperatorTypeOld.Modulo:
-            case OperatorTypeOld.Equals:
-            case OperatorTypeOld.NotEquals:
-            case OperatorTypeOld.Less:
-            case OperatorTypeOld.LessEquals:
-            case OperatorTypeOld.Greater:
-            case OperatorTypeOld.GreaterEquals:
-            case OperatorTypeOld.Like:
-            case OperatorTypeOld.RegexMatch:
-            case OperatorTypeOld.Parse:
+            case OperatorType.Add:
+            case OperatorType.Subtract:
+            case OperatorType.Divide:
+            case OperatorType.Multiply:
+            case OperatorType.Modulo:
+            case OperatorType.Equals:
+            case OperatorType.NotEquals:
+            case OperatorType.Less:
+            case OperatorType.LessEquals:
+            case OperatorType.Greater:
+            case OperatorType.GreaterEquals:
+            case OperatorType.Like:
+            case OperatorType.RegexMatch:
+            case OperatorType.Parse:
                 return OperatorParametrizationType.Binary;
 
-            case OperatorTypeOld.Filter:
-            case OperatorTypeOld.Project:
-            case OperatorTypeOld.Transform:
+            case OperatorType.Filter:
+            case OperatorType.Project:
+            case OperatorType.Transform:
                 return OperatorParametrizationType.Predicate;
 
-            case OperatorTypeOld.Or:
-            case OperatorTypeOld.And:
+            case OperatorType.Or:
+            case OperatorType.And:
                 return OperatorParametrizationType.Array;
 
-            case OperatorTypeOld.MemberAccess:
+            case OperatorType.MemberAccess:
                 break;
 
-            case OperatorTypeOld.SelectMany:
+            case OperatorType.SelectMany:
                 break;
-            case OperatorTypeOld.Limit:
+            case OperatorType.Limit:
                 break;
-            case OperatorTypeOld.Skip:
+            case OperatorType.Skip:
                 break;
-            case OperatorTypeOld.Count:
-            case OperatorTypeOld.Index:
-            case OperatorTypeOld.Any:
-            case OperatorTypeOld.All:
-            case OperatorTypeOld.Min:
-            case OperatorTypeOld.Max:
-            case OperatorTypeOld.Sum:
-            case OperatorTypeOld.Average:
+            case OperatorType.Count:
+            case OperatorType.Index:
+            case OperatorType.Any:
+            case OperatorType.All:
+            case OperatorType.Min:
+            case OperatorType.Max:
+            case OperatorType.Sum:
+            case OperatorType.Average:
                 break;
         }
+
+        throw new NotImplementedException();
     }
 
     public static IEnumerable<Symbols.OperatorType> GetUnaryOperators()
     {
-        yield return OperatorTypeOld.Not;
-        yield return OperatorTypeOld.Select;
-        yield return OperatorTypeOld.Type;
+        yield return OperatorType.Not;
+        yield return OperatorType.Select;
+        yield return OperatorType.Type;
     }
 
     public static IEnumerable<Symbols.OperatorType> GetBinaryOperators()
     {
-        return Enumerable.Empty<OperatorTypeOld>()
+        return Enumerable.Empty<OperatorType>()
             .Concat(GetArithmeticOperators())
             .Concat(GetRelationalOperators())
             .Concat(GetPatternMatchOperators())
@@ -99,61 +101,61 @@ public static class OperatorHelper
 
     public static IEnumerable<Symbols.OperatorType> GetArithmeticOperators()
     {
-        yield return OperatorTypeOld.Add;
-        yield return OperatorTypeOld.Subtract;
-        yield return OperatorTypeOld.Divide;
-        yield return OperatorTypeOld.Multiply;
+        yield return OperatorType.Add;
+        yield return OperatorType.Subtract;
+        yield return OperatorType.Divide;
+        yield return OperatorType.Multiply;
     }
 
     public static IEnumerable<Symbols.OperatorType> GetRelationalOperators()
     {
-        yield return OperatorTypeOld.Add;
-        yield return OperatorTypeOld.Subtract;
-        yield return OperatorTypeOld.Divide;
-        yield return OperatorTypeOld.Multiply;
+        yield return OperatorType.Add;
+        yield return OperatorType.Subtract;
+        yield return OperatorType.Divide;
+        yield return OperatorType.Multiply;
     }
 
     public static IEnumerable<Symbols.OperatorType> GetPatternMatchOperators()
     {
-        yield return OperatorTypeOld.Like;
-        yield return OperatorTypeOld.RegexMatch;
+        yield return OperatorType.Like;
+        yield return OperatorType.RegexMatch;
     }
 
     public static IEnumerable<Symbols.OperatorType> GetLogicalOperators()
     {
-        yield return OperatorTypeOld.Or;
-        yield return OperatorTypeOld.And;
-        yield return OperatorTypeOld.Not;
+        yield return OperatorType.Or;
+        yield return OperatorType.And;
+        yield return OperatorType.Not;
     }
 
     public static IEnumerable<Symbols.OperatorType> GetSemanticOperators()
     {
-        yield return OperatorTypeOld.Expr;
-        yield return OperatorTypeOld.Parse;
-        yield return OperatorTypeOld.Select;
-        yield return OperatorTypeOld.Type;
-        yield return OperatorTypeOld.MemberAccess;
+        yield return OperatorType.Expr;
+        yield return OperatorType.Parse;
+        yield return OperatorType.Select;
+        yield return OperatorType.Type;
+        yield return OperatorType.MemberAccess;
     }
 
     public static IEnumerable<Symbols.OperatorType> GetQueryOperators()
     {
-        yield return OperatorTypeOld.Filter;
-        yield return OperatorTypeOld.Project;
-        yield return OperatorTypeOld.Transform;
-        yield return OperatorTypeOld.SelectMany;
-        yield return OperatorTypeOld.Limit;
-        yield return OperatorTypeOld.Skip;
+        yield return OperatorType.Filter;
+        yield return OperatorType.Project;
+        yield return OperatorType.Transform;
+        yield return OperatorType.SelectMany;
+        yield return OperatorType.Limit;
+        yield return OperatorType.Skip;
     }
 
     public static IEnumerable<Symbols.OperatorType> GetAggregationOperators()
     {
-        yield return OperatorTypeOld.Count;
-        yield return OperatorTypeOld.Index;
-        yield return OperatorTypeOld.Any;
-        yield return OperatorTypeOld.All;
-        yield return OperatorTypeOld.Min;
-        yield return OperatorTypeOld.Max;
-        yield return OperatorTypeOld.Sum;
-        yield return OperatorTypeOld.Average;
+        yield return OperatorType.Count;
+        yield return OperatorType.Index;
+        yield return OperatorType.Any;
+        yield return OperatorType.All;
+        yield return OperatorType.Min;
+        yield return OperatorType.Max;
+        yield return OperatorType.Sum;
+        yield return OperatorType.Average;
     }
 } 

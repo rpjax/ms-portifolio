@@ -313,10 +313,10 @@ public class OperatorExpressionParser : SyntaxParserBase
 
     class OperatorProduction
     {
-        public OperatorTypeOld Operator { get; }
+        public OperatorType Operator { get; }
         public OperandType[] OperandTypes { get; }
 
-        public OperatorProduction(OperatorTypeOld @operator, OperandType[] operandTypes)
+        public OperatorProduction(OperatorType @operator, OperandType[] operandTypes)
         {
             Operator = @operator;
             OperandTypes = operandTypes;

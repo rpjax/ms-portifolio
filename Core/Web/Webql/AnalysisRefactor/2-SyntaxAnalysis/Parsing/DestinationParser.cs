@@ -9,11 +9,11 @@ public class DestinationParser : SyntaxParserBase
     {
         if(token is NullToken nullToken)
         {
-            return new DestinationSymbol(null);
+            return new DestinationSymbol(new NullSymbol());
         }
         if(token is StringToken stringToken)
         {
-            return new DestinationSymbol(stringToken.Value);
+            return new DestinationSymbol(new StringSymbol(stringToken.Value));
         }
 
         throw new ParsingException("", context);

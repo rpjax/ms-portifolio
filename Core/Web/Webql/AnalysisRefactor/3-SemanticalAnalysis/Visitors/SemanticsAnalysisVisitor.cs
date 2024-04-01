@@ -12,14 +12,15 @@ namespace ModularSystem.Webql.Analysis.Semantics.Visitors;
 /// </summary>
 public class SemanticsAnalysisVisitor : AstSemanticVisitor
 {
-    public void Run(AxiomSymbol symbol, Type[] rootArguments)
+    public SemanticContext Run(AxiomSymbol symbol, Type[] rootArguments)
     {
-        if(symbol.Lambda is null)
+        var context = new SemanticContext();
+
+        if (symbol.Lambda is null)
         {
-            return;
+            return context;
         }
 
-        var context = new SemanticContext();
 
         new RootLambdasArgumentTypeFixer(rootArguments)
             .Execute(symbol);
@@ -28,11 +29,14 @@ public class SemanticsAnalysisVisitor : AstSemanticVisitor
             .Execute(symbol.Lambda);
 
         VisitAxiom(context, symbol);
+
+        return context;
     }
 
     protected override DeclarationStatementSymbol VisitDeclaration(SemanticContext context, DeclarationStatementSymbol symbol)
     {
         symbol.AddDeclaration(context, symbol.Identifier);
+        symbol.AddSemantic(context, SemanticAnalyser.AnalyseDeclaration(context, symbol));
         return base.VisitDeclaration(context, symbol);
     }
 
@@ -44,6 +48,7 @@ public class SemanticsAnalysisVisitor : AstSemanticVisitor
     protected override ExpressionSymbol VisitExpression(SemanticContext context, ExpressionSymbol symbol)
     {
         var semantic = SemanticAnalyser.AnalyseExpression(context, symbol);
+        symbol.AddSemantic(context, semantic);
         return base.VisitExpression(context, symbol);
     }
 }

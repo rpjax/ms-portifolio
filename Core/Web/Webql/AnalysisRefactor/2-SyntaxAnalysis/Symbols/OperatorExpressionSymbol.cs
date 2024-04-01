@@ -89,16 +89,16 @@ public abstract class ArrayExpressionSymbol : OperatorExpressionSymbol
 
 public abstract class PredicateExpressionSymbol : OperatorExpressionSymbol
 {
-    public StringSymbol Destination { get; }
-    public ExpressionSymbol Source { get; }
-    public LambdaExpressionSymbol Lambda { get; }
+    public StringSymbol Destination => (StringSymbol)Operands[0];
+    public ExpressionSymbol Source => Operands[1];
+    public LambdaExpressionSymbol Lambda => (LambdaExpressionSymbol)Operands[2];
 
     protected PredicateExpressionSymbol(
         StringSymbol destination,
         ExpressionSymbol source,
         LambdaExpressionSymbol lambda
     )
-    : base(new ExpressionSymbol[] { destination, source, lambda })
+    : base(destination, source, lambda)
     {
 
     }

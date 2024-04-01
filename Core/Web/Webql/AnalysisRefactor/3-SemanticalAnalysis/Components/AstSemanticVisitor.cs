@@ -108,9 +108,9 @@ public abstract class AstSemanticVisitor
     {
         return new LambdaExpressionSymbol(
             parameters: symbol.Parameters
-                .Select(x => Visit(context, x).As<DeclarationStatementSymbol>(context))
+                .Select(x => VisitDeclaration(context, x))
                 .ToArray(),
-            body: Visit(context, symbol.Body).As<StatementBlockSymbol>(context)
+            body: VisitStatementBlock(context, symbol.Body)
         );
     }
 
