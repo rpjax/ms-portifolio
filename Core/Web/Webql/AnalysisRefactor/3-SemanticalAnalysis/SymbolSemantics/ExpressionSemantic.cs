@@ -34,7 +34,7 @@ public class OperatorExpressionSemantic : ExpressionSemantic
 public class LambdaExpressionSemantic : ExpressionSemantic
 {
     public Type[] ParameterTypes { get; }
-    public Type? ReturnType { get; }
+    public Type ReturnType { get; }
 
     public LambdaExpressionSemantic(Type[] parameterTypes, Type returnType) : base(returnType)
     {

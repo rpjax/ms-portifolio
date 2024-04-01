@@ -339,15 +339,15 @@ public class NotExpressionSymbol : UnaryExpressionSymbol
 //* semantic expression symbols.
 //*
 // [ string_literal, expression, ]
-// "$type": [<destination>, { "id": "$item.id" }]
-public class TypeExpressionSymbol : UnaryExpressionSymbol
+// "$anonymousType": [<destination>, { "id": "$item.id" }]
+public class SelectExpressionSymbol : UnaryExpressionSymbol
 {
-    public override OperatorType Operator { get; } = OperatorType.Type;
-    public TypeProjectionExpressionSymbol TypeExpression => (TypeProjectionExpressionSymbol)Operand;
+    public override OperatorType Operator { get; } = OperatorType.AnonymousType;
+    public AnonymousTypeExpressionSymbol TypeExpression => (AnonymousTypeExpressionSymbol)Operand;
 
-    public TypeExpressionSymbol(
+    public SelectExpressionSymbol(
         StringSymbol destination,
-        TypeProjectionExpressionSymbol typeProjection
+        AnonymousTypeExpressionSymbol typeProjection
     )
     : base(destination, typeProjection)
     {
@@ -357,29 +357,6 @@ public class TypeExpressionSymbol : UnaryExpressionSymbol
     public override string ToString()
     {
         return $"{Stringify(Operator)}({TypeExpression})";
-    }
-}
-
-// [ string_literal, expression, ]
-// "$memberAccess": [<destination>, <member>, <expression>]
-public class MemberAccessExprSymbol : OperatorExpressionSymbol
-{
-    public override OperatorType Operator { get; } = OperatorType.MemberAccess;
-    public StringSymbol MemberName => (StringSymbol)Operands[0];
-    public ExpressionSymbol Operand => Operands[1];
-
-    public MemberAccessExprSymbol(
-        StringSymbol memberName, 
-        ExpressionSymbol operand
-    )
-    : base(memberName, operand)
-    {
-
-    }
-
-    public override string ToString()
-    {
-        return $"{Operand}.{MemberName}";
     }
 }
 

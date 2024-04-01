@@ -60,7 +60,7 @@ public static class ExpressionTypeResolver
                 break;
             case Symbols.OperatorType.Select:
                 break;
-            case Symbols.OperatorType.Type:
+            case Symbols.OperatorType.AnonymousType:
                 break;
             case Symbols.OperatorType.Filter:
                 break;

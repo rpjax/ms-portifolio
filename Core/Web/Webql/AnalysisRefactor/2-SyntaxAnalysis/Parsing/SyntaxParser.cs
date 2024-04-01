@@ -41,7 +41,7 @@ public static class SyntaxParser
             .ParseStatement(context, token);
     }
 
-    public static TypeProjectionExpressionSymbol ParseTypeProjection(ParsingContext context, ObjectToken token)
+    public static AnonymousTypeExpressionSymbol ParseTypeProjection(ParsingContext context, ObjectToken token)
     {
         return new TypeExpressionParser()
             .ParseTypeExpression(context, token);

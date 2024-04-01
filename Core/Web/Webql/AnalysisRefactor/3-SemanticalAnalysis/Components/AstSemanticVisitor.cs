@@ -13,7 +13,7 @@ public abstract class AstSemanticVisitor
         }
 
         return new AxiomSymbol(
-            lambda: VisitLambdaExpression(context, axiom.Lambda)
+            lambda: VisitExpression(context, axiom.Lambda).As<LambdaExpressionSymbol>(context)
         );
     }
 
@@ -57,8 +57,8 @@ public abstract class AstSemanticVisitor
             case ExpressionType.Lambda:
                 return VisitLambdaExpression(context, (LambdaExpressionSymbol)symbol);
 
-            case ExpressionType.TypeProjection:
-                return VisitTypeProjectionExpression(context, (TypeProjectionExpressionSymbol)symbol);
+            case ExpressionType.AnonymousType:
+                return VisitTypeProjectionExpression(context, (AnonymousTypeExpressionSymbol)symbol);
         }
 
         throw new Exception();
@@ -114,9 +114,9 @@ public abstract class AstSemanticVisitor
         );
     }
 
-    protected virtual TypeProjectionExpressionSymbol VisitTypeProjectionExpression(
+    protected virtual AnonymousTypeExpressionSymbol VisitTypeProjectionExpression(
         SemanticContext context, 
-        TypeProjectionExpressionSymbol symbol
+        AnonymousTypeExpressionSymbol symbol
     )
     {
         return symbol;

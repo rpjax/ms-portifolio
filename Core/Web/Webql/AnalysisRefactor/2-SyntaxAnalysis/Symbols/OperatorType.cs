@@ -30,10 +30,10 @@ public enum OperatorType
     Expr, // ok
     Parse, // ok
     Select, // ok
-    Type,
+    AnonymousType,
     MemberAccess,
 
-    // Queryable Operators
+    // Collection Manipulation Operators
     Filter, // ok
     Project, // ok
     Transform, // ok
@@ -47,7 +47,7 @@ public enum OperatorType
     // OrderDesc,
     //*
 
-    // Aggregation Operators
+    // Collection Aggregation Operators
     Count, // ok
     Index,
     Any, // ok

@@ -5,7 +5,7 @@ namespace ModularSystem.Webql.Analysis.Parsing;
 
 public class TypeExpressionParser : SyntaxParserBase
 {
-    public TypeProjectionExpressionSymbol ParseTypeExpression(ParsingContext context, ObjectToken token)
+    public AnonymousTypeExpressionSymbol ParseTypeExpression(ParsingContext context, ObjectToken token)
     {
         var bindings = new List<ProjectionBindingSymbol>();
 
@@ -17,7 +17,7 @@ public class TypeExpressionParser : SyntaxParserBase
             bindings.Add(expr);
         }
 
-        return new TypeProjectionExpressionSymbol(bindings.ToArray());
+        return new AnonymousTypeExpressionSymbol(bindings.ToArray());
     }
 }
 

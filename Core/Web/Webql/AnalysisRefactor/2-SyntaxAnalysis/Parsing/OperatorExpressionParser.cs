@@ -127,7 +127,7 @@ public class OperatorExpressionParser : SyntaxParserBase
             case Symbols.OperatorType.Select:
                 break;
 
-            case Symbols.OperatorType.Type:
+            case Symbols.OperatorType.AnonymousType:
                 return ParseTypeExpression(context, paramsArray);
 
             //* 
@@ -261,11 +261,11 @@ public class OperatorExpressionParser : SyntaxParserBase
     //* semantic expressions parsing.
     //*
 
-    private TypeExpressionSymbol ParseTypeExpression(ParsingContext context, ArrayToken token)
+    private SelectExpressionSymbol ParseTypeExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
-        return new TypeExpressionSymbol(
+        return new SelectExpressionSymbol(
             destination: parser.ParseNextStringLiteral(context),
             typeProjection: parser.ParseNextTypeProjection(context)
         );

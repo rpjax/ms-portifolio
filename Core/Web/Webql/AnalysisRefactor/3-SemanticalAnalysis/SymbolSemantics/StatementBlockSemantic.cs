@@ -2,12 +2,10 @@
 
 public class StatementBlockSemantic : SymbolSemantic
 {
-    public Type? ResolvedType { get; }
+    public Type ReturnType { get; }
 
-    public StatementBlockSemantic(Type? resolvedType)
+    public StatementBlockSemantic(Type resolvedType)
     {
-        ResolvedType = resolvedType;
+        ReturnType = resolvedType;
     }
 }
-
-

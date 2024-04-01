@@ -3,9 +3,9 @@
 public class ProjectionLambdaSymbol : Symbol
 {
     public DeclarationStatementSymbol[] Parameters { get; }
-    public TypeProjectionExpressionSymbol Body { get; }
+    public AnonymousTypeExpressionSymbol Body { get; }
 
-    public ProjectionLambdaSymbol(DeclarationStatementSymbol[] parameters, TypeProjectionExpressionSymbol body)
+    public ProjectionLambdaSymbol(DeclarationStatementSymbol[] parameters, AnonymousTypeExpressionSymbol body)
     {
         Parameters = parameters;
         Body = body;

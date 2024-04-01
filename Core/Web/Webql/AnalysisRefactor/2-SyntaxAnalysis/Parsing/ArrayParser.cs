@@ -139,7 +139,7 @@ public class ArrayParser
         return SyntaxParser.ParseStatementBlock(context, ConsumeNextObjectToken(context));
     }
 
-    public TypeProjectionExpressionSymbol ParseNextTypeProjection(ParsingContext context)
+    public AnonymousTypeExpressionSymbol ParseNextTypeProjection(ParsingContext context)
     {
         return SyntaxParser.ParseTypeProjection(context, ConsumeNextObjectToken(context));
     }

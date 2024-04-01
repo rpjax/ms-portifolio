@@ -6,7 +6,7 @@ public enum ExpressionType
     Reference,
     Operator,
     Lambda,
-    TypeProjection
+    AnonymousType
 }
 
 public abstract class ExpressionSymbol : StatementSymbol

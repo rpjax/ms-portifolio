@@ -16,23 +16,26 @@ public enum OperatorParametrizationType
 // ex: logical operators always resolve to boolean, and their operands also have to be boolean.
 // Maybe this could help in the semantic analysis.
 //*
-public enum OperatorReturnStuff
+public enum OperatorSemanticType
 {
     Arithmetic,
     Relational,
-    Logical
+    Logical,
+    Semantic,
+    CollectionManipulation,
+    CollectionAggregation
 }
 
 public static class OperatorHelper
 {
-    public static OperatorParametrizationType GetParametrization(OperatorType operatorType)
+    public static OperatorParametrizationType GetParametrization(OperatorType @operator)
     {
-        switch (operatorType)
+        switch (@operator)
         {
             case OperatorType.Not:
             case OperatorType.Select:
             case OperatorType.Expr:
-            case OperatorType.Type:
+            case OperatorType.AnonymousType:
                 return OperatorParametrizationType.Unary;
 
             case OperatorType.Add:
@@ -83,11 +86,72 @@ public static class OperatorHelper
         throw new NotImplementedException();
     }
 
+    public static OperatorSemanticType GetOperatorSemanticType(OperatorType @operator)
+    {
+        switch (@operator)
+        {
+            // Arithmetic operators
+            case OperatorType.Add:
+            case OperatorType.Subtract:
+            case OperatorType.Divide:
+            case OperatorType.Multiply:
+            case OperatorType.Modulo:
+                return OperatorSemanticType.Arithmetic;
+
+            // Relational Operators
+            case OperatorType.Equals:
+            case OperatorType.NotEquals:
+            case OperatorType.Less:
+            case OperatorType.LessEquals:
+            case OperatorType.Greater:
+            case OperatorType.GreaterEquals:
+            case OperatorType.Like:
+            case OperatorType.RegexMatch:
+                return OperatorSemanticType.Relational;
+
+            // Logical Operators
+            case OperatorType.Or:
+            case OperatorType.And:
+            case OperatorType.Not:
+                return OperatorSemanticType.Logical;
+
+            // Semantic Operators
+            case OperatorType.Expr:
+            case OperatorType.Parse:
+            case OperatorType.Select:
+            case OperatorType.AnonymousType:
+            case OperatorType.MemberAccess:
+                return OperatorSemanticType.Semantic;
+
+            // Collection Manipulation Operators
+            case OperatorType.Filter:
+            case OperatorType.Project:
+            case OperatorType.Transform:
+            case OperatorType.SelectMany:
+            case OperatorType.Limit:
+            case OperatorType.Skip:
+                return OperatorSemanticType.CollectionManipulation;
+
+            // Collection Aggregation Operators
+            case OperatorType.Count:
+            case OperatorType.Index:
+            case OperatorType.Any:
+            case OperatorType.All:
+            case OperatorType.Min:
+            case OperatorType.Max:
+            case OperatorType.Sum:
+            case OperatorType.Average:
+                return OperatorSemanticType.CollectionAggregation;
+        }
+
+        throw new InvalidOperationException();
+    }
+
     public static IEnumerable<Symbols.OperatorType> GetUnaryOperators()
     {
         yield return OperatorType.Not;
         yield return OperatorType.Select;
-        yield return OperatorType.Type;
+        yield return OperatorType.AnonymousType;
     }
 
     public static IEnumerable<Symbols.OperatorType> GetBinaryOperators()
@@ -133,7 +197,7 @@ public static class OperatorHelper
         yield return OperatorType.Expr;
         yield return OperatorType.Parse;
         yield return OperatorType.Select;
-        yield return OperatorType.Type;
+        yield return OperatorType.AnonymousType;
         yield return OperatorType.MemberAccess;
     }
 
