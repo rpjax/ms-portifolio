@@ -5,16 +5,16 @@
 public class MemberAccessExpressionSymbol : OperatorExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.MemberAccess;
-    public StringSymbol MemberName => (StringSymbol)Operands[0];
-    public ExpressionSymbol Operand => Operands[1];
+    public string MemberName { get; }
+    public ExpressionSymbol Operand => Operands[0];
 
     public MemberAccessExpressionSymbol(
-        StringSymbol memberName, 
+        string memberName, 
         ExpressionSymbol operand
     )
-    : base(memberName, operand)
+    : base(operand)
     {
-
+        MemberName = memberName;
     }
 
     public override string ToString()

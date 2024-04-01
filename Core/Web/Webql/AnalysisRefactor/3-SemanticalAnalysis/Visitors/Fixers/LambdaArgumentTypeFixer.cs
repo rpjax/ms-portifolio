@@ -15,14 +15,13 @@ namespace ModularSystem.Webql.Analysis.Semantics.Visitors;
 // its FullName property to the Type property of the lambda argument symbol (lambda_arg.Type). 
 //*
 
-public class LambdaArgumentTypeFixer : AstSemanticVisitor
+public class LambdaArgumentTypeFixer : BasicSemanticVisitor
 {
     private bool UseRecursiveVisitor { get; set; }
 
     public void Execute(LambdaExpressionSymbol symbol)
     {
-        var context = new SemanticContext();
-        VisitLambdaExpression(context, symbol);
+        VisitLambdaExpression(new SemanticContext(), symbol);
     }
 
     protected override StatementBlockSymbol VisitStatementBlock(SemanticContext context, StatementBlockSymbol symbol)
@@ -53,31 +52,6 @@ public class LambdaArgumentTypeFixer : AstSemanticVisitor
         return base.VisitOperatorExpression(context, symbol);
     }
 
-    protected override DeclarationStatementSymbol VisitDeclaration(SemanticContext context, DeclarationStatementSymbol symbol)
-    {
-        //* creates the semantics object.
-        var semantic = SemanticAnalyser.AnalyseDeclaration(context, symbol); ;
-
-        //* binds the semantics object to the symbol.
-        symbol.AddSemantic(context, semantic);
-
-        //* declares the symbol.
-        symbol.AddDeclaration(context, symbol.Identifier);
-
-        return base.VisitDeclaration(context, symbol);
-    }
-
-    protected override ExpressionSymbol VisitReferenceExpression(SemanticContext context, ReferenceExpressionSymbol symbol)
-    {
-        //* creates the semantics object.
-        var semantics = SemanticAnalyser.AnalyseExpression(context, symbol);
-
-        //* binds the semantics object to the symbol.
-        symbol.AddSemantic(context, semantics);
-
-        return base.VisitReferenceExpression(context, symbol);
-    }
-
     protected void ApplyFix(SemanticContext context, ExpressionSymbol source, LambdaExpressionSymbol lambdaSymbol)
     {
         var args = lambdaSymbol.Parameters;
@@ -86,24 +60,20 @@ public class LambdaArgumentTypeFixer : AstSemanticVisitor
         {
             return;
         }
-
-        if (source is not ReferenceExpressionSymbol reference)
-        {
-            throw new Exception();
-        }
         if (args.Length != 1)
         {
             throw new Exception();
         }
 
-        var arg = args[0];
+        var sourceSemantic = SemanticAnalyser.AnalyseExpression(context, source);
 
-        if(reference.IsNotQueryable(context))
+        if(sourceSemantic.IsNotQueryable(context))
         {
             throw new Exception();
         }
 
-        var elementType = reference.GetElementType(context);
+        var elementType = sourceSemantic.GetElementType(context);
+        var arg = args[0];
 
         arg.SetType(elementType.AssemblyQualifiedName!);
     }

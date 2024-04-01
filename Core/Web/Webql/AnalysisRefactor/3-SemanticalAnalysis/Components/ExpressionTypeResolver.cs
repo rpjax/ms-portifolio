@@ -6,14 +6,28 @@ public static class ExpressionTypeResolver
 {       
     public static Type ResolveType(SemanticContext context, LiteralExpressionSymbol symbol)
     {
-        throw new Exception();
+        switch (symbol.LiteralType)
+        {
+            case LiteralType.Null:
+                return typeof(void);
+
+            case LiteralType.String:
+                return typeof(string);
+
+            case LiteralType.Bool:
+                return typeof(bool);
+
+            case LiteralType.Number:
+                return typeof(int);
+        }
+
+        throw new InvalidOperationException();
     }
 
     public static Type ResolveType(SemanticContext context, ReferenceExpressionSymbol symbol)
     {
         var identifier = symbol.ToString();
-        var referencedSymbol = context.GetDeclaration<DeclarationStatementSymbol>(identifier);
-        var semantic = context.GetSemantic<DeclarationStatementSemantic>(referencedSymbol);
+        var semantic = context.GetDeclarationSemantic(identifier);
 
         return semantic.Type;
     }
@@ -58,13 +72,13 @@ public static class ExpressionTypeResolver
                 break;
             case Symbols.OperatorType.Parse:
                 break;
-            case Symbols.OperatorType.Select:
+            case Symbols.OperatorType.SelectOld:
                 break;
             case Symbols.OperatorType.AnonymousType:
                 break;
             case Symbols.OperatorType.Filter:
                 break;
-            case Symbols.OperatorType.Project:
+            case Symbols.OperatorType.Select:
                 break;
             case Symbols.OperatorType.Transform:
                 break;
@@ -92,7 +106,7 @@ public static class ExpressionTypeResolver
                 break;
         }
 
-        throw new Exception();
+        throw new NotImplementedException();
         //return Type.GetType(symbol.Typ)
     }
 }

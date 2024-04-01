@@ -141,11 +141,11 @@ public class SubtractExpressionSymbol : BinaryExpressionSymbol
     }
 }
 
-public class DivideExprSymbol : BinaryExpressionSymbol
+public class DivideExpressionSymbol : BinaryExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Divide;
 
-    public DivideExprSymbol(
+    public DivideExpressionSymbol(
         StringSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
@@ -155,11 +155,11 @@ public class DivideExprSymbol : BinaryExpressionSymbol
     }
 }
 
-public class MultiplyExprSymbol : BinaryExpressionSymbol
+public class MultiplyExpressionSymbol : BinaryExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Multiply;
 
-    public MultiplyExprSymbol(
+    public MultiplyExpressionSymbol(
         StringSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
@@ -169,11 +169,11 @@ public class MultiplyExprSymbol : BinaryExpressionSymbol
     }
 }
 
-public class ModuloExprSymbol : BinaryExpressionSymbol
+public class ModuloExpressionSymbol : BinaryExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Modulo;
 
-    public ModuloExprSymbol(
+    public ModuloExpressionSymbol(
         StringSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
@@ -188,11 +188,11 @@ public class ModuloExprSymbol : BinaryExpressionSymbol
 //* relational expression symbols.
 //*
 
-public class EqualsExprSymbol : BinaryExpressionSymbol
+public class EqualsExpressionSymbol : BinaryExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Equals;
 
-    public EqualsExprSymbol(
+    public EqualsExpressionSymbol(
         StringSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
@@ -202,11 +202,11 @@ public class EqualsExprSymbol : BinaryExpressionSymbol
     }
 }
 
-public class NotEqualsExprSymbol : BinaryExpressionSymbol
+public class NotEqualsExpressionSymbol : BinaryExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.NotEquals;
 
-    public NotEqualsExprSymbol(
+    public NotEqualsExpressionSymbol(
         StringSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
@@ -216,11 +216,11 @@ public class NotEqualsExprSymbol : BinaryExpressionSymbol
     }
 }
 
-public class LessExprSymbol : BinaryExpressionSymbol
+public class LessExpressionSymbol : BinaryExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Less;
 
-    public LessExprSymbol(
+    public LessExpressionSymbol(
         StringSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
@@ -230,11 +230,11 @@ public class LessExprSymbol : BinaryExpressionSymbol
     }
 }
 
-public class LessEqualsExprSymbol : BinaryExpressionSymbol
+public class LessEqualsExpressionSymbol : BinaryExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.LessEquals;
 
-    public LessEqualsExprSymbol(
+    public LessEqualsExpressionSymbol(
         StringSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
@@ -244,11 +244,11 @@ public class LessEqualsExprSymbol : BinaryExpressionSymbol
     }
 }
 
-public class GreaterExprSymbol : BinaryExpressionSymbol
+public class GreaterExpressionSymbol : BinaryExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Greater;
 
-    public GreaterExprSymbol(
+    public GreaterExpressionSymbol(
         StringSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
@@ -258,11 +258,11 @@ public class GreaterExprSymbol : BinaryExpressionSymbol
     }
 }
 
-public class GreaterEqualsExprSymbol : BinaryExpressionSymbol
+public class GreaterEqualsExpressionSymbol : BinaryExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.GreaterEquals;
 
-    public GreaterEqualsExprSymbol(
+    public GreaterEqualsExpressionSymbol(
         StringSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
@@ -277,11 +277,11 @@ public class GreaterEqualsExprSymbol : BinaryExpressionSymbol
 //* pattern match expression symbols.
 //*
 
-public class LikeExprSymbol : BinaryExpressionSymbol
+public class LikeExpressionSymbol : BinaryExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Like;
 
-    public LikeExprSymbol(
+    public LikeExpressionSymbol(
         StringSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
@@ -381,7 +381,7 @@ public class FilterExpressionSymbol : PredicateExpressionSymbol
 
 public class ProjectionExpressionSymbol : PredicateExpressionSymbol
 {
-    public override OperatorType Operator { get; } = OperatorType.Project;
+    public override OperatorType Operator { get; } = OperatorType.Select;
 
     public ProjectionExpressionSymbol(
         StringSymbol destination,

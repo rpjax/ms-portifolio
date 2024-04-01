@@ -10,7 +10,7 @@ namespace ModularSystem.Webql.Analysis.Semantics.Visitors;
 /// because it allows for the semantic information to bubble up from the leaves to the root of the AST.
 /// Each node's semantic information is then stored in the SemanticTable for subsequent phases.
 /// </summary>
-public class SemanticsAnalysisVisitor : AstSemanticVisitor
+public class SemanticsAnalysisVisitor : BasicSemanticVisitor
 {
     public SemanticContext Run(AxiomSymbol symbol, Type[] rootArguments)
     {
@@ -31,18 +31,6 @@ public class SemanticsAnalysisVisitor : AstSemanticVisitor
         VisitAxiom(context, symbol);
 
         return context;
-    }
-
-    protected override DeclarationStatementSymbol VisitDeclaration(SemanticContext context, DeclarationStatementSymbol symbol)
-    {
-        symbol.AddDeclaration(context, symbol.Identifier);
-        symbol.AddSemantic(context, SemanticAnalyser.AnalyseDeclaration(context, symbol));
-        return base.VisitDeclaration(context, symbol);
-    }
-
-    protected override LambdaExpressionSymbol VisitLambdaExpression(SemanticContext context, LambdaExpressionSymbol symbol)
-    {
-        return base.VisitLambdaExpression(context, symbol);
     }
 
     protected override ExpressionSymbol VisitExpression(SemanticContext context, ExpressionSymbol symbol)

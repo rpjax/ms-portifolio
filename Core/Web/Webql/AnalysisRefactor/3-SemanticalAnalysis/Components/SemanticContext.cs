@@ -6,6 +6,16 @@ public class SemanticContext
 {
     private SymbolTable SymbolTable { get; } = new();
 
+    public SemanticContext(SymbolTable? symbolTable = null)
+    {
+        SymbolTable = symbolTable?.Copy() ?? new SymbolTable();
+    }
+
+    public SemanticContext CreateScopedContext()
+    {
+        return new SemanticContext(SymbolTable);
+    }
+
     public void AddSymbolSemantic(Symbol symbol, SymbolSemantic semantic)
     {
         if (SymbolTable.ContainsSemantic(symbol))

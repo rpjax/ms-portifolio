@@ -10,6 +10,7 @@ public class SymbolTable
         if (symbolTable is not null)
         {
             SemanticTable = symbolTable.SemanticTable.ToDictionary(x => x.Key, x => x.Value);
+            DeclarationTable = symbolTable.DeclarationTable.ToDictionary(x => x.Key, x => x.Value);
         }
     }
 

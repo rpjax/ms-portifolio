@@ -1,49 +1,10 @@
 ﻿using ModularSystem.Webql.Analysis.Symbols;
-using ModularSystem.Webql.Analysis.Syntax;
 using ModularSystem.Webql.Analysis.Tokens;
 
 namespace ModularSystem.Webql.Analysis.Parsing;
 
 public class OperatorExpressionParser : SyntaxParserBase
 {
-    private static Dictionary<OperatorType, OperatorProduction> ProductionsTable { get; } = CreateProductionsTable();
-
-    private static Dictionary<OperatorType, OperatorProduction> CreateProductionsTable()
-    {
-        var table = new Dictionary<Symbols.OperatorType, OperatorProduction>();
-
-        foreach (var op in OperatorHelper.GetUnaryOperators())
-        {
-            table[op] = new OperatorProduction(op, new[]
-            {
-                OperandType.StringLiteral,
-                OperandType.Expression,
-            });
-        }
-
-        foreach (var op in OperatorHelper.GetBinaryOperators())
-        {
-            table[op] = new OperatorProduction(op, new[]
-            {
-                OperandType.StringLiteral,
-                OperandType.Expression,
-                OperandType.Expression
-            });
-        }
-
-        foreach (var op in OperatorHelper.GetQueryOperators())
-        {
-            table[op] = new OperatorProduction(op, new[]
-            {
-                OperandType.StringLiteral,
-                OperandType.Expression,
-                OperandType.LambdaExpression
-            });
-        }
-
-        return table;
-    }
-
     public OperatorExpressionSymbol ParseOperatorExpression(ParsingContext context, ObjectPropertyToken property)
     {
         if (!OperatorTable.TryGetValue(property.Key, out var op))
@@ -124,7 +85,7 @@ public class OperatorExpressionParser : SyntaxParserBase
             case Symbols.OperatorType.Parse:
                 break;
 
-            case Symbols.OperatorType.Select:
+            case Symbols.OperatorType.SelectOld:
                 break;
 
             case Symbols.OperatorType.AnonymousType:
@@ -136,7 +97,7 @@ public class OperatorExpressionParser : SyntaxParserBase
             case Symbols.OperatorType.Filter:
                 return ParseFilterExpression(context, paramsArray);
 
-            case Symbols.OperatorType.Project:
+            case Symbols.OperatorType.Select:
                 return ParseProjectionExpression(context, paramsArray);
 
             case Symbols.OperatorType.Transform:
