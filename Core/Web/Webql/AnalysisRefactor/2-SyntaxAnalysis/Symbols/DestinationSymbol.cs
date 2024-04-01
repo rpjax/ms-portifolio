@@ -4,9 +4,14 @@ public class DestinationSymbol : Symbol
 {
     public string? Value { get; }
 
-    public DestinationSymbol(string? value)
+    public DestinationSymbol(StringSymbol symbol)
     {
-        Value = value;
+        Value = symbol.Value;
+    }
+
+    public DestinationSymbol(NullSymbol symbol)
+    {
+        Value = null;
     }
 
     public override string ToString()

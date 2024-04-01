@@ -9,8 +9,8 @@ public class StatementTranslator
     {
         if(symbol is OperatorExpressionSymbol exprSymbol)
         {
-            return new ExprTranslator()
-                .TranslateExpr(context, exprSymbol);
+            return new OperatorExpressionTranslator()
+                .TranslateOperatorExpression(context, exprSymbol);
         }
 
         throw new Exception();

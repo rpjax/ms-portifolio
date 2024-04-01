@@ -26,7 +26,7 @@ public class RootLambdasArgumentTypeFixer : AstSemanticVisitor
             return;
         }
 
-        VisitLambda(new SemanticContext(), symbol.Lambda);
+        VisitLambdaExpression(new SemanticContext(), symbol.Lambda);
 
         if (!ArgumentsFoud)
         {
@@ -34,7 +34,7 @@ public class RootLambdasArgumentTypeFixer : AstSemanticVisitor
         }
     }
 
-    protected override LambdaExpressionSymbol VisitLambda(SemanticContext context, LambdaExpressionSymbol symbol)
+    protected override LambdaExpressionSymbol VisitLambdaExpression(SemanticContext context, LambdaExpressionSymbol symbol)
     {
         if (ArgumentsTypes.Length != symbol.Parameters.Length)
         {

@@ -1,5 +1,6 @@
 ﻿using ModularSystem.Webql.Analysis.Semantics.Extensions;
 using ModularSystem.Webql.Analysis.Symbols;
+using ModularSystem.Webql.Analysis.Syntax;
 
 namespace ModularSystem.Webql.Analysis.Semantics.Visitors;
 
@@ -21,7 +22,7 @@ public class LambdaArgumentTypeFixer : AstSemanticVisitor
     public void Execute(LambdaExpressionSymbol symbol)
     {
         var context = new SemanticContext();
-        Visit(context, symbol);
+        VisitLambdaExpression(context, symbol);
     }
 
     protected override StatementBlockSymbol VisitStatementBlock(SemanticContext context, StatementBlockSymbol symbol)
@@ -37,10 +38,22 @@ public class LambdaArgumentTypeFixer : AstSemanticVisitor
 
     protected override ExpressionSymbol VisitOperatorExpression(SemanticContext context, OperatorExpressionSymbol symbol)
     {
-        if (symbol is QueryExpressionSymbol queryExpression)
+        var isQueryOperator = OperatorHelper
+            .GetQueryOperators()
+            .Contains(symbol.Operator);
+
+        if (symbol is PredicateExpressionSymbol queryExpression)
         {
             var source = queryExpression.Source;
             var lambda = queryExpression.Lambda;
+
+            ApplyFix(context, source, lambda);
+        }
+
+        if (isQueryOperator)
+        {
+            var source = symbol.Operands[1].As<ExpressionSymbol>(context);
+            var lambda = symbol.Operands[2].As<LambdaExpressionSymbol>(context);
 
             ApplyFix(context, source, lambda);
         }
@@ -62,7 +75,7 @@ public class LambdaArgumentTypeFixer : AstSemanticVisitor
         return base.VisitDeclaration(context, symbol);
     }
 
-    protected override ReferenceExpressionSymbol VisitReference(SemanticContext context, ReferenceExpressionSymbol symbol)
+    protected override ExpressionSymbol VisitReferenceExpression(SemanticContext context, ReferenceExpressionSymbol symbol)
     {
         //* creates the semantics object.
         var semantics = SemanticAnalyser.AnalyseReference(context, symbol);
@@ -70,7 +83,7 @@ public class LambdaArgumentTypeFixer : AstSemanticVisitor
         //* binds the semantics object to the symbol.
         symbol.AddSemantic(context, semantics);
 
-        return base.VisitReference(context, symbol);
+        return base.VisitReferenceExpression(context, symbol);
     }
 
     protected void ApplyFix(SemanticContext context, ExpressionSymbol source, LambdaExpressionSymbol lambdaSymbol)
@@ -101,8 +114,6 @@ public class LambdaArgumentTypeFixer : AstSemanticVisitor
         var elementType = reference.GetElementType(context);
 
         arg.SetType(elementType.AssemblyQualifiedName!);
-
-        Console.WriteLine();
     }
 
 }

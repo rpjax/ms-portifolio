@@ -2,11 +2,11 @@
 
 public class BinaryArgumentsSymbol : Symbol
 {
-    public DestinationSymbol Destination { get; }
+    public StringSymbol Destination { get; }
     public ExpressionSymbol LeftOperand { get; }
     public ExpressionSymbol RightOperand { get; }
 
-    public BinaryArgumentsSymbol(DestinationSymbol destination, ExpressionSymbol left, ExpressionSymbol right)
+    public BinaryArgumentsSymbol(StringSymbol destination, ExpressionSymbol left, ExpressionSymbol right)
     {
         Destination = destination;
         LeftOperand = left;

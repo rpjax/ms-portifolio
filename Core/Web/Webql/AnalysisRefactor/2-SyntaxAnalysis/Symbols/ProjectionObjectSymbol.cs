@@ -52,20 +52,18 @@ public class ProjectionObjectExprValueSymbol : Symbol
 {
     public enum ValueType
     {
-        Reference,
         ProjectionObject,
-        Expr
+        Expression
     }
 
     public ValueType Type { get; }
-    private ReferenceExpressionSymbol? Reference { get; }
     private ProjectionObjectSymbol? ProjectionObject { get; }
-    private OperatorExpressionSymbol? Expr { get; }
+    private ExpressionSymbol? Expression { get; }
 
-    public ProjectionObjectExprValueSymbol(ReferenceExpressionSymbol reference)
+    public ProjectionObjectExprValueSymbol(ExpressionSymbol expression)
     {
-        Type = ValueType.Reference;
-        Reference = reference;
+        Type = ValueType.Expression;
+        Expression = expression;
     }
 
     public ProjectionObjectExprValueSymbol(ProjectionObjectSymbol projectionObject)
@@ -74,26 +72,17 @@ public class ProjectionObjectExprValueSymbol : Symbol
         ProjectionObject = projectionObject;
     }
 
-    public ProjectionObjectExprValueSymbol(OperatorExpressionSymbol expr)
-    {
-        Type = ValueType.Expr;
-        Expr = expr;
-    }
-
-    public ReferenceExpressionSymbol GetReference() => Reference!;
     public ProjectionObjectSymbol GetProjectionObject() => ProjectionObject!;
-    public OperatorExpressionSymbol GetExpr() => Expr!;
+    public ExpressionSymbol GetExpression() => Expression!;
 
     public override string ToString()
     {
         switch (Type)
         {
-            case ValueType.Reference:
-                return Reference!.ToString();
             case ValueType.ProjectionObject:
                 return ProjectionObject!.ToString();
-            case ValueType.Expr:
-                return Expr!.ToString();
+            case ValueType.Expression:
+                return Expression!.ToString();
             default:
                 throw new InvalidOperationException();
         }

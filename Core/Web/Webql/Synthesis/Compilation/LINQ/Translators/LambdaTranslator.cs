@@ -9,8 +9,8 @@ public class LambdaTranslator
 {
     public LambdaExpression TranslateLambda(TranslationContext context, LambdaExpressionSymbol symbol)
     {
-        var paramExprs = new LambdaArgumentTranslator()
-            .TranslateLambdaArguments(context, symbol.Parameters);
+        var paramExprs = new LambdaParamsTranslator()
+            .TranslateLambdaParams(context, symbol.Parameters);
 
         var bodyExpr = new StatementBlockTranslator()
             .TranslateStatementBlock(context, symbol.Body);
@@ -20,18 +20,18 @@ public class LambdaTranslator
 
 }
 
-public class ExprTranslator
+public class OperatorExpressionTranslator
 {
-    public Expression TranslateExpr(TranslationContext context, OperatorExpressionSymbol expr)
+    public Expression TranslateOperatorExpression(TranslationContext context, OperatorExpressionSymbol expr)
     {
         //*
         // arithmetic ops.
         //*
 
-        if (expr is AddExprSymbol addExpr)
+        if (expr is AddExpressionSymbol addExpr)
         {
-            return new ArithmeticExprTranslator()
-                .TranslateAddExpr(context, addExpr);
+            return ArithmeticExpressionTranslator
+                .TranslateAddExpression(context, addExpr);
         }
 
         //*
@@ -50,7 +50,7 @@ public class ExprTranslator
 
 public class DestinationTranslator
 {
-    public string? TranslateDestination(TranslationContext context, DestinationSymbol destination)
+    public string? TranslateDestination(TranslationContext context, StringSymbol destination)
     {
         return destination.Value;
     }
@@ -70,30 +70,9 @@ public class BinaryArgumentsExpression
     }
 }
 
-public class BinaryArgumentsTranslator
+public static class ArithmeticExpressionTranslator
 {
-    public BinaryArgumentsExpression TranslateBinaryArguments(TranslationContext context, BinaryArgumentsSymbol symbol)
-    {
-        var destination = new DestinationTranslator()
-            .TranslateDestination(context, symbol.Destination);
-
-        var left = new ExpressionTranslator()
-            .TranslateExpression(context, symbol.LeftOperand);
-
-        var right = new ExpressionTranslator()
-            .TranslateExpression(context, symbol.RightOperand);
-
-        return new BinaryArgumentsExpression(
-            destination: destination,
-            left: left,
-            right: right
-        );
-    }
-}
-
-public class ArithmeticExprTranslator
-{
-    public Expression TranslateAddExpr(TranslationContext context, AddExprSymbol addExpr)
+    public static Expression TranslateAddExpression(TranslationContext context, AddExpressionSymbol addExpr)
     {
         var destination = new DestinationTranslator()
             .TranslateDestination(context, addExpr.Destination);
@@ -150,7 +129,7 @@ public class PatternRelationalExprTranslator
 
 public class QueryExprTranslator
 {
-    public Expression TranslateFilterExpr(TranslationContext context, FilterExprSymbol filterExpr)
+    public Expression TranslateFilterExpr(TranslationContext context, FilterExpressionSymbol filterExpr)
     {
         var destination = new DestinationTranslator()
             .TranslateDestination(context, filterExpr.Destination);
@@ -162,7 +141,7 @@ public class QueryExprTranslator
             .TranslateLambda(context, filterExpr.Lambda);
 
         var sourceSemantics = filterExpr.Source
-            .GetSemantics<ArgumentSemantic>(context);
+            .GetSemantic<ExpressionSemantic>(context);
 
         var methodInfo = new TranslationOptions().LinqProvider
            .GetWhereMethodInfo(context, sourceSemantics);

@@ -5,7 +5,8 @@ public enum ExpressionType
     Literal,
     Reference,
     Operator,
-    Lambda
+    Lambda,
+    TypeProjection
 }
 
 public abstract class ExpressionSymbol : StatementSymbol

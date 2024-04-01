@@ -66,19 +66,19 @@ public class ArrayParser
         return ConsumeNextToken<NumberToken>(context);
     }
 
+    public BoolToken ConsumeNextBoolToken(ParsingContext context)
+    {
+        return ConsumeNextToken<BoolToken>(context);
+    }
+
+    public NullToken ConsumeNextNullToken(ParsingContext context)
+    {
+        return ConsumeNextToken<NullToken>(context);
+    }
+
     //*
     // parser methods.
     //*
-
-    public ExpressionSymbol ParseNextReference(ParsingContext context)
-    {
-        return SyntaxParser.ParseReference(context, ConsumeNextStringToken(context));
-    }
-
-    public DestinationSymbol ParseNextDestination(ParsingContext context)
-    {
-        return SyntaxParser.ParseDestination(context, ConsumeNextStringToken(context));
-    }
 
     public StringSymbol ParseNextStringLiteral(ParsingContext context)
     {
@@ -92,6 +92,17 @@ public class ArrayParser
             .As<NumberSymbol>(context);
     }
 
+    /// <summary>
+    /// This parsing has a limitation due to the lexical analysis rely on a JSON parser to produce the tokens. <br/>
+    /// Ex: an expression could be: literal_expression | operator_expression | reference_expression | lambda_expression; <br/>
+    /// However a JSON array can only contain predefined values such as: 5, "string", true, { ... }, [...], null; <br/>
+    /// So it's limited in how those expressions can be represented. <br/>
+    /// In this context a statement_block, defined by an object: "{ statements }", <br/>
+    /// could be interpreted as an expression_block, adding a semantic meaning that the block itself resolves to a value: "{ expressions }" <br/>
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public ExpressionSymbol ParseNextExpression(ParsingContext context)
     {
         var token = ConsumeNextToken(context);
@@ -128,9 +139,9 @@ public class ArrayParser
         return SyntaxParser.ParseStatementBlock(context, ConsumeNextObjectToken(context));
     }
 
-    public ProjectionObjectSymbol ParseNextProjectionObject(ParsingContext context)
+    public TypeProjectionExpressionSymbol ParseNextTypeProjection(ParsingContext context)
     {
-        return SyntaxParser.ParseProjectionObject(context, ConsumeNextObjectToken(context));
+        return SyntaxParser.ParseTypeProjection(context, ConsumeNextObjectToken(context));
     }
 
     public ExpressionSymbol[] ParseNextExpressionArray(ParsingContext context)

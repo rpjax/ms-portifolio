@@ -20,7 +20,7 @@ public class LambdaParser
         var parser = new ArrayParser(token);
 
         var @params = parser.ParseNextDeclarationArray(context);
-        var body = parser.ParseNextProjectionObject(context);
+        var body = parser.ParseNextTypeProjection(context);
 
         return new ProjectionLambdaSymbol(@params, body);
     }

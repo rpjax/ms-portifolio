@@ -9,7 +9,7 @@ public class BinaryArgumentsParser : SyntaxParserBase
     {
         var parser = new ArrayParser(token);
 
-        var destination = parser.ParseNextDestination(context);
+        var destination = parser.ParseNextStringLiteral(context);
         var left = parser.ParseNextExpression(context);
         var right = parser.ParseNextExpression(context);
 

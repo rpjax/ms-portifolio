@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Webql.Analysis.Parsing;
+using ModularSystem.Webql.Analysis.Semantics;
 using ModularSystem.Webql.Analysis.Semantics.Visitors;
 using ModularSystem.Webql.Analysis.Tokenization;
 using ModularSystem.Webql.Analysis.Tokens;
@@ -30,14 +31,8 @@ public static class Program
         var axiom = new AxiomParser()
             .ParseAxiom(new ParsingContext(), (ArrayToken)token);
 
-        new RootLambdasArgumentTypeFixer(new Type[] { source.GetType() })
-            .Execute(axiom);
-
-        new LambdaArgumentTypeFixer()
-            .Execute(axiom.Lambda);
-
-        new SemanticsAnalysisVisitor()
-            .Run(axiom);
+        var context = new SemanticsAnalysisVisitor()
+            .Run(axiom, new Type[] { source.GetType() });   
 
         Console.WriteLine(axiom); ;
     }

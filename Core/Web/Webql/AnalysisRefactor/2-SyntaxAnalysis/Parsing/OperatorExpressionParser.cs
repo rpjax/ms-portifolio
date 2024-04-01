@@ -6,9 +6,9 @@ namespace ModularSystem.Webql.Analysis.Parsing;
 
 public class OperatorExpressionParser : SyntaxParserBase
 {
-    private static Dictionary<Symbols.OperatorType, OperatorProduction> ProductionsTable { get; } = CreateProductionsTable();
+    private static Dictionary<OperatorType, OperatorProduction> ProductionsTable { get; } = CreateProductionsTable();
 
-    private static Dictionary<Symbols.OperatorType, OperatorProduction> CreateProductionsTable()
+    private static Dictionary<OperatorType, OperatorProduction> CreateProductionsTable()
     {
         var table = new Dictionary<Symbols.OperatorType, OperatorProduction>();
 
@@ -31,6 +31,16 @@ public class OperatorExpressionParser : SyntaxParserBase
             });
         }
 
+        foreach (var op in OperatorHelper.GetQueryOperators())
+        {
+            table[op] = new OperatorProduction(op, new[]
+            {
+                OperandType.StringLiteral,
+                OperandType.Expression,
+                OperandType.LambdaExpression
+            });
+        }
+
         return table;
     }
 
@@ -40,60 +50,27 @@ public class OperatorExpressionParser : SyntaxParserBase
         {
             throw new ParsingException("", context);
         }
-        if (!ProductionsTable.TryGetValue(op, out var production))
-        {
-            throw new ParsingException("", context);
-        }
 
         var paramsArray = CastToken<ArrayToken>(context, property.Value);
-        var parser = new ArrayParser(paramsArray);
-        var operands = new List<ExpressionSymbol>();
-
-        foreach (var operandType in production.OperandTypes)
-        {
-            var operand = null as ExpressionSymbol;
-
-            switch (operandType)
-            {
-                case OperandType.Expression:
-                    operand = parser.ParseNextExpression(context);
-                    break;
-
-                case OperandType.StringLiteral:
-                    operand = parser.ParseNextStringLiteral(context);
-                    break;
-
-                case OperandType.NumberLiteral:
-                    operand = parser.ParseNextNumberLiteral(context);
-                    break;
-
-                case OperandType.LambdaExpression:
-                    operand = parser.ParseNextLambda(context);
-                    break;
-            }
-        }
-
-        var exp = new OpExpressionSymbol(op, operands.ToArray());
-        Console.WriteLine();
 
         switch (op)
         {
             //* 
             //* 
             //* arithmetic expressions parsing.
-            case Symbols.OperatorType.Add:
-                return ParseAddExpr(context, paramsArray);
+            case OperatorType.Add:
+                return ParseAddExpression(context, paramsArray);
 
-            case Symbols.OperatorType.Subtract:
-                return ParseSubtractExpr(context, paramsArray);
+            case OperatorType.Subtract:
+                return ParseSubtractExpression(context, paramsArray);
 
-            case Symbols.OperatorType.Divide:
+            case OperatorType.Divide:
                 break;
 
-            case Symbols.OperatorType.Multiply:
+            case OperatorType.Multiply:
                 break;
 
-            case Symbols.OperatorType.Modulo:
+            case OperatorType.Modulo:
                 break;
 
             //* 
@@ -151,16 +128,16 @@ public class OperatorExpressionParser : SyntaxParserBase
                 break;
 
             case Symbols.OperatorType.Type:
-                return ParseTypeExpr(context, paramsArray);
+                return ParseTypeExpression(context, paramsArray);
 
             //* 
             //* 
             //* query expressions parsing.
             case Symbols.OperatorType.Filter:
-                return ParseFilterExpr(context, paramsArray);
+                return ParseFilterExpression(context, paramsArray);
 
             case Symbols.OperatorType.Project:
-                return ParseProjectionExpr(context, paramsArray);
+                return ParseProjectionExpression(context, paramsArray);
 
             case Symbols.OperatorType.Transform:
                 break;
@@ -212,23 +189,23 @@ public class OperatorExpressionParser : SyntaxParserBase
     //* arithmetic expressions parsing.
     //*
 
-    private AddExprSymbol ParseAddExpr(ParsingContext context, ArrayToken token)
+    private AddExpressionSymbol ParseAddExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
-        return new AddExprSymbol(
-            destination: parser.ParseNextDestination(context),
+        return new AddExpressionSymbol(
+            destination: parser.ParseNextStringLiteral(context),
             left: parser.ParseNextExpression(context),
             right: parser.ParseNextExpression(context)
         );
     }
 
-    private SubtractExprSymbol ParseSubtractExpr(ParsingContext context, ArrayToken token)
+    private SubtractExpressionSymbol ParseSubtractExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
-        return new SubtractExprSymbol(
-           destination: parser.ParseNextDestination(context),
+        return new SubtractExpressionSymbol(
+            destination: parser.ParseNextStringLiteral(context),
             left: parser.ParseNextExpression(context),
             right: parser.ParseNextExpression(context)
         );
@@ -249,34 +226,34 @@ public class OperatorExpressionParser : SyntaxParserBase
     //* logical expressions parsing.
     //*
 
-    public AndExprSymbol ParseAndExpr(ParsingContext context, ArrayToken token)
+    public AndExpressionSymbol ParseAndExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
-        var destination = parser.ParseNextDestination(context);
-        var args = parser.ParseNextExpressionArray(context);
-
-        return new AndExprSymbol(destination, args);
+        return new AndExpressionSymbol(
+            destination: parser.ParseNextStringLiteral(context),
+            expressions: parser.ParseNextExpressionArray(context)
+        );
     }
 
-    public OrExprSymbol ParseOrExpr(ParsingContext context, ArrayToken token)
+    public OrExpressionSymbol ParseOrExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
-        var destination = parser.ParseNextDestination(context);
-        var args = parser.ParseNextExpressionArray(context);
-
-        return new OrExprSymbol(destination, args);
+        return new OrExpressionSymbol(
+            destination: parser.ParseNextStringLiteral(context), 
+            expressions: parser.ParseNextExpressionArray(context)
+        );
     }
 
-    public NotExprSymbol ParseNotExpr(ParsingContext context, ArrayToken token)
+    public NotExpressionSymbol ParseNotExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
-        var destination = parser.ParseNextDestination(context);
-        var arg = parser.ParseNextExpression(context);
-
-        return new NotExprSymbol(destination, arg);
+        return new NotExpressionSymbol(
+            destination: parser.ParseNextStringLiteral(context), 
+            expression: parser.ParseNextExpression(context)
+        );
     }
 
     //*
@@ -284,12 +261,14 @@ public class OperatorExpressionParser : SyntaxParserBase
     //* semantic expressions parsing.
     //*
 
-    private TypeExprSymbol ParseTypeExpr(ParsingContext context, ArrayToken token)
+    private TypeExpressionSymbol ParseTypeExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
-        var lambda = parser.ParseNextProjectionObject(context);
 
-        return new TypeExprSymbol(lambda);
+        return new TypeExpressionSymbol(
+            destination: parser.ParseNextStringLiteral(context),
+            typeProjection: parser.ParseNextTypeProjection(context)
+        );
     }
 
     //*
@@ -297,26 +276,26 @@ public class OperatorExpressionParser : SyntaxParserBase
     //* query expressions parsing.
     //*
 
-    private FilterExprSymbol ParseFilterExpr(ParsingContext context, ArrayToken token)
+    private FilterExpressionSymbol ParseFilterExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
-        var destination = parser.ParseNextDestination(context);
-        var source = parser.ParseNextExpression(context);
-        var lambda = parser.ParseNextLambda(context);
-
-        return new FilterExprSymbol(destination, source, lambda);
+        return new FilterExpressionSymbol(
+            destination: parser.ParseNextStringLiteral(context),
+            source: parser.ParseNextExpression(context), 
+            lambda: parser.ParseNextLambda(context)
+        );
     }
 
-    private ProjectionExprSymbol ParseProjectionExpr(ParsingContext context, ArrayToken token)
+    private ProjectionExpressionSymbol ParseProjectionExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
-        var destination = parser.ParseNextDestination(context);
-        var source = parser.ParseNextExpression(context);
-        var lambda = parser.ParseNextLambda(context);
-
-        return new ProjectionExprSymbol(destination, source, lambda);
+        return new ProjectionExpressionSymbol(
+            destination: parser.ParseNextStringLiteral(context),
+            source: parser.ParseNextExpression(context),
+            lambda: parser.ParseNextLambda(context)
+        );
     }
 
     //*
@@ -334,10 +313,10 @@ public class OperatorExpressionParser : SyntaxParserBase
 
     class OperatorProduction
     {
-        public Symbols.OperatorType Operator { get; }
+        public OperatorTypeOld Operator { get; }
         public OperandType[] OperandTypes { get; }
 
-        public OperatorProduction(Symbols.OperatorType @operator, OperandType[] operandTypes)
+        public OperatorProduction(OperatorTypeOld @operator, OperandType[] operandTypes)
         {
             Operator = @operator;
             OperandTypes = operandTypes;

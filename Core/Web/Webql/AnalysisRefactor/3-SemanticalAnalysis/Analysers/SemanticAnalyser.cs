@@ -13,31 +13,9 @@ public static class SemanticAnalyser
            ?? throw new Exception();
     }
 
-    public static SymbolSemantic? TryAnalyse(SemanticContext context, Symbol symbol)
+    public static LambdaExpressionSemantic AnalyseLambda(SemanticContext context, LambdaExpressionSymbol symbol)
     {
-        if(symbol is LambdaExpressionSymbol lambdaSymbol)
-        {
-            return AnalyseLambda(context, lambdaSymbol);
-        }
-        if(symbol is DeclarationStatementSymbol declarationSymbol)
-        {
-            return AnalyseDeclaration(context, declarationSymbol);
-        }
-        if (symbol is StatementBlockSymbol statementBlockSymbol)
-        {
-            return AnalyseStatementBlock(context, statementBlockSymbol);
-        }
-        if (symbol is ReferenceExpressionSymbol referenceSymbol)
-        {
-            return AnalyseReference(context, referenceSymbol);
-        }
-
-        return null;
-    }
-
-    public static LambdaSemantic AnalyseLambda(SemanticContext context, LambdaExpressionSymbol symbol)
-    {
-        if (GetCachedSemantics<LambdaSemantic>(context, symbol, out var cached))
+        if (GetCachedSemantics<LambdaExpressionSemantic>(context, symbol, out var cached))
         {
             return cached;
         }
@@ -69,10 +47,9 @@ public static class SemanticAnalyser
             .AnalyseStatementBlock(context, symbol);
     }
 
-    public static ReferenceExpressionSemantic AnalyseReference(SemanticContext context, ReferenceExpressionSymbol symbol)
+    public static ExpressionSemantic AnalyseExpression(SemanticContext context, ExpressionSymbol symbol)
     {
-        return new ReferenceExpressionAnalyser()
-            .AnalyseReferenceExpression(context, symbol);
+        return ExpressionAnalyser.Analyse(context, symbol);
     }
 
     //*
@@ -96,6 +73,128 @@ public static class SemanticAnalyser
             value = null;
             return false;
         }
+    }
+
+}
+
+public static class ExpressionAnalyser
+{
+    public static ExpressionSemantic Analyse(SemanticContext context, ExpressionSymbol symbol)
+    {
+        switch (symbol.ExpressionType)
+        {
+            case ExpressionType.Literal:
+                return AnalyseLiteralExpression(context, (LiteralExpressionSymbol)symbol);
+
+            case ExpressionType.Reference:
+                return AnalyseReferenceExpression(context, (ReferenceExpressionSymbol)symbol);
+
+            case ExpressionType.Operator:
+                return AnalyseOperatorExpression(context, (OperatorExpressionSymbol)symbol);
+
+            case ExpressionType.Lambda:
+                return AnalyseLambdaExpression(context, (LambdaExpressionSymbol)symbol);
+
+            case ExpressionType.TypeProjection:
+                return AnalyseTypeProjectionExpression(context, (TypeProjectionExpressionSymbol)symbol);
+        }
+
+        throw new Exception();
+    }
+
+    public static LiteralExpressionSemantic AnalyseLiteralExpression(
+        SemanticContext context,
+        LiteralExpressionSymbol symbol)
+    {
+        switch (symbol.LiteralType)
+        {
+            case LiteralType.Null:
+                return AnalyseNullLiteral(context, (NullSymbol) symbol);
+
+            case LiteralType.String:
+                return AnalyseStringLiteral(context, (StringSymbol)symbol);
+
+            case LiteralType.Bool:
+                return AnalyseBoolLiteral(context, (BoolSymbol)symbol);
+
+            case LiteralType.Number:
+                return AnalyseNumberLiteral(context, (NumberSymbol)symbol);
+        }
+
+        throw new Exception();
+    }
+
+    public static ReferenceExpressionSemantic AnalyseReferenceExpression(
+        SemanticContext context, 
+        ReferenceExpressionSymbol symbol)
+    {
+        var identifier = symbol.GetNormalizedValue();
+        var semantic = context.GetDeclarationSemantic(identifier);
+
+        return new ReferenceExpressionSemantic(
+            type: semantic.Type
+        );
+    }
+
+    public static OperatorExpressionSemantic AnalyseOperatorExpression(
+        SemanticContext context, 
+        OperatorExpressionSymbol symbol)
+    {
+        return new OperatorExpressionSemantic(
+            type: null
+        );
+    }
+
+    public static LambdaExpressionSemantic AnalyseLambdaExpression(
+        SemanticContext context, 
+        LambdaExpressionSymbol symbol
+    )
+    {
+        return new LambdaExpressionSemantic(
+            parameterTypes: null,
+            returnType: null
+        );
+    }
+
+    public static TypeProjectionExpressionSemantic AnalyseTypeProjectionExpression(
+        SemanticContext context, 
+        TypeProjectionExpressionSymbol symbol)
+    {
+        return new TypeProjectionExpressionSemantic(
+            type: null
+        );
+    }
+
+    //*
+    //* literal expression sub-types semantic analysis.
+    //*
+
+    public static LiteralExpressionSemantic AnalyseNullLiteral(SemanticContext context,  NullSymbol symbol)
+    {
+        return new LiteralExpressionSemantic(
+            type: typeof(Nullable)
+        );
+    }
+
+    public static LiteralExpressionSemantic AnalyseStringLiteral(SemanticContext context, StringSymbol symbol)
+    {
+        return new LiteralExpressionSemantic(
+            type: typeof(string)
+        );
+    }
+
+    public static LiteralExpressionSemantic AnalyseBoolLiteral(SemanticContext context, BoolSymbol symbol)
+    {
+        return new LiteralExpressionSemantic(
+            type: typeof(bool)
+        );
+    }
+
+    public static LiteralExpressionSemantic AnalyseNumberLiteral(SemanticContext context, NumberSymbol symbol)
+    {
+        return new LiteralExpressionSemantic(
+            type: typeof(int)
+        );
     }
 
 }

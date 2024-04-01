@@ -78,7 +78,7 @@ public enum OperatorOld
 /// <summary>
 /// All operators that accept and return a queryable.
 /// </summary>
-public enum OperatorType
+public enum OperatorTypeOld
 {
     Arithmetic,
     Relational,

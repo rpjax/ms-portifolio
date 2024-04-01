@@ -104,7 +104,7 @@ internal class ImplicitAndSyntaxFeature : SemanticsVisitor
         {
             var op = ParseOperatorString(context, expression.Lhs.Value);
             var operatorType = WebqlHelper.GetOperatorType(op);
-            var operatorIsQueryable = operatorType == OperatorType.Queryable;
+            var operatorIsQueryable = operatorType == OperatorTypeOld.Queryable;
 
             if(operatorIsQueryable)
             {

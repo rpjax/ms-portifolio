@@ -139,7 +139,7 @@ public static class WebqlHelper
             ?? throw new TranslationException("", context);
     }
 
-    public static OperatorType GetOperatorType(OperatorOld op)
+    public static OperatorTypeOld GetOperatorType(OperatorOld op)
     {
         switch (op)
         {
@@ -148,7 +148,7 @@ public static class WebqlHelper
             case OperatorOld.Divide:
             case OperatorOld.Multiply:
             case OperatorOld.Modulo:
-                return OperatorType.Arithmetic;
+                return OperatorTypeOld.Arithmetic;
 
             case OperatorOld.Equals:
             case OperatorOld.NotEquals:
@@ -156,20 +156,20 @@ public static class WebqlHelper
             case OperatorOld.LessEquals:
             case OperatorOld.Greater:
             case OperatorOld.GreaterEquals:
-                return OperatorType.Relational;
+                return OperatorTypeOld.Relational;
 
             case OperatorOld.Like:
             case OperatorOld.RegexMatch:
-                return OperatorType.PatternRelational;
+                return OperatorTypeOld.PatternRelational;
 
             case OperatorOld.Or:
             case OperatorOld.And:
             case OperatorOld.Not:
-                return OperatorType.Logical;
+                return OperatorTypeOld.Logical;
 
             case OperatorOld.Expr:
             case OperatorOld.Literal:
-                return OperatorType.Semantic;
+                return OperatorTypeOld.Semantic;
 
             case OperatorOld.Select:
             case OperatorOld.Filter:
@@ -180,7 +180,7 @@ public static class WebqlHelper
             case OperatorOld.Skip:
             case OperatorOld.Any:
             case OperatorOld.All:
-                return OperatorType.Queryable;
+                return OperatorTypeOld.Queryable;
 
             case OperatorOld.Count:
             case OperatorOld.Index:
@@ -188,7 +188,7 @@ public static class WebqlHelper
             case OperatorOld.Max:
             case OperatorOld.Sum:
             case OperatorOld.Average:
-                return OperatorType.Aggregation;
+                return OperatorTypeOld.Aggregation;
 
             default:
                 throw new InvalidOperationException();
@@ -261,9 +261,9 @@ public static class WebqlHelper
         var opType = GetOperatorType(@operator);
 
         return
-            opType == OperatorType.Relational
-            || opType == OperatorType.PatternRelational
-            || opType == OperatorType.Logical;
+            opType == OperatorTypeOld.Relational
+            || opType == OperatorTypeOld.PatternRelational
+            || opType == OperatorTypeOld.Logical;
     }
 
 }

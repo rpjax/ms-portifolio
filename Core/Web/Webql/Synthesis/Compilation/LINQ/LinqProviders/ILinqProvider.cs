@@ -16,7 +16,7 @@ public interface ILinqProvider
     //*
     // Queryable LINQ methods. (returns the queryable itself, without materializing it)
     //*
-    MethodInfo GetWhereMethodInfo(TranslationContext context, ArgumentSemantic semantics);
+    MethodInfo GetWhereMethodInfo(TranslationContext context, ExpressionSemantic semantics);
     MethodInfo GetSelectMethodInfo(TranslationContextOld context, QueryArgumentExpression source, Type resultType);
     MethodInfo GetTakeMethodInfo(TranslationContextOld context, QueryArgumentExpression source);
     MethodInfo GetSkipMethodInfo(TranslationContextOld context, QueryArgumentExpression source);

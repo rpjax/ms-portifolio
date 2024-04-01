@@ -124,7 +124,7 @@ public class SemanticsVisitor
             }
 
             var opType = WebqlHelper.GetOperatorType(op.Value);
-            var operatorIsQueryable = opType == OperatorType.Queryable;
+            var operatorIsQueryable = opType == OperatorTypeOld.Queryable;
             var contextIsQueryable = context.IsQueryable();
 
             if (op == OperatorOld.Project)

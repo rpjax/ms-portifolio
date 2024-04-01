@@ -12,12 +12,19 @@ public class DeclarationStatementSymbol : StatementSymbol
     public string? Type { get; internal set; }
     public string Identifier { get; internal set; }
     public string[] Modifiers { get; internal set; }
+    public ExpressionSymbol? Value { get; internal set; }
 
-    public DeclarationStatementSymbol(string? type, string identifier, string[]? modifiers = null)
+    public DeclarationStatementSymbol(
+        string? type, 
+        string identifier, 
+        string[]? modifiers = null, 
+        ExpressionSymbol? value = null
+    )
     {
         Type = type;
         Identifier = identifier;
         Modifiers = modifiers ?? Array.Empty<string>();
+        Value = value;
     }
 
     public override string ToString()

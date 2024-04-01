@@ -43,7 +43,7 @@ public class BoolToken : ValueToken
 
 public class NumberToken : ValueToken
 {
-    public override ValueType ValueType { get; } = ValueType.Null;
+    public override ValueType ValueType { get; } = ValueType.Number;
     public string Value { get; }
 
     public NumberToken(string value)

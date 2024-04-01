@@ -76,4 +76,16 @@ public class SemanticContext
 
         return semantics;
     }
+
+    public DeclarationStatementSymbol GetDeclaration(string identifier)
+    {
+        return GetDeclaration<DeclarationStatementSymbol>(identifier);
+    }
+
+    public DeclarationStatementSemantic GetDeclarationSemantic(string identifier)
+    {
+        return GetSemantic<DeclarationStatementSemantic>(
+            symbol: GetDeclaration<DeclarationStatementSymbol>(identifier)
+        );
+    }
 }

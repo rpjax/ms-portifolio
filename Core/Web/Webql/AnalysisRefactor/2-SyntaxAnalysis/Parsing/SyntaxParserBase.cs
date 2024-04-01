@@ -5,15 +5,15 @@ namespace ModularSystem.Webql.Analysis.Parsing;
 
 public abstract class SyntaxParserBase
 {
-    public static IReadOnlyDictionary<string, Symbols.OperatorType> OperatorTable { get; } = CreateOperatorTable();
+    public static IReadOnlyDictionary<string, OperatorType> OperatorTable { get; } = CreateOperatorTable();
 
-    public static string Stringify(Symbols.OperatorType op)
+    public static string Stringify(OperatorType op)
     {
         //return $"${op.ToString().ToCamelCase()}";
         return $"${op.ToString().ToLower()}";
     }
 
-    private static IReadOnlyDictionary<string, Symbols.OperatorType> CreateOperatorTable()
+    private static IReadOnlyDictionary<string, OperatorType> CreateOperatorTable()
     {
         var ops = Enum
             .GetValues(typeof(OperatorType))
@@ -24,7 +24,7 @@ public abstract class SyntaxParserBase
             .Select(op => Stringify(op))
             .ToArray();
 
-        var dic = new Dictionary<string, Symbols.OperatorType>();
+        var dic = new Dictionary<string, OperatorType>();
 
         for (int i = 0; i < ops.Length; i++)
         {
@@ -47,9 +47,9 @@ public abstract class SyntaxParserBase
         return result;
     }
 
-    protected Symbols.OperatorType? TryParseExprOp(string str)
+    protected OperatorType? TryParseExprOp(string str)
     {
-        if(OperatorTable.TryGetValue(str, out Symbols.OperatorType op))
+        if(OperatorTable.TryGetValue(str, out OperatorType op))
         {
             return op;
         }

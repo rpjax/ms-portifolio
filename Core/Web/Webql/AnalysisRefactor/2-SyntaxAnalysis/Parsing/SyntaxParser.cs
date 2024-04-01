@@ -35,10 +35,16 @@ public static class SyntaxParser
             .ParseStatementBlock(context, token);
     }
 
-    public static ProjectionObjectSymbol ParseProjectionObject(ParsingContext context, ObjectToken token)
+    public static StatementSymbol ParseStatement(ParsingContext context, ObjectPropertyToken token)
     {
-        return new ProjectionObjectParser()
-            .ParseProjectionObject(context, token);
+        return new StatementParser()
+            .ParseStatement(context, token);
+    }
+
+    public static TypeProjectionExpressionSymbol ParseTypeProjection(ParsingContext context, ObjectToken token)
+    {
+        return new TypeExpressionParser()
+            .ParseTypeExpression(context, token);
     }
 
     public static ExpressionSymbol ParseExpression(ParsingContext context, ObjectPropertyToken token)

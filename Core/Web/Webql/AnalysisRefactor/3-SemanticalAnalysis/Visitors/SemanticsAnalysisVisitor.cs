@@ -12,36 +12,38 @@ namespace ModularSystem.Webql.Analysis.Semantics.Visitors;
 /// </summary>
 public class SemanticsAnalysisVisitor : AstSemanticVisitor
 {
-    public void Run(Symbol symbol)
+    public void Run(AxiomSymbol symbol, Type[] rootArguments)
     {
-        var context = new SemanticContext();
-        Visit(context, symbol);
-    }
-
-    /// <summary>
-    /// Visits an AST symbol and performs semantic analysis.
-    /// </summary>
-    /// <param name="context">The semantic analysis context containing the semantic table.</param>
-    /// <param name="symbol">The symbol to visit and analyze.</param>
-    /// <returns>The symbol, possibly with updated semantic information.</returns>
-    protected override Symbol Visit(SemanticContext context, Symbol symbol)
-    {
-        // After visiting all children, we try to analyze the current symbol.
-        var semantics = SemanticAnalyser.TryAnalyse(context, symbol);
-
-        // If semantic analysis was successful, associate the derived semantics with the symbol.
-        if (semantics is not null)
+        if(symbol.Lambda is null)
         {
-            symbol.AddSemantic(context, semantics);
+            return;
         }
 
-        // Perform the base visit, which will recursively analyze child symbols first.
-        return base.Visit(context, symbol);
+        var context = new SemanticContext();
+
+        new RootLambdasArgumentTypeFixer(rootArguments)
+            .Execute(symbol);
+
+        new LambdaArgumentTypeFixer()
+            .Execute(symbol.Lambda);
+
+        VisitAxiom(context, symbol);
     }
 
     protected override DeclarationStatementSymbol VisitDeclaration(SemanticContext context, DeclarationStatementSymbol symbol)
     {
         symbol.AddDeclaration(context, symbol.Identifier);
         return base.VisitDeclaration(context, symbol);
+    }
+
+    protected override LambdaExpressionSymbol VisitLambdaExpression(SemanticContext context, LambdaExpressionSymbol symbol)
+    {
+        return base.VisitLambdaExpression(context, symbol);
+    }
+
+    protected override ExpressionSymbol VisitExpression(SemanticContext context, ExpressionSymbol symbol)
+    {
+        var semantic = SemanticAnalyser.AnalyseExpression(context, symbol);
+        return base.VisitExpression(context, symbol);
     }
 }

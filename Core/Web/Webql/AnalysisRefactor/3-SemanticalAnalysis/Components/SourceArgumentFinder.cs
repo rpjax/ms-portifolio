@@ -19,7 +19,7 @@ public class SourceArgumentFinder : AstSemanticVisitor
             throw new Exception();
         }
 
-        VisitLambda(new SemanticContext(), Axiom.Lambda);
+        VisitLambdaExpression(new SemanticContext(), Axiom.Lambda);
 
         if (Argument is null)
         {
@@ -29,7 +29,7 @@ public class SourceArgumentFinder : AstSemanticVisitor
         return Argument;
     }
 
-    protected override LambdaExpressionSymbol VisitLambda(SemanticContext context, LambdaExpressionSymbol symbol)
+    protected override LambdaExpressionSymbol VisitLambdaExpression(SemanticContext context, LambdaExpressionSymbol symbol)
     {
         Argument = symbol.Parameters[0];
         return symbol;

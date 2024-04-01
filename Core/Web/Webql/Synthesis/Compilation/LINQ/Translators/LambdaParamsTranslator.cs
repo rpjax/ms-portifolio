@@ -5,16 +5,16 @@ using System.Linq.Expressions;
 
 namespace ModularSystem.Webql.Synthesis.Compilation.LINQ;
 
-public class LambdaArgumentTranslator
+public class LambdaParamsTranslator
 {
-    public ParameterExpression[] TranslateLambdaArguments(TranslationContext context, LambdaArgumentSymbol[] args)
+    public ParameterExpression[] TranslateLambdaParams(TranslationContext context, DeclarationStatementSymbol[] parameters)
     {
         var expressions = new List<ParameterExpression>();
 
-        for (int i = 0; i < args.Length; i++)
+        for (int i = 0; i < parameters.Length; i++)
         {
-            var arg = args[i];
-            var semantics = arg.GetSemantics<LambdaArgumentSemantic>(context);
+            var arg = parameters[i];
+            var semantics = arg.GetSemantic<DeclarationStatementSemantic>(context);
 
             var identifier = arg.Identifier;
             var type = semantics.Type;

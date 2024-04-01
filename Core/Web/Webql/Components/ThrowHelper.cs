@@ -82,7 +82,7 @@ public static class TranslationThrowHelper
     /// <param name="operator">The operator that triggered the exception.</param>
     /// <returns>A TranslationException indicating the misuse of a queryable-exclusive operator.</returns>
     /// <remarks>
-    /// Operators of type <see cref="OperatorType.Queryable"/> are intended for use only within contexts <br/>
+    /// Operators of type <see cref="OperatorTypeOld.Queryable"/> are intended for use only within contexts <br/>
     /// where they can operate on queryable data. This method assists in identifying and reporting such <br/>
     /// misuse in the translation process.
     /// </remarks>
