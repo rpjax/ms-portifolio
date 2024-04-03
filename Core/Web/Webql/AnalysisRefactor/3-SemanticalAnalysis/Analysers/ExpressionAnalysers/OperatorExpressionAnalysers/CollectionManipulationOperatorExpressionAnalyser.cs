@@ -1,4 +1,5 @@
-﻿using ModularSystem.Webql.Analysis.Semantics.Helpers;
+﻿using ModularSystem.Webql.Analysis.Semantics.Extensions;
+using ModularSystem.Webql.Analysis.Semantics.Helpers;
 using ModularSystem.Webql.Analysis.Symbols;
 
 namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
@@ -9,36 +10,87 @@ public static class CollectionManipulationOperatorExpressionAnalyser
         SemanticContext context,
         OperatorExpressionSymbol symbol)
     {
-        var operatorType = OperatorHelper.GetCollectionManipulationOperatorType(symbol.Operator);
-
-        switch (operatorType)
+        switch (OperatorHelper.GetCollectionManipulationOperatorType(symbol.Operator))
         {
             case CollectionManipulationOperatorType.Filter:
-                if (symbol is not FilterExpressionSymbol filterExpression)
-                {
-                    throw new Exception();
-                }
-
-                var source = filterExpression.Source;
-                var sourceSemantic = SemanticAnalyser.AnalyseExpression(context, source);
-
-                return new OperatorExpressionSemantic(
-                    type: sourceSemantic.Type
-                );
+                return AnalyseFilterOperatorExpression(context, (FilterOperatorExpressionSymbol)symbol);
 
             case CollectionManipulationOperatorType.Select:
-                break;
+                return AnalyseSelectOperatorExpression(context, (SelectOperatorExpressionSymbol)symbol);
+
             case CollectionManipulationOperatorType.Transform:
                 break;
+
             case CollectionManipulationOperatorType.SelectMany:
                 break;
+
             case CollectionManipulationOperatorType.Limit:
-                break;
+                return AnalyseLimitOperatorExpression(context, (LimitOperatorExpressionSymbol)symbol);
+
             case CollectionManipulationOperatorType.Skip:
-                break;
+                return AnalyseSkipOperatorExpression(context, (SkipOperatorExpressionSymbol)symbol);
         }
 
         throw new InvalidOperationException();
     }
+
+    public static OperatorExpressionSemantic AnalyseFilterOperatorExpression(
+        SemanticContext context,
+        FilterOperatorExpressionSymbol symbol)
+    {
+        var source = symbol.Source;
+        var sourceSemantic = SemanticAnalyser.AnalyseExpression(context, source);
+
+        if (sourceSemantic.IsNotQueryable(context))
+        {
+            throw new Exception();
+        }
+
+        return new OperatorExpressionSemantic(
+            type: sourceSemantic.Type
+        );
+    }
+
+    public static OperatorExpressionSemantic AnalyseSelectOperatorExpression(
+        SemanticContext context,
+        SelectOperatorExpressionSymbol symbol)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static OperatorExpressionSemantic AnalyseLimitOperatorExpression(
+       SemanticContext context,
+       LimitOperatorExpressionSymbol symbol)
+    {
+        var source = symbol.Source;
+        var sourceSemantic = SemanticAnalyser.AnalyseExpression(context, source);
+
+        if (sourceSemantic.IsNotQueryable(context))
+        {
+            throw new Exception();
+        }
+
+        return new OperatorExpressionSemantic(
+            type: sourceSemantic.Type
+        );
+    }
+
+    public static OperatorExpressionSemantic AnalyseSkipOperatorExpression(
+       SemanticContext context,
+       SkipOperatorExpressionSymbol symbol)
+    {
+        var source = symbol.Source;
+        var sourceSemantic = SemanticAnalyser.AnalyseExpression(context, source);
+
+        if (sourceSemantic.IsNotQueryable(context))
+        {
+            throw new Exception();
+        }
+
+        return new OperatorExpressionSemantic(
+            type: sourceSemantic.Type
+        );
+    }
+
 }
 

@@ -1,9 +1,13 @@
-﻿using ModularSystem.Webql.Analysis.Symbols;
-using System.Globalization;
+﻿using System.Globalization;
 
-namespace ModularSystem.Webql.Analysis;
+namespace ModularSystem.Webql.Analysis.Symbols;
 
-public abstract class Symbol 
+public interface ISymbol
+{
+    string Hash { get; }
+}
+
+public abstract class Symbol : ISymbol
 {
     public string Hash { get; }
 
@@ -39,7 +43,3 @@ public abstract class Symbol
     }
 }
 
-public class ProductionSemantics
-{
-
-}

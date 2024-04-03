@@ -6,7 +6,12 @@ public enum StatementType
     Declaration
 }
 
-public abstract class StatementSymbol : Symbol
+public interface IStatementSymbol : ISymbol
+{
+    StatementType StatementType { get; }
+}
+
+public abstract class StatementSymbol : Symbol, IStatementSymbol
 {
     public abstract StatementType StatementType { get; }
 }

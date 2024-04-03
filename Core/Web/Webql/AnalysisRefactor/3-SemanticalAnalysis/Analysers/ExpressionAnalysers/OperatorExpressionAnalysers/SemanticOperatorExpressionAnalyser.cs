@@ -22,6 +22,7 @@ public static class SemanticOperatorExpressionAnalyser
                 break;
             case SemanticOperatorType.AnonymousType:
                 break;
+
             case SemanticOperatorType.MemberAccess:
                 return AnalyseMemberAccessOperatorExpression(context, (MemberAccessExpressionSymbol)symbol);
         }
@@ -29,7 +30,12 @@ public static class SemanticOperatorExpressionAnalyser
         throw new InvalidOperationException();
     }
 
-    public static 
+    public static OperatorExpressionSemantic AnalyseAnonymousTypeOperatorExpression(
+        SemanticContext context,
+        AnonymousTypeExpressionSymbol symbol)
+    {
+        throw new NotImplementedException();
+    }
 
     public static OperatorExpressionSemantic AnalyseMemberAccessOperatorExpression(
         SemanticContext context,

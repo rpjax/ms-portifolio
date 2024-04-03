@@ -34,6 +34,9 @@ public enum OperatorType
     MemberAccess,
 
     // Collection Manipulation Operators
+    //*
+    // TODO: review those operators, i want to reformulate projection.
+    //*
     Filter, // ok
     Select, // ok
     Transform, // ok
@@ -104,6 +107,10 @@ public enum RelationalOperatorTypes
     LessEquals,
     Greater,
     GreaterEquals,
+}
+
+public enum StringRelationalOperatorTypes
+{
     Like,
     RegexMatch
 }
@@ -134,7 +141,7 @@ public enum CollectionManipulationOperatorType
     Skip
 }
 
-public enum CollectionAggregationOperatorTypes
+public enum CollectionAggregationOperatorType
 {
     Count,
     Index,

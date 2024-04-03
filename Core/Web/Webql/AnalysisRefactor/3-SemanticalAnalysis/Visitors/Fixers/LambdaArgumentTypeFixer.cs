@@ -41,7 +41,7 @@ public class LambdaArgumentTypeFixer : BasicSemanticVisitor
         //    .GetQueryOperators()
         //    .Contains(symbol.Operator);
 
-        if (symbol is PredicateExpressionSymbol queryExpression)
+        if (symbol is PredicateOperatorExpressionSymbol queryExpression)
         {
             var source = queryExpression.Source;
             var lambda = queryExpression.Lambda;

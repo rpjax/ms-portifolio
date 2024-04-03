@@ -21,7 +21,6 @@ public class SemanticsAnalysisVisitor : BasicSemanticVisitor
             return context;
         }
 
-
         new RootLambdasArgumentTypeFixer(rootArguments)
             .Execute(symbol);
 

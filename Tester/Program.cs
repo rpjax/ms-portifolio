@@ -16,6 +16,7 @@ public class TestUser
     };
 
     public string Nickname { get; set; } = "";
+    public decimal Balance { get; set; }
 }
 
 public static class Program
@@ -24,7 +25,7 @@ public static class Program
     {
         var source = TestUser.Source.AsQueryable();
 
-        var query = "[\r\n  [\r\n    \"source\"\r\n  ],\r\n  {\r\n    \"$filter\": [\r\n      \"result\",\r\n      \"$source\",\r\n      [\r\n        [\r\n          \"item\"\r\n        ],\r\n        {\r\n          \"$add\": [\r\n            \"addResult\",\r\n            \"$item.nickname\",\r\n            1\r\n          ]\r\n        }\r\n      ]\r\n    ]\r\n  }\r\n]";
+        var query = "[\r\n    [\r\n        \"source\"\r\n    ],\r\n    {\r\n        \"$filter\": [\r\n            \"result\",\r\n            \"$source\",\r\n            [\r\n                [\r\n                    \"item\"\r\n                ],\r\n                {\r\n                    \"$subtract\": [\r\n                        \"r\",\r\n                        \"$item.balance\",\r\n                        59.99999999\r\n                    ]\r\n                }\r\n            ]\r\n        ]\r\n    }\r\n]";
         var token = new LexicalAnalyser()
             .Tokenize(query);
 

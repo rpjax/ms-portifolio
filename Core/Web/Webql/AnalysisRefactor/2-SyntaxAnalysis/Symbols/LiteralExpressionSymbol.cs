@@ -14,6 +14,16 @@ public abstract class LiteralExpressionSymbol : ExpressionSymbol
     public override ExpressionType ExpressionType { get; } = ExpressionType.Literal;
 }
 
+//public abstract class NullableLiteralSymbol<T> : LiteralExpressionSymbol 
+//{
+//    public T? Value { get; }
+
+//    public NullableLiteralSymbol(T? value)
+//    {
+//        Value = value;
+//    }
+//}
+
 public class NullSymbol : LiteralExpressionSymbol
 {
     public override LiteralType LiteralType { get; } = LiteralType.Null;
@@ -27,16 +37,16 @@ public class NullSymbol : LiteralExpressionSymbol
 public class StringSymbol : LiteralExpressionSymbol
 {
     public override LiteralType LiteralType { get; } = LiteralType.String;
-    public string Value { get; }
+    public string? Value { get; }
 
-    public StringSymbol(string value)
+    public StringSymbol(string? value)
     {
         Value = value;
     }
 
     public override string ToString()
     {
-        return "\"Value\"";
+        return $"\"{Value}\"";
     }
 }
 

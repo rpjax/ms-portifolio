@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace ModularSystem.Webql.Analysis.Semantics;
+﻿namespace ModularSystem.Webql.Analysis.Semantics.Helpers;
 
 public static class SemanticHelper
 {

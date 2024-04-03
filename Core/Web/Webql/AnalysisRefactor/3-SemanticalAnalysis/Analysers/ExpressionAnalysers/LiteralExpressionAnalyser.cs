@@ -28,8 +28,11 @@ public static class LiteralExpressionAnalyser
 
     public static LiteralExpressionSemantic AnalyseNullLiteral(SemanticContext context, NullSymbol symbol)
     {
+        //*
+        // 'void' because there's no value and no type information.
+        //*
         return new LiteralExpressionSemantic(
-            type: typeof(Nullable)
+            type: typeof(void)
         );
     }
 
@@ -49,8 +52,42 @@ public static class LiteralExpressionAnalyser
 
     public static LiteralExpressionSemantic AnalyseNumberLiteral(SemanticContext context, NumberSymbol symbol)
     {
+        var type = typeof(int);
+        var number = symbol.Value;
+        var isFloat = symbol.Value.Contains('.');
+
+        if (isFloat)
+        {
+            var parts = number.Split('.');
+            var fractionPart = parts.Length > 1 ? parts[1] : "";
+
+            if (fractionPart.Length > 15)
+            {
+                type = typeof(decimal);
+            }
+            else if (fractionPart.Length > 7)
+            {
+                type = typeof(double);
+            }
+            else
+            {
+                type = typeof(float);
+            }
+        }
+        else
+        {
+            if (number.Length > 18)
+            {
+                type = typeof(long);
+            }
+            else
+            {
+                type = typeof(int);
+            }
+        }
+
         return new LiteralExpressionSemantic(
-            type: typeof(int)
+            type: type
         );
     }
 

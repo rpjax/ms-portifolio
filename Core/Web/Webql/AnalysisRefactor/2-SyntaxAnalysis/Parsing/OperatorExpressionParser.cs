@@ -150,23 +150,23 @@ public class OperatorExpressionParser : SyntaxParserBase
     //* arithmetic expressions parsing.
     //*
 
-    private AddExpressionSymbol ParseAddExpression(ParsingContext context, ArrayToken token)
+    private AddOperatorExpressionSymbol ParseAddExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
-        return new AddExpressionSymbol(
-            destination: parser.ParseNextStringLiteral(context),
+        return new AddOperatorExpressionSymbol(
+            destination: parser.ParseNextNullableStringLiteral(context),
             left: parser.ParseNextExpression(context),
             right: parser.ParseNextExpression(context)
         );
     }
 
-    private SubtractExpressionSymbol ParseSubtractExpression(ParsingContext context, ArrayToken token)
+    private SubtractOperatorExpressionSymbol ParseSubtractExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
-        return new SubtractExpressionSymbol(
-            destination: parser.ParseNextStringLiteral(context),
+        return new SubtractOperatorExpressionSymbol(
+            destination: parser.ParseNextNullableStringLiteral(context),
             left: parser.ParseNextExpression(context),
             right: parser.ParseNextExpression(context)
         );
@@ -187,32 +187,32 @@ public class OperatorExpressionParser : SyntaxParserBase
     //* logical expressions parsing.
     //*
 
-    public AndExpressionSymbol ParseAndExpression(ParsingContext context, ArrayToken token)
+    public AndOperatorExpressionSymbol ParseAndExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
-        return new AndExpressionSymbol(
-            destination: parser.ParseNextStringLiteral(context),
+        return new AndOperatorExpressionSymbol(
+            destination: parser.ParseNextNullableStringLiteral(context),
             expressions: parser.ParseNextExpressionArray(context)
         );
     }
 
-    public OrExpressionSymbol ParseOrExpression(ParsingContext context, ArrayToken token)
+    public OrOperatorExpressionSymbol ParseOrExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
-        return new OrExpressionSymbol(
-            destination: parser.ParseNextStringLiteral(context), 
+        return new OrOperatorExpressionSymbol(
+            destination: parser.ParseNextNullableStringLiteral(context), 
             expressions: parser.ParseNextExpressionArray(context)
         );
     }
 
-    public NotExpressionSymbol ParseNotExpression(ParsingContext context, ArrayToken token)
+    public NotOperatorExpressionSymbol ParseNotExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
-        return new NotExpressionSymbol(
-            destination: parser.ParseNextStringLiteral(context), 
+        return new NotOperatorExpressionSymbol(
+            destination: parser.ParseNextNullableStringLiteral(context), 
             expression: parser.ParseNextExpression(context)
         );
     }
@@ -222,12 +222,12 @@ public class OperatorExpressionParser : SyntaxParserBase
     //* semantic expressions parsing.
     //*
 
-    private SelectExpressionSymbol ParseTypeExpression(ParsingContext context, ArrayToken token)
+    private SelectOperatorExpressionSymbol ParseTypeExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
-        return new SelectExpressionSymbol(
-            destination: parser.ParseNextStringLiteral(context),
+        return new SelectOperatorExpressionSymbol(
+            destination: parser.ParseNextNullableStringLiteral(context),
             typeProjection: parser.ParseNextTypeProjection(context)
         );
     }
@@ -237,23 +237,23 @@ public class OperatorExpressionParser : SyntaxParserBase
     //* query expressions parsing.
     //*
 
-    private FilterExpressionSymbol ParseFilterExpression(ParsingContext context, ArrayToken token)
+    private FilterOperatorExpressionSymbol ParseFilterExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
-        return new FilterExpressionSymbol(
-            destination: parser.ParseNextStringLiteral(context),
+        return new FilterOperatorExpressionSymbol(
+            destination: parser.ParseNextNullableStringLiteral(context),
             source: parser.ParseNextExpression(context), 
             lambda: parser.ParseNextLambda(context)
         );
     }
 
-    private ProjectionExpressionSymbol ParseProjectionExpression(ParsingContext context, ArrayToken token)
+    private ProjectionOperatorExpressionSymbol ParseProjectionExpression(ParsingContext context, ArrayToken token)
     {
         var parser = new ArrayParser(token);
 
-        return new ProjectionExpressionSymbol(
-            destination: parser.ParseNextStringLiteral(context),
+        return new ProjectionOperatorExpressionSymbol(
+            destination: parser.ParseNextNullableStringLiteral(context),
             source: parser.ParseNextExpression(context),
             lambda: parser.ParseNextLambda(context)
         );
@@ -263,25 +263,4 @@ public class OperatorExpressionParser : SyntaxParserBase
     //*
     //* aggregation expressios parsing.
     //*
-
-    enum OperandType
-    {
-        Expression,
-        StringLiteral,
-        NumberLiteral,
-        LambdaExpression
-    }
-
-    class OperatorProduction
-    {
-        public OperatorType Operator { get; }
-        public OperandType[] OperandTypes { get; }
-
-        public OperatorProduction(OperatorType @operator, OperandType[] operandTypes)
-        {
-            Operator = @operator;
-            OperandTypes = operandTypes;
-        }
-    }
-
 }

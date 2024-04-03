@@ -3,16 +3,16 @@ using ModularSystem.Webql.Analysis.Tokens;
 
 namespace ModularSystem.Webql.Analysis.Parsing;
 
-public class BinaryArgumentsParser : SyntaxParserBase
-{
-    public BinaryArgumentsSymbol ParseBinaryArguments(ParsingContext context, ArrayToken token)
-    {
-        var parser = new ArrayParser(token);
+//public class BinaryArgumentsParser : SyntaxParserBase
+//{
+//    public BinaryArgumentsSymbol ParseBinaryArguments(ParsingContext context, ArrayToken token)
+//    {
+//        var parser = new ArrayParser(token);
 
-        var destination = parser.ParseNextStringLiteral(context);
-        var left = parser.ParseNextExpression(context);
-        var right = parser.ParseNextExpression(context);
+//        var destination = parser.ParseNextStringLiteral(context);
+//        var left = parser.ParseNextExpression(context);
+//        var right = parser.ParseNextExpression(context);
 
-        return new BinaryArgumentsSymbol(destination, left, right);
-    }
-}
+//        return new BinaryArgumentsSymbol(destination, left, right);
+//    }
+//}

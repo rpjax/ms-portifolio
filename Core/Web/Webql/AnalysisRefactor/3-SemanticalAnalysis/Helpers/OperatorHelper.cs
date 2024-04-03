@@ -119,6 +119,38 @@ public static class OperatorHelper
         throw new Exception();
     }
 
+    public static CollectionAggregationOperatorType GetCollectionAggregationOperatorType(OperatorType @operator)
+    {
+        switch (@operator)
+        {
+            case OperatorType.Count:
+                return CollectionAggregationOperatorType.Count;
+
+            case OperatorType.Index:
+                return CollectionAggregationOperatorType.Index;
+
+            case OperatorType.Any:
+                return CollectionAggregationOperatorType.Any;
+
+            case OperatorType.All:
+                return CollectionAggregationOperatorType.All;
+
+            case OperatorType.Min:
+                return CollectionAggregationOperatorType.Min;
+
+            case OperatorType.Max:
+                return CollectionAggregationOperatorType.Max;
+
+            case OperatorType.Sum:
+                return CollectionAggregationOperatorType.Sum;
+
+            case OperatorType.Average:
+                return CollectionAggregationOperatorType.Average;
+        }
+
+        throw new InvalidOperationException();
+    }
+
     [Obsolete("WIP")]
     public static OperatorParametrizationType GetOperatorParametrization(OperatorType @operator)
     {

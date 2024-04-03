@@ -1,6 +1,12 @@
 ﻿namespace ModularSystem.Webql.Analysis.Symbols;
 
-public abstract class OperatorExpressionSymbol : ExpressionSymbol
+public interface IOperatorExpressionSymbol : IExpressionSymbol
+{
+    OperatorType Operator { get; }
+    ExpressionSymbol[] Operands { get; }
+}
+
+public abstract class OperatorExpressionSymbol : ExpressionSymbol, IOperatorExpressionSymbol
 {
     public abstract OperatorType Operator { get; }
     public override ExpressionType ExpressionType { get; } = ExpressionType.Operator;
@@ -25,35 +31,36 @@ public abstract class OperatorExpressionSymbol : ExpressionSymbol
 
         return $"{Stringify(Operator)}({operands})";
     }
+
 }
 
 //*
 //*
 //* base classes, semantics oriented. 
 //*
-public abstract class UnaryExpressionSymbol : OperatorExpressionSymbol
+public abstract class UnaryOperatorExpressionSymbol : OperatorExpressionSymbol
 {
-    public StringSymbol Destination => (StringSymbol)Operands[0];
+    public ExpressionSymbol Destination => Operands[0];
     public ExpressionSymbol Operand => Operands[1];
 
-    protected UnaryExpressionSymbol(
-        StringSymbol destination, 
+    protected UnaryOperatorExpressionSymbol(
+        ExpressionSymbol destination, 
         ExpressionSymbol operand
     )
     : base(destination, operand)
     {
-
+  
     }
 }
 
-public abstract class BinaryExpressionSymbol : OperatorExpressionSymbol
+public abstract class BinaryOperatorExpressionSymbol : OperatorExpressionSymbol
 {
-    public StringSymbol Destination => (StringSymbol)Operands[0];
+    public ExpressionSymbol Destination => Operands[0];
     public ExpressionSymbol LeftOperand => Operands[1];
     public ExpressionSymbol RightOperand => Operands[2];
 
-    protected BinaryExpressionSymbol(
-        StringSymbol destination, 
+    protected BinaryOperatorExpressionSymbol(
+        ExpressionSymbol destination, 
         ExpressionSymbol left, 
         ExpressionSymbol right
     )
@@ -63,17 +70,16 @@ public abstract class BinaryExpressionSymbol : OperatorExpressionSymbol
     }
 }
 
-public abstract class ArrayExpressionSymbol : OperatorExpressionSymbol
+public abstract class ArrayOperatorExpressionSymbol : OperatorExpressionSymbol
 {
-    public StringSymbol Destination => (StringSymbol)Operands[0];
+    public ExpressionSymbol Destination => Operands[0];
     public IEnumerable<ExpressionSymbol> Expressions => GetValues();
 
-    protected ArrayExpressionSymbol(StringSymbol destination, ExpressionSymbol[] expressions)
-    : base(
-        operands: new ExpressionSymbol[] { destination }
-            .Concat(expressions)
-            .ToArray()
+    protected ArrayOperatorExpressionSymbol(
+        ExpressionSymbol destination, 
+        ExpressionSymbol[] expressions
     )
+    : base(new ExpressionSymbol[] { destination }.Concat(expressions).ToArray())
     {
 
     }
@@ -87,14 +93,14 @@ public abstract class ArrayExpressionSymbol : OperatorExpressionSymbol
     }
 }
 
-public abstract class PredicateExpressionSymbol : OperatorExpressionSymbol
+public abstract class PredicateOperatorExpressionSymbol : OperatorExpressionSymbol
 {
-    public StringSymbol Destination => (StringSymbol)Operands[0];
+    public ExpressionSymbol Destination => Operands[0];
     public ExpressionSymbol Source => Operands[1];
     public LambdaExpressionSymbol Lambda => (LambdaExpressionSymbol)Operands[2];
 
-    protected PredicateExpressionSymbol(
-        StringSymbol destination,
+    protected PredicateOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         ExpressionSymbol source,
         LambdaExpressionSymbol lambda
     )
@@ -113,12 +119,29 @@ public abstract class PredicateExpressionSymbol : OperatorExpressionSymbol
 //*
 //* arithmetic expression symbols.
 //*
-public class AddExpressionSymbol : BinaryExpressionSymbol
+public interface IArithmeticOperatorExpressionSymbol
+{
+
+}
+
+public abstract class ArithmeticOperatorExpressionSymbol : BinaryOperatorExpressionSymbol, IArithmeticOperatorExpressionSymbol
+{
+    protected ArithmeticOperatorExpressionSymbol(
+        ExpressionSymbol destination,
+        ExpressionSymbol left,
+        ExpressionSymbol right
+    )
+    : base(destination, left, right)
+    {
+    }
+}
+
+public class AddOperatorExpressionSymbol : ArithmeticOperatorExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Add;
 
-    public AddExpressionSymbol(
-        StringSymbol destination,
+    public AddOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
     )
@@ -127,12 +150,12 @@ public class AddExpressionSymbol : BinaryExpressionSymbol
     }
 }
 
-public class SubtractExpressionSymbol : BinaryExpressionSymbol
+public class SubtractOperatorExpressionSymbol : ArithmeticOperatorExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Subtract;
 
-    public SubtractExpressionSymbol(
-        StringSymbol destination,
+    public SubtractOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
     )
@@ -141,12 +164,12 @@ public class SubtractExpressionSymbol : BinaryExpressionSymbol
     }
 }
 
-public class DivideExpressionSymbol : BinaryExpressionSymbol
+public class DivideOperatorExpressionSymbol : ArithmeticOperatorExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Divide;
 
-    public DivideExpressionSymbol(
-        StringSymbol destination,
+    public DivideOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
     )
@@ -155,12 +178,12 @@ public class DivideExpressionSymbol : BinaryExpressionSymbol
     }
 }
 
-public class MultiplyExpressionSymbol : BinaryExpressionSymbol
+public class MultiplyOperatorExpressionSymbol : ArithmeticOperatorExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Multiply;
 
-    public MultiplyExpressionSymbol(
-        StringSymbol destination,
+    public MultiplyOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
     )
@@ -169,12 +192,12 @@ public class MultiplyExpressionSymbol : BinaryExpressionSymbol
     }
 }
 
-public class ModuloExpressionSymbol : BinaryExpressionSymbol
+public class ModuloOperatorExpressionSymbol : ArithmeticOperatorExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Modulo;
 
-    public ModuloExpressionSymbol(
-        StringSymbol destination,
+    public ModuloOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
     )
@@ -187,13 +210,29 @@ public class ModuloExpressionSymbol : BinaryExpressionSymbol
 //*
 //* relational expression symbols.
 //*
+public interface IRelationalOperatorExpressionSymbol 
+{
 
-public class EqualsExpressionSymbol : BinaryExpressionSymbol
+}
+
+public abstract class RelationalOperatorExpressionSymbol : BinaryOperatorExpressionSymbol, IRelationalOperatorExpressionSymbol
+{
+    protected RelationalOperatorExpressionSymbol(
+        ExpressionSymbol destination,
+        ExpressionSymbol left,
+        ExpressionSymbol right
+    )
+    : base(destination, left, right)
+    {
+    }
+}
+
+public class EqualsOperatorExpressionSymbol : RelationalOperatorExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Equals;
 
-    public EqualsExpressionSymbol(
-        StringSymbol destination,
+    public EqualsOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
     )
@@ -202,12 +241,12 @@ public class EqualsExpressionSymbol : BinaryExpressionSymbol
     }
 }
 
-public class NotEqualsExpressionSymbol : BinaryExpressionSymbol
+public class NotEqualsOperatorExpressionSymbol : RelationalOperatorExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.NotEquals;
 
-    public NotEqualsExpressionSymbol(
-        StringSymbol destination,
+    public NotEqualsOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
     )
@@ -216,12 +255,12 @@ public class NotEqualsExpressionSymbol : BinaryExpressionSymbol
     }
 }
 
-public class LessExpressionSymbol : BinaryExpressionSymbol
+public class LessOperatorExpressionSymbol : RelationalOperatorExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Less;
 
-    public LessExpressionSymbol(
-        StringSymbol destination,
+    public LessOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
     )
@@ -230,12 +269,12 @@ public class LessExpressionSymbol : BinaryExpressionSymbol
     }
 }
 
-public class LessEqualsExpressionSymbol : BinaryExpressionSymbol
+public class LessEqualsOperatorExpressionSymbol : RelationalOperatorExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.LessEquals;
 
-    public LessEqualsExpressionSymbol(
-        StringSymbol destination,
+    public LessEqualsOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
     )
@@ -244,12 +283,12 @@ public class LessEqualsExpressionSymbol : BinaryExpressionSymbol
     }
 }
 
-public class GreaterExpressionSymbol : BinaryExpressionSymbol
+public class GreaterOperatorExpressionSymbol : RelationalOperatorExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Greater;
 
-    public GreaterExpressionSymbol(
-        StringSymbol destination,
+    public GreaterOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
     )
@@ -258,17 +297,18 @@ public class GreaterExpressionSymbol : BinaryExpressionSymbol
     }
 }
 
-public class GreaterEqualsExpressionSymbol : BinaryExpressionSymbol
+public class GreaterEqualsOperatorExpressionSymbol : RelationalOperatorExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.GreaterEquals;
 
-    public GreaterEqualsExpressionSymbol(
-        StringSymbol destination,
+    public GreaterEqualsOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
     )
     : base(destination, left, right)
     {
+     
     }
 }
 
@@ -276,13 +316,30 @@ public class GreaterEqualsExpressionSymbol : BinaryExpressionSymbol
 //*
 //* pattern match expression symbols.
 //*
+public interface IStringRelationalOperatorExpressionSymbol
+{
 
-public class LikeExpressionSymbol : BinaryExpressionSymbol
+}
+
+public abstract class StringRelationalOperatorExpressionSymbol 
+    : BinaryOperatorExpressionSymbol, IStringRelationalOperatorExpressionSymbol
+{
+    protected StringRelationalOperatorExpressionSymbol(
+        ExpressionSymbol destination,
+        ExpressionSymbol left,
+        ExpressionSymbol right
+    )
+    : base(destination, left, right)
+    {
+    }
+}
+
+public class LikeOperatorExpressionSymbol : StringRelationalOperatorExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Like;
 
-    public LikeExpressionSymbol(
-        StringSymbol destination,
+    public LikeOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         ExpressionSymbol left,
         ExpressionSymbol right
     )
@@ -295,12 +352,17 @@ public class LikeExpressionSymbol : BinaryExpressionSymbol
 //*
 //* logical expression symbols.
 //*
-public class AndExpressionSymbol : ArrayExpressionSymbol
+public interface ILogicalOperatorExpressionSymbol : IOperatorExpressionSymbol
+{
+
+}
+
+public class AndOperatorExpressionSymbol : ArrayOperatorExpressionSymbol, ILogicalOperatorExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.And;
 
-    public AndExpressionSymbol(
-        StringSymbol destination, 
+    public AndOperatorExpressionSymbol(
+        ExpressionSymbol destination, 
         ExpressionSymbol[] expressions
     ) 
     : base(destination, expressions)
@@ -308,12 +370,12 @@ public class AndExpressionSymbol : ArrayExpressionSymbol
     }
 }
 
-public class OrExpressionSymbol : ArrayExpressionSymbol
+public class OrOperatorExpressionSymbol : ArrayOperatorExpressionSymbol, ILogicalOperatorExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Or;
 
-    public OrExpressionSymbol(
-        StringSymbol destination,
+    public OrOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         ExpressionSymbol[] expressions
     )
     : base(destination, expressions)
@@ -321,12 +383,12 @@ public class OrExpressionSymbol : ArrayExpressionSymbol
     }
 }
 
-public class NotExpressionSymbol : UnaryExpressionSymbol
+public class NotOperatorExpressionSymbol : UnaryOperatorExpressionSymbol, ILogicalOperatorExpressionSymbol
 {
     public override OperatorType Operator { get; } = OperatorType.Not;
 
-    public NotExpressionSymbol(
-        StringSymbol destination,
+    public NotOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         ExpressionSymbol expression
     )
     : base(destination, expression)
@@ -338,15 +400,40 @@ public class NotExpressionSymbol : UnaryExpressionSymbol
 //*
 //* semantic expression symbols.
 //*
+
+//*
+//*
+//* collection manipulation expression symbols.
+//*
+public interface ICollectionManipulationOperatorExpression : IOperatorExpressionSymbol
+{
+
+}
+
+public class FilterOperatorExpressionSymbol : PredicateOperatorExpressionSymbol, ICollectionManipulationOperatorExpression
+{
+    public override OperatorType Operator { get; } = OperatorType.Filter;
+
+    public FilterOperatorExpressionSymbol(
+        ExpressionSymbol destination,
+        ExpressionSymbol source,
+        LambdaExpressionSymbol lambda
+    )
+    : base(destination, source, lambda)
+    {
+    }
+}
+
 // [ string_literal, expression, ]
 // "$anonymousType": [<destination>, { "id": "$item.id" }]
-public class SelectExpressionSymbol : UnaryExpressionSymbol
+public class SelectOperatorExpressionSymbol : OperatorExpressionSymbol, ICollectionManipulationOperatorExpression
 {
     public override OperatorType Operator { get; } = OperatorType.AnonymousType;
-    public AnonymousTypeExpressionSymbol TypeExpression => (AnonymousTypeExpressionSymbol)Operand;
+    public ExpressionSymbol Destination => Operands[0];
+    public AnonymousTypeExpressionSymbol TypeExpression => (AnonymousTypeExpressionSymbol)Operands[1];
 
-    public SelectExpressionSymbol(
-        StringSymbol destination,
+    public SelectOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         AnonymousTypeExpressionSymbol typeProjection
     )
     : base(destination, typeProjection)
@@ -360,31 +447,12 @@ public class SelectExpressionSymbol : UnaryExpressionSymbol
     }
 }
 
-//*
-//*
-//* query expression symbols.
-//*
-
-public class FilterExpressionSymbol : PredicateExpressionSymbol
-{
-    public override OperatorType Operator { get; } = OperatorType.Filter;
-
-    public FilterExpressionSymbol(
-        StringSymbol destination,
-        ExpressionSymbol source,
-        LambdaExpressionSymbol lambda
-    )
-    : base(destination, source, lambda)
-    {
-    }
-}
-
-public class ProjectionExpressionSymbol : PredicateExpressionSymbol
+public class ProjectionOperatorExpressionSymbol : PredicateOperatorExpressionSymbol, ICollectionManipulationOperatorExpression
 {
     public override OperatorType Operator { get; } = OperatorType.Select;
 
-    public ProjectionExpressionSymbol(
-        StringSymbol destination,
+    public ProjectionOperatorExpressionSymbol(
+        ExpressionSymbol destination,
         ExpressionSymbol source,
         LambdaExpressionSymbol lambda
     )
@@ -393,7 +461,46 @@ public class ProjectionExpressionSymbol : PredicateExpressionSymbol
     }
 }
 
+public class LimitOperatorExpressionSymbol : OperatorExpressionSymbol, ICollectionManipulationOperatorExpression
+{
+    public override OperatorType Operator { get; } = OperatorType.Limit;
+    public ExpressionSymbol Destination => Operands[0];
+    public ExpressionSymbol Source => Operands[1];
+    public ExpressionSymbol Value => Operands[2];
+
+    public LimitOperatorExpressionSymbol(
+        StringSymbol destination, 
+        ExpressionSymbol source, 
+        ExpressionSymbol value
+    )         
+    : base(destination, source, value)
+    {
+    }
+}
+
+public class SkipOperatorExpressionSymbol : OperatorExpressionSymbol, ICollectionManipulationOperatorExpression
+{
+    public override OperatorType Operator { get; } = OperatorType.Skip;
+    public StringSymbol Destination => (StringSymbol)Operands[0];
+    public ExpressionSymbol Source => Operands[1];
+    public ExpressionSymbol Value => Operands[2];
+
+    public SkipOperatorExpressionSymbol(
+        StringSymbol destination,
+        ExpressionSymbol source,
+        ExpressionSymbol value
+    )
+    : base(destination, source, value)
+    {
+    }
+}
+
 //*
 //*
-//* aggregation expression symbols.
+//* collection aggregation expression symbols.
 //*
+public interface ICollectionAggregationOperatorExpression : IOperatorExpressionSymbol
+{
+
+}
+

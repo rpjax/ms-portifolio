@@ -86,6 +86,22 @@ public class ArrayParser
             .As<StringSymbol>(context);
     }
 
+    public LiteralExpressionSymbol ParseNextNullableStringLiteral(ParsingContext context)
+    {
+        var token = ConsumeNextToken<ValueToken>(context);
+
+        if (token is NullToken)
+        {
+            return new NullSymbol();
+        }
+        if (token is not StringToken stringToken)
+        {
+            throw new Exception();
+        }
+
+        return new StringSymbol(stringToken.Value);
+    }
+
     public NumberSymbol ParseNextNumberLiteral(ParsingContext context)
     {
         return SyntaxParser.ParseLiteral(context, ConsumeNextNumberToken(context))
