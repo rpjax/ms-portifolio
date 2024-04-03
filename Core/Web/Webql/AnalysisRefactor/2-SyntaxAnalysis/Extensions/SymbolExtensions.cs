@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Webql.Analysis.Parsing;
+using ModularSystem.Webql.Analysis.Symbols;
 
 namespace ModularSystem.Webql.Analysis.Syntax.Extensions;
 

@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Webql.Analysis.Semantics;
+﻿using ModularSystem.Webql.Analysis.Symbols;
+
+namespace ModularSystem.Webql.Analysis.Semantics;
 
 public class SymbolTable
 {
