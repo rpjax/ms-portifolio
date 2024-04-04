@@ -1,0 +1,68 @@
+﻿//*
+// WebQL Notes:
+//
+// Pipeline Overview: The root is an object where key-value pairs represent expressions. Each root expression must
+// resolve itself to the root queryable context (e.g., IQueryable in C#). This context supports various operations
+// such as filtering, ordering, projection, limit, skip, etc.
+// Sub-expressions, expressions at the child-to-root level, can resolve themselves
+// to different values, such as bool, numbers, strings, etc.
+// All expressions ultimately resolve to a value with a known type. The root type corresponds to the query itself.
+//
+// Filter Pipeline:
+//  Arithmetic operators:
+//      $add - { "$add": [args...] }.
+//      $subtract - { "$subtract": [args...] }.
+//      $divide - { "$divide": [args...] }.
+//      $multiply - { "$multiply": [args...] }.
+//      $modulo - { "$modulo": "$prop" }.
+//
+//  Relational operators:
+//      syntax: <relational-expression> ::= <lhs> : (<literal> | <array> | <expression>)
+//
+//      $equals - { "prop": { "$equals: "foobar" } }.
+//      $notEquals - { "prop": { "$notEquals: "foobar" } }.
+//      $greater - { "prop": { "$greater: 5 } }.
+//      $greaterEquals - { "prop": { "$greaterEquals: 5 } }.
+//      $less - { "prop": { "$less: 5 } }.
+//      $lessEquals - { "prop": { "$lessEquals: 5 } }.
+//
+//  Logical operators:
+//      $and - { "$and": [{ }, { }] }.
+//      $or - { "$or": [{ }, { }] }.
+//      $not: { "$not": { } }.
+//
+//  String operators:
+//      $like
+//
+//  Queryable operators:
+//      $filter
+//      $project
+//      $limit
+//      $skip
+//      $size: - { "$size: "$arrayField" }.
+//      $index:{int} - { "array": { "$index[0]": "foobar" } }.
+//      
+//  Queryable iteration operators:
+//      $any - { "$any": [{ }, { }] }.
+//      $all - { "$any": [{ }, { }] }.
+//
+//  Semantic operators:
+//      $expr - { "$literal": "$text string..." }
+//      $literal - { "$literal": "$text string..." }
+//      $select - { "$select": "$property" }
+//
+//  Aggregation operators:    
+//      $count
+//      $min - { "$min": "$prop" } | { "$min": "$" }.
+//      $max.
+//      $sum.
+//      $average.
+//
+//
+// Filter Semantics:
+// Arithmetic operators: ($add, $subtract, $divide, $multiply) expect an ARRAY RHS.
+// Arithmetic operators: ($modulo) expect an ARRAY RHS.
+//
+// Projection Pipeline:
+//
+//*

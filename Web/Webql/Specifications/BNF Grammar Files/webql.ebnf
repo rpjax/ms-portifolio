@@ -1,0 +1,157 @@
+(*
+    WebQL Language Grammar v2
+    - Created by Rodrigo Jacques.
+
+    - The grammar can be validated and tested at: https://matthijsgroen.github.io/ebnf2railroad/try-yourself.html?theme=dark
+    - Alternative website: https://www.bottlecaps.de/rr/ui
+*)
+
+(* Important Symbols *)
+S = [ unary_lambda ];
+
+(* Primitive Types *)
+digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
+digit_sequence = digit , { digit };
+sign = [ "+" | "-" ];
+char = ? any valid character except double quote ?;
+byte = digit_sequence;
+int = sign , digit_sequence;
+float = sign , digit_sequence , "." , digit_sequence;
+number = int | float;
+bool = "true" | "false";
+null = "null";
+string = '"' , { char } , '"';
+
+(* Semantic Symbols *)
+int16 = int;
+int32 = int;
+int64 = int;
+int128 = int;
+float32 = float;
+float64 = float;
+float128 = float;
+type = string;
+guid = string;
+reference = '"' , "$" , char , { char } , '"';
+destination = reference;
+
+(* Core Types *)
+literal = null | string | number | bool;
+
+(* Operator Symbols *)
+add_op = '"$add":';
+subtract_op = '"$subtract":';
+divide_op = '"$divide":';
+multiply_op = '"$multiply":';
+modulo_op = '"$modulo":';
+equal_op = '"$equal":';
+not_equal_op = '"$notEqual":';
+less_op = '"$less":';
+less_equal_op = '"$lessEqual":';
+greater_op = '"$greater":';
+greater_equal_op = '"$greaterEqual":';
+like_op = '"$like":';
+regex_op = '"$regexMatch":';
+or_op = '"$or":';
+and_op = '"$and":';
+not_op = '"$not":';
+literal_op = '"$literal":';
+select_op = '"$select":';
+return_op = '"$return":';
+expr_op = '"$expr":';
+filter_op = '"$filter":';
+projection_op = '"$project":';
+transform_op = '"$transform":';
+limit_op = '"$limit":';
+skip_op = '"$skip":';
+any_op = '"$any":';
+all_op = '"$all":';
+count_op = '"$count":';
+min_op = '"$min":';
+max_op = '"$max":';
+sum_op = '"$sum":';
+average_op = '"$average":';
+
+(* Argument Types and Lambda Definitions *)
+arg = reference | object | literal;
+query_arg = arg;
+arg_array = "[" , [ arg , { "," , arg } ] , "]";
+unary_args = "[" , destination , "," , arg , "]";
+binary_args = "[" , destination , "," , arg , "," , arg , "]";
+array_args = "[" , destination , "," , arg_array , "]";
+lambda_args = "[" , [ string , { "," , string } ]  , "]";
+unary_lambda_args = "[" , string , "]";
+
+projection_object = "{" , [ projection_object_expr , { "," , projection_object_expr } ]  , "}";
+projection_object_expr = (string, ":" , reference) | (string, ":" , projection_object) | (expr);
+
+(* Lambda Definitions *)
+lambda = "[" , lambda_args , "," , object , "]";
+unary_lambda = "[" , unary_lambda_args , "," , object , "]";
+projection_lambda = "[" , lambda_args , "," , projection_object , "]";
+predicate_lambda = unary_lambda;
+selection_lambda = unary_lambda;
+
+(* Expressions *)
+object = "{" , [ expr , { "," , expr } ] , "}";
+expr = 
+    arithmetic_expr | 
+    relational_expr |
+    pattern_expr | 
+    logical_expr | 
+    semantic_expr | 
+    query_expr | 
+    aggregation_expr;
+
+(* Arithmetic Expressions *)
+arithmetic_expr = add_expr | subtract_expr | divide_expr | multiply_expr | modulo_expr;
+add_expr = add_op , binary_args;
+subtract_expr = subtract_op , binary_args;
+divide_expr = divide_op , binary_args;
+multiply_expr = multiply_op , binary_args;
+modulo_expr = modulo_op , binary_args;
+
+(* Relational Expressions *)
+relational_expr = equal_expr | not_equal_expr | less_expr | less_equal_expr | greater_expr | greater_equal_expr;
+equal_expr = equal_op , binary_args;
+not_equal_expr = not_equal_op , binary_args;
+less_expr = less_op , binary_args;
+less_equal_expr = less_equal_op , binary_args;
+greater_expr = greater_op , binary_args;
+greater_equal_expr = greater_equal_op , binary_args;
+
+(* Pattern Matching Expressions *)
+pattern_expr = like_expr | regex_expr;
+like_expr = like_op , binary_args;
+regex_expr = regex_op , binary_args;
+
+(* Logical Expressions *)
+logical_expr = or_expr | and_expr | not_expr;
+or_expr = or_op , array_args;
+and_expr = and_op , array_args;
+not_expr = not_op , unary_args;
+
+(* Semantic Expressions *)
+semantic_expr = literal_expr | select_expr | return_expr | expr_expr;
+literal_expr = literal_op , "[" , literal , "]";
+select_expr = select_op , unary_args;
+return_expr = return_op , "[" , destination , "]";
+expr_expr = expr_op , unary_args;
+
+(* Query Expressions *)
+query_expr = filter_expr | projection_expr | transform_expr | limit_expr | skip_expr;
+filter_expr = filter_op , "[" , destination , "," , query_arg , "," , lambda , "]";
+projection_expr = projection_op , "[" , destination , "," , query_arg , "," , lambda , "]";
+transform_expr = transform_op , "[" , destination , "," , query_arg , "," , lambda , "]";
+limit_expr = limit_op , "[" , destination , "," , query_arg , "," , int , "]";
+skip_expr = skip_op , "[" , destination , "," , query_arg , "," , int , "]";
+
+(* Aggregation Expressions *)
+aggregation_expr = any_expr | all_expr | count_expr | min_expr | max_expr | sum_expr | average_expr;
+any_expr = any_op , "[" , destination , "," , query_arg , "," , predicate_lambda , "]";
+all_expr = all_op , "[" , destination , "," , query_arg , "," , predicate_lambda , "]";
+count_expr = count_op , "[" , destination , "," , query_arg , "]";
+min_expr = min_op , "[" , destination , "," , query_arg , "," , selection_lambda , "]";
+max_expr = max_op , "[" , destination , "," , query_arg , "," , selection_lambda , "]";
+sum_expr = sum_op , "[" , destination , "," , query_arg , "," , selection_lambda , "]";
+average_expr = average_op , "[" , destination , "," , query_arg , "," , selection_lambda , "]";

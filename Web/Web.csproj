@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Webql\Specifications\Docs\query-examples.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Webql\Specifications\Docs\query-examples.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 
