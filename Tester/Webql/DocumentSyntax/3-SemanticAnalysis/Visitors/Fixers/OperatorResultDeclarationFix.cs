@@ -1,0 +1,32 @@
+﻿using ModularSystem.Webql.Analysis.Semantics;
+using ModularSystem.Webql.Analysis.Symbols;
+
+namespace ModularSystem.Webql.Analysis.DocumentSyntax.Visitors.Fixers;
+
+public class OperatorResultDeclarationFix : AstSemanticVisitor
+{
+    protected override ExpressionSymbol VisitExpression(SemanticContext context, ExpressionSymbol symbol)
+    {
+        if(symbol is IResultProducerOperatorExpressionSymbol resultProducer)
+        {
+            var destination = resultProducer.Destination;
+
+            if(destination is not StringSymbol stringSymbol)
+            {
+                return base.VisitExpression(context, symbol);
+            } 
+
+            var semantic = SemanticAnalyser.AnalyseExpression(context, symbol);
+
+            if (stringSymbol.Value is null)
+            {
+                throw new Exception();
+            }
+
+            context.AddSymbolDeclaration(stringSymbol.Value, symbol, semantic.Type);
+        }   
+
+        return base.VisitExpression(context, symbol);
+    }
+
+}
