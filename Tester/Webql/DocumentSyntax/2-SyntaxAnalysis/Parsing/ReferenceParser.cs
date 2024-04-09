@@ -24,7 +24,7 @@ public class ReferenceParser : SyntaxParserBase
 
         foreach (var item in split)
         {
-            expression = new MemberAccessExpressionSymbol(item, reference);
+            expression = new MemberAccessOperatorExpressionSymbol(item, reference);
         }
 
         if (expression is null)

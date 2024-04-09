@@ -3,7 +3,7 @@ using ModularSystem.Webql.Analysis.Symbols;
 
 namespace ModularSystem.Webql.Analysis.DocumentSyntax.Visitors.Fixers;
 
-public class OperatorResultDeclarationFix : AstSemanticVisitor
+public class OperatorResultDeclarationFix : AstSemanticVisitorOld
 {
     protected override ExpressionSymbol VisitExpression(SemanticContext context, ExpressionSymbol symbol)
     {
@@ -23,7 +23,7 @@ public class OperatorResultDeclarationFix : AstSemanticVisitor
                 throw new Exception();
             }
 
-            context.AddSymbolDeclaration(stringSymbol.Value, symbol, semantic.Type);
+            
         }   
 
         return base.VisitExpression(context, symbol);

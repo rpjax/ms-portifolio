@@ -1,6 +1,10 @@
-﻿using ModularSystem.Webql.Analysis.Parsing;
+﻿using ModularSystem.Webql.Analysis.Components;
+using ModularSystem.Webql.Analysis.DocumentSyntax.Semantics.Components;
+using ModularSystem.Webql.Analysis.Extensions;
+using ModularSystem.Webql.Analysis.Parsing;
 using ModularSystem.Webql.Analysis.Semantics;
-using ModularSystem.Webql.Analysis.Semantics.Visitors;
+using ModularSystem.Webql.Analysis.Semantics.Components;
+using ModularSystem.Webql.Analysis.Symbols;
 using ModularSystem.Webql.Analysis.Tokenization;
 using ModularSystem.Webql.Analysis.Tokens;
 
@@ -25,16 +29,67 @@ public static class Program
     {
         var source = TestUser.Source.AsQueryable();
 
-        var query = "[\r\n    [\r\n        \"source\"\r\n    ],\r\n    {\r\n        \"$filter\": [\r\n            \"result\",\r\n            \"$source\",\r\n            [\r\n                [\r\n                    \"item\"\r\n                ],\r\n                {\r\n                    \"$equals\": [\r\n                        null,\r\n                        \"$item.nickname\",\r\n                        \"jacques\"\r\n                    ],\r\n                    \"$subtract\": [\r\n                        null,\r\n                        \"$item.balance\",\r\n                        59\r\n                    ]\r\n                }\r\n            ]\r\n        ],\r\n        \"$select\": [\r\n            \"result\",\r\n            \"$result\",\r\n            [\r\n                [\r\n                    \"item\"\r\n                ],\r\n                {\r\n                    \"$subtract\": [\r\n                        null,\r\n                        \"$item.balance\",\r\n                        59\r\n                    ]\r\n                }\r\n            ]\r\n        ]\r\n    }\r\n]";
+        var query = "[\r\n    [\r\n        \"source\"\r\n    ],\r\n    {\r\n        \"$filter\": [\r\n            \"filter_result\",\r\n            \"$source\",\r\n            [\r\n                [\r\n                    \"filter_item\"\r\n                ],\r\n                {\r\n                    \"$equals\": [\r\n                        null,\r\n                        \"$filter_item.nickname\",\r\n                        \"jacques\"\r\n                    ],\r\n                    \"$subtract\": [\r\n                        null,\r\n                        \"$filter_item.balance\",\r\n                        59\r\n                    ]\r\n                }\r\n            ]\r\n        ],\r\n        \"$select\": [\r\n            \"select_result\",\r\n            \"$source\",\r\n            [\r\n                [\r\n                    \"select_item\"\r\n                ],\r\n                {\r\n                    \"$subtract\": [\r\n                        null,\r\n                        \"$select_item.balance\",\r\n                        59\r\n                    ]\r\n                }\r\n            ]\r\n        ]\r\n    }\r\n]";
         var token = new LexicalAnalyser()
             .Tokenize(query);
 
         var axiom = new AxiomParser()
             .ParseAxiom(new ParsingContext(), (ArrayToken)token);
 
-        var context = new SemanticsAnalysisVisitor()
-            .Run(axiom, new Type[] { source.GetType() });   
+        new RootLambdasArgumentTypeFixer(new Type[] { source.GetType() })
+            .Execute(axiom);
 
+        new LambdaArgumentTypeFixer()
+            .Execute(axiom.Lambda!);
+
+        var context = new AstSemanticAnalysis()
+            .Execute(axiom);
+
+        axiom = new MyRewriter(context)
+            .Execute(axiom)
+            .As<AxiomSymbol>();
+        
         Console.WriteLine(axiom); ;
+    }
+}
+
+public class MyRewriter : AstSemanticRewriter
+{
+    public MyRewriter(SemanticContext context) : base(context)
+    {
+    }
+
+    protected override void OnSemanticVisit(Symbol symbol)
+    {
+        if(symbol is IResultProducerOperatorExpressionSymbol resultProducer)
+        {
+            if (resultProducer.Destination is NullSymbol)
+            {
+                return;
+            }
+            if (resultProducer.Destination is not StringSymbol destination)
+            {
+                throw new Exception();
+            }
+            
+            var resultExpression = resultProducer.As<ExpressionSymbol>();
+
+            var resultProducerSemantic = SemanticAnalyser.AnalyseExpression(
+                context: Context.GetSymbolContext(resultExpression), 
+                symbol: resultExpression
+            );
+
+            var declarationType = resultProducerSemantic.Type.AssemblyQualifiedName;
+            var declarationIdentifier = destination.GetNormalizedValue();
+    
+            var declaration = new DeclarationStatementSymbol(
+                type: declarationType,
+                identifier: declarationIdentifier,
+                modifiers: new[] { "cgen" },
+                value: resultExpression
+            );
+
+            RewriteSymbol(resultExpression, declaration);
+        }
     }
 }

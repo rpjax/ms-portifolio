@@ -145,11 +145,6 @@ public class ArrayParser
         return SyntaxParser.ParseLambda(context, ConsumeNextArrayToken(context));
     }
 
-    public ProjectionLambdaSymbol ParseNextProjectionLambda(ParsingContext context)
-    {
-        return SyntaxParser.ParseProjectionLambda(context, ConsumeNextArrayToken(context));
-    }
-
     public StatementBlockSymbol ParseNextStatementBlock(ParsingContext context)
     {
         return SyntaxParser.ParseStatementBlock(context, ConsumeNextObjectToken(context));

@@ -40,7 +40,7 @@ public class TypeBindingParser : SyntaxParserBase
         if (property.Value is StringToken stringToken)
         {
             return new TypeBindingSymbol(
-                key: key, 
+                name: key, 
                 value: SyntaxParser.ParseReference(context, stringToken)
             );
         }
@@ -49,7 +49,7 @@ public class TypeBindingParser : SyntaxParserBase
         if (property.Value is ObjectToken objectToken)
         {
             return new TypeBindingSymbol(
-                  key: key,
+                  name: key,
                   value: SyntaxParser.ParseTypeProjection(context, objectToken)
             );
         }

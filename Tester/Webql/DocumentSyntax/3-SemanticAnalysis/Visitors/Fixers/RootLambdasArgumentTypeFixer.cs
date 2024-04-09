@@ -1,20 +1,22 @@
-﻿using ModularSystem.Webql.Analysis.Semantics.Extensions;
+﻿using ModularSystem.Webql.Analysis.Semantics;
+using ModularSystem.Webql.Analysis.Semantics.Components;
+using ModularSystem.Webql.Analysis.Semantics.Extensions;
 using ModularSystem.Webql.Analysis.Symbols;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Visitors;
+namespace ModularSystem.Webql.Analysis.DocumentSyntax.Semantics.Components;
 
-//*
-// The first semantic fix:
-//
-// The visitor job: accepts a Type and adds it FullName to the root lambda's argument symbol.
-//*
-
-public class RootLambdasArgumentTypeFixer : AstSemanticVisitor
+/*
+ * The visitor job: accepts a Type and adds it FullName to the root lambda's argument symbol.
+ */
+public class RootLambdasArgumentTypeFixer : FirstSemanticPass
 {
     private Type[] ArgumentsTypes { get; }
     private bool ArgumentsFoud { get; set; }
 
-    public RootLambdasArgumentTypeFixer(Type[] argumentsTypes)
+    public RootLambdasArgumentTypeFixer(
+        Type[] argumentsTypes
+    ) 
+    : base(new SemanticContext())
     {
         ArgumentsTypes = argumentsTypes;
     }
@@ -26,7 +28,7 @@ public class RootLambdasArgumentTypeFixer : AstSemanticVisitor
             return;
         }
 
-        VisitLambdaExpression(new SemanticContext(), symbol.Lambda);
+        TraverseTree(symbol);
 
         if (!ArgumentsFoud)
         {
@@ -34,16 +36,23 @@ public class RootLambdasArgumentTypeFixer : AstSemanticVisitor
         }
     }
 
-    protected override LambdaExpressionSymbol VisitLambdaExpression(SemanticContext context, LambdaExpressionSymbol symbol)
+    protected override void OnVisit(Symbol symbol)
     {
-        if (ArgumentsTypes.Length != symbol.Parameters.Length)
+        base.OnVisit(symbol);
+
+        if(symbol is not LambdaExpressionSymbol lambda)
+        {
+            return;
+        }
+
+        if (ArgumentsTypes.Length != lambda.Parameters.Length)
         {
             throw new Exception();
         }
 
-        for (int i = 0; i < symbol.Parameters.Length; i++)
+        for (int i = 0; i < lambda.Parameters.Length; i++)
         {
-            var arg = symbol.Parameters[i];
+            var arg = lambda.Parameters[i];
             var type = ArgumentsTypes[i];
 
             if (type.AssemblyQualifiedName is null)
@@ -55,6 +64,7 @@ public class RootLambdasArgumentTypeFixer : AstSemanticVisitor
         }
 
         ArgumentsFoud = true;
-        return symbol;
+        Stop = true;
     }
+
 }

@@ -17,12 +17,6 @@ public static class SyntaxParser
             .ParseLambda(context, token);
     }
 
-    public static ProjectionLambdaSymbol ParseProjectionLambda(ParsingContext context, ArrayToken token)
-    {
-        return new LambdaParser()
-            .ParseProjectionLambda(context, token);
-    }
-
     public static DeclarationStatementSymbol[] ParseDeclarationArray(ParsingContext context, ArrayToken token)
     {
         return new DeclarationArrayParser()
@@ -81,12 +75,6 @@ public static class SyntaxParser
     {
         return new ReferenceParser()
             .ParseReference(context, token);    
-    }
-
-    public static DestinationSymbol ParseDestination(ParsingContext context, ValueToken token)
-    {
-        return new DestinationParser()
-            .ParseDestination(context, token);
     }
 
 }

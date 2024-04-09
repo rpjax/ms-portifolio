@@ -79,11 +79,11 @@ public class OperatorExpressionParser : SyntaxParserBase
             //* 
             //* 
             //* semantic expressions parsing.
-            case OperatorType.Expr:
-                break;
+            //case OperatorType.Expr:
+            //    break;
 
-            case OperatorType.Parse:
-                break;
+            //case OperatorType.Parse:
+            //    break;
 
             case OperatorType.Type:
                 return ParseTypeOperatorExpression(context, paramsArray);
@@ -97,8 +97,8 @@ public class OperatorExpressionParser : SyntaxParserBase
             case OperatorType.Select:
                 return ParseSelectOperatorExpression(context, paramsArray);
 
-            case OperatorType.Transform:
-                break;
+            //case OperatorType.Transform:
+            //    break;
 
             case OperatorType.SelectMany:
                 break;

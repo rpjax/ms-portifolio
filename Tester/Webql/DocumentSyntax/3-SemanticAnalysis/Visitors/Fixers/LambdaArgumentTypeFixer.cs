@@ -1,8 +1,9 @@
-﻿using ModularSystem.Webql.Analysis.Semantics.Extensions;
+﻿using ModularSystem.Webql.Analysis.Semantics;
+using ModularSystem.Webql.Analysis.Semantics.Components;
+using ModularSystem.Webql.Analysis.Semantics.Extensions;
 using ModularSystem.Webql.Analysis.Symbols;
-using ModularSystem.Webql.Analysis.Syntax;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Visitors;
+namespace ModularSystem.Webql.Analysis.DocumentSyntax.Semantics.Components;
 
 //*
 // The second semantic fix:
@@ -15,56 +16,31 @@ namespace ModularSystem.Webql.Analysis.Semantics.Visitors;
 // its FullName property to the Type property of the lambda argument symbol (lambda_arg.Type). 
 //*
 
-public class LambdaArgumentTypeFixer : AstSemanticVisitor
+public class LambdaArgumentTypeFixer : FirstSemanticPass
 {
-    private bool UseRecursiveVisitor { get; set; }
+    public LambdaArgumentTypeFixer() : base(new SemanticContext())
+    {
+    }
 
     public void Execute(LambdaExpressionSymbol symbol)
     {
-        VisitLambdaExpression(new SemanticContext(), symbol);
+        TraverseTree(symbol);
     }
 
-    protected override DeclarationStatementSymbol VisitDeclaration(SemanticContext context, DeclarationStatementSymbol symbol)
+    protected override void OnVisit(Symbol symbol)
     {
-        var semantic = SemanticAnalyser.AnalyseDeclaration(context, symbol);
-        symbol.AddDeclaration(context, symbol.Identifier, semantic.Type);
-        return base.VisitDeclaration(context, symbol);
-    }
-
-    protected override ExpressionSymbol VisitExpression(SemanticContext context, ExpressionSymbol symbol)
-    { 
-        return base.VisitExpression(context, symbol);
-    }
-
-    protected override StatementBlockSymbol VisitStatementBlock(SemanticContext context, StatementBlockSymbol symbol)
-    {
-        if (UseRecursiveVisitor)
-        {
-            return new LambdaArgumentTypeFixer()
-                .VisitStatementBlock(context, symbol);
-        }
-
-        return base.VisitStatementBlock(context, symbol);
-    }
-
-    protected override ExpressionSymbol VisitOperatorExpression(SemanticContext context, OperatorExpressionSymbol symbol)
-    {
-        //var isQueryOperator = OperatorHelper
-        //    .GetQueryOperators()
-        //    .Contains(symbol.Operator);
+        base.OnVisit(symbol);
 
         if (symbol is PredicateOperatorExpressionSymbol queryExpression)
         {
             var source = queryExpression.Source;
             var lambda = queryExpression.Lambda;
 
-            ApplyFix(context, source, lambda);
+            ApplyFix(source, lambda);
         }
-
-        return base.VisitOperatorExpression(context, symbol);
     }
 
-    protected void ApplyFix(SemanticContext context, ExpressionSymbol source, LambdaExpressionSymbol lambdaSymbol)
+    protected void ApplyFix(ExpressionSymbol source, LambdaExpressionSymbol lambdaSymbol)
     {
         var args = lambdaSymbol.Parameters;
 
@@ -77,15 +53,20 @@ public class LambdaArgumentTypeFixer : AstSemanticVisitor
             throw new Exception();
         }
 
-        var sourceSemantic = SemanticAnalyser.AnalyseExpression(context, source);
+        var sourceSemantic = SemanticAnalyser.AnalyseExpression(Context, source);
 
-        if(sourceSemantic.IsNotQueryable(context))
+        if(sourceSemantic.IsNotQueryable(Context))
         {
             throw new Exception();
         }
 
-        var elementType = sourceSemantic.GetElementType(context);
+        var elementType = sourceSemantic.GetElementType(Context);
         var arg = args[0];
+
+        if(elementType.AssemblyQualifiedName is null)
+        {
+            throw new InvalidOperationException();
+        }
 
         arg.SetType(elementType.AssemblyQualifiedName!);
     }
