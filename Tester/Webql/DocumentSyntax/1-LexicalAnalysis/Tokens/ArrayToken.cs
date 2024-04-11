@@ -1,18 +1,18 @@
 ﻿using System.Collections;
 
-namespace ModularSystem.Webql.Analysis.Tokens;
+namespace ModularSystem.Webql.Analysis.DocumentSyntax.Tokenization;
 
-public class ArrayToken : Token, IEnumerable<Token>
+public class ArrayToken : JsonToken, IEnumerable<JsonToken>
 {
-    public override TokenType TokenType { get; } = TokenType.Array;
-    public Token[] Values { get; }
+    public override JsonTokenType TokenType { get; } = JsonTokenType.Array;
+    public JsonToken[] Values { get; }
 
-    public ArrayToken(Token[] values)
+    public ArrayToken(JsonToken[] values)
     {
         Values = values;
     }
 
-    public IEnumerator<Token> GetEnumerator()
+    public IEnumerator<JsonToken> GetEnumerator()
     {
         return Values.AsEnumerable().GetEnumerator();
     }

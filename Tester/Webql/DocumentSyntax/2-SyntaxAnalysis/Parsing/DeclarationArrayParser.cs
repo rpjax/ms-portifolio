@@ -1,5 +1,5 @@
-﻿using ModularSystem.Webql.Analysis.Symbols;
-using ModularSystem.Webql.Analysis.Tokens;
+﻿using ModularSystem.Webql.Analysis.DocumentSyntax.Tokenization;
+using ModularSystem.Webql.Analysis.Symbols;
 using System.Text.RegularExpressions;
 
 namespace ModularSystem.Webql.Analysis.Parsing;

@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Webql.Analysis.Tokens;
+﻿namespace ModularSystem.Webql.Analysis.DocumentSyntax.Tokenization;
 
 public enum ValueType
 {
@@ -8,10 +8,10 @@ public enum ValueType
     Number
 }
 
-public abstract class ValueToken : Token
+public abstract class ValueToken : JsonToken
 {
     public abstract ValueType ValueType { get; }
-    public override TokenType TokenType { get; } = TokenType.Value;
+    public override JsonTokenType TokenType { get; } = JsonTokenType.Value;
 }
 
 public class NullToken : ValueToken

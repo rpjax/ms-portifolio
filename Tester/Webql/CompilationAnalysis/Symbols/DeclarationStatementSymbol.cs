@@ -31,8 +31,8 @@ public class DeclarationStatementSymbol : StatementSymbol, IDeclarationSymbol
 
     public override string ToString()
     {
-        var type = Type;
-        var modifiers = Modifiers.Length > 0 ? $"[{string.Join(", ", Modifiers)}]" : "";
+        //var type = Type;
+        //var modifiers = Modifiers.Length > 0 ? $"[{string.Join(", ", Modifiers)}]" : "";
         var value = Value is not null ? $" = {Value}" : "";
         
         return $"{Identifier}{value}";

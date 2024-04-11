@@ -1,6 +1,6 @@
-﻿using ModularSystem.Webql.Analysis.Symbols;
+﻿using ModularSystem.Webql.Analysis.DocumentSyntax.Tokenization;
+using ModularSystem.Webql.Analysis.Symbols;
 using ModularSystem.Webql.Analysis.Syntax.Extensions;
-using ModularSystem.Webql.Analysis.Tokens;
 
 namespace ModularSystem.Webql.Analysis.Parsing;
 
@@ -8,18 +8,18 @@ public class ArrayParser
 {
     public int TokensCount => Tokens.Count;
 
-    private Queue<Token> Tokens { get; }
+    private Queue<JsonToken> Tokens { get; }
 
     public ArrayParser(ArrayToken arrayToken)
     {
-        Tokens = new Queue<Token>(arrayToken);
+        Tokens = new Queue<JsonToken>(arrayToken);
     }
 
     //*
     // consumer methods.
     //*
 
-    public T ConsumeNextToken<T>(ParsingContext context) where T : Token
+    public T ConsumeNextToken<T>(ParsingContext context) where T : JsonToken
     {
         if (TokensCount == 0)
         {
@@ -36,9 +36,9 @@ public class ArrayParser
         return result;
     }
 
-    public Token ConsumeNextToken(ParsingContext context)
+    public JsonToken ConsumeNextToken(ParsingContext context)
     {
-        return ConsumeNextToken<Token>(context);
+        return ConsumeNextToken<JsonToken>(context);
     }
 
     public ArrayToken ConsumeNextArrayToken(ParsingContext context)

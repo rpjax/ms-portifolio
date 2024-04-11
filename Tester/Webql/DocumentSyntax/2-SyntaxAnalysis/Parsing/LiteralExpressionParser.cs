@@ -1,5 +1,5 @@
-﻿using ModularSystem.Webql.Analysis.Symbols;
-using ModularSystem.Webql.Analysis.Tokens;
+﻿using ModularSystem.Webql.Analysis.DocumentSyntax.Tokenization;
+using ModularSystem.Webql.Analysis.Symbols;
 
 namespace ModularSystem.Webql.Analysis.Parsing;
 
@@ -9,16 +9,16 @@ public class LiteralExpressionParser : SyntaxParserBase
     {
         switch (token.ValueType)
         {
-            case Tokens.ValueType.Null:
+            case DocumentSyntax.Tokenization.ValueType.Null:
                 return new NullSymbol();
 
-            case Tokens.ValueType.String:
+            case DocumentSyntax.Tokenization.ValueType.String:
                 return new StringSymbol(((StringToken)token).Value);
 
-            case Tokens.ValueType.Bool:
+            case DocumentSyntax.Tokenization.ValueType.Bool:
                 return new BoolSymbol(((BoolToken)token).Value);
 
-            case Tokens.ValueType.Number:
+            case DocumentSyntax.Tokenization.ValueType.Number:
                 return new NumberSymbol(((NumberToken)token).Value);
 
             default:

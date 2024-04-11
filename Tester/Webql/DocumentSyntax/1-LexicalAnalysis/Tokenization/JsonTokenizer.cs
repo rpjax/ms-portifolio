@@ -1,23 +1,22 @@
-﻿using ModularSystem.Webql.Analysis.Tokens;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace ModularSystem.Webql.Analysis.Tokenization;
+namespace ModularSystem.Webql.Analysis.DocumentSyntax.Tokenization;
 
-public class LexicalAnalyser
+public class JsonTokenizer
 {
-    public Token Tokenize(string json)
+    public JsonToken Tokenize(string json)
     {
         return Tokenize(JsonNode.Parse(json));
     }
 
-    private Token Tokenize(JsonNode? node)
+    private JsonToken Tokenize(JsonNode? node)
     {
-        if(node is null)
+        if (node is null)
         {
             return new NullToken();
         }
-        if(node is JsonObject jsonObject)
+        if (node is JsonObject jsonObject)
         {
             return Tokenize(jsonObject);
         }
@@ -47,7 +46,7 @@ public class LexicalAnalyser
 
     private ArrayToken Tokenize(JsonArray jsonArray)
     {
-        var values = new List<Token>();
+        var values = new List<JsonToken>();
 
         foreach (var item in jsonArray)
         {
@@ -57,10 +56,10 @@ public class LexicalAnalyser
         return new ArrayToken(values.ToArray());
     }
 
-    private Token Tokenize(JsonValue jsonValue)
+    private JsonToken Tokenize(JsonValue jsonValue)
     {
         var jsonElement = jsonValue.GetValue<JsonElement>();
-        var type = jsonElement.ValueKind;jsonValue.GetValue<JsonElement>();
+        var type = jsonElement.ValueKind; jsonValue.GetValue<JsonElement>();
 
         switch (type)
         {
@@ -85,7 +84,7 @@ public class LexicalAnalyser
 
             case JsonValueKind.Undefined:
             default:
-                
+
                 throw new Exception();
         }
     }

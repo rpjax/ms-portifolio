@@ -1,10 +1,10 @@
 ﻿using System.Collections;
 
-namespace ModularSystem.Webql.Analysis.Tokens;
+namespace ModularSystem.Webql.Analysis.DocumentSyntax.Tokenization;
 
-public class ObjectToken : Token, IEnumerable<ObjectPropertyToken>
+public class ObjectToken : JsonToken, IEnumerable<ObjectPropertyToken>
 {
-    public override TokenType TokenType { get; } = TokenType.Object;
+    public override JsonTokenType TokenType { get; } = JsonTokenType.Object;
     public ObjectPropertyToken[] Properties { get; }
 
     public ObjectToken(ObjectPropertyToken[] properties)

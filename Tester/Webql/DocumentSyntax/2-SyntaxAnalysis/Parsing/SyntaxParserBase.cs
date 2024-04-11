@@ -1,5 +1,5 @@
-﻿using ModularSystem.Webql.Analysis.Symbols;
-using ModularSystem.Webql.Analysis.Tokens;
+﻿using ModularSystem.Webql.Analysis.DocumentSyntax.Tokenization;
+using ModularSystem.Webql.Analysis.Symbols;
 
 namespace ModularSystem.Webql.Analysis.Parsing;
 
@@ -37,7 +37,7 @@ public abstract class SyntaxParserBase
         return dic;
     }
 
-    protected T CastToken<T>(ParsingContext context, Token token) where T : Token
+    protected T CastToken<T>(ParsingContext context, JsonToken token) where T : JsonToken
     {
         if(token is not T result)
         {

@@ -1,12 +1,12 @@
-﻿namespace ModularSystem.Webql.Analysis.Tokens;
+﻿namespace ModularSystem.Webql.Analysis.DocumentSyntax.Tokenization;
 
-public class ObjectPropertyToken : Token
+public class ObjectPropertyToken : JsonToken
 {
-    public override TokenType TokenType { get; } = TokenType.ObjectProperty;
+    public override JsonTokenType TokenType { get; } = JsonTokenType.ObjectProperty;
     public string Key { get; }
-    public Token Value { get; }
+    public JsonToken Value { get; }
 
-    public ObjectPropertyToken(string key, Token value)
+    public ObjectPropertyToken(string key, JsonToken value)
     {
         Key = key;
         Value = value;
