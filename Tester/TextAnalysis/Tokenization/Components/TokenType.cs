@@ -1,0 +1,51 @@
+﻿namespace ModularSystem.Core.TextAnalysis.Tokenization;
+
+public enum TokenType
+{
+    /// <summary>
+    /// Identifiers. Ex: <c>name</c>, <c>age</c>.
+    /// </summary>
+    Identifier,
+
+    /// <summary>
+    /// Single-character punctuators. Ex: <c>,</c> <c>:</c> <c>(</c> <c>[</c> <c>{</c> etc...
+    /// </summary>
+    Punctuation,
+
+    /// <summary>
+    /// Represents a comment sequence supported by the tokenizer. Currently, the tokenizer supports the following comment styles:
+    /// <list type="bullet">
+    /// <item>
+    /// <description>C++ style: <c>/* */</c> and <c>// \n</c></description>
+    /// </item>
+    /// <item>
+    /// <description>EBNF style: <c>(* *)</c></description>
+    /// </item>
+    /// </list>
+    /// </summary>
+    Comment,
+
+    /*
+     * literals.
+     */
+
+    /// <summary>
+    /// String literal denoted by single or double quotes. Ex: <c>'hello'</c>, <c>"world"</c>.
+    /// </summary>
+    String,
+
+    /// <summary>
+    /// Integer literal. Ex: <c>50</c>
+    /// </summary>
+    Integer,
+
+    /// <summary>
+    /// Float literal. Ex: <c>0.25</c>
+    /// </summary>
+    Float,
+
+    /// <summary>
+    /// Hexadecimal literal. Ex: <c>0x1A</c>
+    /// </summary>
+    Hexadecimal,
+}

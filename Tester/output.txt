@@ -1,0 +1,281 @@
+ChatGPT directed notes: consider that "e" without quotes means epsilon, and with quotes denotes a terminal, all terminals are represented as strings with double quotes.
+Original grammar:
+S -> A "a"
+S -> B "b"
+S -> "c"
+A -> D "d"
+A -> S "e"
+A -> ε
+B -> A "f"
+B -> C "g"
+B -> S "h"
+B -> ε
+C -> F "i"
+C -> "j"
+D -> B "k"
+D -> E "l"
+D -> "m"
+E -> G "n"
+E -> A "o"
+E -> C "p"
+F -> "q"
+F -> D "r"
+G -> "s"
+G -> F "t"
+G -> E "u"
+
+Grammar after removing direct left recursion:
+S -> A "a"
+S -> B "b"
+S -> "c"
+A -> D "d"
+A -> S "e"
+A -> ε
+B -> A "f"
+B -> C "g"
+B -> S "h"
+B -> ε
+C -> F "i"
+C -> "j"
+D -> B "k"
+D -> E "l"
+D -> "m"
+E -> G "n"
+E -> A "o"
+E -> C "p"
+F -> "q"
+F -> D "r"
+G -> "s"
+G -> F "t"
+G -> E "u"
+
+Indirect recursive cicles the algorithm identified:
+Cicle 1:
+S -> A "a" (S -> A "a")
+A -> D "d" (A "a" -> D "d" "a")
+D -> B "k" (D "d" "a" -> B "k" "d" "a")
+B -> S "h" (B "k" "d" "a" -> S "h" "k" "d" "a")
+
+Cicle 2:
+S -> A "a" (S -> A "a")
+A -> S "e" (A "a" -> S "e" "a")
+
+Cicle 3:
+S -> B "b" (S -> B "b")
+B -> A "f" (B "b" -> A "f" "b")
+A -> S "e" (A "f" "b" -> S "e" "f" "b")
+
+Cicle 4:
+S -> B "b" (S -> B "b")
+B -> C "g" (B "b" -> C "g" "b")
+C -> F "i" (C "g" "b" -> F "i" "g" "b")
+F -> D "r" (F "i" "g" "b" -> D "r" "i" "g" "b")
+D -> E "l" (D "r" "i" "g" "b" -> E "l" "r" "i" "g" "b")
+E -> A "o" (E "l" "r" "i" "g" "b" -> A "o" "l" "r" "i" "g" "b")
+A -> S "e" (A "o" "l" "r" "i" "g" "b" -> S "e" "o" "l" "r" "i" "g" "b")
+
+Cicle 5:
+S -> B "b" (S -> B "b")
+B -> S "h" (B "b" -> S "h" "b")
+
+Cicle 6:
+A -> D "d" (A -> D "d")
+D -> B "k" (D "d" -> B "k" "d")
+B -> A "f" (B "k" "d" -> A "f" "k" "d")
+
+Cicle 7:
+A -> D "d" (A -> D "d")
+D -> B "k" (D "d" -> B "k" "d")
+B -> S "h" (B "k" "d" -> S "h" "k" "d")
+S -> A "a" (S "h" "k" "d" -> A "a" "h" "k" "d")
+
+Cicle 8:
+A -> D "d" (A -> D "d")
+D -> E "l" (D "d" -> E "l" "d")
+E -> A "o" (E "l" "d" -> A "o" "l" "d")
+
+Cicle 9:
+A -> S "e" (A -> S "e")
+S -> A "a" (S "e" -> A "a" "e")
+
+Cicle 10:
+A -> S "e" (A -> S "e")
+S -> B "b" (S "e" -> B "b" "e")
+B -> A "f" (B "b" "e" -> A "f" "b" "e")
+
+Cicle 11:
+A -> S "e" (A -> S "e")
+S -> B "b" (S "e" -> B "b" "e")
+B -> C "g" (B "b" "e" -> C "g" "b" "e")
+C -> F "i" (C "g" "b" "e" -> F "i" "g" "b" "e")
+F -> D "r" (F "i" "g" "b" "e" -> D "r" "i" "g" "b" "e")
+D -> E "l" (D "r" "i" "g" "b" "e" -> E "l" "r" "i" "g" "b" "e")
+E -> A "o" (E "l" "r" "i" "g" "b" "e" -> A "o" "l" "r" "i" "g" "b" "e")
+
+Cicle 12:
+B -> A "f" (B -> A "f")
+A -> D "d" (A "f" -> D "d" "f")
+D -> B "k" (D "d" "f" -> B "k" "d" "f")
+
+Cicle 13:
+B -> A "f" (B -> A "f")
+A -> S "e" (A "f" -> S "e" "f")
+S -> B "b" (S "e" "f" -> B "b" "e" "f")
+
+Cicle 14:
+B -> C "g" (B -> C "g")
+C -> F "i" (C "g" -> F "i" "g")
+F -> D "r" (F "i" "g" -> D "r" "i" "g")
+D -> B "k" (D "r" "i" "g" -> B "k" "r" "i" "g")
+
+Cicle 15:
+B -> C "g" (B -> C "g")
+C -> F "i" (C "g" -> F "i" "g")
+F -> D "r" (F "i" "g" -> D "r" "i" "g")
+D -> E "l" (D "r" "i" "g" -> E "l" "r" "i" "g")
+E -> A "o" (E "l" "r" "i" "g" -> A "o" "l" "r" "i" "g")
+A -> S "e" (A "o" "l" "r" "i" "g" -> S "e" "o" "l" "r" "i" "g")
+S -> B "b" (S "e" "o" "l" "r" "i" "g" -> B "b" "e" "o" "l" "r" "i" "g")
+
+Cicle 16:
+B -> S "h" (B -> S "h")
+S -> A "a" (S "h" -> A "a" "h")
+A -> D "d" (A "a" "h" -> D "d" "a" "h")
+D -> B "k" (D "d" "a" "h" -> B "k" "d" "a" "h")
+
+Cicle 17:
+B -> S "h" (B -> S "h")
+S -> B "b" (S "h" -> B "b" "h")
+
+Cicle 18:
+C -> F "i" (C -> F "i")
+F -> D "r" (F "i" -> D "r" "i")
+D -> B "k" (D "r" "i" -> B "k" "r" "i")
+B -> C "g" (B "k" "r" "i" -> C "g" "k" "r" "i")
+
+Cicle 19:
+C -> F "i" (C -> F "i")
+F -> D "r" (F "i" -> D "r" "i")
+D -> E "l" (D "r" "i" -> E "l" "r" "i")
+E -> A "o" (E "l" "r" "i" -> A "o" "l" "r" "i")
+A -> S "e" (A "o" "l" "r" "i" -> S "e" "o" "l" "r" "i")
+S -> B "b" (S "e" "o" "l" "r" "i" -> B "b" "e" "o" "l" "r" "i")
+B -> C "g" (B "b" "e" "o" "l" "r" "i" -> C "g" "b" "e" "o" "l" "r" "i")
+
+Cicle 20:
+C -> F "i" (C -> F "i")
+F -> D "r" (F "i" -> D "r" "i")
+D -> E "l" (D "r" "i" -> E "l" "r" "i")
+E -> C "p" (E "l" "r" "i" -> C "p" "l" "r" "i")
+
+Cicle 21:
+D -> B "k" (D -> B "k")
+B -> A "f" (B "k" -> A "f" "k")
+A -> D "d" (A "f" "k" -> D "d" "f" "k")
+
+Cicle 22:
+D -> B "k" (D -> B "k")
+B -> C "g" (B "k" -> C "g" "k")
+C -> F "i" (C "g" "k" -> F "i" "g" "k")
+F -> D "r" (F "i" "g" "k" -> D "r" "i" "g" "k")
+
+Cicle 23:
+D -> B "k" (D -> B "k")
+B -> S "h" (B "k" -> S "h" "k")
+S -> A "a" (S "h" "k" -> A "a" "h" "k")
+A -> D "d" (A "a" "h" "k" -> D "d" "a" "h" "k")
+
+Cicle 24:
+D -> E "l" (D -> E "l")
+E -> G "n" (E "l" -> G "n" "l")
+G -> F "t" (G "n" "l" -> F "t" "n" "l")
+F -> D "r" (F "t" "n" "l" -> D "r" "t" "n" "l")
+
+Cicle 25:
+D -> E "l" (D -> E "l")
+E -> A "o" (E "l" -> A "o" "l")
+A -> D "d" (A "o" "l" -> D "d" "o" "l")
+
+Cicle 26:
+D -> E "l" (D -> E "l")
+E -> A "o" (E "l" -> A "o" "l")
+A -> S "e" (A "o" "l" -> S "e" "o" "l")
+S -> B "b" (S "e" "o" "l" -> B "b" "e" "o" "l")
+B -> C "g" (B "b" "e" "o" "l" -> C "g" "b" "e" "o" "l")
+C -> F "i" (C "g" "b" "e" "o" "l" -> F "i" "g" "b" "e" "o" "l")
+F -> D "r" (F "i" "g" "b" "e" "o" "l" -> D "r" "i" "g" "b" "e" "o" "l")
+
+Cicle 27:
+D -> E "l" (D -> E "l")
+E -> C "p" (E "l" -> C "p" "l")
+C -> F "i" (C "p" "l" -> F "i" "p" "l")
+F -> D "r" (F "i" "p" "l" -> D "r" "i" "p" "l")
+
+Cicle 28:
+E -> G "n" (E -> G "n")
+G -> F "t" (G "n" -> F "t" "n")
+F -> D "r" (F "t" "n" -> D "r" "t" "n")
+D -> E "l" (D "r" "t" "n" -> E "l" "r" "t" "n")
+
+Cicle 29:
+E -> G "n" (E -> G "n")
+G -> E "u" (G "n" -> E "u" "n")
+
+Cicle 30:
+E -> A "o" (E -> A "o")
+A -> D "d" (A "o" -> D "d" "o")
+D -> E "l" (D "d" "o" -> E "l" "d" "o")
+
+Cicle 31:
+E -> A "o" (E -> A "o")
+A -> S "e" (A "o" -> S "e" "o")
+S -> B "b" (S "e" "o" -> B "b" "e" "o")
+B -> C "g" (B "b" "e" "o" -> C "g" "b" "e" "o")
+C -> F "i" (C "g" "b" "e" "o" -> F "i" "g" "b" "e" "o")
+F -> D "r" (F "i" "g" "b" "e" "o" -> D "r" "i" "g" "b" "e" "o")
+D -> E "l" (D "r" "i" "g" "b" "e" "o" -> E "l" "r" "i" "g" "b" "e" "o")
+
+Cicle 32:
+E -> C "p" (E -> C "p")
+C -> F "i" (C "p" -> F "i" "p")
+F -> D "r" (F "i" "p" -> D "r" "i" "p")
+D -> E "l" (D "r" "i" "p" -> E "l" "r" "i" "p")
+
+Cicle 33:
+F -> D "r" (F -> D "r")
+D -> B "k" (D "r" -> B "k" "r")
+B -> C "g" (B "k" "r" -> C "g" "k" "r")
+C -> F "i" (C "g" "k" "r" -> F "i" "g" "k" "r")
+
+Cicle 34:
+F -> D "r" (F -> D "r")
+D -> E "l" (D "r" -> E "l" "r")
+E -> G "n" (E "l" "r" -> G "n" "l" "r")
+G -> F "t" (G "n" "l" "r" -> F "t" "n" "l" "r")
+
+Cicle 35:
+F -> D "r" (F -> D "r")
+D -> E "l" (D "r" -> E "l" "r")
+E -> A "o" (E "l" "r" -> A "o" "l" "r")
+A -> S "e" (A "o" "l" "r" -> S "e" "o" "l" "r")
+S -> B "b" (S "e" "o" "l" "r" -> B "b" "e" "o" "l" "r")
+B -> C "g" (B "b" "e" "o" "l" "r" -> C "g" "b" "e" "o" "l" "r")
+C -> F "i" (C "g" "b" "e" "o" "l" "r" -> F "i" "g" "b" "e" "o" "l" "r")
+
+Cicle 36:
+F -> D "r" (F -> D "r")
+D -> E "l" (D "r" -> E "l" "r")
+E -> C "p" (E "l" "r" -> C "p" "l" "r")
+C -> F "i" (C "p" "l" "r" -> F "i" "p" "l" "r")
+
+Cicle 37:
+G -> F "t" (G -> F "t")
+F -> D "r" (F "t" -> D "r" "t")
+D -> E "l" (D "r" "t" -> E "l" "r" "t")
+E -> G "n" (E "l" "r" "t" -> G "n" "l" "r" "t")
+
+Cicle 38:
+G -> E "u" (G -> E "u")
+E -> G "n" (E "u" -> G "n" "u")
+
+

@@ -17,5 +17,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Webql\Analysis\" />
+    <Folder Include="Webql\Specifications\" />
+  </ItemGroup>
 
 </Project>

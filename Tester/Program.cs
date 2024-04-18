@@ -6,6 +6,9 @@ using ModularSystem.Webql.Analysis.Semantics.Components;
 using ModularSystem.Webql.Analysis.Symbols;
 using ModularSystem.Webql.Analysis.DocumentSyntax.Tokenization;
 using ModularSystem.Webql.Analysis.DocumentSyntax.Parsing;
+using System.Diagnostics;
+using ModularSystem.Core.TextAnalysis.Tokenization;
+using ModularSystem.Core.TextAnalysis.Language;
 
 namespace ModularSystem.Tester;
 
@@ -26,7 +29,104 @@ public static class Program
 {
     public static void Main()
     {
-        Tokenizer3();
+        //BenchmarkTokenizer();
+
+        /*
+         * NOTE: the tokenizer has been optimized for performance and its running very fast.    
+         * The goal now is to implement the syntax analysis using a LL(1) parser. (top-down parser).
+         * The first step is to implement a way of reading normal EBNF grammars and convert them to a format that can be used by the parser.
+         * This envolves adjusing the production rules and the non-terminals to fix ambiguities and left-recursion.
+
+         * GRAMMAR ANALYSIS WEBSITE: https://smlweb.cpsc.ucalgary.ca 
+
+         */
+
+        var pipeExpansionTest = new Sentence(
+            new NonTerminal("A"),
+            new NonTerminal("B"),
+            new PipeMacro(),
+            new NonTerminal("C"),
+            new PipeMacro(),
+            new NonTerminal("Nigga"),
+            new OptionMacro(
+                new NonTerminal("F"),
+                new NonTerminal("G"),
+                new PipeMacro(),
+                new NonTerminal("NiggaSquared")
+            )
+        );
+
+        var macroGrammar = new MacroTesterGrammar();
+        var grammar = new MyComplexGrammar();
+        var manipulator = new GrammarBuilder(grammar);
+
+        //manipulator.RemoveDirectLeftRecursion();
+        manipulator.RemoveIndirectLeftRecursion();
+    }
+
+    /*
+     * Benchmark results:   
+     * 
+     * Total iterations: 100.000
+     * Warm-up iterations: 1.000 (1%)
+     * Tokens generated per iteration: 192
+     * Average iteration time: 0,0000422951373737374 s (42 microseconds)
+     * Worst time: 0,0788362 s
+     * Best time: 0,0000379 s
+     */
+    private static void BenchmarkTokenizer()
+    {
+        var analyser = new Tokenizer();
+
+        var input = "syntax         = { production } ;\r\nproduction     = identifier \"=\" expression \";\" ;\r\nexpression     = term { \"|\" term } ;\r\nterm           = factor { factor } ;\r\nfactor         = identifier\r\n               | literal\r\n               | \"[\" expression \"]\"     (* optional sequence *)\r\n               | \"{\" expression \"}\"     (* repetition *)\r\n               | \"(\" expression \")\"     (* grouping *) ;\r\nidentifier     = letter { letter | digit | \"_\" } ;\r\nliteral        = \"'\" character { character } \"'\" \r\n               | '\"' character { character } '\"' ;\r\nletter         = \"A\" | \"B\" | ... | \"Z\" | \"a\" | \"b\" | ... | \"z\" ;\r\ndigit          = \"0\" | \"1\" | ... | \"9\" ;\r\ncharacter      = letter | digit | symbol | escape ;\r\nsymbol         = \"[\" | \"]\" | \"{\" | \"}\" | \"(\" | \")\" | \"<\" | \">\" | \"'\" | '\"' | \"=\" | \"|\" | \".\" | \",\" | \";\" | \":\" ;\r\nescape         = \"\\\\\" ( [\"'\"] | [\"\\\"\"] | [\"n\"] | [\"t\"] | [\"\\\\\"] ) ;\r\n";
+
+        var stopwatch = new Stopwatch();
+        var times = new List<long>();
+        var tokenCount = -1;
+        var tokens = new Token?[0];
+
+        for (int i = 0; i < 100000; i++)
+        {
+            stopwatch.Start();
+
+            var _tokens = analyser.Tokenize(input)
+                .ToArray();
+
+            stopwatch.Stop();
+            times.Add(stopwatch.ElapsedTicks);
+            stopwatch.Reset();
+
+            tokenCount = _tokens.Length;
+            tokens = _tokens;
+        }
+
+        //* Skip the warp-up iterations.
+        times = times.Skip(1000).ToList();
+
+        var totalTime = times.Sum() / (double)Stopwatch.Frequency;
+        var averageTime = times.Average() / Stopwatch.Frequency;
+        var worstTime = times.Max() / (double)Stopwatch.Frequency;
+        var bestTime = times.Min() / (double)Stopwatch.Frequency;
+
+        Console.WriteLine($"Tokens generated per iteration: {tokenCount}");
+        Console.WriteLine($"Average iteration time: {ToNonScientificString(averageTime)} s");
+        Console.WriteLine($"Worst time: {ToNonScientificString(worstTime)} s");
+        Console.WriteLine($"Best time: {ToNonScientificString(bestTime)} s");
+        Console.WriteLine();
+
+        foreach (var item in tokens)
+        {
+            Console.WriteLine(item);
+        }
+    }
+
+    private static string ToNonScientificString(double value)
+    {
+        return value.ToString("#0." + new string('#', 339));
+    }
+
+    private static void TestSyntesis()
+    {
         var source = TestUser.Source.AsQueryable();
 
         var query = "[\r\n    [\r\n        \"source\"\r\n    ],\r\n    {\r\n        \"$filter\": [\r\n            \"filter_result\",\r\n            \"$source\",\r\n            [\r\n                [\r\n                    \"filter_item\"\r\n                ],\r\n                {\r\n                    \"$equals\": [\r\n                        null,\r\n                        \"$filter_item.nickname\",\r\n                        \"jacques\"\r\n                    ],\r\n                    \"$subtract\": [\r\n                        null,\r\n                        \"$filter_item.balance\",\r\n                        59\r\n                    ]\r\n                }\r\n            ]\r\n        ],\r\n        \"$select\": [\r\n            \"select_result\",\r\n            \"$source\",\r\n            [\r\n                [\r\n                    \"select_item\"\r\n                ],\r\n                {\r\n                    \"$subtract\": [\r\n                        null,\r\n                        \"$select_item.balance\",\r\n                        59\r\n                    ]\r\n                }\r\n            ]\r\n        ]\r\n    }\r\n]";
@@ -52,21 +152,6 @@ public static class Program
         Console.WriteLine(axiom); ;
     }
 
-    private static void Tokenizer3()
-    {
-        var analyser = new DocumentSyntaxTokenizer();
-
-        var input = "{\r\n  \"filter\": \"foobar\",\r\n  \"select\": \"barbaz\",[\r\n}";
-
-        var tokens = analyser.Tokenize(input)
-            .ToArray()
-            ;
-
-        using var context = new  Webql.Analysis.DocumentSyntax.Parsing.ParsingContext(tokens);
-        var block = BlockParser.ParseBlock(context);
-
-        Environment.Exit(0);
-    }
 }
 
 public class MyRewriter : AstSemanticRewriter
