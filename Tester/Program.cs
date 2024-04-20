@@ -9,6 +9,7 @@ using ModularSystem.Webql.Analysis.DocumentSyntax.Parsing;
 using System.Diagnostics;
 using ModularSystem.Core.TextAnalysis.Tokenization;
 using ModularSystem.Core.TextAnalysis.Language;
+using ModularSystem.Core.TextAnalysis.Language.Components;
 
 namespace ModularSystem.Tester;
 
@@ -25,6 +26,11 @@ public class TestUser
     public decimal? Balance { get; set; }
 }
 
+/*
+    Bro, listen:
+    I'm falling asleep, I'm tired. The last conclusion i've reached is that the macros have to expand from the innermost to the outermost. From the leaves to the root. Each concrete macro must implement a method that expands itself. The expansion could be done with the help of a tree traversal algorithm. The tree traversal algorithm would require the base class ProductionSymbol to list it's children. At the moment this behavior does not exist. Also the tree traverser would need to have the hability to rewrite the tree. This is a very complex problem. I'm going to sleep now. I'm tired.
+*/
+
 public static class Program
 {
     public static void Main()
@@ -38,25 +44,23 @@ public static class Program
          * This envolves adjusing the production rules and the non-terminals to fix ambiguities and left-recursion.
 
          * GRAMMAR ANALYSIS WEBSITE: https://smlweb.cpsc.ucalgary.ca 
+         * TAKE A LOOK AT THIS: https://en.wikipedia.org/wiki/Earley_parser
 
          */
 
-        var pipeExpansionTest = new Sentence(
-            new NonTerminal("A"),
-            new NonTerminal("B"),
-            new PipeMacro(),
-            new NonTerminal("C"),
-            new PipeMacro(),
-            new NonTerminal("Nigga"),
-            new OptionMacro(
-                new NonTerminal("F"),
-                new NonTerminal("G"),
-                new PipeMacro(),
-                new NonTerminal("NiggaSquared")
-            )
-        );
+        var jsonGrammar = new JsonGrammar();
 
-        var macroGrammar = new MacroTesterGrammar();
+        //jsonGrammar.Productions.AutoClean();
+        jsonGrammar.Productions.ExpandMacros();
+
+        var graph = GraphBuilder.FromProductionSet(jsonGrammar.Productions);
+
+        var str = new GraphNode(new NonTerminal("AB"))
+            .Render()
+            .ToString();
+
+        Console.WriteLine(str);
+
         var grammar = new MyComplexGrammar();
         var manipulator = new GrammarBuilder(grammar);
 

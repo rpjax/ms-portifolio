@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Language;
+﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+
+namespace ModularSystem.Core.TextAnalysis.Language;
 
 /*
  *  Grammar representation of a context-free grammar (type 2). 

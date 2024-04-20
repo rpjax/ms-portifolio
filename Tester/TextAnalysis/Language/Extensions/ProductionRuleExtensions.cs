@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Language;
+﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+
+namespace ModularSystem.Core.TextAnalysis.Language;
 
 public static class ProductionRuleExtensions
 {
@@ -45,6 +47,34 @@ public static class ProductionRuleExtensions
         return rule.Body
             .OfType<Terminal>()
             .FirstOrDefault();
+    }
+
+    public static int IndexOfSymbol(this ProductionRule production, ProductionSymbol symbol)
+    {
+        var index = -1;
+
+        foreach (var item in production.Body)
+        {
+            index++;
+
+            if (ReferenceEquals(item, symbol))
+            {
+                break;
+            }
+        }
+
+        return index;
+    }
+
+    public static void ReplaceNonTerminal(this ProductionRule production, NonTerminal current, NonTerminal replacement)
+    {
+        for (int i = 0; i < production.Body.Length; i++)
+        {
+            if (production.Body[i] == current)
+            {
+                production.Body[i] = replacement;
+            }
+        }
     }
 
 }

@@ -1,6 +1,6 @@
 ﻿using ModularSystem.Core.Helpers;
 
-namespace ModularSystem.Core.TextAnalysis.Language;
+namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 public class GrammarBuilder
 {
@@ -35,13 +35,6 @@ public class GrammarBuilder
     {
         Productions = Productions
             .RemoveWhere(x => productions.Any(y => y.Head.Name == x.Head.Name))
-            .ToList();
-    }
-
-    public void RemoveProductions(NonTerminal nonTerminal)
-    {
-        Productions = Productions
-            .RemoveWhere(x => x.Head.Name == nonTerminal.Name)
             .ToList();
     }
 
@@ -101,7 +94,7 @@ public class GrammarBuilder
         writer.WriteLine(grammar);
         writer.WriteLine();
 
-        var cicles = IndirectLeftRecursionTool.GetLeftRecursionCicles(grammar)
+        var cicles = RecursionTool.GetLeftRecursionCicles(grammar)
             .ToArray();
 
         var recursiveNonTerminals = cicles
@@ -201,6 +194,7 @@ public class GrammarBuilder
 
             AddProduction(newNonTerminal, new Epsilon());
         }
+    
     }
 
     public void RemoveCommonLeftPrefix()

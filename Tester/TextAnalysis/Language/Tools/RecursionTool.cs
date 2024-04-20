@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Language;
+﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+
+namespace ModularSystem.Core.TextAnalysis.Language;
 
 /*
     TODO: take a look at the tarjan's algorithm for finding cycles in a graph.
@@ -7,7 +9,7 @@
 /// <summary>
 /// The purpose of this class is to provide a tool for finding indirect left recursion.
 /// </summary>
-public static class IndirectLeftRecursionTool
+public static class RecursionTool
 {
     public static IEnumerable<LeftRecursionCicle> GetLeftRecursionCicles(GrammarDefinition grammar)
     {
