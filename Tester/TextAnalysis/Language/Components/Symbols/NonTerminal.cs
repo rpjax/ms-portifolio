@@ -123,4 +123,3 @@ public class NonTerminal : ProductionSymbol
         return Name;
     }
 }
-

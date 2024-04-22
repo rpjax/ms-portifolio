@@ -13,10 +13,31 @@ public class MyComplexGrammar : GrammarDefinition
     {
         return new[]
         {
-            new ProductionRule("S", new NonTerminal("A"), new Terminal(TokenType.Identifier, "a"), new NonTerminal("X")),
-            new ProductionRule("S", new Terminal(TokenType.Identifier, "b"), new NonTerminal("Y"), new Terminal(TokenType.Identifier, "c")),
-            new ProductionRule("S", new NonTerminal("D"), new Terminal(TokenType.Identifier, "d"), new NonTerminal("Z")),
-            new ProductionRule("A", new NonTerminal("B"), new NonTerminal("C"), new Terminal(TokenType.Identifier, "e")),
+            new ProductionRule("S", 
+                new NonTerminal("A"), 
+                new Terminal(TokenType.Identifier, "a"), 
+                new NonTerminal("X")
+            ),
+            new ProductionRule("S", 
+                new Terminal(TokenType.Identifier, "b"), 
+                new NonTerminal("Y"), 
+                new Terminal(TokenType.Identifier, "c")
+            ),
+            new ProductionRule("S",
+                new NonTerminal("D"),
+                new Terminal(TokenType.Identifier, "d"),
+                new NonTerminal("Z")
+            ),
+            new ProductionRule("A",
+                new NonTerminal("B"), 
+                new NonTerminal("C"),
+                new Terminal(TokenType.Identifier, "e")
+            ),
+            new ProductionRule("B",
+                new NonTerminal("S"),
+                new Terminal(TokenType.Identifier, "e")
+            ),
+
             new ProductionRule("A", new Terminal(TokenType.Identifier, "f"), new NonTerminal("S")),
             new ProductionRule("B", new Terminal(TokenType.Identifier, "g"), new NonTerminal("D")),
             new ProductionRule("B", new Terminal(TokenType.Identifier, "h"), new NonTerminal("E"), new Terminal(TokenType.Identifier, "i")),

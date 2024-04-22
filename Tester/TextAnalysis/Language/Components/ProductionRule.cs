@@ -48,6 +48,11 @@ public class ProductionRule
         throw new InvalidOperationException("Invalid notation type.");
     }
 
+    public ProductionRule Copy()
+    {
+        return new ProductionRule(Head.Copy(), Body.Copy());
+    }
+
     private string ToSententialNotation()
     {
         var head = Head.ToNotation(NotationType.Sentential);

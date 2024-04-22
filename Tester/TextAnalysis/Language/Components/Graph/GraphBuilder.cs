@@ -1,4 +1,13 @@
-namespace ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Language.Components;
+
+namespace ModularSystem.Core.TextAnalysis.Language.Graph;
+
+public enum ChildPosition
+{
+    Left,
+    Middle,
+    Right
+}
 
 public static class GraphBuilder
 {
@@ -29,7 +38,10 @@ public static class GraphBuilder
 
         if (symbol.IsTerminal)
         {
-            return new GraphNode(symbol, symbolProduction);
+            return new GraphNode(
+                symbol: symbol,
+                production: symbolProduction
+            );
         }
 
         var recursiveNode = stack
@@ -38,8 +50,67 @@ public static class GraphBuilder
 
         if (recursiveNode is not null)
         {
-            recursiveNode.IsRecursive = true;
-            return recursiveNode;
+            var terminalFound = false;
+
+            if (symbolProduction is null)
+            {
+                throw new InvalidOperationException("The symbol production is null.");
+            }
+
+            foreach (var item in symbolProduction.Body)
+            {
+                if (item == symbol)
+                {
+                    break;
+                }
+                if (item.IsTerminal)
+                {
+                    terminalFound = true;
+                    break;
+                }
+            }
+
+            if (!terminalFound)
+            {
+                foreach (var node in stack)
+                {
+                    var nodeSymbol = node.Symbol;
+
+                    if (node.Production is null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var item in node.Production.Body)
+                    {
+                        if (item == nodeSymbol)
+                        {
+                            break;
+                        }
+                        if (item.IsTerminal)
+                        {
+                            terminalFound = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            var recursionType = terminalFound 
+                ? RecursionType.Normal
+                : RecursionType.IndirectLeft;
+
+            if(!terminalFound && stack.Peek() == recursiveNode)
+            {
+                recursionType = RecursionType.Left;
+            }
+
+            return new GraphNode(
+                symbol: symbol,
+                production: symbolProduction,
+                recursionType: recursionType,
+                children: recursiveNode.Children
+            );
         }
 
         if (symbol is NonTerminal nonTerminal)
@@ -53,6 +124,8 @@ public static class GraphBuilder
 
             foreach (var production in productions)
             {
+                var count = production.Body.Length;
+
                 foreach (var bodySymbol in production.Body)
                 {
                     var child = FromSymbol(

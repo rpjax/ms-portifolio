@@ -8,8 +8,8 @@ using ModularSystem.Webql.Analysis.DocumentSyntax.Tokenization;
 using ModularSystem.Webql.Analysis.DocumentSyntax.Parsing;
 using System.Diagnostics;
 using ModularSystem.Core.TextAnalysis.Tokenization;
-using ModularSystem.Core.TextAnalysis.Language;
 using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Language.Graph;
 
 namespace ModularSystem.Tester;
 
@@ -48,21 +48,33 @@ public static class Program
 
          */
 
-        var jsonGrammar = new JsonGrammar();
+        var grammar = new JsonGrammar();
+        var set = grammar.Productions;
 
         //jsonGrammar.Productions.AutoClean();
-        jsonGrammar.Productions.ExpandMacros();
+        grammar.Productions.ExpandMacros();
 
-        var graph = GraphBuilder.FromProductionSet(jsonGrammar.Productions);
+        var graph = GraphBuilder.FromProductionSet(grammar.Productions);
 
-        var str = new GraphNode(new NonTerminal("AB"))
-            .Render()
-            .ToString();
+        Console.WriteLine("Full grammar:");
+        Console.WriteLine(set);
+        Console.WriteLine("---------------");
+        Console.WriteLine("---------------");
 
-        Console.WriteLine(str);
+        var recursiveBranches = new LeftRecursionDetector()
+            .Execute(graph);
 
-        var grammar = new MyComplexGrammar();
-        var manipulator = new GrammarBuilder(grammar);
+        foreach (var branch in recursiveBranches)
+        {
+            Console.WriteLine("Branch with left recursion:");
+            Console.WriteLine();
+            Console.WriteLine(branch.ToProductionSet().ToString());
+            Console.WriteLine();
+        }
+
+        return;
+        var complexGrammargrammar = new MyComplexGrammar();
+        var manipulator = new GrammarBuilder(complexGrammargrammar);
 
         //manipulator.RemoveDirectLeftRecursion();
         manipulator.RemoveIndirectLeftRecursion();

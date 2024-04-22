@@ -118,9 +118,19 @@ public class ProductionSet : IEnumerable<ProductionRule>
         return Productions.Where(x => x.Head == nonTerminal);
     }
 
+    public void AddProduction(ProductionRule production)
+    {
+        if (Start is null)
+        {
+            Start = production.Head;
+        }
+
+        Productions.Add(production);
+    }
+
     public void AddProduction(NonTerminal nonTerminal, params ProductionSymbol[] body)
     {
-        Productions.Add(new ProductionRule(nonTerminal, body));
+        AddProduction(new ProductionRule(nonTerminal, body));
     }
 
     public void RemoveProductions(params ProductionRule[] productions)
@@ -164,17 +174,17 @@ public class ProductionSet : IEnumerable<ProductionRule>
 
     private string ToSententialNotation()
     {
-        return string.Join(Environment.NewLine, Productions.Select(x => x.ToNotation(NotationType.Sentential)));
+        return string.Join($".{Environment.NewLine}", Productions.Select(x => x.ToNotation(NotationType.Sentential))) + ".";
     }
 
     private string ToBnfNotation()
     {
-        return string.Join(Environment.NewLine, Productions.Select(x => x.ToNotation(NotationType.Bnf))) + ";";
+        return string.Join($";{Environment.NewLine}", Productions.Select(x => x.ToNotation(NotationType.Bnf))) + ";";
     }
 
     private string ToEbnfNotation()
     {
-        return string.Join(Environment.NewLine, Productions.Select(x => x.ToNotation(NotationType.Ebnf))) + ";";
+        return string.Join($";{Environment.NewLine};", Productions.Select(x => x.ToNotation(NotationType.Ebnf))) + ";";
     }
 
     private string ToEbnfKleeneNotation()

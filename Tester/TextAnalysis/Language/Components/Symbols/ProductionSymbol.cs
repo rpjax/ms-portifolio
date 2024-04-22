@@ -1,13 +1,5 @@
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
-public enum NotationType
-{
-    Sentential,
-    Bnf,
-    Ebnf,
-    EbnfKleene
-}
-
 /// <summary>
 /// Abstract base class for production symbols in a context-free grammar.
 /// </summary>

@@ -231,8 +231,3 @@ public class GrammarBuilder
     }
 
 }
-
-public static class NonTerminalExtensions
-{
-
-}
