@@ -5,7 +5,7 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
 /// <summary>
 /// Represents a terminal symbol in a context-free grammar.
 /// </summary>
-public class Terminal : ProductionSymbol
+public class Terminal : Symbol
 {
     /// <summary>
     /// Gets a value indicating whether the production symbol is a terminal symbol.
@@ -59,7 +59,7 @@ public class Terminal : ProductionSymbol
 
     public override bool Equals(object? obj)
     {
-        return Equals(obj as ProductionSymbol);
+        return Equals(obj as Symbol);
     }
 
     public override int GetHashCode()
@@ -74,7 +74,7 @@ public class Terminal : ProductionSymbol
         }
     }
 
-    public override bool Equals(ProductionSymbol? other)
+    public override bool Equals(Symbol? other)
     {
         return other is Terminal terminal
             && terminal.TokenType == TokenType

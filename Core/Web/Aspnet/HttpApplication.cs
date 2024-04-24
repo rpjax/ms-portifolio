@@ -87,7 +87,7 @@ public class HttpApplication : IAsyncDisposable
     /// <summary>
     /// Starts the web application, making it available for handling incoming requests.
     /// </summary>
-    public virtual void Start()
+    public void Start()
     {
         if (App != null)
         {
@@ -106,7 +106,7 @@ public class HttpApplication : IAsyncDisposable
     /// Stops the web application gracefully.
     /// </summary>
     /// <returns>A task representing the asynchronous stop operation.</returns>
-    public virtual Task Stop()
+    public Task Stop()
     {
         if (App == null)
         {
@@ -139,7 +139,7 @@ public class HttpApplication : IAsyncDisposable
     /// Use this method to apply additional configurations to the MVC builder.
     /// </summary>
     /// <param name="builder">The IMvcBuilder instance to configure.</param>
-    protected void OnMvcBuilderCreated(IMvcBuilder builder)
+    protected virtual void OnMvcBuilderCreated(IMvcBuilder builder)
     {
         if (AddGlobalJsonConverters)
         {

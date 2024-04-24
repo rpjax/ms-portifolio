@@ -2,24 +2,26 @@
 
 namespace ModularSystem.Core.TextAnalysis;
 
-public abstract class Symbol : IEquatable<Symbol>
+[Obsolete("Use ModularSystem.Core.TextAnalysis.Language.Components.Symbol instead")]
+public abstract class LegacySymbol : IEquatable<LegacySymbol>
 {
     public abstract bool IsTerminal { get; }
     public abstract bool IsEpsilon { get; }
     public abstract string Name { get; }
 
-    public abstract bool Equals(Symbol? other);
+    public abstract bool Equals(LegacySymbol? other);
     public abstract ReadOnlySpan<char> GetValue();
 }
 
-public class TerminalSymbol : Symbol
+[Obsolete("Use ModularSystem.Core.TextAnalysis.Language.Components.Terminal instead")]
+public class LegacyTerminalSymbol : LegacySymbol
 {
     public override bool IsTerminal => true;
     public override bool IsEpsilon => false;
     public override string Name { get; }
     private string Value { get; }
 
-    public TerminalSymbol(string productionName, string value)
+    public LegacyTerminalSymbol(string productionName, string value)
     {
         Name = productionName;
         Value = value;
@@ -30,7 +32,7 @@ public class TerminalSymbol : Symbol
         return Value;
     }
 
-    public override bool Equals(Symbol? other)
+    public override bool Equals(LegacySymbol? other)
     {
         if (other == null)
         {
@@ -38,19 +40,20 @@ public class TerminalSymbol : Symbol
         }
 
         return Name == other.Name
-            && other is TerminalSymbol terminal
+            && other is LegacyTerminalSymbol terminal
             && Value == terminal.Value;
     }
 }
 
-public class NonTerminalSymbol : Symbol
+[Obsolete("Use ModularSystem.Core.TextAnalysis.Language.Components.NonTerminal instead")]
+public class LegacyNonTerminalSymbol : LegacySymbol
 {
     public override bool IsTerminal => false;
     public override bool IsEpsilon => false;
     public override string Name { get; }
-    private Symbol[] Children { get; }
+    private LegacySymbol[] Children { get; }
 
-    public NonTerminalSymbol(string productionName, Symbol[] children)
+    public LegacyNonTerminalSymbol(string productionName, LegacySymbol[] children)
     {
         Name = productionName;
         Children = children;
@@ -67,13 +70,13 @@ public class NonTerminalSymbol : Symbol
         return builder.ToString();
     }
 
-    public override bool Equals(Symbol? other)
+    public override bool Equals(LegacySymbol? other)
     {
         if (other == null)
         {
             return false;
         }
-        if (other is not NonTerminalSymbol nonTerminal)
+        if (other is not LegacyNonTerminalSymbol nonTerminal)
         {
             return false;
         }
@@ -102,13 +105,14 @@ public class NonTerminalSymbol : Symbol
     }
 }
 
-public class EpsilonSymbol : Symbol
+[Obsolete("Use ModularSystem.Core.TextAnalysis.Language.Components.Epsilon instead")]
+public class LegacyEpsilonSymbol : LegacySymbol
 {
     public override bool IsTerminal => true;
     public override bool IsEpsilon => true;
     public override string Name => string.Empty;
 
-    public override bool Equals(Symbol? other)
+    public override bool Equals(LegacySymbol? other)
     {
         return other?.IsEpsilon == true;
     }

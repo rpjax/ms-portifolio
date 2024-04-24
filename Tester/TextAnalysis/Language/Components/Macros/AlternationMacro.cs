@@ -42,7 +42,7 @@ public class AlternationMacro : ProductionMacro
         }
     }
 
-    public override bool Equals(ProductionSymbol? other)
+    public override bool Equals(Symbol? other)
     {
         return other is AlternationMacro macro
             && macro.Alternatives.SequenceEqual(Alternatives);

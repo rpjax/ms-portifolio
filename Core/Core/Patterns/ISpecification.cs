@@ -34,3 +34,19 @@ public interface IAsyncSpecification<in T>
     /// satisfies the specification; otherwise, <c>false</c>.</returns>
     Task<bool> IsSatisfiedByAsync(T instance);
 }
+
+
+/// <summary>
+/// Defines a contract for a validation specification pattern. <br/>
+/// This pattern is used to validate an instance against a set of business rules.
+/// </summary>
+/// <typeparam name="T">The type of object to which the validation specification is applied.</typeparam>
+public interface IValidationSpecification<in T>
+{
+    /// <summary>
+    /// Validates a specific instance against the criteria defined by the specification.
+    /// </summary>
+    /// <param name="instance">The instance to be validated against the specification.</param>
+    /// <returns>An operation result indicating the outcome of the validation.</returns>
+    OperationResult Validate(T instance);
+}

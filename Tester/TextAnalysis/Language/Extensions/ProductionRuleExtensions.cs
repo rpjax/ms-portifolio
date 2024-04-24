@@ -4,13 +4,13 @@ namespace ModularSystem.Core.TextAnalysis.Language;
 
 public static class ProductionRuleExtensions
 {
-    public static ProductionSymbol? GetLefmostSymbol(this ProductionRule rule)
+    public static Symbol? GetLefmostSymbol(this ProductionRule rule)
     {
         return rule.Body
             .FirstOrDefault();
     }
 
-    public static ProductionSymbol? GetRightmostSymbol(this ProductionRule rule)
+    public static Symbol? GetRightmostSymbol(this ProductionRule rule)
     {
         return rule.Body
             .LastOrDefault();
@@ -30,18 +30,6 @@ public static class ProductionRuleExtensions
             .LastOrDefault();
     }
 
-    public static bool IsLeftRecursive(this ProductionRule rule)
-    {
-        return GetLefmostSymbol(rule) is NonTerminal nonTerminal
-            && nonTerminal == rule.Head;
-    }
-
-    public static bool IsRightRecursive(this ProductionRule rule)
-    {
-        return GetRightmostSymbol(rule) is NonTerminal nonTerminal
-            && nonTerminal == rule.Head;
-    }
-
     public static Terminal? GetTerminalPrefix(this ProductionRule rule)
     {
         return rule.Body
@@ -49,7 +37,7 @@ public static class ProductionRuleExtensions
             .FirstOrDefault();
     }
 
-    public static int IndexOfSymbol(this ProductionRule production, ProductionSymbol symbol)
+    public static int IndexOfSymbol(this ProductionRule production, Symbol symbol)
     {
         var index = -1;
 
@@ -66,15 +54,21 @@ public static class ProductionRuleExtensions
         return index;
     }
 
-    public static void ReplaceNonTerminal(this ProductionRule production, NonTerminal current, NonTerminal replacement)
+    public static bool IsLeftRecursive(this ProductionRule rule)
     {
-        for (int i = 0; i < production.Body.Length; i++)
-        {
-            if (production.Body[i] == current)
-            {
-                production.Body[i] = replacement;
-            }
-        }
+        return GetLefmostSymbol(rule) is NonTerminal nonTerminal
+            && nonTerminal == rule.Head;
     }
 
+    public static bool IsRightRecursive(this ProductionRule rule)
+    {
+        return GetRightmostSymbol(rule) is NonTerminal nonTerminal
+            && nonTerminal == rule.Head;
+    }
+
+    public static bool IsUnitProduction(this ProductionRule rule)
+    {
+        return rule.Body.Length == 1
+            && rule.Body[0].IsNonTerminal;
+    }
 }

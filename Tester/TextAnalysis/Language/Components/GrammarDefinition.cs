@@ -12,18 +12,37 @@
 /// </remarks>
 public class GrammarDefinition
 {
-    public ProductionSet Productions { get; private set; }
     public NonTerminal Start { get; }
+
+    private ProductionSet OriginalProductionSet { get; }
+    private ProductionSet WorkingProductionSet { get; }
+    internal List<ProductionRewrite> Rewrites { get; } = new();
 
     public GrammarDefinition(ProductionRule[] productions, NonTerminal? start = null)
     {
-        Productions = productions;
+        OriginalProductionSet = productions;
+        WorkingProductionSet = productions;
         Start = start ?? productions.First().Head;
 
         if (Start is null)
         {
             throw new ArgumentException("The start symbol cannot be null.");
         }
+    }
+
+    public ProductionSet Productions => WorkingProductionSet;
+
+    public override string ToString()
+    {
+        var productionGroups = Productions
+            .GroupBy(x => x.Head.Name);
+
+        var productionsStr = productionGroups
+            .Select(x => string.Join(Environment.NewLine, x.Select(y => y.ToString())))
+            .ToArray()
+            ;
+
+        return string.Join(Environment.NewLine, productionsStr);
     }
 
     public IEnumerable<NonTerminal> GetNonTerminals()
@@ -41,17 +60,9 @@ public class GrammarDefinition
             .Distinct();
     }
 
-    public override string ToString()
+    public ProductionSet GetOriginalProductionSet()
     {
-        var productionGroups = Productions
-            .GroupBy(x => x.Head.Name);
-
-        var productionsStr = productionGroups
-            .Select(x => string.Join(Environment.NewLine, x.Select(y => y.ToString())))
-            .ToArray()
-            ;
-
-        return string.Join(Environment.NewLine, productionsStr);
+        return OriginalProductionSet.Copy();
     }
 
 }

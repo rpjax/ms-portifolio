@@ -11,7 +11,7 @@ public enum ChildPosition
 
 public static class GraphBuilder
 {
-    public static GraphNode FromProductionSet(ProductionSet set)
+    public static GraphNode CreateDerivationTree(ProductionSet set)
     {
         if (set.Start is null)
         {
@@ -25,9 +25,11 @@ public static class GraphBuilder
         );
     }
 
+
+
     private static GraphNode FromSymbol(
         ProductionSet set,
-        ProductionSymbol symbol,
+        Symbol symbol,
         Stack<GraphNode> stack,
         ProductionRule? symbolProduction = null)
     {

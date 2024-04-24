@@ -35,7 +35,7 @@ public abstract class SentenceMacro : ProductionMacro
         }
     }
 
-    public override bool Equals(ProductionSymbol? other)
+    public override bool Equals(Symbol? other)
     {
         return other is SentenceMacro macro
             && macro.Sentence.SequenceEqual(Sentence);

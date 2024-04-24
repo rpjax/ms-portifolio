@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Core;
+﻿using System.Text.Json.Serialization;
+
+namespace ModularSystem.Core;
 
 /// <summary>
 /// Represents a physical address.
@@ -39,6 +41,28 @@ public class Address
     /// Gets or sets the ZIP code.
     /// </summary>
     public string ZipCode { get; set; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Address"/> class with empty fields.
+    /// </summary>
+    [JsonConstructor]
+    public Address(
+        string country, 
+        string state, 
+        string city, 
+        string neighborhood, 
+        string streetName, 
+        string streetNumber, 
+        string zipCode) 
+    {
+        Country = country;
+        State = state;
+        City = city;
+        Neighborhood = neighborhood;
+        StreetName = streetName;
+        StreetNumber = streetNumber;
+        ZipCode = zipCode;
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Address"/> class with empty fields.

@@ -64,7 +64,7 @@ public class GrammarEbnfWritter
         return writer.ToString();
     }
 
-    private string Stringify(ProductionSymbol[]? productionSymbols)
+    private string Stringify(Symbol[]? productionSymbols)
     {
         if(productionSymbols is null)
         {

@@ -133,41 +133,23 @@ public class Error
     /// <returns>A string representation of the ValidationError.</returns>
     public override string ToString()
     {
-        var parts = new List<string>();
+        var source = string.IsNullOrEmpty(Source)
+            ? null 
+            : $"{Source}: ";
 
-        if (!string.IsNullOrEmpty(Code))
-        {
-            parts.Add($"Code: [\"{Code}\"]");
-        }
+        var code = string.IsNullOrEmpty(Code)
+            ? null 
+            : $"({Code}) ";
 
-        if (!string.IsNullOrEmpty(Text))
-        {
-            parts.Add($"Message: [\"{Text}\"]");
-        }
+        var text = string.IsNullOrEmpty(Text)
+            ? "No error message provided. "
+            : Text;
 
-        if (!string.IsNullOrEmpty(Source))
-        {
-            parts.Add($"Source: [\"{Source}\"]");
-        }
+        var details = Details.Any()
+            ? "Details:\n" + string.Join(Environment.NewLine, Details.Select(d => $"-{d.Key}:\n{d.Value}"))
+            : "No details provided for this error.";
 
-        foreach (var item in Details)
-        {
-            parts.Add($"{item.Key}: \"{item.Value}\"");
-        }
-
-        if (parts.IsEmpty())
-        {
-            parts.Add("An Error object was instantiated without providing details. This indicates a programming oversight where an error was flagged but not adequately described. Ensure that all instances of the Error class are created with meaningful text, codes, and sources to accurately reflect the nature of the problem encountered. This practice aids in the effective diagnosis and handling of errors within the system. Developers are encouraged to review the creation and management of Error objects to prevent this issue.");
-        }
-
-        for (int i = 0; i < parts.Count; i++)
-        {
-            parts[i] = $"--> {parts[i]};";
-        }
-
-        parts.Insert(0, $"Error: {Environment.NewLine}");
-
-        return string.Join($"{Environment.NewLine}", parts);
+        return $"{source}{code}{text}\n{details}";
     }
 
     /// <summary>

@@ -12,10 +12,10 @@
 public class ContextFreeGrammar
 {
     public char[] IgnoredFirstChars { get; set; } = new[] { ' ' };
-    public NonTerminalSymbol InitialSymbol { get; set; }
+    public LegacyNonTerminalSymbol InitialSymbol { get; set; }
     public Production[] Productions { get; set; }
 
-    public ContextFreeGrammar(NonTerminalSymbol initialSymbol, Production[] productions)
+    public ContextFreeGrammar(LegacyNonTerminalSymbol initialSymbol, Production[] productions)
     {
         InitialSymbol = initialSymbol;
         Productions = productions;

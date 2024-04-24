@@ -1,11 +1,12 @@
 using System.Collections;
+using System.Text;
 using ModularSystem.Core.TextAnalysis.Language.Components;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Graph;
 
 public class GraphNode : IEnumerable<GraphNode>
 {
-    public ProductionSymbol Symbol { get; }
+    public Symbol Symbol { get; }
     public ProductionRule? Production { get; }
     public GraphNode? Parent { get; internal set; }
     public RecursionType RecursionType { get; internal set; }
@@ -13,7 +14,7 @@ public class GraphNode : IEnumerable<GraphNode>
     internal List<GraphNode> Children { get; set; } 
 
     public GraphNode(
-        ProductionSymbol symbol, 
+        Symbol symbol, 
         ProductionRule? production = null, 
         GraphNode? parent = null,
         RecursionType recursionType = RecursionType.None,
@@ -52,11 +53,24 @@ public class GraphNode : IEnumerable<GraphNode>
     }
 
     public bool IsRoot => Parent is null;
-    public int ChildCount => Children.Count;
+    public int ChildrenCount => Children.Count;
 
     public override string ToString()
     {
-        return $"({Symbol}): {string.Join(" ", Children.Select(c => c.Symbol))}";
+        var builder = new StringBuilder();
+
+        if(Production is not null)
+        {
+            builder.Append($"{Production} ");
+        }
+        else
+        {
+            builder.Append("Axiom ");
+        }
+
+        builder.Append($"({Symbol})");
+
+        return builder.ToString();
     }
 
     public IEnumerator<GraphNode> GetEnumerator()

@@ -3,7 +3,7 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
 /// <summary>
 /// Abstract base class for production symbols in a context-free grammar.
 /// </summary>
-public abstract class ProductionSymbol : IEquatable<ProductionSymbol>
+public abstract class Symbol : IEquatable<Symbol>
 {
     /// <summary>
     /// Gets a value indicating whether the production symbol is a terminal symbol.
@@ -26,12 +26,12 @@ public abstract class ProductionSymbol : IEquatable<ProductionSymbol>
     public abstract bool IsMacro { get; }
 
 
-    public static bool operator ==(ProductionSymbol left, ProductionSymbol right)
+    public static bool operator ==(Symbol left, Symbol right)
     {
         return left.Equals(right);
     }
 
-    public static bool operator !=(ProductionSymbol left, ProductionSymbol right)
+    public static bool operator !=(Symbol left, Symbol right)
     {
         return !left.Equals(right);
     }
@@ -48,7 +48,7 @@ public abstract class ProductionSymbol : IEquatable<ProductionSymbol>
 
     public abstract override int GetHashCode();
 
-    public abstract bool Equals(ProductionSymbol? other);
+    public abstract bool Equals(Symbol? other);
 
     public Terminal AsTerminal()
     {

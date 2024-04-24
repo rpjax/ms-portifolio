@@ -82,7 +82,7 @@ public enum MacroType
 }
 
 
-public abstract class ProductionMacro : ProductionSymbol
+public abstract class ProductionMacro : Symbol
 {
     public override bool IsTerminal => false;
     public override bool IsNonTerminal => false;

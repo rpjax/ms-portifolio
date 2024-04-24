@@ -4,7 +4,7 @@ public class OptionMacro : SentenceMacro
 {
     public override MacroType MacroType => MacroType.Option;
 
-    public OptionMacro(params ProductionSymbol[] symbols) : base(symbols)
+    public OptionMacro(params Symbol[] symbols) : base(symbols)
     {
     }
 

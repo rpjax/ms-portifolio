@@ -14,19 +14,19 @@ public class ParsingBuffer
 
 public class ParsingStack
 {
-    private Stack<ProductionSymbol> Symbols { get; } = new();
+    private Stack<Symbol> Symbols { get; } = new();
 
-    public void Push(ProductionSymbol symbol)
+    public void Push(Symbol symbol)
     {
         Symbols.Push(symbol);
     }
 
-    public ProductionSymbol Pop()
+    public Symbol Pop()
     {
         return Symbols.Pop();
     }
 
-    public ProductionSymbol? Peek()
+    public Symbol? Peek()
     {
         if (Symbols.Count == 0)
         {

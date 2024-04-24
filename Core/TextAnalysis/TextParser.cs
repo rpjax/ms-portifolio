@@ -41,13 +41,13 @@ public class StateTransition
 public class ReduceOperation
 {
     public int Length { get; }
-    public Symbol Symbol { get; }
+    public LegacySymbol Symbol { get; }
 }
 
 public class TextParserState
 {
     public string Key { get; }
-    public Stack<Symbol> Stack { get; }
+    public Stack<LegacySymbol> Stack { get; }
     public char[] LookAhead { get; }
 }
 
@@ -71,12 +71,12 @@ public class TextParser : IDisposable
         Source.Dispose();
     }
 
-    public IEnumerable<Symbol> AsEnumerable()
+    public IEnumerable<LegacySymbol> AsEnumerable()
     {
         yield break;
     }
 
-    public Symbol? GetNextSymbol()
+    public LegacySymbol? GetNextSymbol()
     {
         //Source.Advance();
         //TokenBuilder.Clear();

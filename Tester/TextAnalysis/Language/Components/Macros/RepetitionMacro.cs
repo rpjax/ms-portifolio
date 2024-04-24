@@ -4,7 +4,7 @@ public class RepetitionMacro : SentenceMacro
 {
     public override MacroType MacroType => MacroType.Repetition;
 
-    public RepetitionMacro(params ProductionSymbol[] symbols) : base(symbols)
+    public RepetitionMacro(params Symbol[] symbols) : base(symbols)
     {
     }
 

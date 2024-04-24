@@ -6,22 +6,21 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
     Helper constructs.
 */
 
-public class Sentence : IEnumerable<ProductionSymbol>
+public class Sentence : IEnumerable<Symbol>
 {
     public int Length => Symbols.Count;
 
-    private List<ProductionSymbol> Symbols { get; }
+    internal List<Symbol> Symbols { get; }
 
-    public Sentence(params ProductionSymbol[] symbols)
+    public Sentence(params Symbol[] symbols)
     {
         Symbols = new(symbols);
         ExpandPipeMacros();
     }
 
-    public ProductionSymbol this[int index]
+    public Symbol this[int index]
     {
         get => Symbols[index];
-        set => Symbols[index] = value;
     }
 
     public static bool operator ==(Sentence left, Sentence right)
@@ -34,29 +33,29 @@ public class Sentence : IEnumerable<ProductionSymbol>
         return !left.Equals(right);
     }
 
-    public static implicit operator ProductionSymbol[](Sentence sentence)
+    public static implicit operator Symbol[](Sentence sentence)
     {
         return sentence.Symbols.ToArray();
     }
 
-    public static implicit operator List<ProductionSymbol>(Sentence sentence)
+    public static implicit operator List<Symbol>(Sentence sentence)
     {
         return sentence;
     }
 
-    public static implicit operator Sentence(ProductionSymbol[] productions)
+    public static implicit operator Sentence(Symbol[] productions)
     {
         return new Sentence(productions);
     }
 
-    public static implicit operator Sentence(List<ProductionSymbol> productions)
+    public static implicit operator Sentence(List<Symbol> productions)
     {
         return new Sentence(productions.ToArray());
     }
 
     // copilot, generate implicit conversion from and to productionSymbol array and list
 
-    public IEnumerator<ProductionSymbol> GetEnumerator()
+    public IEnumerator<Symbol> GetEnumerator()
     {
         return Symbols.GetEnumerator();
     }
@@ -101,186 +100,6 @@ public class Sentence : IEnumerable<ProductionSymbol>
     public Sentence Copy()
     {
         return new Sentence(Symbols.ToArray());
-    }
-
-    /// <summary>
-    /// Gets the index of the specified symbol in the sentence. If the symbol is not found, -1 is returned. <br/>
-    /// Equality is determined by reference equality. So, two symbols are considered equal if they are the same object.
-    /// </summary>
-    /// <param name="symbol"></param>
-    /// <returns></returns>
-    public int IndexOfSymbol(ProductionSymbol symbol)
-    {
-        var index = -1;
-
-        foreach (var item in this)
-        {
-            index++;
-
-            if (ReferenceEquals(item, symbol))
-            {
-                break;
-            }
-        }
-
-        return index;
-    }
-
-    /*
-        read helper methods section.
-     */
-
-    public ProductionSymbol GetLeftmostSymbol()
-    {
-        return this.First();
-    }
-
-    public ProductionSymbol GetRightmostSymbol()
-    {
-        return this.Last();
-    }
-
-    public NonTerminal? GetLeftmostNonTerminal()
-    {
-        return this
-            .OfType<NonTerminal>()
-            .FirstOrDefault();
-    }
-
-    public NonTerminal? GetRightmostNonTerminal()
-    {
-        return this
-            .OfType<NonTerminal>()
-            .LastOrDefault();
-    }
-
-    public Terminal? GetLeftmostTerminal()
-    {
-        return this
-            .OfType<Terminal>()
-            .FirstOrDefault();
-    }
-
-    public Terminal? GetRightmostTerminal()
-    {
-        return this
-            .OfType<Terminal>()
-            .LastOrDefault();
-    }
-
-    /*
-        derivation helper methods section.
-     */
-
-    public Derivation Derive(int index, ProductionRule production)
-    {
-        if (index < 0 || index >= Length)
-        {
-            throw new ArgumentOutOfRangeException(nameof(index), "The index is out of range.");
-        }
-
-        if (this[index] is not NonTerminal nonTerminal)
-        {
-            throw new InvalidOperationException("The symbol at the specified index is not a non-terminal symbol. Derivations can only be performed on non-terminal symbols.");
-        }
-
-        if (nonTerminal != production.Head)
-        {
-            throw new InvalidOperationException("The non-terminal at the specified index does not match the head of the production rule.");
-        }
-
-        var derivedSentence = Copy()
-            .RemoveAt(index)
-            .InsertAt(index, production.Body);
-
-        return new Derivation(
-            production: production,
-            originalSentence: this,
-            nonTerminal: nonTerminal,
-            derivedSentence: derivedSentence
-        );
-    }
-
-    public Derivation DeriveLeftmostNonTerminal(ProductionRule production)
-    {
-        var nonTerminal = GetLeftmostNonTerminal();
-
-        if (nonTerminal is null)
-        {
-            throw new InvalidOperationException("There are no non-terminals in the sentence.");
-        }
-
-        if (nonTerminal != production.Head)
-        {
-            throw new InvalidOperationException("The leftmost non-terminal in the sentence does not match the head of the production rule.");
-        }
-
-        var index = IndexOfSymbol(nonTerminal);
-
-        if (index == -1)
-        {
-            throw new InvalidOperationException("The non-terminal was not found in the sentence.");
-        }
-
-        return Derive(index, production);
-    }
-
-    public Derivation DeriveRightmostNonTerminal(ProductionRule production)
-    {
-        var nonTerminal = GetRightmostNonTerminal();
-
-        if (nonTerminal is null)
-        {
-            throw new InvalidOperationException("There are no non-terminals in the sentence.");
-        }
-
-        if (nonTerminal != production.Head)
-        {
-            throw new InvalidOperationException("The rightmost non-terminal in the sentence does not match the head of the production rule.");
-        }
-
-        var index = IndexOfSymbol(nonTerminal);
-
-        if (index == -1)
-        {
-            throw new InvalidOperationException("The non-terminal was not found in the sentence.");
-        }
-
-        return Derive(index, production);
-    }
-
-    /*
-        helper methods section.
-     */
-
-    public Sentence Add(ProductionSymbol symbol)
-    {
-        Symbols.Add(symbol);
-        return this;
-    }
-
-    public Sentence Add(IEnumerable<ProductionSymbol> symbols)
-    {
-        Symbols.AddRange(symbols);
-        return this;
-    }
-
-    public Sentence InsertAt(int index, ProductionSymbol symbol)
-    {
-        Symbols.Insert(index, symbol);
-        return this;
-    }
-
-    public Sentence InsertAt(int index, IEnumerable<ProductionSymbol> symbols)
-    {
-        Symbols.InsertRange(index, symbols);
-        return this;
-    }
-
-    public Sentence RemoveAt(int index)
-    {
-        Symbols.RemoveAt(index);
-        return this;
     }
 
     public string ToNotation(NotationType notation)
@@ -359,4 +178,3 @@ public class Sentence : IEnumerable<ProductionSymbol>
     }
 
 }
-

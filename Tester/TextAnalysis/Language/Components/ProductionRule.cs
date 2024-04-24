@@ -11,16 +11,43 @@ public class ProductionRule
     // RHS
     public Sentence Body { get; }
 
-    public ProductionRule(NonTerminal head, params ProductionSymbol[] body)
+    public ProductionRule(NonTerminal head, params Symbol[] body)
     {
         Head = head;
         Body = body;
     }
 
-    public ProductionRule(string name, params ProductionSymbol[] body)
+    public ProductionRule(string name, params Symbol[] body)
     {
         Head = new NonTerminal(name);
         Body = body;
+    }
+
+    public static bool operator ==(ProductionRule left, ProductionRule right)
+    {
+        return left.Head == right.Head && left.Body == right.Body;
+    }
+
+    public static bool operator !=(ProductionRule left, ProductionRule right)
+    {
+        return !(left == right);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is ProductionRule rule && rule == this;
+    }
+
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            var hash = 17;
+            hash = hash * 23 + Head.GetHashCode();
+            hash = hash * 23 + Body.GetHashCode();
+
+            return hash;
+        }
     }
 
     public override string ToString()
@@ -58,7 +85,7 @@ public class ProductionRule
         var head = Head.ToNotation(NotationType.Sentential);
         var body = string.Join(" ", Body.Select(x => x.ToNotation(NotationType.Sentential)));
 
-        return $"{head} -> {body}";
+        return $"{head} -> {body}.";
     }
 
     private string ToBnfNotation()
@@ -66,7 +93,7 @@ public class ProductionRule
         var head = Head.ToNotation(NotationType.Bnf);
         var body = string.Join(" ", Body.Select(x => x.ToNotation(NotationType.Bnf)));
 
-        return $"{head} ::= {body}";
+        return $"{head} ::= {body} ;";
     }
 
     private string ToEbnfNotation()
@@ -74,7 +101,7 @@ public class ProductionRule
         var head = Head.ToNotation(NotationType.Ebnf);
         var body = string.Join(" ", Body.Select(x => x.ToNotation(NotationType.Ebnf)));
 
-        return $"{head} = {body}";
+        return $"{head} = {body} ;";
     }
 
     private string ToEbnfKleeneNotation()
@@ -82,7 +109,6 @@ public class ProductionRule
         var head = Head.ToNotation(NotationType.EbnfKleene);
         var body = string.Join(" ", Body.Select(x => x.ToNotation(NotationType.EbnfKleene)));
 
-        return $"{head} = {body}";
+        return $"{head} = {body} ;";
     }
-
 }

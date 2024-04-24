@@ -26,7 +26,7 @@ public static class ProductionRuleMacroExtensions
 
         var index = production.IndexOfSymbol(macro);
         var nonTerminal = new NonTerminal($"{production.Head.Name}ʹ");
-        var body = new List<ProductionSymbol>();
+        var body = new List<Symbol>();
 
         body.AddRange(production.Body.Take(index));
         body.Add(nonTerminal);

@@ -28,7 +28,7 @@ public class TestUser
 
 /*
     Bro, listen:
-    I'm falling asleep, I'm tired. The last conclusion i've reached is that the macros have to expand from the innermost to the outermost. From the leaves to the root. Each concrete macro must implement a method that expands itself. The expansion could be done with the help of a tree traversal algorithm. The tree traversal algorithm would require the base class ProductionSymbol to list it's children. At the moment this behavior does not exist. Also the tree traverser would need to have the hability to rewrite the tree. This is a very complex problem. I'm going to sleep now. I'm tired.
+    I'm falling asleep, I'm tired. The last conclusion i've reached is that the macros have to expand from the innermost to the outermost. From the leaves to the root. Each concrete macro must implement a method that expands itself. The expansion could be done with the help of a tree traversal algorithm. The tree traversal algorithm would require the base class Symbol to list it's children. At the moment this behavior does not exist. Also the tree traverser would need to have the hability to rewrite the tree. This is a very complex problem. I'm going to sleep now. I'm tired.
 */
 
 public static class Program
@@ -48,36 +48,17 @@ public static class Program
 
          */
 
-        var grammar = new JsonGrammar();
-        var set = grammar.Productions;
+        var grammar = new MyComplexGrammar();
+        var originalSet = grammar.GetOriginalProductionSet();
+        originalSet.ExpandMacros();
 
-        //jsonGrammar.Productions.AutoClean();
-        grammar.Productions.ExpandMacros();
+        var modifications = grammar.AutoFix();
+        var cicles = originalSet.GetLeftRecursionCicles();
 
-        var graph = GraphBuilder.FromProductionSet(grammar.Productions);
+        Console.WriteLine($"modifications:\n{modifications}\n");
+        Console.WriteLine($"cicles:\n{cicles}\n");
+        Console.WriteLine($"grammar:\n{grammar}\n");
 
-        Console.WriteLine("Full grammar:");
-        Console.WriteLine(set);
-        Console.WriteLine("---------------");
-        Console.WriteLine("---------------");
-
-        var recursiveBranches = new LeftRecursionDetector()
-            .Execute(graph);
-
-        foreach (var branch in recursiveBranches)
-        {
-            Console.WriteLine("Branch with left recursion:");
-            Console.WriteLine();
-            Console.WriteLine(branch.ToProductionSet().ToString());
-            Console.WriteLine();
-        }
-
-        return;
-        var complexGrammargrammar = new MyComplexGrammar();
-        var manipulator = new GrammarBuilder(complexGrammargrammar);
-
-        //manipulator.RemoveDirectLeftRecursion();
-        manipulator.RemoveIndirectLeftRecursion();
     }
 
     /*
@@ -176,7 +157,7 @@ public class MyRewriter : AstSemanticRewriter
     {
     }
 
-    protected override void OnSemanticVisit(Symbol symbol)
+    protected override void OnSemanticVisit(Webql.Analysis.Symbols.Symbol symbol)
     {
         if (symbol is IResultProducerOperatorExpressionSymbol resultProducer)
         {

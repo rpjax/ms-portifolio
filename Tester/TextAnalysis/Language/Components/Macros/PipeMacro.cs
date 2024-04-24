@@ -31,7 +31,7 @@ public class PipeMacro : ProductionMacro
         }
     }
 
-    public override bool Equals(ProductionSymbol? other)
+    public override bool Equals(Symbol? other)
     {
         return ReferenceEquals(other, this);
     }

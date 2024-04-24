@@ -58,6 +58,22 @@ public static class GraphNodeExtensions
         }
     }
 
+    public static IEnumerable<GraphNode> GetLeafs(this GraphNode node)
+    {
+        foreach (var child in node.Children)
+        {
+            if(child.IsRecursive || child.ChildrenCount == 0)
+            {
+                yield return child;
+            }
+
+            foreach (var leaf in child.GetLeafs())
+            {
+                yield return leaf;
+            }
+        }
+    }
+
     public static void SetParent(this GraphNode self, GraphNode parent)
     {
         self.Parent = parent;
@@ -128,7 +144,7 @@ public static class GraphNodeExtensions
         return set;
     }
 
-    public static GraphBranch GetRecursiveBranch(this GraphNode self, ProductionSymbol root)
+    public static GraphBranch GetRecursiveBranch(this GraphNode self, Symbol root)
     {
         if (!self.IsRecursive)
         {

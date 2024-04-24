@@ -3,7 +3,7 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
 /// <summary>
 /// Represents a non-terminal symbol in a context-free grammar.
 /// </summary>
-public class NonTerminal : ProductionSymbol
+public class NonTerminal : Symbol
 {
     /// <summary>
     /// Gets a value indicating whether the production symbol is a terminal symbol.
@@ -63,7 +63,7 @@ public class NonTerminal : ProductionSymbol
 
     public override bool Equals(object? obj)
     {
-        return Equals(obj as ProductionSymbol);
+        return Equals(obj as Symbol);
     }
 
     public override int GetHashCode()
@@ -77,7 +77,7 @@ public class NonTerminal : ProductionSymbol
         }
     }
 
-    public override bool Equals(ProductionSymbol? other)
+    public override bool Equals(Symbol? other)
     {
         return other is NonTerminal nonTerminal
             && nonTerminal.Name == Name;

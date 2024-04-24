@@ -25,13 +25,13 @@ public abstract class Production
     /// Gets the symbol at the left hand side(LHS) of the production rule.
     /// </summary>
     /// <returns></returns>
-    public abstract Symbol LeftHandSide();
+    public abstract LegacySymbol LeftHandSide();
 
     /// <summary>
     /// Gets the symbols at the right hand side(RHS) of the production rule.
     /// </summary>
     /// <returns></returns>
-    public abstract Symbol[] RightHandSide();
+    public abstract LegacySymbol[] RightHandSide();
 }
 
 // <S> ::= <expr>
