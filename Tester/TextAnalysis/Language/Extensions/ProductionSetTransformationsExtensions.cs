@@ -1,8 +1,10 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Tools;
+﻿using System.Text.Json.Serialization;
+using ModularSystem.Core.TextAnalysis.Language.Tools;
+using ModularSystem.Core.TextAnalysis.Language.Transformations;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
-public static class ProductionSetManipulationExtensions
+public static partial class ProductionSetTransformationsExtensions
 {
     /*
         Main API methods.
@@ -112,7 +114,7 @@ public static class ProductionSetManipulationExtensions
                 if (production.ContainsMacro())
                 {
                     var expandedProductions = production.ExpandMacros().ToArray();
-                    var rewrite = new ProductionTransformationRecord(production, expandedProductions, TransformationReason.MacroExpansion);
+                    var rewrite = new ProductionTransformationRecord(production, expandedProductions, ProductionTransformationReason.MacroExpansion);
 
                     set.Productions.Remove(production);
                     set.Productions.AddRange(expandedProductions);
@@ -288,7 +290,7 @@ public static class ProductionSetManipulationExtensions
                 rewrites.Add(new ProductionTransformationRecord(
                     originalProduction: recursiveProduction,
                     replacements: replacements,
-                    reason: TransformationReason.LeftRecursionExpansion
+                    reason: ProductionTransformationReason.LeftRecursionExpansion
                 ));
             }
 
@@ -313,7 +315,7 @@ public static class ProductionSetManipulationExtensions
         foreach (var duplicate in duplicates)
         {
             set.Productions.Remove(duplicate);
-            rewrites.Add(new ProductionTransformationRecord(duplicate, null, TransformationReason.DuplicateProductionRemoval));
+            rewrites.Add(new ProductionTransformationRecord(duplicate, null, ProductionTransformationReason.DuplicateProductionRemoval));
         }
 
         return rewrites.ToArray();
@@ -367,7 +369,7 @@ public static class ProductionSetManipulationExtensions
         // return the removed productions
         var rewrites = set.Productions
             .Where(x => !reachable.Contains(x.Head))
-            .Select(x => new ProductionTransformationRecord(x, null, TransformationReason.UnreachableSymbolRemoval))
+            .Select(x => new ProductionTransformationRecord(x, null, ProductionTransformationReason.UnreachableSymbolRemoval))
             .ToArray();
 
         return rewrites;
@@ -433,7 +435,7 @@ public static class ProductionSetManipulationExtensions
                 set.Remove(unitProduction);
                 set.Add(newProductions.ToArray());
 
-                rewrites.Add(new ProductionTransformationRecord(production, newProductions, TransformationReason.UnitProductionExpansion));
+                rewrites.Add(new ProductionTransformationRecord(production, newProductions, ProductionTransformationReason.UnitProductionExpansion));
             }
 
             var unitProductions = set
@@ -453,12 +455,8 @@ public static class ProductionSetManipulationExtensions
     public static TransformationRecordCollection FactorCommonPrefixProductions(this ProductionSet set)
     {
         set.EnsureNoMacros();
-
+        var foo = new CommonPrefixFactorization(set);
         var transformations = new TransformationRecordCollection();
-
-        var nonTerminalProductions = set.Productions
-            .GroupBy(x => x.Head)
-            .ToArray();
 
         var commonPrefixProductionsSets = set.GetCommonPrefixProductions();
 
@@ -498,7 +496,7 @@ public static class ProductionSetManipulationExtensions
                 var transformation = new ProductionTransformationRecord(
                     originalProduction: production,
                     replacements: adjustedProduction,
-                    reason: TransformationReason.CommonPrefixFactorization
+                    reason: ProductionTransformationReason.CommonPrefixFactorization
                 );
 
                 transformations.Add(transformation);

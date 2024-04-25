@@ -2,13 +2,13 @@
 
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
-public enum TransformationType
+public enum ProductionTransformationType
 {
     Removal,
     Replacement
 }
 
-public enum TransformationReason
+public enum ProductionTransformationReason
 {
     MacroExpansion,
     LeftRecursionExpansion,
@@ -23,28 +23,28 @@ public class ProductionTransformationRecord
 {
     public ProductionRule OriginalProduction { get; }
     public ProductionSet Replacements { get; }
-    public TransformationReason Reason { get; }
+    public ProductionTransformationReason Reason { get; }
 
     public ProductionTransformationRecord(
         ProductionRule originalProduction,
         ProductionSet? replacements,
-        TransformationReason reason)
+        ProductionTransformationReason reason)
     {
         OriginalProduction = originalProduction;
         Replacements = replacements ?? new ProductionSet();
         Reason = reason;
     }
 
-    public TransformationType Type
+    public ProductionTransformationType Type
     {
         get
         {
             if (Replacements.Length == 0)
             {
-                return TransformationType.Removal;
+                return ProductionTransformationType.Removal;
             }
 
-            return TransformationType.Replacement;
+            return ProductionTransformationType.Replacement;
         }
     }
 
@@ -54,31 +54,31 @@ public class ProductionTransformationRecord
 
         switch (Reason)
         {
-            case TransformationReason.MacroExpansion:
+            case ProductionTransformationReason.MacroExpansion:
                 builder.Append("Macro expansion: ");
                 break;
                 
-            case TransformationReason.LeftRecursionExpansion:
+            case ProductionTransformationReason.LeftRecursionExpansion:
                 builder.Append("Left recursion expansion: ");
                 break;
 
-            case TransformationReason.DuplicateProductionRemoval:
+            case ProductionTransformationReason.DuplicateProductionRemoval:
                 builder.Append("Duplicate removal: ");
                 break;
 
-            case TransformationReason.UnreachableSymbolRemoval:
+            case ProductionTransformationReason.UnreachableSymbolRemoval:
                 builder.Append("Unreachable removal: ");
                 break;
 
-            case TransformationReason.LeftFactorization:
+            case ProductionTransformationReason.LeftFactorization:
                 builder.Append("Left factorization: ");
                 break;
 
-            case TransformationReason.UnitProductionExpansion:
+            case ProductionTransformationReason.UnitProductionExpansion:
                 builder.Append("Unit production expansion: ");
                 break;
 
-            case TransformationReason.CommonPrefixFactorization:
+            case ProductionTransformationReason.CommonPrefixFactorization:
                 builder.Append("Common prefix factorization: ");
                 break;
         }
@@ -87,10 +87,10 @@ public class ProductionTransformationRecord
 
         switch (Type)
         {
-            case TransformationType.Removal:
+            case ProductionTransformationType.Removal:
                 builder.Append("removed");
                 break;
-            case TransformationType.Replacement:
+            case ProductionTransformationType.Replacement:
                 builder.Append("replaced by: ");
                 builder.Append("[");
                 builder.Append(string.Join(", ", Replacements.Select(x => $"({x})")));

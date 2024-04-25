@@ -6,7 +6,7 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
     Helper constructs.
 */
 
-public class Sentence : IEnumerable<Symbol>
+public struct Sentence : IEnumerable<Symbol>
 {
     public int Length => Symbols.Length;
 
