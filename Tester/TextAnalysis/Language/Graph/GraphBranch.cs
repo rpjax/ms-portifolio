@@ -26,7 +26,7 @@ public class GraphBranch
         {
             if (node.Production is not null)
             {
-                set.AddProduction(node.Production);
+                set.Add(node.Production);
             }
         }
 

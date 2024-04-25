@@ -12,25 +12,27 @@
 /// </remarks>
 public class GrammarDefinition
 {
-    public NonTerminal Start { get; }
-
     private ProductionSet OriginalProductionSet { get; }
     private ProductionSet WorkingProductionSet { get; }
-    internal List<ProductionRewrite> Rewrites { get; } = new();
+    internal TransformationRecordCollection Transformations { get; } 
 
     public GrammarDefinition(ProductionRule[] productions, NonTerminal? start = null)
     {
-        OriginalProductionSet = productions;
-        WorkingProductionSet = productions;
-        Start = start ?? productions.First().Head;
+        var set = new ProductionSet(productions);
 
-        if (Start is null)
+        if (start is not null)
         {
-            throw new ArgumentException("The start symbol cannot be null.");
+            set.Start = start;
         }
+
+        OriginalProductionSet = set;
+        WorkingProductionSet = set.Copy();
+        Transformations = new();
     }
 
     public ProductionSet Productions => WorkingProductionSet;
+    public NonTerminal Start => Productions.Start
+        ?? throw new InvalidOperationException("The start symbol is not defined.");
 
     public override string ToString()
     {
@@ -63,6 +65,11 @@ public class GrammarDefinition
     public ProductionSet GetOriginalProductionSet()
     {
         return OriginalProductionSet.Copy();
+    }
+
+    public TransformationRecordCollection GetTransformationRecords()
+    {
+        return Transformations.Copy();
     }
 
 }

@@ -1,6 +1,7 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Language.Graph;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Graph;
+namespace ModularSystem.Core.TextAnalysis.Language.Tools;
 
 public class SymbolReachabilityTool : GraphVisitor
 {

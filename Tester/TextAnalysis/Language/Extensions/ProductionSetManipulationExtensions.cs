@@ -1,4 +1,4 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Graph;
+﻿using ModularSystem.Core.TextAnalysis.Language.Tools;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
@@ -57,9 +57,9 @@ public static class ProductionSetManipulationExtensions
         return errors.ToArray();
     }
 
-    public static ProductionRewriteSet AutoClean(this ProductionSet set)
+    public static TransformationRecordCollection AutoClean(this ProductionSet set)
     {
-        var rewrites = new List<ProductionRewrite>()
+        var rewrites = new List<ProductionTransformationRecord>()
             .Concat(set.ExpandMacros())
             .Concat(set.RemoveUnreachableProductions())
             .Concat(set.ExpandUnitProductions())
@@ -69,9 +69,9 @@ public static class ProductionSetManipulationExtensions
         return rewrites.ToArray();
     }
 
-    public static ProductionRewriteSet RecursiveAutoClean(this ProductionSet set)
+    public static TransformationRecordCollection RecursiveAutoClean(this ProductionSet set)
     {
-        var rewriteSet = new ProductionRewriteSet();
+        var rewriteSet = new TransformationRecordCollection();
 
         while (true)
         {
@@ -88,11 +88,11 @@ public static class ProductionSetManipulationExtensions
         return rewriteSet;
     }
 
-    public static ProductionRewriteSet AutoFix(this ProductionSet set)
+    public static TransformationRecordCollection AutoFix(this ProductionSet set)
     {
-        var rewrites = new List<ProductionRewrite>()
-            .Concat(set.AutoClean())
+        var rewrites = new List<ProductionTransformationRecord>()
             .Concat(set.RemoveLeftRecursion())
+            .Concat(set.FactorCommonPrefixProductions())
             .ToArray()
             ;
 
@@ -106,23 +106,46 @@ public static class ProductionSetManipulationExtensions
         return rewrites.ToArray();
     }
 
-    public static ProductionRewriteSet RecursiveAutoFix(this ProductionSet set)
+    public static TransformationRecordCollection RecursiveAutoFix(this ProductionSet set)
     {
-        var rewriteSet = new ProductionRewriteSet();
+        var transformations = new TransformationRecordCollection();
 
         while (true)
         {
-            var rewrites = set.AutoFix();
+            var iterationTransformations = new TransformationRecordCollection()
+                .Add(set.AutoFix());
 
-            if (rewrites.Length == 0)
+            if (iterationTransformations.Length == 0)
             {
                 break;
             }
 
-            rewriteSet.Add(rewrites);
+            transformations.Add(iterationTransformations);
         }
 
-        return rewriteSet;
+        return transformations;
+    }
+
+    public static TransformationRecordCollection AutoTransform(this ProductionSet set)
+    {
+        var transformations = new TransformationRecordCollection();
+
+        while (true)
+        {
+            var iterationTransformations = new TransformationRecordCollection()
+                .Add(set.RecursiveAutoClean())
+                .Add(set.RecursiveAutoFix())
+                ;
+
+            if (iterationTransformations.Length == 0)
+            {
+                break;
+            }
+
+            transformations.Add(iterationTransformations);
+        }
+
+        return transformations;
     }
 
     /*
@@ -192,7 +215,7 @@ public static class ProductionSetManipulationExtensions
             var productions = set.Lookup(nonTerminal)
                 .ToArray();
 
-            unrealizableSet.AddProductions(productions);
+            unrealizableSet.Add(productions);
         }
 
         return unrealizableSet;
@@ -216,14 +239,14 @@ public static class ProductionSetManipulationExtensions
                 {
                     continue;
                 }
-                if(node.Symbol is not NonTerminal nonTerminal)
+                if (node.Symbol is not NonTerminal nonTerminal)
                 {
                     throw new InvalidOperationException("The symbol is not a nonterminal.");
                 }
 
                 var originalSentence = new Sentence();
 
-                if(node.Parent?.Production is not null)
+                if (node.Parent?.Production is not null)
                 {
                     originalSentence = originalSentence.Add(node.Parent.Production.Body);
                 }
@@ -246,6 +269,37 @@ public static class ProductionSetManipulationExtensions
         return cicles.ToArray();
     }
 
+    public static ProductionSet[] GetCommonPrefixProductions(this ProductionSet set)
+    {
+        EnsureNoMacros(set);
+
+        var nonTerminalProductions = set.Productions
+            .GroupBy(x => x.Head)
+            .ToArray();
+
+        var commonPrefixProductions = new List<ProductionSet>();
+
+        foreach (var group in nonTerminalProductions)
+        {
+            var commonPrefixProductionsGroup = group
+                .Where(x => x.Body.Length > 1)
+                .Where(x => x.Body.First().IsTerminal)
+                .GroupBy(x => x.Body.First())
+                .Where(x => x.Count() > 1)
+                .SelectMany(x => x.ToArray())
+                .ToArray();
+
+            if (commonPrefixProductionsGroup.Length == 0)
+            {
+                continue;
+            }
+
+            commonPrefixProductions.Add(commonPrefixProductionsGroup);
+        }
+
+        return commonPrefixProductions.ToArray();
+    }
+
     /*
      * Assertion helpers.
      */
@@ -260,9 +314,9 @@ public static class ProductionSetManipulationExtensions
     /*
      * Specific Manipulation Operations.
      */
-    public static ProductionRewrite[] ExpandMacros(this ProductionSet set)
+    public static TransformationRecordCollection ExpandMacros(this ProductionSet set)
     {
-        var rewrites = new List<ProductionRewrite>();
+        var rewrites = new List<ProductionTransformationRecord>();
 
         while (set.ContainsMacro())
         {
@@ -271,7 +325,7 @@ public static class ProductionSetManipulationExtensions
                 if (production.ContainsMacro())
                 {
                     var expandedProductions = production.ExpandMacros().ToArray();
-                    var rewrite = new ProductionRewrite(production, expandedProductions, RewriteReason.MacroExpansion);
+                    var rewrite = new ProductionTransformationRecord(production, expandedProductions, TransformationReason.MacroExpansion);
 
                     set.Productions.Remove(production);
                     set.Productions.AddRange(expandedProductions);
@@ -313,7 +367,7 @@ public static class ProductionSetManipulationExtensions
                 .Select(x => x.Body.ToArray())
                 .ToArray();
 
-            set.RemoveProductions(productions);
+            set.Remove(productions);
 
             var newNonTerminal = new NonTerminal(nonTerminal.Name + "′");
 
@@ -341,7 +395,7 @@ public static class ProductionSetManipulationExtensions
                     body = new Symbol[] { newNonTerminal };
                 }
 
-                set.AddProduction(nonTerminal, body);
+                set.Add(nonTerminal, body);
             }
 
             foreach (var alpha in alphas)
@@ -351,10 +405,10 @@ public static class ProductionSetManipulationExtensions
                     .FluentAdd(newNonTerminal)
                     .ToArray();
 
-                set.AddProduction(newNonTerminal, body);
+                set.Add(newNonTerminal, body);
             }
 
-            set.AddProduction(newNonTerminal, new Epsilon());
+            set.Add(newNonTerminal, new Epsilon());
             counter++;
         }
 
@@ -369,11 +423,11 @@ public static class ProductionSetManipulationExtensions
         }
     }
 
-    public static ProductionRewrite[] RemoveLeftRecursion(this ProductionSet set)
+    public static TransformationRecordCollection RemoveLeftRecursion(this ProductionSet set)
     {
         EnsureNoMacros(set);
 
-        var rewrites = new List<ProductionRewrite>();
+        var rewrites = new List<ProductionTransformationRecord>();
         var recursiveBranches = new LeftRecursionTool()
             .Execute(set);
 
@@ -431,7 +485,7 @@ public static class ProductionSetManipulationExtensions
                 var suffix = recursiveProduction.Body.Skip(1).ToArray();
                 var replacements = new List<ProductionRule>();
 
-                set.RemoveProductions(recursiveProduction);
+                set.Remove(recursiveProduction);
 
                 foreach (var item in productions)
                 {
@@ -440,14 +494,14 @@ public static class ProductionSetManipulationExtensions
                         body: item.Body.Concat(suffix).ToArray()
                     );
 
-                    set.AddProduction(newProduction);
+                    set.Add(newProduction);
                     replacements.Add(newProduction);
                 }
 
-                rewrites.Add(new ProductionRewrite(
+                rewrites.Add(new ProductionTransformationRecord(
                     originalProduction: recursiveProduction,
                     replacements: replacements,
-                    reason: RewriteReason.LeftRecursionExpansion
+                    reason: TransformationReason.LeftRecursionExpansion
                 ));
             }
 
@@ -458,11 +512,11 @@ public static class ProductionSetManipulationExtensions
         return rewrites.ToArray();
     }
 
-    public static ProductionRewrite[] RemoveDuplicates(this ProductionSet set)
+    public static TransformationRecordCollection RemoveDuplicates(this ProductionSet set)
     {
         EnsureNoMacros(set);
 
-        var rewrites = new List<ProductionRewrite>();
+        var rewrites = new List<ProductionTransformationRecord>();
         var duplicates = set.Productions
             .GroupBy(x => x)
             .Where(x => x.Count() > 1)
@@ -472,13 +526,13 @@ public static class ProductionSetManipulationExtensions
         foreach (var duplicate in duplicates)
         {
             set.Productions.Remove(duplicate);
-            rewrites.Add(new ProductionRewrite(duplicate, null, RewriteReason.DuplicateProductionRemoval));
+            rewrites.Add(new ProductionTransformationRecord(duplicate, null, TransformationReason.DuplicateProductionRemoval));
         }
 
         return rewrites.ToArray();
     }
 
-    public static ProductionRewrite[] RemoveUnreachableProductions(this ProductionSet set)
+    public static TransformationRecordCollection RemoveUnreachableProductions(this ProductionSet set)
     {
         EnsureNoMacros(set);
 
@@ -526,17 +580,17 @@ public static class ProductionSetManipulationExtensions
         // return the removed productions
         var rewrites = set.Productions
             .Where(x => !reachable.Contains(x.Head))
-            .Select(x => new ProductionRewrite(x, null, RewriteReason.UnreachableSymbolRemoval))
+            .Select(x => new ProductionTransformationRecord(x, null, TransformationReason.UnreachableSymbolRemoval))
             .ToArray();
 
         return rewrites;
     }
 
-    public static ProductionRewrite[] ExpandUnitProductions(this ProductionSet set)
+    public static TransformationRecordCollection ExpandUnitProductions(this ProductionSet set)
     {
         EnsureNoMacros(set);
 
-        var rewrites = new List<ProductionRewrite>();
+        var rewrites = new List<ProductionTransformationRecord>();
         var ignoreSet = new List<ProductionRule>();
 
         while (true)
@@ -562,7 +616,7 @@ public static class ProductionSetManipulationExtensions
                 var replacementProductions = set.Lookup(unitBody).ToArray();
                 var newProductions = new List<ProductionRule>();
 
-                if(unitHead == unitBody)
+                if (unitHead == unitBody)
                 {
                     ignoreSet.Add(production);
                     continue;
@@ -574,7 +628,7 @@ public static class ProductionSetManipulationExtensions
                 {
                     var newProduction = new ProductionRule(unitHead, replacementProduction.Body);
 
-                    if(newProduction == unitProduction)
+                    if (newProduction == unitProduction)
                     {
                         skip = true;
                         ignoreSet.Add(production);
@@ -589,18 +643,18 @@ public static class ProductionSetManipulationExtensions
                     continue;
                 }
 
-                set.RemoveProductions(unitProduction);
-                set.AddProductions(newProductions.ToArray());
-        
-                rewrites.Add(new ProductionRewrite(production, newProductions, RewriteReason.UnitProductionExpansion));
+                set.Remove(unitProduction);
+                set.Add(newProductions.ToArray());
+
+                rewrites.Add(new ProductionTransformationRecord(production, newProductions, TransformationReason.UnitProductionExpansion));
             }
 
             var unitProductions = set
-                .Where(x  => x.IsUnitProduction())
+                .Where(x => x.IsUnitProduction())
                 .Where(x => !ignoreSet.Contains(x))
                 .ToArray();
 
-            if(unitProductions.Length == 0)
+            if (unitProductions.Length == 0)
             {
                 break;
             }
@@ -609,5 +663,61 @@ public static class ProductionSetManipulationExtensions
         return rewrites.ToArray();
     }
 
+    public static TransformationRecordCollection FactorCommonPrefixProductions(this ProductionSet set)
+    {
+        EnsureNoMacros(set);
 
+        var transformations = new TransformationRecordCollection();
+
+        var nonTerminalProductions = set.Productions
+            .GroupBy(x => x.Head)
+            .ToArray();
+
+        var commonPrefixProductionsSets = set.GetCommonPrefixProductions();
+
+        foreach (var commonPrefixProductionSet in commonPrefixProductionsSets)
+        {
+            var commonPrefix = commonPrefixProductionSet[0].Body[0];
+            var nonTerminal = commonPrefixProductionSet[0].Head;
+
+            var newNonTerminal = set.CreateNonTerminalPrime(nonTerminal);
+
+            var adjustedProduction = new ProductionRule(
+                head: nonTerminal,
+                body: new Sentence(commonPrefix, newNonTerminal)
+            );
+
+            var newNonTerminalProductions = new ProductionSet();
+
+            foreach (var production in commonPrefixProductionSet)
+            {
+                var alpha = commonPrefix;
+                var beta = production.Body.Skip(1).ToArray();
+
+                var newProduction = new ProductionRule(
+                    head: newNonTerminal,
+                    body: beta
+                );
+
+                newNonTerminalProductions.Add(newProduction);
+            }
+
+            set.Remove(commonPrefixProductionSet);
+            set.Add(adjustedProduction);
+            set.Add(newNonTerminalProductions);
+
+            foreach (var production in commonPrefixProductionSet)
+            {
+                var transformation = new ProductionTransformationRecord(
+                    originalProduction: production,
+                    replacements: adjustedProduction,
+                    reason: TransformationReason.CommonPrefixFactorization
+                );
+
+                transformations.Add(transformation);
+            }
+        }
+
+        return transformations;
+    }
 }

@@ -55,6 +55,11 @@ public class ProductionSet : IEnumerable<ProductionRule>
         return new ProductionSet(productions.ToArray());
     }
 
+    public static implicit operator ProductionSet(ProductionRule production)
+    {
+        return new ProductionSet(production);
+    }
+
     public int Length => Productions.Count;
 
     public IEnumerator<ProductionRule> GetEnumerator()
@@ -116,44 +121,6 @@ public class ProductionSet : IEnumerable<ProductionRule>
     public IEnumerable<ProductionRule> Lookup(NonTerminal nonTerminal)
     {
         return Productions.Where(x => x.Head == nonTerminal);
-    }
-
-    public void AddProduction(ProductionRule production)
-    {
-        if (Start is null)
-        {
-            Start = production.Head;
-        }
-
-        Productions.Add(production);
-    }
-
-    public void AddProductions(params ProductionRule[] productions)
-    {
-        foreach (var production in productions)
-        {
-            AddProduction(production);
-        }
-    }
-
-    public void AddProduction(NonTerminal nonTerminal, params Symbol[] body)
-    {
-        AddProduction(new ProductionRule(nonTerminal, body));
-    }
-
-    public void RemoveProductions(params ProductionRule[] productions)
-    {
-        Productions.RemoveAll(x => productions.Any(y => y.Head == x.Head && y.Body == x.Body));
-    }
-
-    public void SetStart(NonTerminal start)
-    {
-        if (!GetNonTerminals().Contains(start))
-        {
-            throw new InvalidOperationException("The start symbol must be a non-terminal.");
-        }
-
-        Start = start;
     }
 
     public string ToNotation(NotationType notation)

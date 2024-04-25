@@ -137,7 +137,7 @@ public static class GraphNodeExtensions
         {
             if (production is not null)
             {
-                set.AddProduction(production);
+                set.Add(production);
             }
         }
 

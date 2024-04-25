@@ -17,9 +17,9 @@ public class ProductionRule
         Body = body;
     }
 
-    public ProductionRule(string name, params Symbol[] body)
+    public ProductionRule(string head, params Symbol[] body)
     {
-        Head = new NonTerminal(name);
+        Head = new NonTerminal(head);
         Body = body;
     }
 

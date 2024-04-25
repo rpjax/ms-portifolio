@@ -1,6 +1,6 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Graph;
+namespace ModularSystem.Core.TextAnalysis.Language.Tools;
 
 public class SymbolRealizabilityTool
 {
@@ -16,7 +16,7 @@ public class SymbolRealizabilityTool
             {
                 if(realizableSymbols.Contains(production.Head))
                 {
-                    workingSet.RemoveProductions(production);
+                    workingSet.Remove(production);
                     continue;
                 }
 
@@ -27,7 +27,7 @@ public class SymbolRealizabilityTool
                 {
                     realizableSymbols.Add(production.Head);
                     progress = true;
-                    workingSet.RemoveProductions(production);
+                    workingSet.Remove(production);
                 }
             }
 

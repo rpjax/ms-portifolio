@@ -8,13 +8,16 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 public class Sentence : IEnumerable<Symbol>
 {
-    public int Length => Symbols.Count;
+    public int Length => Symbols.Length;
 
-    internal List<Symbol> Symbols { get; }
+    internal Symbol[] Symbols { get; set;}
 
     public Sentence(params Symbol[] symbols)
     {
-        Symbols = new(symbols);
+        Symbols = Array.Empty<Symbol>()
+            .Concat(symbols)
+            .ToArray();
+
         ExpandPipeMacros();
     }
 
@@ -57,7 +60,7 @@ public class Sentence : IEnumerable<Symbol>
 
     public IEnumerator<Symbol> GetEnumerator()
     {
-        return Symbols.GetEnumerator();
+        return Symbols.AsEnumerable().GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -158,7 +161,7 @@ public class Sentence : IEnumerable<Symbol>
         var alternatives = new List<Sentence>();
         var start = 0;
 
-        pipeIndexes.Add(Symbols.Count);
+        pipeIndexes.Add(Symbols.Length);
 
         foreach (var index in pipeIndexes)
         {
@@ -173,8 +176,8 @@ public class Sentence : IEnumerable<Symbol>
 
         var alternationMacro = new AlternationMacro(alternatives.ToArray());
 
-        Symbols.Clear();
-        Symbols.Add(alternationMacro);
+        Symbols = new Symbol[1];
+        Symbols[0] = alternationMacro;
     }
 
 }

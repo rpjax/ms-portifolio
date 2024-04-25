@@ -48,17 +48,14 @@ public static class Program
 
          */
 
-        var grammar = new MyComplexGrammar();
-        var originalSet = grammar.GetOriginalProductionSet();
-        originalSet.ExpandMacros();
+        var grammar = DebugGrammars.CreateCommonFactorGrammar();
+        grammar.Productions.ExpandMacros();
+        grammar.Productions.FactorCommonPrefixProductions();
 
-        var modifications = grammar.AutoFix();
-        var cicles = originalSet.GetLeftRecursionCicles();
+        var modifications = grammar.AutoTransform();
 
-        Console.WriteLine($"modifications:\n{modifications}\n");
-        Console.WriteLine($"cicles:\n{cicles}\n");
-        Console.WriteLine($"grammar:\n{grammar}\n");
-
+        Console.WriteLine(modifications);
+        Console.WriteLine(grammar);
     }
 
     /*

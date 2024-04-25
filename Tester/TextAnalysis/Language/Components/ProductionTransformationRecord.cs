@@ -2,45 +2,49 @@
 
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
-public enum RewriteType
+public enum TransformationType
 {
     Removal,
     Replacement
 }
 
-public enum RewriteReason
+public enum TransformationReason
 {
     MacroExpansion,
     LeftRecursionExpansion,
     DuplicateProductionRemoval,
     UnreachableSymbolRemoval,
     LeftFactorization,
-    UnitProductionExpansion
+    UnitProductionExpansion,
+    CommonPrefixFactorization
 }
 
-public class ProductionRewrite
+public class ProductionTransformationRecord
 {
     public ProductionRule OriginalProduction { get; }
     public ProductionSet Replacements { get; }
-    public RewriteReason Reason { get; }
+    public TransformationReason Reason { get; }
 
-    public ProductionRewrite(ProductionRule originalProduction, ProductionSet? replacements, RewriteReason reason)
+    public ProductionTransformationRecord(
+        ProductionRule originalProduction,
+        ProductionSet? replacements,
+        TransformationReason reason)
     {
         OriginalProduction = originalProduction;
         Replacements = replacements ?? new ProductionSet();
         Reason = reason;
     }
 
-    public RewriteType RewriteType
+    public TransformationType Type
     {
         get
         {
-            if(Replacements.Length == 0)
+            if (Replacements.Length == 0)
             {
-                return RewriteType.Removal;
+                return TransformationType.Removal;
             }
 
-            return RewriteType.Replacement;
+            return TransformationType.Replacement;
         }
     }
 
@@ -48,36 +52,45 @@ public class ProductionRewrite
     {
         var builder = new StringBuilder();
 
-        switch(Reason)
+        switch (Reason)
         {
-            case RewriteReason.MacroExpansion:
+            case TransformationReason.MacroExpansion:
                 builder.Append("Macro expansion: ");
                 break;
-            case RewriteReason.LeftRecursionExpansion:
+                
+            case TransformationReason.LeftRecursionExpansion:
                 builder.Append("Left recursion expansion: ");
                 break;
-            case RewriteReason.DuplicateProductionRemoval:
+
+            case TransformationReason.DuplicateProductionRemoval:
                 builder.Append("Duplicate removal: ");
                 break;
-            case RewriteReason.UnreachableSymbolRemoval:
+
+            case TransformationReason.UnreachableSymbolRemoval:
                 builder.Append("Unreachable removal: ");
                 break;
-            case RewriteReason.LeftFactorization:
+
+            case TransformationReason.LeftFactorization:
                 builder.Append("Left factorization: ");
                 break;
-            case RewriteReason.UnitProductionExpansion:
+
+            case TransformationReason.UnitProductionExpansion:
                 builder.Append("Unit production expansion: ");
+                break;
+
+            case TransformationReason.CommonPrefixFactorization:
+                builder.Append("Common prefix factorization: ");
                 break;
         }
 
         builder.Append($"({OriginalProduction}) ");
 
-        switch(RewriteType)
+        switch (Type)
         {
-            case RewriteType.Removal:
+            case TransformationType.Removal:
                 builder.Append("removed");
                 break;
-            case RewriteType.Replacement:
+            case TransformationType.Replacement:
                 builder.Append("replaced by: ");
                 builder.Append("[");
                 builder.Append(string.Join(", ", Replacements.Select(x => $"({x})")));

@@ -155,37 +155,37 @@ public static class SentenceExtensions
 
     public static Sentence Add(this Sentence self, Symbol symbol)
     {
-        var copy = self.Copy();
-        copy.Symbols.Add(symbol);
-        return copy;
+        var list = new List<Symbol>(self.Symbols);
+        list.Add(symbol);
+        return list;
     }
 
     public static Sentence Add(this Sentence self, IEnumerable<Symbol> symbols)
     {
-        var copy = self.Copy();
-        copy.Symbols.AddRange(symbols);
-        return copy;
+        var list = new List<Symbol>(self.Symbols);
+        list.AddRange(symbols);
+        return list;
     }
 
     public static Sentence InsertAt(this Sentence self, int index, Symbol symbol)
     {
-        var copy = self.Copy();
-        copy.Symbols.Insert(index, symbol);
-        return copy;
+        var list = new List<Symbol>(self.Symbols);
+        list.Insert(index, symbol);
+        return list;
     }
 
     public static Sentence InsertAt(this Sentence self, int index, IEnumerable<Symbol> symbols)
     {
-        var copy = self.Copy();
-        copy.Symbols.InsertRange(index, symbols);
-        return copy;
+        var list = new List<Symbol>(self.Symbols);
+        list.InsertRange(index, symbols);
+        return list;
     }
 
     public static Sentence RemoveAt(this Sentence self, int index)
     {
-        var copy = self.Copy();
-        copy.Symbols.RemoveAt(index);
-        return copy;
+        var list = new List<Symbol>(self.Symbols);
+        list.RemoveAt(index);
+        return list;
     }
 
     public static Sentence Replace(this Sentence self, Symbol symbol, params Symbol[] replacement)
