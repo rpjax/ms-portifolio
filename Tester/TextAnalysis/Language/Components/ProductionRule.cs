@@ -15,12 +15,14 @@ public class ProductionRule
     {
         Head = head;
         Body = body;
+        Validate();
     }
 
     public ProductionRule(string head, params Symbol[] body)
     {
         Head = new NonTerminal(head);
         Body = body;
+        Validate();
     }
 
     public static bool operator ==(ProductionRule left, ProductionRule right)
@@ -78,6 +80,22 @@ public class ProductionRule
     public ProductionRule Copy()
     {
         return new ProductionRule(Head.Copy(), Body.Copy());
+    }
+
+    private void Validate()
+    {
+        if(Head is null)
+        {
+            throw new InvalidOperationException("The head of a production rule cannot be null.");
+        }
+        if(Body is null)
+        {
+            throw new InvalidOperationException("The body of a production rule cannot be null.");
+        }
+        if(Body.Length == 0)
+        {
+            throw new InvalidOperationException("The body of a production rule cannot be empty.");
+        }
     }
 
     private string ToSententialNotation()

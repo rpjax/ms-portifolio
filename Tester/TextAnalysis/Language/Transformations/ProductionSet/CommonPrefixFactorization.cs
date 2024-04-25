@@ -2,77 +2,26 @@ using ModularSystem.Core.TextAnalysis.Language.Components;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Transformations;
 
-public class CommonPrefixFactorization : ProductionSetTransformation
+public static class CommonPrefixFactorization 
 {
-    public CommonPrefixFactorization(ProductionSet set)
+    public static ProductionSetTransformationCollection FromSet(ProductionSet set)
     {
-        var commonPrefixProductionsSets = set.GetCommonPrefixProductions();
+        var builder = new ProductionSetTransformationCollectionBuilder();
 
-        foreach (var commonPrefixProductionSet in commonPrefixProductionsSets)
+        foreach (var productionSet in set.GetCommonPrefixProductions())
         {
-            var commonPrefix = commonPrefixProductionSet[0].Body[0];
-            var nonTerminal = commonPrefixProductionSet[0].Head;
-
-            var newNonTerminal = set.CreateNonTerminalPrime(nonTerminal);
-
-            var adjustedProduction = new ProductionRule(
-                head: nonTerminal,
-                body: new Sentence(commonPrefix, newNonTerminal)
-            );
-
-            var newNonTerminalProductionSet = new ProductionSet();
-
-            foreach (var production in commonPrefixProductionSet)
-            {
-                var alpha = commonPrefix;
-                var beta = production.Body.Skip(1).ToArray();
-
-                var newProduction = new ProductionRule(
-                    head: newNonTerminal,
-                    body: beta
-                );
-
-                newNonTerminalProductionSet.Add(newProduction);
-            }
-
-            var builder = new ProductionSetTransformationBuilder()
-                .RemoveProductions(commonPrefixProductionSet)
-                .AddProductions(adjustedProduction)
-                .AddProductions(newNonTerminalProductionSet)
-                ;
-
-            AddOperations(builder.GetOperations());
+            builder.AddTransformation(new LeftFactorization(productionSet));      
         }
+
+        builder.SetExplanation(GetExplanation(builder.GetTransformations()));
+
+        return builder.Build();
     }
 
-    public override string GetExplanation()
+    private static string GetExplanation(ProductionSetTransformation[] transformations)
     {
-        var removeOperations = Operations
-            .Where(x => x.Type == ProductionSetOperationType.RemoveProduction)
-            .ToArray();
 
-        var addOperations = Operations
-            .Where(x => x.Type == ProductionSetOperationType.AddProduction)
-            .ToArray();
-
-        var removedProductions = removeOperations
-            .Select(x => x.AsRemoveProduction().Production)
-            .ToArray();
-
-        var addedProductions = addOperations
-            .Select(x => x.AsAddProduction().Production)
-            .ToArray();
-
-        var removedProductionsStr = string
-            .Join(", ", removedProductions.Select(x => $"({x})"));
-
-        var addedProductionsStr = string
-            .Join(", ", addedProductions.Select(x => $"({x})"));
-
-        var commonPrefix = removedProductions[0].Body[0];
-        var newNonTerminal = addedProductions.Last().Head;
-
-        var explanation = @$"The 'Common Prefix Factorization' transformation was applied to productions that start with {commonPrefix}. These productions were: [{removedProductionsStr}]. They initially caused non-determinism in parsers with a single lookahead due to the shared starting symbol. To address this issue, a new non-terminal symbol, {newNonTerminal}, was introduced. This symbol now encapsulates the sequences that follow {commonPrefix} in these productions. As a result, the productions were reorganized into: [{addedProductionsStr}]. This reorganization ensures that each production starts uniquely, eliminating the non-determinism at this parsing stage and making the grammar compatible with single lookahead parsers.";
+        var explanation = @$"";
 
         return explanation;
     }
@@ -151,9 +100,11 @@ public class UnitProductionExpansion : ProductionSetTransformation
                 break;
             }
         }
+
+        Explanation = GetExplanation();
     }
 
-    public override string GetExplanation()
+    private string GetExplanation()
     {
         var removeOperations = Operations
             .Where(x => x.Type == ProductionSetOperationType.RemoveProduction)

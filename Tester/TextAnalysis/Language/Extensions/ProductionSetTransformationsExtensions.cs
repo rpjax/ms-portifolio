@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using ModularSystem.Core.TextAnalysis.Language.Tools;
 using ModularSystem.Core.TextAnalysis.Language.Transformations;
 
@@ -146,13 +147,15 @@ public static partial class ProductionSetTransformationsExtensions
                 .Where(productions => productions.IsLeftRecursive())
                 .ToArray();
 
-            var alphas = productions
-                .Where(productions => productions.IsLeftRecursive())
+            var nonRecursiveProductions = productions
+                .Where(productions => !productions.IsLeftRecursive())
+                .ToArray();
+
+            var alphas = recursiveProductions
                 .Select(x => x.Body.Skip(1).ToArray())
                 .ToArray();
 
-            var betas = productions
-                .Where(productions => !productions.IsLeftRecursive())
+            var betas = nonRecursiveProductions
                 .Select(x => x.Body.ToArray())
                 .ToArray();
 
@@ -455,7 +458,9 @@ public static partial class ProductionSetTransformationsExtensions
     public static TransformationRecordCollection FactorCommonPrefixProductions(this ProductionSet set)
     {
         set.EnsureNoMacros();
-        var foo = new CommonPrefixFactorization(set);
+        var foo =  CommonPrefixFactorization.FromSet(set);
+        var json = JsonSerializer.Serialize(foo);
+
         var transformations = new TransformationRecordCollection();
 
         var commonPrefixProductionsSets = set.GetCommonPrefixProductions();
