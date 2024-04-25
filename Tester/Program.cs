@@ -10,6 +10,7 @@ using System.Diagnostics;
 using ModularSystem.Core.TextAnalysis.Tokenization;
 using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Language.Graph;
+using ModularSystem.Core.TextAnalysis.Language.Grammars;
 
 namespace ModularSystem.Tester;
 
@@ -49,8 +50,20 @@ public static class Program
          */
 
         var grammar = DebugGrammars.CreateCommonFactorGrammar();
+
         grammar.Productions.ExpandMacros();
-        grammar.Productions.FactorCommonPrefixProductions();
+
+        while (true)
+        {
+            var _mods = grammar.Productions.FactorCommonPrefixProductions();
+
+            if (_mods.Length == 0)
+            {
+                break;
+            }
+
+            Console.WriteLine(_mods);
+        }
 
         var modifications = grammar.AutoTransform();
 

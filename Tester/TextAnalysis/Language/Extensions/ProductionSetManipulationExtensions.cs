@@ -7,56 +7,6 @@ public static class ProductionSetManipulationExtensions
     /*
         Main API methods.
     */
-    public static Error[] GetErrors(this ProductionSet set)
-    {
-        var errors = new List<Error>();
-
-        var unrealizableProductions = set.GetUnrealizableProductions();
-
-        if (unrealizableProductions.Length != 0)
-        {
-            var error = new Error("The grammar contains unrealizable productions.")
-                .AddDetails("The unrealizable productions", unrealizableProductions.ToString())
-                .AddDetails("The production set", set.ToString())
-                .AddJsonData("The unrealizable productions", unrealizableProductions)
-                .AddJsonData("The production set", set)
-                ;
-
-            errors.Add(error);
-        }
-
-        var unreachableProductions = set.RemoveUnreachableProductions();
-
-        if (unreachableProductions.Length != 0)
-        {
-            var error = new Error("The grammar contains unreachable symbols.")
-                .AddDetails("The unreachable productions", unreachableProductions.ToString())
-                .AddDetails("The production set", set.ToString())
-                .AddJsonData("The unreachable productions", unreachableProductions)
-                .AddJsonData("The production set", set)
-                ;
-
-            errors.Add(error);
-        }
-
-        var leftRecursiveCicles = set.GetLeftRecursionCicles();
-
-        if (leftRecursiveCicles.Length != 0)
-        {
-            var ciclesStr = string.Join(Environment.NewLine, leftRecursiveCicles.Select(x => x.ToString()));
-            var error = new Error("The grammar contains left recursion cicles.")
-                .AddDetails("The left recursion cicles", ciclesStr)
-                .AddDetails("The production set", set.ToString())
-                .AddJsonData("The left recursion cicles", leftRecursiveCicles)
-                .AddJsonData("The production set", set)
-                ;
-
-            errors.Add(error);
-        }
-
-        return errors.ToArray();
-    }
-
     public static TransformationRecordCollection AutoClean(this ProductionSet set)
     {
         var rewrites = new List<ProductionTransformationRecord>()
@@ -149,169 +99,6 @@ public static class ProductionSetManipulationExtensions
     }
 
     /*
-     * Analysis helpers.    
-     */
-    public static bool ContainsMacro(this ProductionSet set)
-    {
-        return set.Productions.Any(x => x.ContainsMacro());
-    }
-
-    public static bool ContainsUnitProduction(this ProductionSet set)
-    {
-        return set.Productions.Any(x => x.IsUnitProduction());
-    }
-
-    public static bool ContainsUnreachableProduction(this ProductionSet set)
-    {
-        return set.GetUnreachableProductions().Length != 0;
-    }
-
-    public static bool ContainsUnrealizableProduction(this ProductionSet set)
-    {
-        return new SymbolRealizabilityTool()
-            .Execute(set).Length != 0;
-    }
-
-
-    public static Symbol[] GetUnreachableSymbols(this ProductionSet set)
-    {
-        EnsureNoMacros(set);
-
-        return new SymbolReachabilityTool()
-            .Execute(set);
-    }
-
-    public static ProductionSet GetUnreachableProductions(this ProductionSet set)
-    {
-        EnsureNoMacros(set);
-
-        var reachableSymbols = set.GetUnreachableSymbols();
-
-        var unreachableProductions = set.Productions
-            .Where(x => !reachableSymbols.Contains(x.Head))
-            .ToArray();
-
-        return unreachableProductions;
-    }
-
-
-    public static NonTerminal[] GetUnrealizableNonTerminals(this ProductionSet set)
-    {
-        EnsureNoMacros(set);
-
-        return new SymbolRealizabilityTool()
-            .Execute(set);
-    }
-
-    public static ProductionSet GetUnrealizableProductions(this ProductionSet set)
-    {
-        EnsureNoMacros(set);
-
-        var unrealizableNonTerminals = set.GetUnrealizableNonTerminals();
-        var unrealizableSet = new ProductionSet(set.Start);
-
-        foreach (var nonTerminal in unrealizableNonTerminals)
-        {
-            var productions = set.Lookup(nonTerminal)
-                .ToArray();
-
-            unrealizableSet.Add(productions);
-        }
-
-        return unrealizableSet;
-    }
-
-
-    public static LeftRecursionCicle[] GetLeftRecursionCicles(this ProductionSet set)
-    {
-        var recursiveBranches = new LeftRecursionTool()
-            .Execute(set);
-
-        var cicles = new List<LeftRecursionCicle>();
-
-        foreach (var branch in recursiveBranches)
-        {
-            var derivations = new List<Derivation>();
-
-            foreach (var node in branch.Nodes)
-            {
-                if (node.Production is null)
-                {
-                    continue;
-                }
-                if (node.Symbol is not NonTerminal nonTerminal)
-                {
-                    throw new InvalidOperationException("The symbol is not a nonterminal.");
-                }
-
-                var originalSentence = new Sentence();
-
-                if (node.Parent?.Production is not null)
-                {
-                    originalSentence = originalSentence.Add(node.Parent.Production.Body);
-                }
-
-                var derivedSentence = new Sentence(node.Production.Body);
-
-                var derivation = new Derivation(
-                    production: node.Production,
-                    nonTerminal: nonTerminal,
-                    originalSentence: originalSentence,
-                    derivedSentence: derivedSentence
-                );
-
-                derivations.Add(derivation);
-            }
-
-            cicles.Add(new LeftRecursionCicle(derivations));
-        }
-
-        return cicles.ToArray();
-    }
-
-    public static ProductionSet[] GetCommonPrefixProductions(this ProductionSet set)
-    {
-        EnsureNoMacros(set);
-
-        var nonTerminalProductions = set.Productions
-            .GroupBy(x => x.Head)
-            .ToArray();
-
-        var commonPrefixProductions = new List<ProductionSet>();
-
-        foreach (var group in nonTerminalProductions)
-        {
-            var commonPrefixProductionsGroup = group
-                .Where(x => x.Body.Length > 1)
-                .Where(x => x.Body.First().IsTerminal)
-                .GroupBy(x => x.Body.First())
-                .Where(x => x.Count() > 1)
-                .SelectMany(x => x.ToArray())
-                .ToArray();
-
-            if (commonPrefixProductionsGroup.Length == 0)
-            {
-                continue;
-            }
-
-            commonPrefixProductions.Add(commonPrefixProductionsGroup);
-        }
-
-        return commonPrefixProductions.ToArray();
-    }
-
-    /*
-     * Assertion helpers.
-     */
-    public static void EnsureNoMacros(this ProductionSet set)
-    {
-        if (ContainsMacro(set))
-        {
-            throw new InvalidOperationException("The production set contains macros.");
-        }
-    }
-
-    /*
      * Specific Manipulation Operations.
      */
     public static TransformationRecordCollection ExpandMacros(this ProductionSet set)
@@ -339,7 +126,7 @@ public static class ProductionSetManipulationExtensions
 
     public static int LeftFactor(this ProductionSet set)
     {
-        EnsureNoMacros(set);
+        set.EnsureNoMacros();
 
         int counter = 0;
 
@@ -425,7 +212,7 @@ public static class ProductionSetManipulationExtensions
 
     public static TransformationRecordCollection RemoveLeftRecursion(this ProductionSet set)
     {
-        EnsureNoMacros(set);
+        set.EnsureNoMacros();
 
         var rewrites = new List<ProductionTransformationRecord>();
         var recursiveBranches = new LeftRecursionTool()
@@ -514,7 +301,7 @@ public static class ProductionSetManipulationExtensions
 
     public static TransformationRecordCollection RemoveDuplicates(this ProductionSet set)
     {
-        EnsureNoMacros(set);
+        set.EnsureNoMacros();
 
         var rewrites = new List<ProductionTransformationRecord>();
         var duplicates = set.Productions
@@ -534,7 +321,7 @@ public static class ProductionSetManipulationExtensions
 
     public static TransformationRecordCollection RemoveUnreachableProductions(this ProductionSet set)
     {
-        EnsureNoMacros(set);
+        set.EnsureNoMacros();
 
         var reachable = new HashSet<NonTerminal>();
         var visited = new HashSet<NonTerminal>();
@@ -588,7 +375,7 @@ public static class ProductionSetManipulationExtensions
 
     public static TransformationRecordCollection ExpandUnitProductions(this ProductionSet set)
     {
-        EnsureNoMacros(set);
+        set.EnsureNoMacros();
 
         var rewrites = new List<ProductionTransformationRecord>();
         var ignoreSet = new List<ProductionRule>();
@@ -665,7 +452,7 @@ public static class ProductionSetManipulationExtensions
 
     public static TransformationRecordCollection FactorCommonPrefixProductions(this ProductionSet set)
     {
-        EnsureNoMacros(set);
+        set.EnsureNoMacros();
 
         var transformations = new TransformationRecordCollection();
 

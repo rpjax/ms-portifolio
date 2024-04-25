@@ -100,6 +100,9 @@ public class ProductionSet : IEnumerable<ProductionRule>
 
     public ProductionSet Copy()
     {
+        /*
+            Production rules are immutable, so we can just return a new production set with the same production rules.
+        */
         return new ProductionSet(Start, Productions.ToArray());
     }
 

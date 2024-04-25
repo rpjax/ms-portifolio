@@ -10,7 +10,7 @@ public class Sentence : IEnumerable<Symbol>
 {
     public int Length => Symbols.Length;
 
-    internal Symbol[] Symbols { get; set;}
+    internal Symbol[] Symbols { get; set; }
 
     public Sentence(params Symbol[] symbols)
     {

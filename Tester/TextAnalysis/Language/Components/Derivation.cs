@@ -18,7 +18,12 @@ public class Derivation
         NonTerminal = nonTerminal;
         OriginalSentence = originalSentence;
         DerivedSentence = derivedSentence;
+        NonTerminalPosition = originalSentence.IndexOfSymbol(nonTerminal);
 
+        if(NonTerminalPosition == -1)
+        {
+            throw new InvalidOperationException("The non-terminal does not exist in the original sentence.");
+        }
         if (NonTerminalPosition >= OriginalSentence.Length)
         {
             throw new InvalidOperationException("The non-terminal position is out of bounds.");
@@ -27,13 +32,11 @@ public class Derivation
         {
             throw new InvalidOperationException("The non-terminal at the specified position does not match the head of the production rule.");
         }
-
-        NonTerminalPosition = originalSentence.IndexOfSymbol(nonTerminal);
     }
 
     public override string ToString()
     {
-        return $"{Production} ({OriginalSentence} -> {DerivedSentence})";
+        return $"{OriginalSentence} -> {DerivedSentence} ({Production})";
     }
 
 }
