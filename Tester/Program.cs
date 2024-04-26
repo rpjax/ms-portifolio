@@ -50,20 +50,20 @@ public static class Program
          */
 
         var grammar = DebugGrammars.CreateCommonFactorGrammar();
+        grammar = new JsonGrammar();
+        //grammar.Productions.ExpandMacros();
 
-        grammar.Productions.ExpandMacros();
+        // while (true)
+        // {
+        //     var _mods = grammar.Productions.FactorCommonPrefixProductions();
 
-        while (true)
-        {
-            var _mods = grammar.Productions.FactorCommonPrefixProductions();
+        //     if (_mods.Length == 0)
+        //     {
+        //         break;
+        //     }
 
-            if (_mods.Length == 0)
-            {
-                break;
-            }
-
-            Console.WriteLine(_mods);
-        }
+        //     Console.WriteLine(_mods);
+        // }
 
         var modifications = grammar.AutoTransform();
 

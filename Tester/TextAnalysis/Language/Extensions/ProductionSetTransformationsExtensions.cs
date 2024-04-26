@@ -387,6 +387,7 @@ public static partial class ProductionSetTransformationsExtensions
 
         while (true)
         {
+            var op = new UnitProductionExpansion(set);
             foreach (var production in set.Copy())
             {
                 if (!production.IsUnitProduction())
@@ -441,6 +442,9 @@ public static partial class ProductionSetTransformationsExtensions
                 rewrites.Add(new ProductionTransformationRecord(production, newProductions, ProductionTransformationReason.UnitProductionExpansion));
             }
 
+            var strOld = string.Join("\n", rewrites.Select(x => x.OriginalProduction.ToString()));
+            var strNew = op.ToString();
+
             var unitProductions = set
                 .Where(x => x.IsUnitProduction())
                 .Where(x => !ignoreSet.Contains(x))
@@ -455,11 +459,9 @@ public static partial class ProductionSetTransformationsExtensions
         return rewrites.ToArray();
     }
 
-    public static TransformationRecordCollection FactorCommonPrefixProductions(this ProductionSet set)
+    public static SetTransformationCollection FactorCommonPrefixProductions(this ProductionSet set)
     {
         set.EnsureNoMacros();
-        var foo =  CommonPrefixFactorization.FromSet(set);
-        var json = JsonSerializer.Serialize(foo);
 
         var transformations = new TransformationRecordCollection();
 
@@ -510,4 +512,5 @@ public static partial class ProductionSetTransformationsExtensions
 
         return transformations;
     }
+
 }

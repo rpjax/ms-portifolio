@@ -2,7 +2,14 @@ using ModularSystem.Core.TextAnalysis.Language.Components;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Transformations;
 
-public class LeftFactorization : ProductionSetComplexTransformation
+/// <summary>
+/// Represents a transformation that factors out common prefixes in a production subset.
+/// </summary>
+/// <remarks>
+/// All productions in the subset must have a common head and a common prefix (alpha).
+/// This transformation differs from <see cref="LeftFactorizationPhase"/> in that it can only operate on a subset of productions.
+/// </remarks>
+public class LeftFactorization : SetComplexTransformation
 {
     public LeftFactorization(ProductionSet set) : base(set)
     {
@@ -21,7 +28,7 @@ public class LeftFactorization : ProductionSetComplexTransformation
         A′ -> A c.
         A′ -> ε.
     */
-    protected override ProductionSetOperation[] GetOperations(ProductionSet set)
+    protected override SetOperation[] GetOperations(ProductionSet set)
     {
         if (set.Length == 0)
         {
@@ -62,7 +69,7 @@ public class LeftFactorization : ProductionSetComplexTransformation
             body: new Sentence(alpha, newNonTerminal)
         );
 
-        var builder = new ProductionSetTransformationBuilder()
+        var builder = new SetTransformationBuilder()
             .RemoveProductions(set)
             .AddProductions(newNonTerminalProduction)
             ;
@@ -90,34 +97,22 @@ public class LeftFactorization : ProductionSetComplexTransformation
         return builder.GetOperations();
     }
 
-    protected override string GetExplanation(IReadOnlyList<ProductionSetOperation> operations)
+    protected override string GetExplanation(IReadOnlyList<SetOperation> operations)
     {
         var removeOperations = operations
-            .Where(x => x.Type == ProductionSetOperationType.RemoveProduction)
+            .Where(x => x.Type == SetOperationType.RemoveProduction)
             .ToArray();
 
         var addOperations = operations
-            .Where(x => x.Type == ProductionSetOperationType.AddProduction)
+            .Where(x => x.Type == SetOperationType.AddProduction)
             .ToArray();
 
-        var removedProductions = removeOperations
-            .Select(x => x.AsRemoveProduction().Production)
-            .ToArray();
+        var commonPrefix = removeOperations.First().AsRemoveProduction().Production.Body.First();
+        var newNonTerminal = addOperations.Last().AsAddProduction().Production.Head;
 
-        var addedProductions = addOperations
-            .Select(x => x.AsAddProduction().Production)
-            .ToArray();
+        var operationStr = string.Join("\n", operations);
 
-        var removedProductionsStr = string
-            .Join(", ", removedProductions.Select(x => $"({x})"));
-
-        var addedProductionsStr = string
-            .Join(", ", addedProductions.Select(x => $"({x})"));
-
-        var commonPrefix = removedProductions[0].Body[0];
-        var newNonTerminal = addedProductions.Last().Head;
-
-        var explanation = @$"The 'Common Prefix Factorization' transformation was applied to productions that start with {commonPrefix}. These productions were: [{removedProductionsStr}]. A new non-terminal symbol, {newNonTerminal}, was introduced. This symbol now encapsulates the sequences that follow {commonPrefix} in these productions. As a result, the productions were reorganized into: [{addedProductionsStr}].";
+        var explanation = $"Left factorization on productions with alpha: {commonPrefix}. Introduction of non-terminal: {newNonTerminal}.\n{operationStr}";
 
         return explanation;
     }

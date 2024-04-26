@@ -25,7 +25,6 @@ public abstract class Symbol : IEquatable<Symbol>
     /// </summary>
     public abstract bool IsMacro { get; }
 
-
     public static bool operator ==(Symbol left, Symbol right)
     {
         return left.Equals(right);
