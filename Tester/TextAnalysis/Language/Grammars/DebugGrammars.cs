@@ -10,10 +10,12 @@ public class DebugGrammars
     */
     public static GrammarDefinition CreateCommonFactorGrammar()
     {
-        var set = new ProductionSet();
+        var builder = new ProductionSetBuilder();
         var startSymbol = new NonTerminal("A");
 
-        set.Add(
+        builder.SetStart(startSymbol);
+
+        builder.Add(
             head: "A",
             body: new Sentence(
                 new Terminal(TokenType.Identifier, "a"),
@@ -22,7 +24,7 @@ public class DebugGrammars
             )
         );
 
-        set.Add(
+        builder.Add(
             head: "A",
             body: new Sentence(
                 new Terminal(TokenType.Identifier, "a"),
@@ -31,7 +33,7 @@ public class DebugGrammars
             )
         );
 
-        set.Add(
+        builder.Add(
             head: "A",
             body: new Sentence(
                 new Terminal(TokenType.Identifier, "a"),
@@ -40,7 +42,7 @@ public class DebugGrammars
             )
         );
 
-        return new GrammarDefinition(set, startSymbol);
+        return new GrammarDefinition(builder.Build());
     }
 
 }

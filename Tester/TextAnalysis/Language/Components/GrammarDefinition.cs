@@ -1,4 +1,7 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Language.Components;
+﻿using System.Text;
+using ModularSystem.Core.TextAnalysis.Language.Transformations;
+
+namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 /// <summary>
 /// Definition of a context-free grammar. (Chomsky hierarchy type 2) <br/>
@@ -12,39 +15,38 @@
 /// </remarks>
 public class GrammarDefinition
 {
-    private ProductionSet OriginalProductionSet { get; }
-    private ProductionSet WorkingProductionSet { get; }
-    internal TransformationRecordCollection Transformations { get; } 
+    private ProductionSet InternalOriginalSet { get; }
+    private ProductionSet InternalWorkingSet { get; set; }
 
-    public GrammarDefinition(ProductionRule[] productions, NonTerminal? start = null)
+    public GrammarDefinition(NonTerminal start, IEnumerable<ProductionRule> productions)
     {
-        var set = new ProductionSet(productions);
-
-        if (start is not null)
-        {
-            set.Start = start;
-        }
-
-        OriginalProductionSet = set;
-        WorkingProductionSet = set.Copy();
-        Transformations = new();
+        InternalOriginalSet = new ProductionSet(start, productions);
+        InternalWorkingSet = new ProductionSet(start, productions);
     }
 
-    public ProductionSet Productions => WorkingProductionSet;
-    public NonTerminal Start => Productions.Start
-        ?? throw new InvalidOperationException("The start symbol is not defined.");
+    public GrammarDefinition(ProductionSet set)
+    {
+        InternalOriginalSet = set.Copy();
+        InternalWorkingSet = set.Copy();
+    }
+
+    public NonTerminal Start => InternalWorkingSet.Start;
+    public ProductionSet Productions => InternalWorkingSet;
+    public SetTransformationCollection Transformations => InternalWorkingSet.Transformations;
 
     public override string ToString()
     {
-        var productionGroups = Productions
-            .GroupBy(x => x.Head.Name);
+        var builder = new StringBuilder();
 
-        var productionsStr = productionGroups
-            .Select(x => string.Join(Environment.NewLine, x.Select(y => y.ToString())))
-            .ToArray()
-            ;
+        builder.AppendLine($"Start Symbol: {Start}");
+        builder.AppendLine("Productions:");
 
-        return string.Join(Environment.NewLine, productionsStr);
+        foreach (var production in Productions)
+        {
+            builder.AppendLine(production.ToString());
+        }
+
+        return builder.ToString();
     }
 
     public IEnumerable<NonTerminal> GetNonTerminals()
@@ -62,14 +64,14 @@ public class GrammarDefinition
             .Distinct();
     }
 
-    public ProductionSet GetOriginalProductionSet()
+    public GrammarDefinition GetOriginalGrammar()
     {
-        return OriginalProductionSet.Copy();
+        return new GrammarDefinition(InternalOriginalSet);
     }
 
-    public TransformationRecordCollection GetTransformationRecords()
+    public ProductionSet GetOriginalProductionSet()
     {
-        return Transformations.Copy();
+        return InternalOriginalSet;
     }
 
 }

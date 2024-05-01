@@ -7,16 +7,6 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
 */
 public static partial class ProductionSetManipulationsExtensions
 {
-    internal static void SetStart(this ProductionSet self, NonTerminal start)
-    {
-        if (!self.GetNonTerminals().Contains(start))
-        {
-            throw new InvalidOperationException("The start symbol must be a non-terminal.");
-        }
-
-        self.Start = start;
-    }
-
     internal static void Add(this ProductionSet self, params ProductionRule[] productions)
     {
         if (productions.Length == 0)
@@ -24,35 +14,17 @@ public static partial class ProductionSetManipulationsExtensions
             throw new InvalidOperationException("The list of productions is empty.");
         }
 
-        if (self.Start is null)
-        {
-            self.Start = productions[0].Head;
-        }
-
-        foreach (var production in productions)
-        {
-            self.Productions.Add(production);
-        }
-    }
-
-    internal static void Add(this ProductionSet self, NonTerminal head, params Symbol[] body)
-    {
-        self.Add(new ProductionRule(head, body));
-    }
-
-    internal static void Add(this ProductionSet self, string head, params Symbol[] body)
-    {
-        self.Add(new ProductionRule(head, body));
+        self.Productions.AddRange(productions);
     }
 
     internal static void Remove(this ProductionSet self, params ProductionRule[] productions)
     {
-        self.Productions.RemoveAll(x => productions.Any(y => y.Head == x.Head && y.Body == x.Body));
+        self.Productions.RemoveAll(x => productions.Any(y => x == y));
     }
 
     internal static void Replace(this ProductionSet self, Symbol symbol, Sentence replacement)
     {
-        foreach (var production in self.Productions)
+        foreach (var production in self)
         {
             if (!production.Body.Contains(symbol))
             {
@@ -60,12 +32,11 @@ public static partial class ProductionSetManipulationsExtensions
             }
 
             var head = production.Head;
-            var newBody = production.Body
-                .Replace(symbol, replacement);
-            ;
+            var newBody = production.Body.Replace(symbol, replacement);
+            var newProduction = new ProductionRule(head, newBody);
 
-            self.Remove(production);
-            self.Add(head, newBody);
+            self.Productions.Remove(production);
+            self.Productions.Add(newProduction);
         }
     }
 

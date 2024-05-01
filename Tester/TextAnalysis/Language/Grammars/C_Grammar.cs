@@ -1,11 +1,11 @@
 using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Tokenization;
 
-namespace ModularSystem.Webql.Analysis.DocumentSyntax.Parsing;
+namespace ModularSystem.Core.TextAnalysis.Language.Grammars;
 
 public class C_Grammar : GrammarDefinition
 {
-    public C_Grammar() : base(GetProductions(), GetStart())
+    public C_Grammar() : base(GetStart(), GetProductions())
     {
     }
 

@@ -1,4 +1,5 @@
 using ModularSystem.Core.TextAnalysis.Language.Tools;
+using ModularSystem.Core.TextAnalysis.Language.Transformations;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
@@ -9,21 +10,25 @@ public static class ProductionSetAnalysisExtensions
     */
     public static bool ContainsMacro(this ProductionSet set)
     {
-        return set.Productions.Any(x => x.ContainsMacro());
+        return set.Any(x => x.ContainsMacro());
     }
 
     public static bool ContainsUnitProduction(this ProductionSet set)
     {
-        return set.Productions.Any(x => x.IsUnitProduction());
+        set.EnsureNoMacros();
+        return set.Any(x => x.IsUnitProduction());
     }
 
     public static bool ContainsUnreachableProduction(this ProductionSet set)
     {
+        set.EnsureNoMacros();
         return set.GetUnreachableProductions().Length != 0;
     }
 
     public static bool ContainsUnrealizableProduction(this ProductionSet set)
     {
+        set.EnsureNoMacros();
+
         return new SymbolRealizabilityTool()
             .Execute(set).Length != 0;
     }
@@ -42,11 +47,11 @@ public static class ProductionSetAnalysisExtensions
 
         var reachableSymbols = set.GetUnreachableSymbols();
 
-        var unreachableProductions = set.Productions
+        var unreachableProductions = set
             .Where(x => !reachableSymbols.Contains(x.Head))
             .ToArray();
 
-        return unreachableProductions;
+        return new ProductionSet(set.Start, unreachableProductions);
     }
 
     public static NonTerminal[] GetUnrealizableNonTerminals(this ProductionSet set)
@@ -62,21 +67,20 @@ public static class ProductionSetAnalysisExtensions
         set.EnsureNoMacros();
 
         var unrealizableNonTerminals = set.GetUnrealizableNonTerminals();
-        var unrealizableSet = new ProductionSet(set.Start);
+        var productions = new List<ProductionRule>();
 
         foreach (var nonTerminal in unrealizableNonTerminals)
         {
-            var productions = set.Lookup(nonTerminal)
-                .ToArray();
-
-            unrealizableSet.Add(productions);
+            productions.AddRange(set.Lookup(nonTerminal));
         }
 
-        return unrealizableSet;
+        return new ProductionSet(set.Start, productions);
     }
 
     public static LeftRecursionCicle[] GetLeftRecursionCicles(this ProductionSet set)
     {
+        set.EnsureNoMacros();
+
         var recursiveBranches = new LeftRecursionTool()
             .Execute(set);
 
@@ -126,7 +130,7 @@ public static class ProductionSetAnalysisExtensions
     {
         set.EnsureNoMacros();
 
-        var nonTerminalProductions = set.Productions
+        var nonTerminalProductions = set
             .GroupBy(x => x.Head)
             .ToArray();
 
@@ -146,7 +150,12 @@ public static class ProductionSetAnalysisExtensions
                 continue;
             }
 
-            commonPrefixProductions.Add(commonPrefixProductionsGroup);
+            var subSet = new ProductionSet(
+                start: set.Start,
+                productions: commonPrefixProductionsGroup
+            );
+
+            commonPrefixProductions.Add(subSet);
         }
 
         return commonPrefixProductions;
@@ -156,7 +165,7 @@ public static class ProductionSetAnalysisExtensions
     {
         set.EnsureNoMacros();
 
-        var nonTerminalProductions = set.Productions
+        var nonTerminalProductions = set
             .GroupBy(x => x.Head)
             .ToArray();
 
@@ -182,8 +191,8 @@ public static class ProductionSetAnalysisExtensions
             */
 
             var head = commonPrefixProductionsGroup.First().Head;
-            
-            if(!heads.Contains(head))
+
+            if (!heads.Contains(head))
             {
                 heads.Add(head);
             }
@@ -192,12 +201,18 @@ public static class ProductionSetAnalysisExtensions
         return heads.ToArray();
     }
 
+    public static FirstSet[] CalculateFirstSets(this ProductionSet set)
+    {
+        set.EnsureNoMacros();
+        return FirstSetTool.ComputeFirstSets(set);
+    }
+
     /*
      * Assertion helpers.
      */
     public static void EnsureNoMacros(this ProductionSet set)
     {
-        if (ContainsMacro(set))
+        if (set.ContainsMacro())
         {
             throw new InvalidOperationException("The production set contains macros.");
         }
@@ -221,7 +236,7 @@ public static class ProductionSetAnalysisExtensions
             errors.Add(error);
         }
 
-        var unreachableProductions = set.RemoveUnreachableProductions();
+        var unreachableProductions = set.GetUnreachableProductions();
 
         if (unreachableProductions.Length != 0)
         {

@@ -127,7 +127,7 @@ public static class GraphNodeExtensions
 
     public static ProductionSet ToProductionSet(this GraphNode node)
     {
-        var set = new ProductionSet();
+        var builder = new ProductionSetBuilder();
         var productions = node.GetDescendants()
             .Select(x => x.Production)
             .Concat(new[] { node.Production })
@@ -137,11 +137,11 @@ public static class GraphNodeExtensions
         {
             if (production is not null)
             {
-                set.Add(production);
+                builder.Add(production);
             }
         }
 
-        return set;
+        return builder.Build();
     }
 
     public static GraphBranch GetRecursiveBranch(this GraphNode self, Symbol root)

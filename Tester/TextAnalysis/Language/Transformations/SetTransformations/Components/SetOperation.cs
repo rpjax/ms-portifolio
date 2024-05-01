@@ -31,8 +31,8 @@ public abstract class SetOperation : IEquatable<SetOperation>, IEqualityComparer
     public abstract int GetHashCode([DisallowNull] SetOperation obj);
     public abstract override int GetHashCode();
     public abstract override string ToString();
-    public abstract ProductionSet Apply(ProductionSet set);
-    public abstract ProductionSet Reverse(ProductionSet set);
+    public abstract void Apply(ProductionSet set);
+    public abstract void Reverse(ProductionSet set);
 
     public AddProductionOperation AsAddProduction()
     {
@@ -123,16 +123,14 @@ public class AddProductionOperation : SetOperation
         return $"+ {Production}";
     }
 
-    public override ProductionSet Apply(ProductionSet set)
+    public override void Apply(ProductionSet set)
     {
         set.Add(Production);
-        return set;
     }
 
-    public override ProductionSet Reverse(ProductionSet set)
+    public override void Reverse(ProductionSet set)
     {
         set.Remove(Production);
-        return set;
     }
 }
 
@@ -193,16 +191,14 @@ public class RemoveProductionOperation : SetOperation
         return $"- {Production}";
     }
 
-    public override ProductionSet Apply(ProductionSet set)
+    public override void Apply(ProductionSet set)
     {
         set.Remove(Production);
-        return set;
     }
 
-    public override ProductionSet Reverse(ProductionSet set)
+    public override void Reverse(ProductionSet set)
     {
         set.Add(Production);
-        return set;
     }
 
 }
@@ -269,15 +265,14 @@ public class ReplaceSymbolOperation : SetOperation
         return $"Replace {OldSymbol} with {NewSymbol}";
     }
 
-    public override ProductionSet Apply(ProductionSet set)
+    public override void Apply(ProductionSet set)
     {
         set.Replace(OldSymbol, NewSymbol);
-        return set;
     }
 
-    public override ProductionSet Reverse(ProductionSet set)
+    public override void Reverse(ProductionSet set)
     {
         set.Replace(NewSymbol, OldSymbol);
-        return set;
     }
+
 }

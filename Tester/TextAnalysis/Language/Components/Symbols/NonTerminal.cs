@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 /// <summary>
@@ -40,7 +42,7 @@ public class NonTerminal : Symbol
         {
             throw new ArgumentException("The name of a non-terminal symbol cannot be empty.");
         }
-        if(name.Contains(" "))
+        if (name.Contains(" "))
         {
             throw new ArgumentException("The name of a non-terminal symbol cannot contain spaces.");
         }
@@ -50,6 +52,11 @@ public class NonTerminal : Symbol
         }
 
         Name = name;
+    }
+
+    public static implicit operator NonTerminal(string name)
+    {
+        return new NonTerminal(name);
     }
 
     /// <summary>

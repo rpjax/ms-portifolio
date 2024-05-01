@@ -1,22 +1,37 @@
 using System.Collections;
+using ModularSystem.Core.TextAnalysis.Language.Transformations;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 public class ProductionSet : IEnumerable<ProductionRule>
 {
-    internal NonTerminal? Start { get; set; }
-    internal List<ProductionRule> Productions { get; set; }
+    public NonTerminal Start { get; set; }
+    internal List<ProductionRule> Productions { get; }
+    internal List<SetTransformation> Transformations { get; }
+    internal List<SetTransformation> TransformationsTracker { get; }
 
-    public ProductionSet(params ProductionRule[] productions)
-    {
-        Start = productions.FirstOrDefault()?.Head;
-        Productions = new(productions);
-    }
-
-    public ProductionSet(NonTerminal? start, params ProductionRule[] productions)
+    public ProductionSet(
+        NonTerminal start,
+        IEnumerable<ProductionRule> productions,
+        IEnumerable<SetTransformation>? transformations = null)
     {
         Start = start;
-        Productions = new(productions);
+        Productions = productions.ToList();
+        Transformations = transformations?.ToList() ?? new();
+        TransformationsTracker = new();
+
+        if (Start is null)
+        {
+            throw new ArgumentNullException(nameof(start));
+        }
+        if (Productions is null)
+        {
+            throw new ArgumentNullException(nameof(productions));
+        }
+        if (Transformations is null)
+        {
+            throw new ArgumentNullException(nameof(transformations));
+        }
     }
 
     public ProductionRule this[int index]
@@ -24,6 +39,8 @@ public class ProductionSet : IEnumerable<ProductionRule>
         get => Productions[index];
         set => Productions[index] = value;
     }
+
+    public int Length => Productions.Count;
 
     public static bool operator ==(ProductionSet left, ProductionSet right)
     {
@@ -40,31 +57,14 @@ public class ProductionSet : IEnumerable<ProductionRule>
         return set.Productions.ToArray();
     }
 
-    public static implicit operator ProductionSet(ProductionRule[] productions)
-    {
-        return new ProductionSet(productions);
-    }
-
     public static implicit operator List<ProductionRule>(ProductionSet set)
     {
-        return set.Productions;
+        return set.Productions.ToList();
     }
-
-    public static implicit operator ProductionSet(List<ProductionRule> productions)
-    {
-        return new ProductionSet(productions.ToArray());
-    }
-
-    public static implicit operator ProductionSet(ProductionRule production)
-    {
-        return new ProductionSet(production);
-    }
-
-    public int Length => Productions.Count;
 
     public IEnumerator<ProductionRule> GetEnumerator()
     {
-        return Productions.GetEnumerator();
+        return ((IEnumerable<ProductionRule>)Productions).GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -103,7 +103,7 @@ public class ProductionSet : IEnumerable<ProductionRule>
         /*
             Production rules are immutable, so we can just return a new production set with the same production rules.
         */
-        return new ProductionSet(Start, Productions.ToArray());
+        return new ProductionSet(Start, Productions, Transformations);
     }
 
     public IEnumerable<NonTerminal> GetNonTerminals()
@@ -124,6 +124,37 @@ public class ProductionSet : IEnumerable<ProductionRule>
     public IEnumerable<ProductionRule> Lookup(NonTerminal nonTerminal)
     {
         return Productions.Where(x => x.Head == nonTerminal);
+    }
+
+    public SetTransformationBuilder GetTransformationBuilder(string name)
+    {
+        return new SetTransformationBuilder(name, this);
+    }
+
+    public void ResetTransformationsTracker()
+    {
+        TransformationsTracker.Clear();
+    }
+
+    public SetTransformationCollection GetTrackedTransformations()
+    {
+        return TransformationsTracker;
+    }
+
+    public void Apply(SetTransformation transformation)
+    {
+        foreach (var operation in transformation)
+        {
+            operation.Apply(this);
+        }
+    }
+
+    public void Reverse(SetTransformation transformation)
+    {
+        foreach (var operation in transformation.Operations.Reverse())
+        {
+            operation.Reverse(this);
+        }
     }
 
     public string ToNotation(NotationType notation)

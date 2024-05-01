@@ -1,9 +1,11 @@
 using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Tokenization;
 
+namespace ModularSystem.Core.TextAnalysis.Language.Grammars;
+
 public class JsonGrammar : GrammarDefinition
 {
-    public JsonGrammar() : base(GetProductions(), GetStart())
+    public JsonGrammar() : base(GetStart(), GetProductions())
     {
     }
 

@@ -20,16 +20,16 @@ public class GraphBranch
 
     public ProductionSet ToProductionSet()
     {
-        var set = new ProductionSet();
+        var builder = new ProductionSetBuilder();
 
         foreach (var node in Nodes)
         {
             if (node.Production is not null)
             {
-                set.Add(node.Production);
+                builder.Add(node.Production);
             }
         }
 
-        return set;
+        return builder.Build();
     }
 }

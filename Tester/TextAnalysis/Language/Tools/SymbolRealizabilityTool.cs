@@ -14,7 +14,7 @@ public class SymbolRealizabilityTool
         {
             foreach (var production in workingSet.Copy())
             {
-                if(realizableSymbols.Contains(production.Head))
+                if (realizableSymbols.Contains(production.Head))
                 {
                     workingSet.Remove(production);
                     continue;
@@ -23,7 +23,7 @@ public class SymbolRealizabilityTool
                 var isRealizable = production.Body
                     .All(x => x.IsTerminal || realizableSymbols.Contains(x));
 
-                if(isRealizable)
+                if (isRealizable)
                 {
                     realizableSymbols.Add(production.Head);
                     progress = true;
@@ -31,7 +31,7 @@ public class SymbolRealizabilityTool
                 }
             }
 
-            if(!progress)
+            if (!progress)
             {
                 break;
             }
@@ -47,34 +47,6 @@ public class SymbolRealizabilityTool
             .ToArray();
 
         return unrealizableSymbols;
-    }
-
-    //private Sentence[] GetTerminalSentences(ProductionSet set, NonTerminal nonTerminal)
-    //{
-    //    var sentences = new List<Sentence>();
-    //    var expansions = set.Lookup(nonTerminal)
-    //        .ToArray();
-
-    //    foreach (var production in expansions)
-    //    {
-    //        foreach(var symbol in production.Body)
-    //        {
-    //            var tree = GraphBuilder.CreateDerivationTree(set);
-
-    //            var leafSentences = tree.GetLeafs()
-    //                .GroupBy(x => x.Production)
-    //                .DistinctBy(x => x.Key)
-    //                .Select(x => new Sentence(x.ToArray()))
-    //        }
-    //    }
-    //}
-
-    private void DeriveRecursevly(
-        ProductionSet set, 
-        Sentence sentence, 
-        Stack<Derivation> stack)
-    {
-        
     }
 
 }

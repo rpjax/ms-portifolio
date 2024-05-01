@@ -98,11 +98,11 @@ public static class GraphBuilder
                 }
             }
 
-            var recursionType = terminalFound 
+            var recursionType = terminalFound
                 ? RecursionType.Normal
                 : RecursionType.IndirectLeft;
 
-            if(!terminalFound && stack.Peek() == recursiveNode)
+            if (!terminalFound && stack.Peek() == recursiveNode)
             {
                 recursionType = RecursionType.Left;
             }

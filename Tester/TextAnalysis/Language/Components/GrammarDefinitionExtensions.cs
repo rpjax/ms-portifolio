@@ -1,32 +1,30 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Language.Components;
+﻿using ModularSystem.Core.TextAnalysis.Language.Transformations;
+
+namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 public static class GrammarDefinitionExtensions
 {
-    public static TransformationRecordCollection ExpandMacros(this GrammarDefinition self)
+    public static GrammarDefinition ExpandMacros(this GrammarDefinition self)
     {
-        var transformations = self.Productions.ExpandMacros();
-        self.Transformations.Add(transformations);
-        return transformations;
+        self.Productions.ExpandMacros();    
+        return self;
     }
 
-    public static TransformationRecordCollection AutoClean(this GrammarDefinition self)
+    public static GrammarDefinition AutoClean(this GrammarDefinition self)
     {
-        var transformations = self.Productions.RecursiveAutoClean();
-        self.Transformations.Add(transformations);
-        return transformations;
+        self.Productions.RecursiveAutoClean();
+        return self;
     }
 
-    public static TransformationRecordCollection AutoFix(this GrammarDefinition self)
+    public static GrammarDefinition AutoFix(this GrammarDefinition self)
     {
-        var transformations = self.Productions.RecursiveAutoFix();
-        self.Transformations.Add(transformations);
-        return transformations;
+        self.Productions.RecursiveAutoFix();
+        return self;
     }
 
-    public static TransformationRecordCollection AutoTransform(this GrammarDefinition self)
+    public static GrammarDefinition AutoTransformLL1(this GrammarDefinition self)
     {
-        var transformations = self.Productions.AutoTransform();
-        self.Transformations.Add(transformations);
-        return transformations;
+        self.Productions.AutoTransform();
+        return self;
     }
 }

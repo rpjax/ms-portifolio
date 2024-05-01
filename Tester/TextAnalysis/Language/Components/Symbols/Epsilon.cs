@@ -32,6 +32,8 @@ public class Epsilon : Symbol
     {
     }
 
+    public static Epsilon Instance { get; } = new Epsilon();
+
     /// <summary>
     /// Returns a string representation of the epsilon symbol.
     /// </summary>

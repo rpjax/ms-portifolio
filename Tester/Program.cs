@@ -1,15 +1,6 @@
-﻿using ModularSystem.Webql.Analysis.DocumentSyntax.Semantics.Components;
-using ModularSystem.Webql.Analysis.Extensions;
-using ModularSystem.Webql.Analysis.Parsing;
-using ModularSystem.Webql.Analysis.Semantics;
-using ModularSystem.Webql.Analysis.Semantics.Components;
-using ModularSystem.Webql.Analysis.Symbols;
-using ModularSystem.Webql.Analysis.DocumentSyntax.Tokenization;
-using ModularSystem.Webql.Analysis.DocumentSyntax.Parsing;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using ModularSystem.Core.TextAnalysis.Tokenization;
 using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Language.Graph;
 using ModularSystem.Core.TextAnalysis.Language.Grammars;
 
 namespace ModularSystem.Tester;
@@ -65,10 +56,24 @@ public static class Program
         //     Console.WriteLine(_mods);
         // }
 
-        var modifications = grammar.AutoTransform();
+        grammar.AutoTransformLL1();
 
-        Console.WriteLine(modifications);
-        Console.WriteLine(grammar);
+        // Console.WriteLine("Original Grammar:");
+        // Console.WriteLine(grammar.GetOriginalGrammar());
+        // Console.WriteLine("");
+
+        // Console.WriteLine("Transformations:");
+        // Console.WriteLine(grammar.Transformations);
+        // Console.WriteLine("");
+
+        // Console.WriteLine("Final Grammar:");
+        // Console.WriteLine(grammar);
+
+        var g = new FirstCalculationTestGrammar();
+        g.Productions.RecursiveAutoClean();
+
+        var firstSets = g.Productions.CalculateFirstSets();
+        var str = string.Join("\n", firstSets.Select(x => x.ToString()));
     }
 
     /*
@@ -132,72 +137,73 @@ public static class Program
         return value.ToString("#0." + new string('#', 339));
     }
 
-    private static void TestSyntesis()
-    {
-        var source = TestUser.Source.AsQueryable();
+    // private static void TestSyntesis()
+    // {
+    //     var source = TestUser.Source.AsQueryable();
 
-        var query = "[\r\n    [\r\n        \"source\"\r\n    ],\r\n    {\r\n        \"$filter\": [\r\n            \"filter_result\",\r\n            \"$source\",\r\n            [\r\n                [\r\n                    \"filter_item\"\r\n                ],\r\n                {\r\n                    \"$equals\": [\r\n                        null,\r\n                        \"$filter_item.nickname\",\r\n                        \"jacques\"\r\n                    ],\r\n                    \"$subtract\": [\r\n                        null,\r\n                        \"$filter_item.balance\",\r\n                        59\r\n                    ]\r\n                }\r\n            ]\r\n        ],\r\n        \"$select\": [\r\n            \"select_result\",\r\n            \"$source\",\r\n            [\r\n                [\r\n                    \"select_item\"\r\n                ],\r\n                {\r\n                    \"$subtract\": [\r\n                        null,\r\n                        \"$select_item.balance\",\r\n                        59\r\n                    ]\r\n                }\r\n            ]\r\n        ]\r\n    }\r\n]";
-        var token = new DocumentSyntaxTokenizer()
-            .Tokenize(query);
+    //     var query = "[\r\n    [\r\n        \"source\"\r\n    ],\r\n    {\r\n        \"$filter\": [\r\n            \"filter_result\",\r\n            \"$source\",\r\n            [\r\n                [\r\n                    \"filter_item\"\r\n                ],\r\n                {\r\n                    \"$equals\": [\r\n                        null,\r\n                        \"$filter_item.nickname\",\r\n                        \"jacques\"\r\n                    ],\r\n                    \"$subtract\": [\r\n                        null,\r\n                        \"$filter_item.balance\",\r\n                        59\r\n                    ]\r\n                }\r\n            ]\r\n        ],\r\n        \"$select\": [\r\n            \"select_result\",\r\n            \"$source\",\r\n            [\r\n                [\r\n                    \"select_item\"\r\n                ],\r\n                {\r\n                    \"$subtract\": [\r\n                        null,\r\n                        \"$select_item.balance\",\r\n                        59\r\n                    ]\r\n                }\r\n            ]\r\n        ]\r\n    }\r\n]";
+    //     var token = new DocumentSyntaxTokenizer()
+    //         .Tokenize(query);
 
-        var axiom = new AxiomParser()
-            .ParseAxiom(new Webql.Analysis.Parsing.ParsingContext(), (ArrayToken)token);
+    //     var axiom = new AxiomParser()
+    //         .ParseAxiom(new Webql.Analysis.Parsing.ParsingContext(), (ArrayToken)token);
 
-        new RootLambdasArgumentTypeFixer(new Type[] { source.GetType() })
-            .Execute(axiom);
+    //     new RootLambdasArgumentTypeFixer(new Type[] { source.GetType() })
+    //         .Execute(axiom);
 
-        new LambdaArgumentTypeFixer()
-            .Execute(axiom.Lambda!);
+    //     new LambdaArgumentTypeFixer()
+    //         .Execute(axiom.Lambda!);
 
-        var context = new AstSemanticAnalysis()
-            .Execute(axiom);
+    //     var context = new AstSemanticAnalysis()
+    //         .Execute(axiom);
 
-        axiom = new MyRewriter(context)
-            .Execute(axiom)
-            .As<AxiomSymbol>();
+    //     axiom = new MyRewriter(context)
+    //         .Execute(axiom)
+    //         .As<AxiomSymbol>();
 
-        Console.WriteLine(axiom); ;
-    }
+    //     Console.WriteLine(axiom); ;
+    // }
 
 }
 
-public class MyRewriter : AstSemanticRewriter
-{
-    public MyRewriter(SemanticContext context) : base(context)
-    {
-    }
+// public class MyRewriter : AstSemanticRewriter
+// {
+//     public MyRewriter(SemanticContext context) : base(context)
+//     {
+//     }
 
-    protected override void OnSemanticVisit(Webql.Analysis.Symbols.Symbol symbol)
-    {
-        if (symbol is IResultProducerOperatorExpressionSymbol resultProducer)
-        {
-            if (resultProducer.Destination is NullSymbol)
-            {
-                return;
-            }
-            if (resultProducer.Destination is not StringSymbol destination)
-            {
-                throw new Exception();
-            }
+//     protected override void OnSemanticVisit(Webql.Analysis.Symbols.Symbol symbol)
+//     {
+//         if (symbol is IResultProducerOperatorExpressionSymbol resultProducer)
+//         {
+//             if (resultProducer.Destination is NullSymbol)
+//             {
+//                 return;
+//             }
+//             if (resultProducer.Destination is not StringSymbol destination)
+//             {
+//                 throw new Exception();
+//             }
 
-            var resultExpression = resultProducer.As<ExpressionSymbol>();
+//             var resultExpression = resultProducer.As<ExpressionSymbol>();
 
-            var resultProducerSemantic = SemanticAnalyser.AnalyseExpression(
-                context: Context.GetSymbolContext(resultExpression),
-                symbol: resultExpression
-            );
+//             var resultProducerSemantic = SemanticAnalyser.AnalyseExpression(
+//                 context: Context.GetSymbolContext(resultExpression),
+//                 symbol: resultExpression
+//             );
 
-            var declarationType = resultProducerSemantic.Type.AssemblyQualifiedName;
-            var declarationIdentifier = destination.GetNormalizedValue();
+//             var declarationType = resultProducerSemantic.Type.AssemblyQualifiedName;
+//             var declarationIdentifier = destination.GetNormalizedValue();
 
-            var declaration = new DeclarationStatementSymbol(
-                type: declarationType,
-                identifier: declarationIdentifier,
-                modifiers: new[] { "cgen" },
-                value: resultExpression
-            );
+//             var declaration = new DeclarationStatementSymbol(
+//                 type: declarationType,
+//                 identifier: declarationIdentifier,
+//                 modifiers: new[] { "cgen" },
+//                 value: resultExpression
+//             );
 
-            RewriteSymbol(resultExpression, declaration);
-        }
-    }
-}
+//             RewriteSymbol(resultExpression, declaration);
+//         }
+//     }
+// }
+

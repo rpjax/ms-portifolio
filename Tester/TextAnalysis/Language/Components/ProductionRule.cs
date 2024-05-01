@@ -18,13 +18,6 @@ public class ProductionRule
         Validate();
     }
 
-    public ProductionRule(string head, params Symbol[] body)
-    {
-        Head = new NonTerminal(head);
-        Body = body;
-        Validate();
-    }
-
     public static bool operator ==(ProductionRule left, ProductionRule right)
     {
         return left.Head == right.Head && left.Body == right.Body;
@@ -79,7 +72,7 @@ public class ProductionRule
 
     public ProductionRule Copy()
     {
-        return new ProductionRule(Head.Copy(), Body.Copy());
+        return new ProductionRule(Head, Body.Copy());
     }
 
     private void Validate()
