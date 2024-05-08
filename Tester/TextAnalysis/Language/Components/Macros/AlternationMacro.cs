@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 public class AlternationMacro : ProductionMacro
@@ -27,6 +29,19 @@ public class AlternationMacro : ProductionMacro
             && macro.Alternatives.SequenceEqual(Alternatives);
     }
 
+    public override bool Equals(Symbol? x, Symbol? y)
+    {
+        return x is AlternationMacro macro1
+            && y is AlternationMacro macro2
+            && macro1.Alternatives.SequenceEqual(macro2.Alternatives);
+    }
+
+    public override bool Equals(Symbol? other)
+    {
+        return other is AlternationMacro macro
+            && macro.Alternatives.SequenceEqual(Alternatives);
+    }
+
     public override int GetHashCode()
     {
         unchecked
@@ -42,10 +57,9 @@ public class AlternationMacro : ProductionMacro
         }
     }
 
-    public override bool Equals(Symbol? other)
+    public override int GetHashCode([DisallowNull] Symbol obj)
     {
-        return other is AlternationMacro macro
-            && macro.Alternatives.SequenceEqual(Alternatives);
+        return obj.GetHashCode();
     }
 
     public override IEnumerable<Sentence> Expand(NonTerminal nonTerminal)
@@ -92,5 +106,6 @@ public class AlternationMacro : ProductionMacro
     {
       return string.Join(" | ", Alternatives.Select(x => x.ToNotation(NotationType.EbnfKleene)));
     }
+
 }
 

@@ -1,4 +1,5 @@
 using ModularSystem.Core.TextAnalysis.Tokenization;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
@@ -7,25 +8,20 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
 /// </summary>
 public class Terminal : Symbol
 {
-    /// <summary>
-    /// Gets a value indicating whether the production symbol is a terminal symbol.
-    /// </summary>
+    /// <inheritdoc/>
     public override bool IsTerminal => true;
-
-    /// <summary>
-    /// Gets a value indicating whether the production symbol is a non-terminal symbol.
-    /// </summary>
+    
+    /// <inheritdoc/>
     public override bool IsNonTerminal => false;
 
-    /// <summary>
-    /// Gets a value indicating whether the production symbol is an epsilon symbol.
-    /// </summary>
+    /// <inheritdoc/>
     public override bool IsEpsilon => false;
 
-    /// <summary>
-    /// Gets a value indicating whether this production symbol is a macro.
-    /// </summary>
+    /// <inheritdoc/>
     public override bool IsMacro => false;
+
+    /// <inheritdoc/>
+    public override bool IsEoi => false;
 
     /// <summary>
     /// Gets the token type associated with the terminal symbol.
@@ -62,6 +58,20 @@ public class Terminal : Symbol
         return Equals(obj as Symbol);
     }
 
+    public override bool Equals(Symbol? other)
+    {
+        return other is Terminal terminal
+            && terminal.TokenType == TokenType
+            && terminal.Value == Value;
+    }
+
+    public override bool Equals(Symbol? x, Symbol? y)
+    {
+        return x is not null 
+            && y is not null 
+            && x.Equals(y);
+    }
+
     public override int GetHashCode()
     {
         unchecked
@@ -74,11 +84,9 @@ public class Terminal : Symbol
         }
     }
 
-    public override bool Equals(Symbol? other)
+    public override int GetHashCode([DisallowNull] Symbol obj)
     {
-        return other is Terminal terminal
-            && terminal.TokenType == TokenType
-            && terminal.Value == Value;
+        return obj.GetHashCode();
     }
 
     public override string ToNotation(NotationType notation)
@@ -107,7 +115,7 @@ public class Terminal : Symbol
 
         if (!string.IsNullOrEmpty(Value))
         {
-          return $"\"{Value}\"";
+            return $"\"{Value}\"";
         }
 
         return typeStr.ToCamelCase();

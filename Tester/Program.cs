@@ -2,6 +2,9 @@
 using ModularSystem.Core.TextAnalysis.Tokenization;
 using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Language.Grammars;
+using ModularSystem.Core.Emulation.Components;
+using ModularSystem.Core.TextAnalysis.Language.Tools;
+using ModularSystem.Core.TextAnalysis.Language.Ebnf;
 
 namespace ModularSystem.Tester;
 
@@ -40,40 +43,27 @@ public static class Program
 
          */
 
-        var grammar = DebugGrammars.CreateCommonFactorGrammar();
-        grammar = new JsonGrammar();
-        //grammar.Productions.ExpandMacros();
 
-        // while (true)
-        // {
-        //     var _mods = grammar.Productions.FactorCommonPrefixProductions();
+        var g = new FirstSetCalculationTestGrammar() as Grammar;
+        g = new CommonFactorTestGrammar();
+        g = new JsonGrammar();
+        g.Productions.AutoTransformLL1();
+        Console.WriteLine("Original grammar:");
+        Console.WriteLine(g.GetOriginalGrammar());
+        Console.WriteLine("Transformations:");
+        Console.WriteLine(g.Productions.TransformationCollection);
+        
+        var parsingTable = ParsingTableTool.ComputeParsingTable(g.Productions);
 
-        //     if (_mods.Length == 0)
-        //     {
-        //         break;
-        //     }
+        return;
+        var firstTable = g.Productions.ComputeFirstTable();
+        var firstsStr = firstTable.ToString();
 
-        //     Console.WriteLine(_mods);
-        // }
+        var followTable = g.Productions.ComputeFollowTable();
+        var followsStr = followTable.ToString();
 
-        grammar.AutoTransformLL1();
-
-        // Console.WriteLine("Original Grammar:");
-        // Console.WriteLine(grammar.GetOriginalGrammar());
-        // Console.WriteLine("");
-
-        // Console.WriteLine("Transformations:");
-        // Console.WriteLine(grammar.Transformations);
-        // Console.WriteLine("");
-
-        // Console.WriteLine("Final Grammar:");
-        // Console.WriteLine(grammar);
-
-        var g = new FirstCalculationTestGrammar();
-        g.Productions.RecursiveAutoClean();
-
-        var firstSets = g.Productions.CalculateFirstSets();
-        var str = string.Join("\n", firstSets.Select(x => x.ToString()));
+        var firstSetClashes = g.Productions.ComputeFirstSetConflicts();
+        var firstSetClashesStr = string.Join("\n", firstSetClashes.Select(x => x.ToString()));
     }
 
     /*

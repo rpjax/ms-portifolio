@@ -18,7 +18,7 @@ public class NumberZeroState : IState
 
             //case 'b':
             //case 'B':
-            //    return new TransitionResult(TokenizerState.BinaryNumber, TokenizerAction.Read);
+            //    return new TransitionResult(TokenizerState.BinaryNumber, TokenizerAction.Consume);
 
             default:
                 if (char.IsDigit(c.Value))

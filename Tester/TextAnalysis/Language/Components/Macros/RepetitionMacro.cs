@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 public class RepetitionMacro : SentenceMacro
@@ -11,6 +13,18 @@ public class RepetitionMacro : SentenceMacro
     public override string ToString()
     {
         return ToNotation(NotationType.Sentential);
+    }
+
+    public override bool Equals(Symbol? x, Symbol? y)
+    {
+        return x is RepetitionMacro xMacro 
+            && y is RepetitionMacro yMacro 
+            && xMacro.Sentence.SequenceEqual(yMacro.Sentence);
+    }
+
+    public override int GetHashCode([DisallowNull] Symbol obj)
+    {
+        return obj.GetHashCode();
     }
 
     public override IEnumerable<Sentence> Expand(NonTerminal nonTerminal)
@@ -58,5 +72,6 @@ public class RepetitionMacro : SentenceMacro
     {
         return $"( {Sentence.ToNotation(NotationType.EbnfKleene)} )*";
     }
+
 }
 

@@ -149,9 +149,24 @@ public static class SentenceExtensions
         return Derive(self, index, production);
     }
 
+    public static int[] GetIndexesOfNonTerminal(this Sentence self, NonTerminal nonTerminal)
+    {
+        var indexes = new List<int>();
+
+        for (var i = 0; i < self.Length; i++)
+        {
+            if (self[i] == nonTerminal)
+            {
+                indexes.Add(i);
+            }
+        }
+
+        return indexes.ToArray();
+    }
+
     /*
         helper methods section.
-     */
+    */
 
     public static Sentence Add(this Sentence self, Symbol symbol)
     {

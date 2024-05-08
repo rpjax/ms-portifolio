@@ -1,5 +1,4 @@
 using ModularSystem.Core.TextAnalysis.Language.Tools;
-using ModularSystem.Core.TextAnalysis.Language.Transformations;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
@@ -31,6 +30,11 @@ public static class ProductionSetAnalysisExtensions
 
         return new SymbolRealizabilityTool()
             .Execute(set).Length != 0;
+    }
+
+    public static IEnumerable<IGrouping<NonTerminal, ProductionRule>> GroupByHead(this ProductionSet set)
+    {
+        return set.GroupBy(x => x.Head);
     }
 
     public static Symbol[] GetUnreachableSymbols(this ProductionSet set)
@@ -126,39 +130,151 @@ public static class ProductionSetAnalysisExtensions
         return cicles.ToArray();
     }
 
-    public static ProductionGroup GetCommonPrefixProductions(this ProductionSet set)
+    public static ProductionSubset[] GetSubsetsGroupedByCommonTerminalLeftFactor(this ProductionSet set)
     {
         set.EnsureNoMacros();
+
+        var subsets = new List<ProductionSubset>();
 
         var nonTerminalProductions = set
             .GroupBy(x => x.Head)
             .ToArray();
 
-        var commonPrefixProductions = new List<ProductionSet>();
-
         foreach (var group in nonTerminalProductions)
         {
-            var commonPrefixProductionsGroup = group
-                .Where(x => x.Body.Length > 1)
+            var commonPrefixProductions = group
+                .Where(x => x.Body.Length > 0)
+                .Where(x => x.Body[0].IsTerminal)
                 .GroupBy(x => x.Body.First())
                 .Where(x => x.Count() > 1)
                 .SelectMany(x => x.ToArray())
                 .ToArray();
 
-            if (commonPrefixProductionsGroup.Length == 0)
+            if (commonPrefixProductions.Length == 0)
             {
                 continue;
             }
 
-            var subSet = new ProductionSet(
-                start: set.Start,
-                productions: commonPrefixProductionsGroup
-            );
-
-            commonPrefixProductions.Add(subSet);
+            subsets.Add(set.CreateSubset(commonPrefixProductions));
         }
 
-        return commonPrefixProductions;
+        return subsets.ToArray();
+    }
+
+    public static ProductionSubset[] GetSubsetsGroupedByCommonNonTerminalLeftFactor(this ProductionSet set)
+    {
+        set.EnsureNoMacros();
+
+        var subsets = new List<ProductionSubset>();
+
+        var nonTerminalProductions = set
+            .GroupBy(x => x.Head)
+            .ToArray();
+
+        foreach (var group in nonTerminalProductions)
+        {
+            var commonPrefixProductions = group
+                .Where(x => x.Body.Length > 0)
+                .Where(x => x.Body[0].IsNonTerminal)
+                .GroupBy(x => x.Body.First())
+                .Where(x => x.Count() > 1)
+                .SelectMany(x => x.ToArray())
+                .ToArray();
+
+            if (commonPrefixProductions.Length == 0)
+            {
+                continue;
+            }
+
+            subsets.Add(set.CreateSubset(commonPrefixProductions));
+        }
+
+        return subsets.ToArray();
+    }
+
+    public static ProductionSubset[] GetSubsetsGroupedByFirstSetConflicts(this ProductionSet set)
+    {
+        set.EnsureNoMacros();
+
+        var subsets = new List<ProductionSubset>();
+
+        var productionsGroup = set
+            .GroupByHead()
+            .ToArray();
+
+        for (int i = 0; i < productionsGroup.Length; i++)
+        {
+            var overlappingProductions = new List<ProductionRule>();
+            var group = productionsGroup[i];
+
+            var firstSets = group
+                .Select(x => x.ComputeFirstSet(set))
+                .ToArray();
+
+            var overlappingSets = firstSets
+                .Where(firstSet1 => firstSets.Any(firstSet2 => !ReferenceEquals(firstSet1, firstSet2) && firstSet1.Overlaps(firstSet2)))
+                .ToArray();
+
+            if (overlappingSets.Length < 2)
+            {
+                continue;
+            }
+
+            var indexes = overlappingSets
+                .Select(x => Array.IndexOf(firstSets, x))
+                .ToArray();
+
+            var _overlappingProductions = group
+                .Where((_, index) => indexes.Contains(index))
+                .ToArray();
+
+            foreach (var production in _overlappingProductions)
+            {
+                if (!overlappingProductions.Contains(production))
+                {
+                    overlappingProductions.Add(production);
+                }
+            }
+
+            subsets.Add(set.CreateSubset(_overlappingProductions));
+        }
+
+        return subsets.ToArray();
+    }
+
+    public static ProductionSubset[] GetSubsetsGroupedByFirstFollowConflicts(this ProductionSet set)
+    {
+        set.EnsureNoMacros();
+
+        var subsets = new List<ProductionSubset>();
+
+        foreach (var production in set)
+        {
+            if (production.Body.Length < 1)
+            {
+                continue;
+            }
+
+            if(production.Body[0] is not NonTerminal nonTerminal)
+            {
+                continue;
+            }
+
+            if(set.Lookup(nonTerminal).All(x => !x.IsEpsilonProduction()))
+            {
+                continue;
+            }
+ 
+            var firstSet = FirstSetTool.ComputeFirstSet(set, nonTerminal);
+            var followSet = FollowSetTool.ComputeFollowSet(set, nonTerminal);
+
+            if (firstSet.Overlaps(followSet))
+            {
+                subsets.Add(set.CreateSubset(set.Lookup(nonTerminal)));
+            }
+        }
+
+        return subsets.ToArray();
     }
 
     public static NonTerminal[] GetCommonPrefixProductionHeads(this ProductionSet set)
@@ -186,8 +302,8 @@ public static class ProductionSetAnalysisExtensions
             }
 
             /*
-                This part gets the full set of productions for the given non-terminal.
-                The alternative productions must be preserved.
+                This part gets the full set of productionsGroup for the given non-terminal.
+                The alternative productionsGroup must be preserved.
             */
 
             var head = commonPrefixProductionsGroup.First().Head;
@@ -201,15 +317,27 @@ public static class ProductionSetAnalysisExtensions
         return heads.ToArray();
     }
 
-    public static FirstSet[] CalculateFirstSets(this ProductionSet set)
+    public static FirstTable ComputeFirstTable(this ProductionSet set)
     {
         set.EnsureNoMacros();
-        return FirstSetTool.ComputeFirstSets(set);
+        return FirstSetTool.ComputeFirstTable(set);
+    }
+
+    public static FollowTable ComputeFollowTable(this ProductionSet set)
+    {
+        set.EnsureNoMacros();
+        return FollowSetTool.ComputeFollowTable(set);
+    }
+
+    public static FirstSetConflict[] ComputeFirstSetConflicts(this ProductionSet set)
+    {
+        set.EnsureNoMacros();
+        return FirstSetConflictTool.ComputeFirstSetConflicts(set);
     }
 
     /*
-     * Assertion helpers.
-     */
+        Assertion helpers.
+    */
     public static void EnsureNoMacros(this ProductionSet set)
     {
         if (set.ContainsMacro())
@@ -226,10 +354,10 @@ public static class ProductionSetAnalysisExtensions
 
         if (unrealizableProductions.Length != 0)
         {
-            var error = new Error("The grammar contains unrealizable productions.")
-                .AddDetails("The unrealizable productions", unrealizableProductions.ToString())
+            var error = new Error("The grammar contains unrealizable productionsGroup.")
+                .AddDetails("The unrealizable productionsGroup", unrealizableProductions.ToString())
                 .AddDetails("The production set", set.ToString())
-                .AddJsonData("The unrealizable productions", unrealizableProductions)
+                .AddJsonData("The unrealizable productionsGroup", unrealizableProductions)
                 .AddJsonData("The production set", set)
                 ;
 
@@ -241,9 +369,9 @@ public static class ProductionSetAnalysisExtensions
         if (unreachableProductions.Length != 0)
         {
             var error = new Error("The grammar contains unreachable symbols.")
-                .AddDetails("The unreachable productions", unreachableProductions.ToString())
+                .AddDetails("The unreachable productionsGroup", unreachableProductions.ToString())
                 .AddDetails("The production set", set.ToString())
-                .AddJsonData("The unreachable productions", unreachableProductions)
+                .AddJsonData("The unreachable productionsGroup", unreachableProductions)
                 .AddJsonData("The production set", set)
                 ;
 
@@ -259,6 +387,36 @@ public static class ProductionSetAnalysisExtensions
                 .AddDetails("The left recursion cicles", ciclesStr)
                 .AddDetails("The production set", set.ToString())
                 .AddJsonData("The left recursion cicles", leftRecursiveCicles)
+                .AddJsonData("The production set", set)
+                ;
+
+            errors.Add(error);
+        }
+
+        var firstSetConflictingProductionSubsets = set.GetSubsetsGroupedByFirstSetConflicts();
+
+        if (firstSetConflictingProductionSubsets.Length != 0)
+        {
+            var subsetsStr = string.Join(Environment.NewLine, firstSetConflictingProductionSubsets.Select(x => x.ToString()));
+            var error = new Error("The grammar contains first set conflicts.")
+                .AddDetails("The first set conflicting production subsets", subsetsStr)
+                .AddDetails("The production set", set.ToString())
+                .AddJsonData("The first set conflicting production subsets", firstSetConflictingProductionSubsets)
+                .AddJsonData("The production set", set)
+                ;
+
+            errors.Add(error);
+        }
+
+        var firstFollowConflictingProductionSubsets = set.GetSubsetsGroupedByFirstFollowConflicts();
+
+        if (firstFollowConflictingProductionSubsets.Length != 0)
+        {
+            var subsetsStr = string.Join(Environment.NewLine, firstFollowConflictingProductionSubsets.Select(x => x.ToString()));
+            var error = new Error("The grammar contains first-follow set conflicts.")
+                .AddDetails("The first-follow set conflicting production subsets", subsetsStr)
+                .AddDetails("The production set", set.ToString())
+                .AddJsonData("The first-follow set conflicting production subsets", firstFollowConflictingProductionSubsets)
                 .AddJsonData("The production set", set)
                 ;
 

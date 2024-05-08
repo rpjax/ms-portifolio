@@ -20,5 +20,19 @@ public static class ProductionSetExtensions
         return new NonTerminal(name);
     }
 
+    public static ProductionSubset CreateSubset(this ProductionSet set, IEnumerable<ProductionRule> productions)
+    {
+        var _productions = productions.ToArray();
+
+        foreach (var production in _productions)
+        {
+            if (!set.Contains(production))
+            {
+                throw new InvalidOperationException("The production set does not contain the given production.");
+            }
+        }
+
+        return new ProductionSubset(set, _productions);
+    }
 }
 

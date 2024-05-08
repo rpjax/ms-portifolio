@@ -3,7 +3,7 @@ using ModularSystem.Core.TextAnalysis.Tokenization;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Grammars;
 
-public class MyComplexGrammar : GrammarDefinition
+public class MyComplexGrammar : Grammar
 {
     public MyComplexGrammar() : base(productions: CreateProductions(), start: GetStartSymbol())
     {

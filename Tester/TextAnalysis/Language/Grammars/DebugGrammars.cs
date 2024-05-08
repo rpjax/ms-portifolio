@@ -8,7 +8,7 @@ public class DebugGrammars
     /*
         Reference: https://www.youtube.com/watch?v=s9N3_7ADZno&list=PLBlnK6fEyqRjT3oJxFXRgjPNzeS-LFY-q&index=27
     */
-    public static GrammarDefinition CreateCommonFactorGrammar()
+    public static Grammar CreateCommonFactorGrammar()
     {
         var builder = new ProductionSetBuilder();
         var startSymbol = new NonTerminal("A");
@@ -42,7 +42,7 @@ public class DebugGrammars
             )
         );
 
-        return new GrammarDefinition(builder.Build());
+        return new Grammar(builder.Build());
     }
 
 }

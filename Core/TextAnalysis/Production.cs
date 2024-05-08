@@ -11,6 +11,7 @@
 /// <item>β is a sequence of, one or more, terminals or non-terminals, described as: β = N∪Σ (non-terminal union terminals)</item>
 /// </list>
 /// </summary>
+[Obsolete]
 public abstract class Production
 {
     /// <summary>

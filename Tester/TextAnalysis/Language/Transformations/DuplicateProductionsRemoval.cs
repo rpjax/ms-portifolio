@@ -21,6 +21,7 @@ public class DuplicateProductionsRemoval : ISetTransformer
         {
             set.GetTransformationBuilder("Duplicate Production Removal")
                 .RemoveProductions(duplicate)
+                .AddProductions(duplicate)
                 .Build();
         }
 

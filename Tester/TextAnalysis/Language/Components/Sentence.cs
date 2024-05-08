@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
@@ -6,7 +7,8 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
     Helper constructs.
 */
 
-public class Sentence : IEnumerable<Symbol>
+public class Sentence : 
+    IEnumerable<Symbol>, IEquatable<Sentence>, IEqualityComparer<Sentence>
 {
     public int Length => Symbols.Length;
 
@@ -19,6 +21,14 @@ public class Sentence : IEnumerable<Symbol>
             .ToArray();
 
         ExpandPipeMacros();
+    }
+
+    public Sentence(Symbol symbol, params Symbol[] symbols)
+    {
+        Symbols = Array.Empty<Symbol>()
+            .Append(symbol)
+            .Concat(symbols)
+            .ToArray();
     }
 
     public Symbol this[int index]
@@ -100,6 +110,18 @@ public class Sentence : IEnumerable<Symbol>
             && other.SequenceEqual(this);
     }
 
+    public bool Equals(Sentence? x, Sentence? y)
+    {
+        return x is not null
+            && y is not null
+            && x.SequenceEqual(y);
+    }
+
+    public int GetHashCode([DisallowNull] Sentence obj)
+    {
+        return obj.GetHashCode();
+    }
+
     public Sentence Copy()
     {
         return new Sentence(Symbols.ToArray());
@@ -179,5 +201,4 @@ public class Sentence : IEnumerable<Symbol>
         Symbols = new Symbol[1];
         Symbols[0] = alternationMacro;
     }
-
 }

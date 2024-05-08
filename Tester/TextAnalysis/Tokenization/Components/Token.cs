@@ -2,26 +2,26 @@
 
 public class Token
 {
-    public TokenType TokenType { get; }
+    public TokenType Type { get; }
     public string Value { get; }
     public TokenInfo Details { get; }
 
     public Token(TokenType tokenType, string value, TokenInfo metadata)
     {
-        TokenType = tokenType;
+        Type = tokenType;
         Value = value;
         Details = metadata;
     }
 
     public override string ToString()
     {
-        if (TokenType == TokenType.String)
+        if (Type == TokenType.String)
         {
-            return $"{TokenType}: {Value} {Details}";
+            return $"{Type}: {Value} {Details}";
         }
         else
         {
-            return $"{TokenType}: \"{Value}\"  {Details}";
+            return $"{Type}: \"{Value}\"  {Details}";
         }
     }
 }

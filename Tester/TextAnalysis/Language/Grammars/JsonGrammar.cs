@@ -3,7 +3,7 @@ using ModularSystem.Core.TextAnalysis.Tokenization;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Grammars;
 
-public class JsonGrammar : GrammarDefinition
+public class JsonGrammar : Grammar
 {
     public JsonGrammar() : base(GetStart(), GetProductions())
     {

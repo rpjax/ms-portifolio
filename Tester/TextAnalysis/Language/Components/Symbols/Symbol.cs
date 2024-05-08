@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 /// <summary>
 /// Abstract base class for production symbols in a context-free grammar.
 /// </summary>
-public abstract class Symbol : IEquatable<Symbol>
+public abstract class Symbol : IEquatable<Symbol>, IEqualityComparer<Symbol>
 {
     /// <summary>
     /// Gets a value indicating whether the production symbol is a terminal symbol.
@@ -24,6 +26,11 @@ public abstract class Symbol : IEquatable<Symbol>
     /// Gets a value indicating whether this production symbol is a macro.
     /// </summary>
     public abstract bool IsMacro { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the production symbol is an end-of-input symbol.
+    /// </summary>
+    public abstract bool IsEoi { get; }
 
     public static bool operator ==(Symbol left, Symbol right)
     {
@@ -47,7 +54,11 @@ public abstract class Symbol : IEquatable<Symbol>
 
     public abstract override int GetHashCode();
 
+    public abstract int GetHashCode([DisallowNull] Symbol obj);
+
     public abstract bool Equals(Symbol? other);
+
+    public abstract bool Equals(Symbol? x, Symbol? y);
 
     public Terminal AsTerminal()
     {

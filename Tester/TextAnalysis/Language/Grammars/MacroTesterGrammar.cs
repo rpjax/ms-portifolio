@@ -3,7 +3,7 @@ using ModularSystem.Core.TextAnalysis.Tokenization;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Grammars;
 
-public class MacroTesterGrammar : GrammarDefinition
+public class MacroTesterGrammar : Grammar
 {
     public MacroTesterGrammar() : base(GetStart(), GetProductions())
     {

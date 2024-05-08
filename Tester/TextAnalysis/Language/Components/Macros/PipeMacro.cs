@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 public class PipeMacro : ProductionMacro
@@ -16,7 +18,17 @@ public class PipeMacro : ProductionMacro
 
     public override bool Equals(object? obj)
     {
-        return ReferenceEquals(obj, this);
+        return obj is PipeMacro;
+    }
+
+    public override bool Equals(Symbol? other)
+    {
+        return other is PipeMacro;
+    }
+
+    public override bool Equals(Symbol? x, Symbol? y)
+    {
+        return x is PipeMacro && y is PipeMacro;
     }
 
     public override int GetHashCode()
@@ -31,9 +43,9 @@ public class PipeMacro : ProductionMacro
         }
     }
 
-    public override bool Equals(Symbol? other)
+    public override int GetHashCode([DisallowNull] Symbol obj)
     {
-        return ReferenceEquals(other, this);
+        return obj.GetHashCode();
     }
 
     public override IEnumerable<Sentence> Expand(NonTerminal nonTerminal)

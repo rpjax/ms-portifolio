@@ -24,7 +24,7 @@ public class TokenStreamConsumer
 
         var token = Stream.Peek();
 
-        if (token.TokenType != type)
+        if (token.Type != type)
         {
             return false;
         }
@@ -68,9 +68,9 @@ public class TokenStreamConsumer
     {
         var token = Stream.Consume();
 
-        if (token.TokenType != type)
+        if (token.Type != type)
         {
-            throw new Exception($"Expected token of type {type} but got {token.TokenType}. At position {token.Details.Position}, line {token.Details.Line}, char {token.Details.Column}.");
+            throw new Exception($"Expected token of type {type} but got {token.Type}. At position {token.Details.Position}, line {token.Details.Line}, char {token.Details.Column}.");
         }
         if (value is not null && token.Value != value)
         {
@@ -119,14 +119,14 @@ public class TokenStreamConsumer
         var token = Stream.Consume();
 
         var isLiteral = false
-            || token.TokenType == TokenType.String
-            || token.TokenType == TokenType.Integer
-            || token.TokenType == TokenType.Float
+            || token.Type == TokenType.String
+            || token.Type == TokenType.Integer
+            || token.Type == TokenType.Float
             ;
 
         if (!isLiteral)
         {
-            throw new Exception($"Expected token of type {TokenType.String}, {TokenType.Integer} or {TokenType.Float} but got {token.TokenType}. At position {token.Details.Position}, line {token.Details.Line}, char {token.Details.Column}.");
+            throw new Exception($"Expected token of type {TokenType.String}, {TokenType.Integer} or {TokenType.Float} but got {token.Type}. At position {token.Details.Position}, line {token.Details.Line}, char {token.Details.Column}.");
         }
 
         return token;

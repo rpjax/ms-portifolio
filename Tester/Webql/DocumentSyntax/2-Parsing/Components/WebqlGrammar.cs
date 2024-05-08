@@ -4,7 +4,7 @@ using ModularSystem.Core.TextAnalysis.Tokenization;
 
 namespace ModularSystem.Webql.Analysis.DocumentSyntax.Parsing;
 
-public class WebqlGrammar : GrammarDefinition
+public class WebqlGrammar : Grammar
 {
     public WebqlGrammar() : base(productions: GetProductions(), start: GetStart())
     {

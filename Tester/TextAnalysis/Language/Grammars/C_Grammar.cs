@@ -3,7 +3,7 @@ using ModularSystem.Core.TextAnalysis.Tokenization;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Grammars;
 
-public class C_Grammar : GrammarDefinition
+public class C_Grammar : Grammar
 {
     public C_Grammar() : base(GetStart(), GetProductions())
     {
@@ -51,6 +51,150 @@ public class C_Grammar : GrammarDefinition
 
             new ProductionRule("declaration-specifier", new NonTerminal("alignment-specifier")),
 
+            //declarator:   
+            new ProductionRule(
+                "declarator",
+                new Sentence(
+                    new OptionMacro(
+                        new NonTerminal("pointer")
+                    ),
+                    new NonTerminal("direct-declarator")
+                )
+            ),
+
+            //declaration-list:
+            new ProductionRule(
+                "declaration-list",
+                new Sentence(
+                    new NonTerminal("declaration"),
+                    new RepetitionMacro(
+                        new NonTerminal("declaration")
+                    )
+                )
+            ),
+
+            // compound-statement:
+            new ProductionRule(
+                "compound-statement",
+                new Sentence(
+                    new Terminal(TokenType.Punctuation, "{"),
+                    new RepetitionMacro(
+                        new NonTerminal("declaration-or-statement")
+                    ),
+                    new Terminal(TokenType.Punctuation, "}")
+                )
+            ),
+
+            //declaration-or-statement:
+            new ProductionRule(
+                "declaration-or-statement",
+                new Sentence(
+                    new NonTerminal("declaration"),
+                    new PipeMacro(),
+                    new NonTerminal("statement")
+                )
+            ),
+
+            //init-declarator-list:
+            new ProductionRule(
+                "init-declarator-list",
+                new Sentence(
+                    new NonTerminal("init-declarator"),
+                    new RepetitionMacro(
+                        new Terminal(TokenType.Punctuation, ","),
+                        new NonTerminal("init-declarator")
+                    )
+                )
+            ),
+
+            //init-declarator:
+            new ProductionRule(
+                "init-declarator",
+                new Sentence(
+                    new NonTerminal("declarator"),
+                    new OptionMacro(
+                        new Terminal(TokenType.Punctuation, "="),
+                        new NonTerminal("initializer")
+                    )
+                )
+            ),
+
+            //static-assert-declaration:
+            new ProductionRule(
+                "static-assert-declaration",
+                new Sentence(
+                    new Terminal(TokenType.Identifier, "static_assert"),
+                    new Terminal(TokenType.Punctuation, "("),
+                    new NonTerminal("constant-expression"),
+                    new Terminal(TokenType.Punctuation, ","),
+                    new Terminal(TokenType.String),
+                    new Terminal(TokenType.Punctuation, ")"),
+                    new Terminal(TokenType.Punctuation, ";")
+                )
+            ),
+
+            //storage-class-specifier:
+            new ProductionRule(
+                "storage-class-specifier",
+                new Sentence(
+                    new Terminal(TokenType.Identifier, "typedef"),
+                    new PipeMacro(),
+                    new Terminal(TokenType.Identifier, "extern"),
+                    new PipeMacro(),
+                    new Terminal(TokenType.Identifier, "static"),
+                    new PipeMacro(),
+                    new Terminal(TokenType.Identifier, "Thread_local"),
+                    new PipeMacro(),
+                    new Terminal(TokenType.Identifier, "auto"),
+                    new PipeMacro(),
+                    new Terminal(TokenType.Identifier, "register")
+                )
+            ),
+
+            //type-specifier:
+            new ProductionRule(
+                "type-specifier",
+                new Sentence(
+                    new Terminal(TokenType.Identifier, "void"),
+                    new PipeMacro(),
+                    new Terminal(TokenType.Identifier, "char"),
+                    new PipeMacro(),
+                    new Terminal(TokenType.Identifier, "short"),
+                    new PipeMacro(),
+                    new Terminal(TokenType.Identifier, "int"),
+                    new PipeMacro(),
+                    new Terminal(TokenType.Identifier, "long"),
+                    new PipeMacro(),
+                    new Terminal(TokenType.Identifier, "float"),
+                    new PipeMacro(),
+                    new Terminal(TokenType.Identifier, "double"),
+                    new PipeMacro(),
+                    new Terminal(TokenType.Identifier, "signed"),
+                    new PipeMacro(),
+                    new Terminal(TokenType.Identifier, "unsigned"),
+                    new PipeMacro(),
+                    new Terminal(TokenType.Identifier, "_Bool"),
+                    new PipeMacro(),
+                    new Terminal(TokenType.Identifier, "_Complex"),
+                    new PipeMacro(),
+                    new NonTerminal("_Imaginary")
+                )
+            ),
+
+            //struct-or-union-specifier:
+            new ProductionRule(
+                "struct-or-union-specifier",
+                new Sentence(
+                    new NonTerminal("enum-specifier"),
+                    new PipeMacro(),
+                    new NonTerminal("typedef-name")
+                )
+            ),
+
+            /*
+             *  It seems that the C99 grammar i got from some github repo is not complete, so i decided to leave this out for now.
+             *  It also seems that C99 is quite complex, maybe a simpler language would be better for testing purposes.
+             */
         };
     }
 

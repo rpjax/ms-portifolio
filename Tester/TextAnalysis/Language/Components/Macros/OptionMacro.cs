@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 public class OptionMacro : SentenceMacro
@@ -6,6 +8,18 @@ public class OptionMacro : SentenceMacro
 
     public OptionMacro(params Symbol[] symbols) : base(symbols)
     {
+    }
+
+    public override int GetHashCode([DisallowNull] Symbol obj)
+    {
+        return obj.GetHashCode();
+    }
+
+    public override bool Equals(Symbol? x, Symbol? y)
+    {
+        return x is OptionMacro optionMacro 
+            && y is OptionMacro otherOptionMacro 
+            && optionMacro.Sentence.SequenceEqual(otherOptionMacro.Sentence);
     }
 
     public override string ToString()
@@ -58,5 +72,6 @@ public class OptionMacro : SentenceMacro
     {
         return $"( {Sentence.ToNotation(NotationType.EbnfKleene)} )?";
     }
+
 }
 

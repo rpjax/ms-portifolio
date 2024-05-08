@@ -3,9 +3,9 @@ using ModularSystem.Core.TextAnalysis.Tokenization;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Grammars;
 
-public class FirstCalculationTestGrammar : GrammarDefinition
+public class FirstSetCalculationTestGrammar : Grammar
 {
-    public FirstCalculationTestGrammar() : base(GetStart(), GetProductions())
+    public FirstSetCalculationTestGrammar() : base(GetStart(), GetProductions())
     {
     }
 
@@ -64,6 +64,76 @@ public class FirstCalculationTestGrammar : GrammarDefinition
                     new Terminal(TokenType.Identifier, "e"),
                     new PipeMacro(),
                     new Epsilon()
+                )
+            ),
+        };
+    }
+
+    private static NonTerminal GetStart()
+    {
+        return new NonTerminal("S");
+    }
+}
+
+public class CommonFactorTestGrammar : Grammar
+{
+    public CommonFactorTestGrammar() : base(GetStart(), GetProductions())
+    {
+    }
+
+    private static ProductionRule[] GetProductions()
+    {
+        /*
+         *  S -> A B
+         *  S -> C D
+         *  A -> a
+         *  B -> b
+         *  C -> a
+         *  D -> d
+         */
+        return new ProductionRule[]
+        {
+            new ProductionRule(
+                head: "S",
+                body: new Sentence(
+                    new NonTerminal("A"),
+                    new NonTerminal("B")
+                )
+            ),
+
+            new ProductionRule(
+                head: "S",
+                body: new Sentence(
+                    new NonTerminal("C"),
+                    new NonTerminal("D")
+                )
+            ),
+
+            new ProductionRule(
+                head: "A",
+                body: new Sentence(
+                    new Terminal(TokenType.Identifier, "a")
+                )
+            ),
+
+            new ProductionRule(
+                head: "B",
+                body: new Sentence(
+                    new Terminal(TokenType.Identifier, "b")
+                )
+            ),
+
+            new ProductionRule(
+                head: "C",
+                body: new Sentence(
+                    new Terminal(TokenType.Identifier, "a")
+                )
+            ),
+
+            new ProductionRule(
+                head: "D",
+                body: new Sentence(
+                    new Terminal(TokenType.Identifier, "d")
                 )
             ),
         };

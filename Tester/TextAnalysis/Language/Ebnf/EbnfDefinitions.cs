@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Language;
+﻿namespace ModularSystem.Core.TextAnalysis.Language.Ebnf;
 
 public static class EbnfDefinitions
 {

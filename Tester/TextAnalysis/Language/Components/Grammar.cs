@@ -13,18 +13,18 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
 /// - P is a set of production rules. <br/>
 /// - S is the start symbol. <br/>
 /// </remarks>
-public class GrammarDefinition
+public class Grammar
 {
     private ProductionSet InternalOriginalSet { get; }
     private ProductionSet InternalWorkingSet { get; set; }
 
-    public GrammarDefinition(NonTerminal start, IEnumerable<ProductionRule> productions)
+    public Grammar(NonTerminal start, IEnumerable<ProductionRule> productions)
     {
         InternalOriginalSet = new ProductionSet(start, productions);
         InternalWorkingSet = new ProductionSet(start, productions);
     }
 
-    public GrammarDefinition(ProductionSet set)
+    public Grammar(ProductionSet set)
     {
         InternalOriginalSet = set.Copy();
         InternalWorkingSet = set.Copy();
@@ -64,9 +64,9 @@ public class GrammarDefinition
             .Distinct();
     }
 
-    public GrammarDefinition GetOriginalGrammar()
+    public Grammar GetOriginalGrammar()
     {
-        return new GrammarDefinition(InternalOriginalSet);
+        return new Grammar(InternalOriginalSet);
     }
 
     public ProductionSet GetOriginalProductionSet()

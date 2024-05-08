@@ -20,6 +20,12 @@ public abstract class SentenceMacro : ProductionMacro
             && macro.Sentence.SequenceEqual(Sentence);
     }
 
+    public override bool Equals(Symbol? other)
+    {
+        return other is SentenceMacro macro
+            && macro.Sentence.SequenceEqual(Sentence);
+    }
+
     public override int GetHashCode()
     {
         unchecked
@@ -35,10 +41,5 @@ public abstract class SentenceMacro : ProductionMacro
         }
     }
 
-    public override bool Equals(Symbol? other)
-    {
-        return other is SentenceMacro macro
-            && macro.Sentence.SequenceEqual(Sentence);
-    }
 }
 

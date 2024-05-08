@@ -41,6 +41,7 @@ public class ProductionSet : IEnumerable<ProductionRule>
     }
 
     public int Length => Productions.Count;
+    public SetTransformationCollection TransformationCollection => Transformations;
 
     public static bool operator ==(ProductionSet left, ProductionSet right)
     {
@@ -64,7 +65,7 @@ public class ProductionSet : IEnumerable<ProductionRule>
 
     public IEnumerator<ProductionRule> GetEnumerator()
     {
-        return ((IEnumerable<ProductionRule>)Productions).GetEnumerator();
+        return Productions.AsEnumerable().GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()

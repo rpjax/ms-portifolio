@@ -10,13 +10,13 @@ public class DocumentSyntaxTokenizer
 
         foreach (var token in analyser.Tokenize(source))
         {
-            if (token.TokenType == TokenType.String)
+            if (token.Type == TokenType.String)
             {
                 var unquotedValue = token.Value[1..^1];
 
                 if (unquotedValue.StartsWith("$"))
                 {
-                    //yield return new Token(TokenType.Operator, unquotedValue, token.Metadata);
+                    //yield return new Token(Type.Operator, unquotedValue, token.Metadata);
                     //continue;
                 }
             }
@@ -56,7 +56,7 @@ public class TokenizerTransition
 //            token.Append(character);
 //        }
 
-//        yield return new Token(TokenType.String, token.ToString());
+//        yield return new Token(Type.String, token.ToString());
 //    }
 
 //    private void TransitionState(char character)

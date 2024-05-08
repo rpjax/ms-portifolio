@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
@@ -7,25 +7,20 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
 /// </summary>
 public class NonTerminal : Symbol
 {
-    /// <summary>
-    /// Gets a value indicating whether the production symbol is a terminal symbol.
-    /// </summary>
+    /// <inheritdoc/>
     public override bool IsTerminal => false;
 
-    /// <summary>
-    /// Gets a value indicating whether the production symbol is a non-terminal symbol.
-    /// </summary>
+    /// <inheritdoc/>
     public override bool IsNonTerminal => true;
 
-    /// <summary>
-    /// Gets a value indicating whether the production symbol is an epsilon symbol.
-    /// </summary>
+    /// <inheritdoc/>
     public override bool IsEpsilon => false;
 
-    /// <summary>
-    /// Gets a value indicating whether this production symbol is a macro.
-    /// </summary>
+    /// <inheritdoc/>
     public override bool IsMacro => false;
+
+    /// <inheritdoc/>
+    public override bool IsEoi => false;
 
     /// <summary>
     /// Gets the name of the non-terminal symbol.
@@ -73,6 +68,19 @@ public class NonTerminal : Symbol
         return Equals(obj as Symbol);
     }
 
+    public override bool Equals(Symbol? other)
+    {
+        return other is NonTerminal nonTerminal
+            && nonTerminal.Name == Name;
+    }
+
+    public override bool Equals(Symbol? x, Symbol? y)
+    {
+        return x is NonTerminal nonTerminal
+            && y is NonTerminal other
+            && nonTerminal.Name == other.Name;
+    }
+
     public override int GetHashCode()
     {
         unchecked
@@ -84,10 +92,9 @@ public class NonTerminal : Symbol
         }
     }
 
-    public override bool Equals(Symbol? other)
+    public override int GetHashCode([DisallowNull] Symbol obj)
     {
-        return other is NonTerminal nonTerminal
-            && nonTerminal.Name == Name;
+        return obj.GetHashCode();
     }
 
     public override string ToNotation(NotationType notation)

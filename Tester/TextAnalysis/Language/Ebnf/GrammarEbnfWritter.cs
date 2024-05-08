@@ -1,6 +1,8 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Tokenization;
+using System.Text.RegularExpressions;
 
-namespace ModularSystem.Core.TextAnalysis.Language;
+namespace ModularSystem.Core.TextAnalysis.Language.Ebnf;
 
 /*
  *  Grammar representation of a context-free grammar (type 2). 
@@ -13,9 +15,9 @@ namespace ModularSystem.Core.TextAnalysis.Language;
 
 public class GrammarEbnfWritter
 {
-    private GrammarDefinition Grammar { get; set; }
+    private Grammar Grammar { get; set; }
 
-    public GrammarEbnfWritter(GrammarDefinition grammar)
+    public GrammarEbnfWritter(Grammar grammar)
     {
         Grammar = grammar;
     }
@@ -72,5 +74,162 @@ public class GrammarEbnfWritter
         }
 
         return string.Join(" ", productionSymbols.Select(x => x.ToString()));
+    }
+}
+
+public class EbnfParser
+{
+    // Regex updated to match comments starting with `(*` and ending with `*)`
+    private static Regex CommentRegex = new Regex(@"\(\*.*?\*\)", RegexOptions.Singleline);
+
+    private FileInfo FileInfo { get; }
+    private Tokenizer Tokenizer { get; }
+
+    public EbnfParser(FileInfo file)
+    {
+        FileInfo = file;
+        Tokenizer = new Tokenizer();
+    }
+
+    public Grammar Parse()
+    {
+        var text = File.ReadAllText(FileInfo.FullName);
+
+        text = CommentRegex.Replace(text, "");
+        
+        var productionSplit = text.Split(";");
+
+        var productions = productionSplit
+            .Select(x => x.Trim())
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => EbnfProductionParser.Parse(x))
+            .ToArray();
+
+        if(productions.Length == 0)
+        {
+            throw new InvalidOperationException("No productions found in grammar.");
+        }
+
+        var start = productions.First().Head;
+
+        return new Grammar(start, productions);
+    }
+}
+
+public class EbnfProductionParser
+{
+    public static ProductionRule Parse(string production)
+    {
+        var parts = production.Split("=");
+        var lhs = parts[0].Trim();
+        var rhs = parts[1].Trim();
+
+        var body = ParseProductionBody(rhs);
+
+        return new ProductionRule(lhs, body);
+    }
+
+    private static Symbol[] ParseProductionBody(string body)
+    {
+        if(body.Length == 0)
+        {
+            throw new Exception("Production body cannot be empty.");
+        }
+
+        var symbols = new List<Symbol>();
+
+        var alternatives = body.Split("|");
+
+        if(alternatives.Length == 0)
+        {
+            alternatives = new string[] { body };
+        }
+
+        foreach (var alternative in alternatives)
+        {
+            if(alternative.Length == 0)
+            {
+                throw new Exception("Alternative cannot be empty.");
+            }
+
+            var segments = alternative.Split(",");
+
+            if(segments.Length == 0)
+            {
+                segments = new string[] { alternative };
+            }
+
+
+        }
+
+        return symbols.ToArray();
+    }
+
+    private static IEnumerable<Symbol> ParseAlternative(string alternative)
+    {
+        var tokenizer = new Tokenizer();
+        var tokens = tokenizer.Tokenize(alternative);
+        var openOptionMacro = "{";
+        var closeOptionMacro = "}";
+        var openRepetitionMacro = "[";
+        var closeRepetitionMacro = "]";
+        var openGroupMacro = "(";
+        var closeGroupMacro = ")";
+        var pipeMacro = "|";
+
+        foreach (var token in tokens)
+        {
+            if(token is null)
+            {
+                yield break;
+            }
+
+            if (token.Type == TokenType.Comment)
+            {
+                continue;
+            }
+
+            if (token.Type == TokenType.String)
+            {
+                yield return new Terminal(TokenType.Identifier, token.Value);
+                continue;
+            }
+
+            if(token.Type == TokenType.Identifier)
+            {
+                yield return new NonTerminal(token.Value);
+                continue;
+            }
+
+            if(token.Type != TokenType.Punctuation)
+            {
+                throw new Exception($"Unexpected token type: {token.Type}");
+            }
+
+            //switch (token.Value)
+            //{
+            //    case openOptionMacro:
+            //        yield return new Option(ParseAlternative(alternative));
+            //        break;
+            //    case closeOptionMacro:
+            //        break;
+            //    case openRepetitionMacro:
+            //        yield return new Repetition(ParseAlternative(alternative));
+            //        break;
+            //    case closeRepetitionMacro:
+            //        break;
+            //    case openGroupMacro:
+            //        yield return new Group(ParseAlternative(alternative));
+            //        break;
+            //    case closeGroupMacro:
+            //        break;
+            //    case pipeMacro:
+            //        break;
+
+            //    default:
+            //        throw new Exception($"Unexpected punctuation: {token.Value}");
+            //}
+
+        }
     }
 }

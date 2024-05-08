@@ -3,41 +3,41 @@ using System.Diagnostics.CodeAnalysis;
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 /// <summary>
-/// Represents an epsilon symbol in a context-free grammar.
+/// Represents the end-of-input symbol.
 /// </summary>
-public class Epsilon : Symbol
+public sealed class Eoi : Symbol
 {
     /// <inheritdoc/>
-    public override bool IsTerminal => true;
+    public override bool IsTerminal => false;
 
     /// <inheritdoc/>
     public override bool IsNonTerminal => false;
 
     /// <inheritdoc/>
-    public override bool IsEpsilon => true;
+    public override bool IsEpsilon => false;
 
     /// <inheritdoc/>
     public override bool IsMacro => false;
 
     /// <inheritdoc/>
-    public override bool IsEoi => false;
+    public override bool IsEoi => true;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Epsilon"/> class.
+    /// Initializes a new instance of the <see cref="Eoi"/> class.
     /// </summary>
-    public Epsilon()
+    public Eoi()
     {
     }
 
-    public static Epsilon Instance { get; } = new Epsilon();
+    public static Eoi Instance { get; } = new Eoi();
 
     /// <summary>
-    /// Returns a string representation of the epsilon symbol.
+    /// Returns a string representation of the end-of-input symbol.
     /// </summary>
-    /// <returns>A string representation of the epsilon symbol.</returns>
+    /// <returns>A string representation of the end-of-input symbol.</returns>
     public override string ToString()
     {
-        return GreekLetters.Epsilon.ToString();
+        return "$";
     }
 
     public override bool Equals(object? obj)
@@ -47,12 +47,17 @@ public class Epsilon : Symbol
 
     public override bool Equals(Symbol? other)
     {
-        return other is Epsilon;
+        return other is Eoi;
     }
 
     public override bool Equals(Symbol? x, Symbol? y)
     {
-        return x is Epsilon && y is Epsilon;
+        return x is Eoi && y is Eoi;
+    }
+
+    public override int GetHashCode([DisallowNull] Symbol obj)
+    {
+        return obj.GetHashCode();
     }
 
     public override int GetHashCode()
@@ -66,14 +71,9 @@ public class Epsilon : Symbol
         }
     }
 
-    public override int GetHashCode([DisallowNull] Symbol obj)
-    {
-        return obj.GetHashCode();
-    }
-
     public override string ToNotation(NotationType notation)
     {
-        return GreekLetters.Epsilon.ToString();
+        return "$";
     }
 
 }

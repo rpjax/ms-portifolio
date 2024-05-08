@@ -1,38 +1,45 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Language.Tools;
 
 namespace ModularSystem.Core.TextAnalysis.Language;
 
 public static class ProductionRuleExtensions
 {
-    public static Symbol? GetLefmostSymbol(this ProductionRule rule)
+    public static bool IsEpsilonProduction(this ProductionRule production)
     {
-        return rule.Body
+        return production.Body.Length == 1
+            && production.Body[0] == Epsilon.Instance;
+    }
+
+    public static Symbol? GetLefmostSymbol(this ProductionRule production)
+    {
+        return production.Body
             .FirstOrDefault();
     }
 
-    public static Symbol? GetRightmostSymbol(this ProductionRule rule)
+    public static Symbol? GetRightmostSymbol(this ProductionRule production)
     {
-        return rule.Body
+        return production.Body
             .LastOrDefault();
     }
 
-    public static NonTerminal? GetLeftmostNonTerminal(this ProductionRule rule)
+    public static NonTerminal? GetLeftmostNonTerminal(this ProductionRule production)
     {
-        return rule.Body
+        return production.Body
             .OfType<NonTerminal>()
             .FirstOrDefault();
     }
 
-    public static NonTerminal? GetRightmostNonTerminal(this ProductionRule rule)
+    public static NonTerminal? GetRightmostNonTerminal(this ProductionRule production)
     {
-        return rule.Body
+        return production.Body
             .OfType<NonTerminal>()
             .LastOrDefault();
     }
 
-    public static Terminal? GetTerminalPrefix(this ProductionRule rule)
+    public static Terminal? GetTerminalPrefix(this ProductionRule production)
     {
-        return rule.Body
+        return production.Body
             .OfType<Terminal>()
             .FirstOrDefault();
     }
@@ -54,21 +61,32 @@ public static class ProductionRuleExtensions
         return index;
     }
 
-    public static bool IsLeftRecursive(this ProductionRule rule)
+    public static bool IsLeftRecursive(this ProductionRule production)
     {
-        return GetLefmostSymbol(rule) is NonTerminal nonTerminal
-            && nonTerminal == rule.Head;
+        return GetLefmostSymbol(production) is NonTerminal nonTerminal
+            && nonTerminal == production.Head;
     }
 
-    public static bool IsRightRecursive(this ProductionRule rule)
+    public static bool IsRightRecursive(this ProductionRule production)
     {
-        return GetRightmostSymbol(rule) is NonTerminal nonTerminal
-            && nonTerminal == rule.Head;
+        return GetRightmostSymbol(production) is NonTerminal nonTerminal
+            && nonTerminal == production.Head;
     }
 
-    public static bool IsUnitProduction(this ProductionRule rule)
+    public static bool IsUnitProduction(this ProductionRule production)
     {
-        return rule.Body.Length == 1
-            && rule.Body[0].IsNonTerminal;
+        return production.Body.Length == 1
+            && production.Body[0].IsNonTerminal;
     }
+
+    public static FirstSet ComputeFirstSet(this ProductionRule production, ProductionSet set)
+    {
+        return FirstSetTool.ComputeFirstSet(set, production);
+    }
+
+    public static FollowSet ComputeFollowSet(this ProductionRule production, ProductionSet set)
+    {
+        return FollowSetTool.ComputeFollowSet(set, production.Head);
+    }
+
 }
