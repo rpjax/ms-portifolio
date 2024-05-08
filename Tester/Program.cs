@@ -2,9 +2,7 @@
 using ModularSystem.Core.TextAnalysis.Tokenization;
 using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Language.Grammars;
-using ModularSystem.Core.Emulation.Components;
-using ModularSystem.Core.TextAnalysis.Language.Tools;
-using ModularSystem.Core.TextAnalysis.Language.Ebnf;
+using ModularSystem.Core.TextAnalysis.Parsing;
 
 namespace ModularSystem.Tester;
 
@@ -44,26 +42,20 @@ public static class Program
          */
 
 
-        var g = new FirstSetCalculationTestGrammar() as Grammar;
-        g = new CommonFactorTestGrammar();
-        g = new JsonGrammar();
+        var g = new JsonGrammar();
         g.Productions.AutoTransformLL1();
+
         Console.WriteLine("Original grammar:");
         Console.WriteLine(g.GetOriginalGrammar());
         Console.WriteLine("Transformations:");
         Console.WriteLine(g.Productions.TransformationCollection);
-        
-        var parsingTable = ParsingTableTool.ComputeParsingTable(g.Productions);
+        Console.WriteLine("Final grammar:");
+        Console.WriteLine(g.Productions);
+
+        var parser = new LL1Parser(g.ToLL1());
+        parser.Parse(@"{ 'nickname': 'Jacques', 'age': 24 }");
 
         return;
-        var firstTable = g.Productions.ComputeFirstTable();
-        var firstsStr = firstTable.ToString();
-
-        var followTable = g.Productions.ComputeFollowTable();
-        var followsStr = followTable.ToString();
-
-        var firstSetClashes = g.Productions.ComputeFirstSetConflicts();
-        var firstSetClashesStr = string.Join("\n", firstSetClashes.Select(x => x.ToString()));
     }
 
     /*

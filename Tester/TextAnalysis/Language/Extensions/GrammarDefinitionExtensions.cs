@@ -1,8 +1,9 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
-public static class GrammarDefinitionExtensions
+public static class GrammarExtensions
 {
     public static bool IsLeftRecursive(this Grammar grammar)
     {
@@ -46,5 +47,10 @@ public static class GrammarDefinitionExtensions
     {
         self.Productions.AutoTransformLL1();
         return self;
+    }
+
+    public static LL1Grammar ToLL1(this Grammar self)
+    {
+        return new LL1Grammar(self.Start, self.Productions);
     }
 }

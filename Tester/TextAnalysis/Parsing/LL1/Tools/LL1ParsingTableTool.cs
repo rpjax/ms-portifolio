@@ -1,12 +1,13 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+﻿using ModularSystem.Core.TextAnalysis.Language;
+using ModularSystem.Core.TextAnalysis.Language.Components;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Tools;
+namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Tools;
 
-public class ParsingTableTool
+public class LL1ParsingTableTool
 {
-    public static ParsingTable ComputeParsingTable(ProductionSet set)
+    public static LL1ParsingTable ComputeLL1ParsingTable(ProductionSet set)
     {
-        var entries = new Dictionary<(NonTerminal, Terminal), ProductionRule>();
+        var entries = new List<LL1ParsingTableEntry>();
 
         foreach (var production in set)
         {
@@ -15,7 +16,7 @@ public class ParsingTableTool
 
             foreach (var symbol in firstSet)
             {
-                if(symbol is Epsilon)
+                if (symbol is Epsilon)
                 {
                     continue;
                 }
@@ -24,7 +25,7 @@ public class ParsingTableTool
                     throw new InvalidOperationException("Invalid symbol in first set");
                 }
 
-                entries[(production.Head, terminal)] = production;
+                entries.Add(new LL1ParsingTableEntry(production.Head, terminal, production));
             }
 
             if (containsEpsilon)
@@ -33,12 +34,12 @@ public class ParsingTableTool
 
                 foreach (var symbol in followSet)
                 {
-                    if(symbol is not Terminal terminal)
+                    if (symbol is not Terminal terminal)
                     {
                         throw new InvalidOperationException("Invalid symbol in follow set");
                     }
 
-                    entries[(production.Head, terminal)] = production;
+                    entries.Add(new LL1ParsingTableEntry(production.Head, terminal, production));
                 }
 
                 continue;
@@ -46,6 +47,6 @@ public class ParsingTableTool
 
         }
 
-        return new ParsingTable(entries);
+        return new LL1ParsingTable(entries);
     }
 }
