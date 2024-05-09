@@ -33,13 +33,15 @@ public class LL1ParsingTable
         TypeOnly
     }
 
-    private Dictionary<string, ProductionRule> Entries = new();
+    private Dictionary<string, ProductionRule> InternalEntries = new();
 
     public LL1ParsingTable(IEnumerable<LL1ParsingTableEntry> entries)
     {
-        Entries = entries
+        InternalEntries = entries
             .ToDictionary(x => x.CreateKey(), x => x.Production);
     }
+
+    public IReadOnlyDictionary<string, ProductionRule> Entries => InternalEntries;
 
     internal static string CreateKey(string state, TokenType type, string? value, KeyStrategy strategy)
     {
@@ -63,10 +65,10 @@ public class LL1ParsingTable
 
     public override string ToString()
     {
-        var keys = Entries.Keys
+        var keys = InternalEntries.Keys
             .Select(x => x)
             ;
-        var values = Entries.Values
+        var values = InternalEntries.Values
             .Select(x => x.ToString())
             ;
 
@@ -75,12 +77,12 @@ public class LL1ParsingTable
 
     public ProductionRule? Lookup(NonTerminal state, Terminal lookahead)
     {
-        if (Entries.TryGetValue(CreateKey(state, lookahead, KeyStrategy.TypeAndValue), out var production))
+        if (InternalEntries.TryGetValue(CreateKey(state, lookahead, KeyStrategy.TypeAndValue), out var production))
         {
             return production;
         }
 
-        if (Entries.TryGetValue(CreateKey(state, lookahead, KeyStrategy.TypeOnly), out var _production))
+        if (InternalEntries.TryGetValue(CreateKey(state, lookahead, KeyStrategy.TypeOnly), out var _production))
         {
             return _production;
         }

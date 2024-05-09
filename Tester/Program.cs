@@ -53,7 +53,7 @@ public static class Program
         Console.WriteLine(g.Productions);
 
         var parser = new LL1Parser(g.ToLL1());
-        parser.Parse(@"{ 'nickname': 'Jacques', 'age': 24 }");
+        var cst = parser.Parse(@"{ 'nickname': 'Jacques', 'age': 24, 'flags': [ 'admin', 'moderator' ] }");
 
         return;
     }

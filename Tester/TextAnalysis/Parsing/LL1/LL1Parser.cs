@@ -1,38 +1,9 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Tokenization;
 using ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
+using ModularSystem.Core.TextAnalysis.Parsing.Components;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing;
-
-public class LL1Context
-{
-    private LL1Grammar Grammar { get; }
-    public LL1InputStream InputStream { get; }
-    public LL1Stack Stack { get; }
-    public LL1ParsingTable ParsingTable { get; }
-
-    private bool IsInit { get; set; }
-
-    public LL1Context(LL1Grammar grammar, LL1InputStream inputStream, LL1Stack stack)
-    {
-        Grammar = grammar;
-        InputStream = inputStream;
-        Stack = stack;
-        ParsingTable = grammar.GetParsingTable();
-    }
-
-    public void Init()
-    {
-        if (IsInit)
-        {
-            throw new InvalidOperationException();
-        }
-
-        IsInit = true;
-        Stack.Push(Eoi.Instance);
-        Stack.Push(Grammar.Start);
-    }
-}
 
 public class LL1Parser
 {
@@ -45,7 +16,7 @@ public class LL1Parser
         Grammar = grammar;
     }
 
-    public void Parse(string input)
+    public CstNode Parse(string input)
     {
         using var inputStream = new LL1InputStream(input);
         var stack = new LL1Stack();
@@ -57,62 +28,85 @@ public class LL1Parser
         {
             if (stack.Top is Eoi)
             {
-                OnEoi(context);
-                break;
+                return MatchEoi(context);
             }
 
             if (stack.Top is Epsilon)
             {
-                OnEpsilon(context);
+                MatchEpsilon(context);
                 continue;
             }
 
-            if (stack.Top is Terminal terminal)
+            if (stack.Top is Terminal)
             {
-                Match(context);
+                MatchTerminal(context);
+                continue;
+            }
+
+            if (stack.Top is LL1SemanticSymbol semanticSymbol)
+            {
+                MatchSemanticSymbol(context, semanticSymbol);
                 continue;
             }
 
             Expand(context);
         }
-
-        Console.WriteLine();
     }
 
-    private void OnEoi(LL1Context context)
+    private CstNode MatchEoi(LL1Context context)
     {
         if (context.InputStream.Lookahead is not null)
         {
             throw new Exception($"Unexpected token ({context.InputStream.Lookahead}). Expected EOI.");
         }
+
+        context.Stack.Pop();
+        return context.SyntaxContext.BuildConcreteSyntaxTree();
     }
 
-    private void OnEpsilon(LL1Context context)
+    private void MatchEpsilon(LL1Context context)
     {
         context.Stack.Pop();
     }
 
-    private void Match(LL1Context context)
+    private void MatchTerminal(LL1Context context)
     {
         var input = context.InputStream;
         var stack = context.Stack;
-        var terminal = context.InputStream.Lookahead!;
+        var stackTop = (Terminal)context.Stack.Top!;
+        var lookahead = context.InputStream.Lookahead;
 
-        if (input.Lookahead is null)
+        if (lookahead is null)
         {
             throw new Exception("Unexpected end of tokens.");
         }
-        if (terminal.TokenType != input.Lookahead.TokenType)
+        if (stackTop.TokenType != lookahead.TokenType)
         {
-            throw new Exception($"Unexpected token ({input.Lookahead}).");
+            throw new Exception($"Unexpected token ({input.Lookahead}). Expected {stackTop}.");
         }
-        if (terminal.Value is not null && terminal.Value != input.Lookahead.Value)
+        if (stackTop.Value is not null && stackTop.Value != lookahead.Value)
         {
-            throw new Exception($"Unexpected token ({input.Lookahead}).");
+            throw new Exception($"Unexpected token ({input.Lookahead}). Expected {stackTop}.");
         }
 
         input.Consume();
         stack.Pop();
+        context.SyntaxContext.AddAttribute(lookahead);
+    }
+
+    private void MatchSemanticSymbol(LL1Context context, LL1SemanticSymbol symbol)
+    {
+        context.Stack.Pop();
+
+        switch (symbol.Action)
+        {
+            case LL1SemanticActionType.FinilizeBranch:
+                context.SyntaxContext.FinilizeBranch();
+                break;
+
+            default:
+                throw new InvalidOperationException("Invalid semantic action type.");
+        }
     }
 
     private void Expand(LL1Context context)
@@ -138,29 +132,9 @@ public class LL1Parser
         }
 
         stack.Pop();
+        stack.Push(LL1SemanticSymbol.FinilizeBranch);
         stack.Push(production);
-    }
-}
-
-/*
-    TOMOVE to its own files
-*/
-
-public class CstNode
-{
-    public string Identifier { get; }
-    public string[] Attributes { get; }
-    public CstNode? Parent { get; }
-    public CstNode[] Children { get; }
-
-    public CstNode(string id, string[] attributes, CstNode parent, CstNode[] children)
-    {
-        Identifier = id;
-        Attributes = attributes;
-        Parent = parent;
-        Children = children;
+        context.SyntaxContext.CreateBranch(nonTerminal);
     }
 
-    public bool IsRoot => Parent is null;
-    public bool IsLeaf => Children.Length == 0;
 }
