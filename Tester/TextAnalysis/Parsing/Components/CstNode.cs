@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Text;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.Components;
 
@@ -34,6 +35,38 @@ public class CstNode : IEnumerable<CstNode>
     {
         return GetEnumerator();
     }
+
+    public override string ToString()
+    {
+        return ToString(0);
+    }
+
+    private string ToString(int level)
+    {
+        var @base = $"{GetTabs(level)}{Identifier}: [{string.Join(" ", Attributes)}]";
+
+        if (IsLeaf)
+        {
+            return @base;
+        }
+
+        var childrenStr = string.Join(Environment.NewLine, Children.Select(c => c.ToString(level + 1)));
+
+        return $"{@base}{Environment.NewLine}{childrenStr}";
+    }
+
+    private string GetTabs(int level)
+    {
+        var builder = new StringBuilder();
+
+        for (var i = 0; i < level; i++)
+        {
+            builder.Append("    ");
+        }
+
+        return builder.ToString();
+    }
+
 }
 
 /// <summary>

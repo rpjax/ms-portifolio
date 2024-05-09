@@ -52,8 +52,9 @@ public static class Program
         Console.WriteLine("Final grammar:");
         Console.WriteLine(g.Productions);
 
+        var input = @"{ nickname: 'Jacques', 'age': 24, 'flags': [ 'admin', 'moderator' ] }";
         var parser = new LL1Parser(g.ToLL1());
-        var cst = parser.Parse(@"{ 'nickname': 'Jacques', 'age': 24, 'flags': [ 'admin', 'moderator' ] }");
+        var cst = parser.Parse(input);
 
         return;
     }

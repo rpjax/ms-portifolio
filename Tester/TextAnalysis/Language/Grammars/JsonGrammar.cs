@@ -46,6 +46,11 @@ public class JsonGrammar : Grammar
                 "pair",
                 new Terminal(TokenType.String),
                 new Terminal(TokenType.Punctuation, ":"),
+                new NonTerminal("value"),
+                // webql test (it worked!)
+                new PipeMacro(),
+                new Terminal(TokenType.Identifier),
+                new Terminal(TokenType.Punctuation, ":"),
                 new NonTerminal("value")
             ),
 
