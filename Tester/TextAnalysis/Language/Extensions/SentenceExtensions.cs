@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Language.Components;
+﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+
+namespace ModularSystem.Core.TextAnalysis.Language.Extensions;
 
 public static class SentenceExtensions
 {
@@ -189,6 +191,13 @@ public static class SentenceExtensions
         return list;
     }
 
+    public static Sentence InsertTerminalAt(this Sentence self, int index, string value)
+    {
+        var list = new List<Symbol>(self.Symbols);
+        list.Insert(index, Terminal.From(value));
+        return list;
+    }
+
     public static Sentence InsertAt(this Sentence self, int index, IEnumerable<Symbol> symbols)
     {
         var list = new List<Symbol>(self.Symbols);
@@ -221,5 +230,23 @@ public static class SentenceExtensions
 
         return symbols;
     }
+
+    public static Sentence GetRange(this Sentence self, int start, int end)
+    {
+        if(start < 0 || start > self.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(start), "The start index is out of range.");
+        }
+        if(end < 0 || end > self.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(end), "The end index is out of range.");
+        }
+
+        return self
+            .Skip(start)
+            .Take(end - start + 1)
+            .ToArray();
+    }
+
 }
 

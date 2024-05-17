@@ -1,3 +1,4 @@
+using ModularSystem.Core.TextAnalysis.Language.Extensions;
 using System.Diagnostics.CodeAnalysis;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Components;

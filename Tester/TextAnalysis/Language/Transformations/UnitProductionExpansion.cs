@@ -1,4 +1,5 @@
 using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Language.Extensions;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Transformations;
 
@@ -31,6 +32,11 @@ public class UnitProductionExpansion : ISetTransformer
             var unitBody = nonTerminal;
             var replacementProductions = set.Lookup(unitBody).ToArray();
             var newProductions = new List<ProductionRule>();
+
+            if(replacementProductions.Length == 0)
+            {
+                throw new InvalidOperationException("The nonterminal does not have any productions.");
+            }
 
             if (unitHead == unitBody)
             {

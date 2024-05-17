@@ -1,4 +1,5 @@
-﻿using ModularSystem.Core.TextAnalysis.Tokenization.Components;
+﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Tokenization.Components;
 using ModularSystem.Core.TextAnalysis.Tokenization.Machine;
 
 namespace ModularSystem.Core.TextAnalysis.Tokenization;
@@ -20,15 +21,17 @@ public class Tokenizer
      * All token patterns should be deterministic within two characters. This ensures that the tokenizer can predict the next state and action based on the current state and the upcoming character in the input stream.
      * For example, comment tokens are often initiated by sequences like "//" or "/*".
      * Consider that the tokenizer classifies "/" as punctuation.
-     * To derive the string "/#" from an initial state S, the tokenizer transitions to an intermediary state A upon encountering "/", and then either to a comment state C if the next character is another "/" or "*", or to a different state B if not. State B, which handles punctuation, emits a token for the "/" character and then returns to the initial state S with "#" as the next character.
+     * To derive the string "/#" from an initial state S, the tokenizer transitions to an intermediary state A upon encountering "/", and then either to a comment state C if the next character is another "/" or "*", or to a different state B if not. TargetState B, which handles punctuation, emits a token for the "/" character and then returns to the initial state S with "#" as the next character.
      * 
      *      S -> A (initial state -> intermediary comment state)
      *      A -> C (intermediary comment state -> comment state)
      *      A -> B (intermediary comment state -> punctuation state)
      *      B -> S (punctuation state -> initial state) *emits punctuation token
      *      
-     * Observation: The information that the previous character was a "/" is not required for the transition from state A to state B, as the tokenizer only needs to know the current state and the next character to determine the next state and action. State B did not consume the subsequent character "#" but instead emitted a token for the "/" character and returned to the initial state S.
+     * Observation: The information that the previous character was a "/" is not required for the transition from state A to state B, as the tokenizer only needs to know the current state and the next character to determine the next state and action. TargetState B did not consume the subsequent character "#" but instead emitted a token for the "/" character and returned to the initial state S.
      */
+
+    public static Tokenizer Instance { get; } = new();
 
     private static InitialState InitialState { get; } = new();
     private static NumberZeroState NumberZeroState { get; } = new();
@@ -71,7 +74,9 @@ public class Tokenizer
 
     }
 
-    public IEnumerable<Token?> Tokenize(IEnumerable<char> source)
+    public IEnumerable<Token> Tokenize(
+        IEnumerable<char> source,
+        bool includeEoi = true)
     {
         var context = new LexicalContext(source)
             .Init();
@@ -104,7 +109,10 @@ public class Tokenizer
                     break;
 
                 case TokenizerAction.End:
-                    yield return null;
+                    if (includeEoi)
+                    {
+                        yield return new Token(TokenType.Eoi, "EOI", context.GetMetadata());
+                    }
                     yield break;
             }
 

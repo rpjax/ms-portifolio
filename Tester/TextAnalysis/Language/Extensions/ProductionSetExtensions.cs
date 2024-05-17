@@ -1,4 +1,6 @@
-namespace ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Language.Components;
+
+namespace ModularSystem.Core.TextAnalysis.Language.Extensions;
 
 public static class ProductionSetExtensions
 {

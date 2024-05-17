@@ -57,14 +57,17 @@ public class SetTransformationBuilder
         return this;
     }
 
-    public SetTransformationBuilder SetExplanation(string explanation)
+    public SetTransformationBuilder SetStart(NonTerminal nonTerminal)
     {
         if (IsBuilt)
         {
             throw new InvalidOperationException("The transformation has already been built.");
         }
 
-        Name = explanation;
+        Operations.Add(new SetStartOperation(
+            original: Set.Start, 
+            updated: nonTerminal
+        ));
         return this;
     }
 

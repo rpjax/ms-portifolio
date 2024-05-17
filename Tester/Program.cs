@@ -1,7 +1,10 @@
 ﻿using System.Diagnostics;
 using ModularSystem.Core.TextAnalysis.Tokenization;
-using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Language.Grammars;
+using ModularSystem.Core.TextAnalysis.Grammars;
+using ModularSystem.Core.TextAnalysis.Language.Extensions;
+using ModularSystem.Core.TextAnalysis.Parsing.LR1.Debug;
+using ModularSystem.Core.TextAnalysis.Parsing.LR1.Tools;
+using ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 using ModularSystem.Core.TextAnalysis.Parsing;
 
 namespace ModularSystem.Tester;
@@ -41,20 +44,20 @@ public static class Program
 
          */
 
+        var g = new LR1TestGrammar2();
+        g.Productions.AutoTransformLR1();
 
-        var g = new JsonGrammar();
-        g.Productions.AutoTransformLL1();
+        var parser = new LR1Parser(g);
+        var input = "5+3*2";
 
+        parser.Parse(input);
+      
         Console.WriteLine("Original grammar:");
         Console.WriteLine(g.GetOriginalGrammar());
         Console.WriteLine("Transformations:");
         Console.WriteLine(g.Productions.TransformationCollection);
         Console.WriteLine("Final grammar:");
         Console.WriteLine(g.Productions);
-
-        var input = @"{ nickname: 'Jacques', 'age': 24, 'flags': [ 'admin', 'moderator' ] }";
-        var parser = new LL1Parser(g.ToLL1());
-        var cst = parser.Parse(input);
 
         return;
     }

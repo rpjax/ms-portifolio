@@ -1,4 +1,5 @@
 using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Language.Extensions;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Transformations;
 

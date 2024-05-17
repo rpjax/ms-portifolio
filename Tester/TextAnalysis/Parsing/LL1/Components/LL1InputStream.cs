@@ -5,12 +5,13 @@ namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
 
 public class LL1InputStream : IDisposable
 {
-    private IEnumerator<Token?> TokenStream { get; }
+    private IEnumerator<Token> TokenStream { get; }
+    private bool IsEndReached { get; set; }
 
-    public LL1InputStream(string input)
+    public LL1InputStream(string input, Tokenizer tokenizer)
     {
-        TokenStream = LL1Parser.Tokenizer.Tokenize(input).GetEnumerator();
-        TokenStream.MoveNext();
+        TokenStream = tokenizer.Tokenize(input).GetEnumerator();
+        IsEndReached = !TokenStream.MoveNext();
     }
 
     public Terminal? Lookahead => Peek();
@@ -22,7 +23,7 @@ public class LL1InputStream : IDisposable
 
     public Terminal? Peek()
     {
-        if (TokenStream.Current == null)
+        if (IsEndReached)
         {
             return null;
         }
@@ -32,6 +33,11 @@ public class LL1InputStream : IDisposable
 
     public void Consume()
     {
-        TokenStream.MoveNext();
+        if (IsEndReached)
+        {
+            throw new InvalidOperationException("The end of the input stream has been reached.");
+        }
+
+        IsEndReached = !TokenStream.MoveNext();
     }
 }

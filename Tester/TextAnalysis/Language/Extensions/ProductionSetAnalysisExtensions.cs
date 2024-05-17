@@ -1,6 +1,9 @@
+using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Language.Tools;
+using ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
+using ModularSystem.Core.TextAnalysis.Parsing.LL1.Tools;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Components;
+namespace ModularSystem.Core.TextAnalysis.Language.Extensions;
 
 public static class ProductionSetAnalysisExtensions
 {
@@ -81,14 +84,14 @@ public static class ProductionSetAnalysisExtensions
         return new ProductionSet(set.Start, productions);
     }
 
-    public static LeftRecursionCicle[] GetLeftRecursionCicles(this ProductionSet set)
+    public static LL1LeftRecursionCicle[] GetLeftRecursionCicles(this ProductionSet set)
     {
         set.EnsureNoMacros();
 
-        var recursiveBranches = new LeftRecursionTool()
+        var recursiveBranches = new LL1LeftRecursionTool()
             .Execute(set);
 
-        var cicles = new List<LeftRecursionCicle>();
+        var cicles = new List<LL1LeftRecursionCicle>();
 
         foreach (var branch in recursiveBranches)
         {
@@ -124,7 +127,7 @@ public static class ProductionSetAnalysisExtensions
                 derivations.Add(derivation);
             }
 
-            cicles.Add(new LeftRecursionCicle(derivations));
+            cicles.Add(new LL1LeftRecursionCicle(derivations));
         }
 
         return cicles.ToArray();
@@ -265,8 +268,8 @@ public static class ProductionSetAnalysisExtensions
                 continue;
             }
  
-            var firstSet = FirstSetTool.ComputeFirstSet(set, nonTerminal);
-            var followSet = FollowSetTool.ComputeFollowSet(set, nonTerminal);
+            var firstSet = LL1FirstSetTool.ComputeFirstSet(set, nonTerminal);
+            var followSet = LL1FollowSetTool.ComputeFollowSet(set, nonTerminal);
 
             if (firstSet.Overlaps(followSet))
             {
@@ -317,22 +320,70 @@ public static class ProductionSetAnalysisExtensions
         return heads.ToArray();
     }
 
-    public static FirstTable ComputeFirstTable(this ProductionSet set)
+    public static LL1FirstTable ComputeFirstTable(this ProductionSet set)
     {
         set.EnsureNoMacros();
-        return FirstSetTool.ComputeFirstTable(set);
+        return LL1FirstSetTool.ComputeFirstTable(set);
     }
 
-    public static FollowTable ComputeFollowTable(this ProductionSet set)
+    public static LL1FollowTable ComputeFollowTable(this ProductionSet set)
     {
         set.EnsureNoMacros();
-        return FollowSetTool.ComputeFollowTable(set);
+        return LL1FollowSetTool.ComputeFollowTable(set);
     }
 
-    public static FirstSetConflict[] ComputeFirstSetConflicts(this ProductionSet set)
+    public static LL1FirstSetConflict[] ComputeFirstSetConflicts(this ProductionSet set)
     {
         set.EnsureNoMacros();
-        return FirstSetConflictTool.ComputeFirstSetConflicts(set);
+        return LL1FirstSetConflictTool.ComputeFirstSetConflicts(set);
+    }
+
+    /*
+     * LR1 Analysis helpers.
+     */
+
+    public static bool IsAugmented(this ProductionSet set)
+    {
+        return set.Any(x => x.Body.Length == 2 && x.Body[1].IsEoi);
+    }
+
+    public static ProductionRule? TryGetAugmentedProduction(this ProductionSet set)
+    {
+        return set.FirstOrDefault(x => x.Body.Length == 2 && x.Body[1].IsEoi);
+    }
+
+    public static void EnsureAugmented(this ProductionSet set)
+    {
+        if (!set.IsAugmented())
+        {
+            throw new InvalidOperationException("The production set is not augmented.");
+        }
+
+        if (set.Count(x => x.Body.Length == 2 && x.Body[1].IsEoi) != 1)
+        {
+            throw new InvalidOperationException("The production set contains more than one augmented production.");
+        }
+    }
+
+    public static int GetProductionIndex(this ProductionSet set, ProductionRule production)
+    {
+        var index = -1;
+
+        for (int i = 0; i < set.Length; i++)
+        {
+            if (set[i] == production)
+            {
+                if(index != -1)
+                {
+                    throw new InvalidOperationException("The production set contains duplicate productions.");
+                }
+
+                index = i;
+                break;
+            }
+        }
+
+        return index;
     }
 
     /*
@@ -346,7 +397,7 @@ public static class ProductionSetAnalysisExtensions
         }
     }
 
-    public static Error[] GetErrors(this ProductionSet set)
+    public static Error[] GetLL1Errors(this ProductionSet set)
     {
         var errors = new List<Error>();
 
@@ -426,4 +477,40 @@ public static class ProductionSetAnalysisExtensions
         return errors.ToArray();
     }
 
+    public static Error[] GetLR1Errors(this ProductionSet set)
+    {
+        var errors = new List<Error>();
+
+        var unrealizableProductions = set.GetUnrealizableProductions();
+
+        if (unrealizableProductions.Length != 0)
+        {
+            var error = new Error("The grammar contains unrealizable productionsGroup.")
+                .AddDetails("The unrealizable productionsGroup", unrealizableProductions.ToString())
+                .AddDetails("The production set", set.ToString())
+                .AddJsonData("The unrealizable productionsGroup", unrealizableProductions)
+                .AddJsonData("The production set", set)
+                ;
+
+            errors.Add(error);
+        }
+
+        var unreachableProductions = set.GetUnreachableProductions();
+
+        if (unreachableProductions.Length != 0)
+        {
+            var error = new Error("The grammar contains unreachable symbols.")
+                .AddDetails("The unreachable productionsGroup", unreachableProductions.ToString())
+                .AddDetails("The production set", set.ToString())
+                .AddJsonData("The unreachable productionsGroup", unreachableProductions)
+                .AddJsonData("The production set", set)
+                ;
+
+            errors.Add(error);
+        }
+
+        return errors.ToArray();
+    }
 }
+
+

@@ -77,7 +77,7 @@ public enum MacroType
 {
     Option,
     Repetition,
-    Pipe,
-    Alternation
+    Alternative,
+    ExpandedAlternative
 }
 

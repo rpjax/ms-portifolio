@@ -5,7 +5,7 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 public class ProductionSet : IEnumerable<ProductionRule>
 {
-    public NonTerminal Start { get; set; }
+    public NonTerminal Start { get; internal set; }
     internal List<ProductionRule> Productions { get; }
     internal List<SetTransformation> Transformations { get; }
     internal List<SetTransformation> TransformationsTracker { get; }

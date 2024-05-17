@@ -1,5 +1,6 @@
 using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Language.Tools;
+using ModularSystem.Core.TextAnalysis.Language.Extensions;
+using ModularSystem.Core.TextAnalysis.Parsing.LL1.Tools;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Transformations;
 
@@ -7,7 +8,7 @@ public class LeftRecursionRemoval : ISetTransformer
 {
     public SetTransformationCollection ExecuteTransformations(ProductionSet set)
     {
-        var recursiveBranches = new LeftRecursionTool()
+        var recursiveBranches = new LL1LeftRecursionTool()
             .Execute(set);
 
         set.EnsureNoMacros();
@@ -22,10 +23,21 @@ public class LeftRecursionRemoval : ISetTransformer
                     throw new InvalidOperationException("The root symbol is not a nonterminal.");
                 }
 
-                var recursiveProduction = branch.Nodes
-                    .First(node => node.Production is not null && node.Production.Body.First() == branch.Root.Symbol).Production;
+                //var recursiveProduction = branch.Nodes
+                //    .First(node => node.Production is not null && node.Production.Body.First() == branch.Kernel_.Symbol).Production;
 
-                recursiveProduction = branch.Nodes.Last().Production;
+                //var recursiveProduction = branch.Nodes
+                //    .Skip(1)
+                //    .Where(x => x.Production is not null)
+                //    .Select(x => x.Production!)
+                //    .ToArray();
+
+                //var recursiveProduction = branch.Nodes
+                //    .Skip(1)
+                //    .Select(x => x.Production!)
+                //    .First();
+
+                var recursiveProduction = branch.Nodes.Last().Production;
 
                 if (recursiveProduction is null)
                 {
@@ -33,11 +45,6 @@ public class LeftRecursionRemoval : ISetTransformer
                 }
 
                 var recursiveSymbol = recursiveProduction.Head;
-
-                if (recursiveProduction.Body.First() != rootSymbol)
-                {
-                    throw new InvalidOperationException("The recursive symbol is not the first symbol in the recursive production.");
-                }
 
                 /*
                  * get all the productions of the root symbol that don't start with the recursive symbol. 
@@ -81,7 +88,7 @@ public class LeftRecursionRemoval : ISetTransformer
                 builder.Build();
             }
 
-            recursiveBranches = new LeftRecursionTool()
+            recursiveBranches = new LL1LeftRecursionTool()
                 .Execute(set);
         }
 

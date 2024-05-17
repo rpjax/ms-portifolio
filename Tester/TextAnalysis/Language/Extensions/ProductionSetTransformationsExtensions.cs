@@ -1,6 +1,7 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Transformations;
+﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Language.Transformations;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Components;
+namespace ModularSystem.Core.TextAnalysis.Language.Extensions;
 
 public static partial class ProductionSetTransformationsExtensions
 {
@@ -82,7 +83,7 @@ public static partial class ProductionSetTransformationsExtensions
             counter = set.Transformations.Count;
         }
 
-        var errors = set.GetErrors();
+        var errors = set.GetLL1Errors();
 
         if (errors.Length > 0)
         {
@@ -129,4 +130,29 @@ public static partial class ProductionSetTransformationsExtensions
             .ExecuteTransformations(set);
     }
 
+    /*
+     * LR1 specific transformations.
+     */
+
+    public static void AutoTransformLR1(this ProductionSet set)
+    {
+        set.ExpandMacros();
+        set.LR1AugmentStart();
+
+        var errors = set.GetLR1Errors();
+
+        if (errors.Length > 0)
+        {
+            throw new ErrorException(errors);
+        }
+    }
+
+
+    public static void LR1AugmentStart(this ProductionSet set)
+    {
+        new AugmentGrammarTransformation()
+            .ExecuteTransformations(set);
+    }
+
+    
 }

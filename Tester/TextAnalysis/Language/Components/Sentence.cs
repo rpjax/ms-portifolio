@@ -169,14 +169,14 @@ public class Sentence :
 
     private void ExpandPipeMacros()
     {
-        if (Symbols.All(x => x is not PipeMacro))
+        if (Symbols.All(x => x is not AlternativeMacro))
         {
             return;
         }
 
         var pipeIndexes = Symbols
             .Select((x, i) => (x, i))
-            .Where(x => x.x is PipeMacro)
+            .Where(x => x.x is AlternativeMacro)
             .Select(x => x.i)
             .ToList();
 
@@ -196,7 +196,7 @@ public class Sentence :
             start = end + 1;
         }
 
-        var alternationMacro = new AlternationMacro(alternatives.ToArray());
+        var alternationMacro = new ExpandedAlternativeMacro(alternatives.ToArray());
 
         Symbols = new Symbol[1];
         Symbols[0] = alternationMacro;

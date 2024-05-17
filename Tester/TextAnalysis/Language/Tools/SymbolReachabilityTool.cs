@@ -7,7 +7,7 @@ public class SymbolReachabilityTool : GraphVisitor
 {
     private List<Symbol> ReachableSymbols { get; } = new();
 
-    public Symbol[] Execute(GraphNode node)
+    public Symbol[] Execute(LL1GraphNode node)
     {
         Visit(node);
         return ReachableSymbols.ToArray();
@@ -15,10 +15,10 @@ public class SymbolReachabilityTool : GraphVisitor
 
     public Symbol[] Execute(ProductionSet set)
     {
-        return Execute(GraphBuilder.CreateDerivationTree(set));
+        return Execute(LL1GraphBuilder.CreateGraphTree(set));
     }
 
-    protected override GraphNode Visit(GraphNode node)
+    protected override LL1GraphNode Visit(LL1GraphNode node)
     {
         if (!ReachableSymbols.Contains(node.Symbol))
         {

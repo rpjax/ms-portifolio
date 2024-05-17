@@ -1,7 +1,8 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Language.Tools;
+using ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
+using ModularSystem.Core.TextAnalysis.Parsing.LL1.Tools;
 
-namespace ModularSystem.Core.TextAnalysis.Language;
+namespace ModularSystem.Core.TextAnalysis.Language.Extensions;
 
 public static class ProductionRuleExtensions
 {
@@ -79,14 +80,14 @@ public static class ProductionRuleExtensions
             && production.Body[0].IsNonTerminal;
     }
 
-    public static FirstSet ComputeFirstSet(this ProductionRule production, ProductionSet set)
+    public static LL1FirstSet ComputeFirstSet(this ProductionRule production, ProductionSet set)
     {
-        return FirstSetTool.ComputeFirstSet(set, production);
+        return LL1FirstSetTool.ComputeFirstSet(set, production);
     }
 
-    public static FollowSet ComputeFollowSet(this ProductionRule production, ProductionSet set)
+    public static LL1FollowSet ComputeFollowSet(this ProductionRule production, ProductionSet set)
     {
-        return FollowSetTool.ComputeFollowSet(set, production.Head);
+        return LL1FollowSetTool.ComputeFollowSet(set, production.Head);
     }
 
 }

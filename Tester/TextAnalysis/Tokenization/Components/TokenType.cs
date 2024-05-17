@@ -3,6 +3,16 @@
 public enum TokenType
 {
     /// <summary>
+    /// Represents an unknown token type.
+    /// </summary>
+    Unknown,
+
+    /// <summary>
+    /// Represents the end of input (<c>$</c>).
+    /// </summary>
+    Eoi,
+
+    /// <summary>
     /// Identifiers. Ex: <c>name</c>, <c>age</c>.
     /// </summary>
     Identifier,

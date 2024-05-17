@@ -1,4 +1,5 @@
 using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Language.Extensions;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Transformations;
 
@@ -17,7 +18,7 @@ public class MacroExpansion : ISetTransformer
                     continue;
                 }
 
-                var expandedProductions = production.ExpandMacros().ToArray();
+                var expandedProductions = production.ExpandMacros(set).ToArray();
 
                 set.GetTransformationBuilder("Macro Expansion")
                     .RemoveProductions(production)

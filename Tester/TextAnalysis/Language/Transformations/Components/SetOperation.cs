@@ -1,18 +1,22 @@
 using System.Diagnostics.CodeAnalysis;
 using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Language.Extensions;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Transformations;
 
-public enum SetOperationType
+public enum OperationType
 {
     AddProduction,
     RemoveProduction,
     ReplaceSymbol,
+    SetStart
 }
 
-public abstract class SetOperation : IEquatable<SetOperation>, IEqualityComparer<SetOperation>
+public abstract class SetOperation : 
+    IEquatable<SetOperation>, 
+    IEqualityComparer<SetOperation>
 {
-    public abstract SetOperationType Type { get; }
+    public abstract OperationType Type { get; }
     public string? Explanation { get; set; }
 
     public static bool operator ==(SetOperation left, SetOperation right)
@@ -68,7 +72,7 @@ public abstract class SetOperation : IEquatable<SetOperation>, IEqualityComparer
 
 public class AddProductionOperation : SetOperation
 {
-    public override SetOperationType Type => SetOperationType.AddProduction;
+    public override OperationType Type => OperationType.AddProduction;
     public ProductionRule Production { get; }
 
     public AddProductionOperation(ProductionRule production)
@@ -136,7 +140,7 @@ public class AddProductionOperation : SetOperation
 
 public class RemoveProductionOperation : SetOperation
 {
-    public override SetOperationType Type => SetOperationType.RemoveProduction;
+    public override OperationType Type => OperationType.RemoveProduction;
     public ProductionRule Production { get; }
 
     public RemoveProductionOperation(ProductionRule production)
@@ -205,7 +209,7 @@ public class RemoveProductionOperation : SetOperation
 
 public class ReplaceSymbolOperation : SetOperation
 {
-    public override SetOperationType Type => SetOperationType.ReplaceSymbol;
+    public override OperationType Type => OperationType.ReplaceSymbol;
     public Symbol OldSymbol { get; }
     public Symbol NewSymbol { get; }
 
@@ -276,3 +280,70 @@ public class ReplaceSymbolOperation : SetOperation
     }
 
 }
+
+public class SetStartOperation : SetOperation
+{
+    public override OperationType Type => OperationType.SetStart;
+
+    private NonTerminal OriginalStart { get; }
+    private NonTerminal UpdatedStart { get; }
+
+    public SetStartOperation(NonTerminal original, NonTerminal updated)
+    {
+        OriginalStart = original;
+        UpdatedStart = updated;
+    }
+
+    public override void Apply(ProductionSet set)
+    {
+        set.Start = UpdatedStart;
+    }
+
+    public override void Reverse(ProductionSet set)
+    {
+        set.Start = OriginalStart;
+    }
+
+    public override bool Equals(SetOperation? other)
+    {
+        return other is SetStartOperation setStart
+            && setStart.OriginalStart == OriginalStart
+            && setStart.UpdatedStart == UpdatedStart;
+    }
+
+    public override bool Equals(SetOperation? x, SetOperation? y)
+    {
+        return x is SetStartOperation setStartX
+            && y is SetStartOperation setStartY
+            && setStartX.OriginalStart == setStartY.OriginalStart
+            && setStartX.UpdatedStart == setStartY.UpdatedStart;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as SetOperation);
+    }
+
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            int hash = (int)2166136261;
+
+            hash = (hash * 16777619) ^ OriginalStart.GetHashCode();
+            hash = (hash * 16777619) ^ UpdatedStart.GetHashCode();
+            return hash;
+        }
+    }
+
+    public override int GetHashCode([DisallowNull] SetOperation obj)
+    {
+        return obj.GetHashCode();
+    }
+
+    public override string ToString()
+    {
+        return $"Set start to {UpdatedStart}";
+    }
+}
+

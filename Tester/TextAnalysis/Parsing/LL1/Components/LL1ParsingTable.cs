@@ -20,7 +20,7 @@ public class LL1ParsingTableEntry
         var strategy = Lookahead.Value != null
             ? LL1ParsingTable.KeyStrategy.TypeAndValue
             : LL1ParsingTable.KeyStrategy.TypeOnly;
-
+       
         return LL1ParsingTable.CreateKey(State, Lookahead, strategy);
     }
 }

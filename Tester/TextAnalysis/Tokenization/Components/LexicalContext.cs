@@ -138,4 +138,9 @@ public class LexicalContext : IDisposable
     {
         return new TokenInfo(Position, Line, Column);
     }
+
+    internal TokenInfo GetEoiMetadata()
+    {
+        return new TokenInfo(Position + 1, Line, Column);
+    }
 }

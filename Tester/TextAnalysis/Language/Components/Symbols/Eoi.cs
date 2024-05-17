@@ -5,27 +5,15 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
 /// <summary>
 /// Represents the end-of-input symbol.
 /// </summary>
-public sealed class Eoi : Symbol
+public sealed class Eoi : Terminal
 {
-    /// <inheritdoc/>
-    public override bool IsTerminal => false;
-
-    /// <inheritdoc/>
-    public override bool IsNonTerminal => false;
-
-    /// <inheritdoc/>
-    public override bool IsEpsilon => false;
-
-    /// <inheritdoc/>
-    public override bool IsMacro => false;
-
     /// <inheritdoc/>
     public override bool IsEoi => true;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Eoi"/> class.
     /// </summary>
-    public Eoi()
+    public Eoi() : base(Tokenization.TokenType.Eoi, "EOI")
     {
     }
 

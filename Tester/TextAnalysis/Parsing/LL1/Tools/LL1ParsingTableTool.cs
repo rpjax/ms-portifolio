@@ -1,6 +1,6 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language;
 using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
+using ModularSystem.Core.TextAnalysis.Language.Extensions;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Tools;
 
@@ -38,6 +38,11 @@ public class LL1ParsingTableTool
                     if (symbol is not Terminal terminal)
                     {
                         throw new InvalidOperationException("Invalid symbol in follow set");
+                    }
+
+                    if(entries.Where(x => x.State == production.Head && x.Lookahead == terminal).Any())
+                    {
+                        continue;
                     }
 
                     entries.Add(new LL1ParsingTableEntry(production.Head, terminal, production));

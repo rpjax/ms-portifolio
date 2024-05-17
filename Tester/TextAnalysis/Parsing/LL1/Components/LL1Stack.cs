@@ -4,7 +4,6 @@ namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
 
 public class LL1Stack
 {
-    public Symbol? LastPopped { get; private set; }
     private Stack<Symbol> Symbols { get; } = new();
 
     public LL1Stack()
@@ -12,7 +11,7 @@ public class LL1Stack
 
     }
 
-    public Symbol? Top => Symbols.Peek();
+    public Symbol? Top => Peek();
 
     public void Push(Symbol symbol)
     {
@@ -29,8 +28,7 @@ public class LL1Stack
 
     public Symbol Pop()
     {
-        LastPopped = Symbols.Pop();
-        return LastPopped;
+        return Symbols.Pop();
     }
 
     public Symbol? Peek()

@@ -6,11 +6,11 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
 /// <summary>
 /// Represents a terminal symbol in a context-free grammar.
 /// </summary>
-public class Terminal : Symbol
+public class Terminal : Symbol, IComparable<Terminal>
 {
     /// <inheritdoc/>
     public override bool IsTerminal => true;
-    
+
     /// <inheritdoc/>
     public override bool IsNonTerminal => false;
 
@@ -42,6 +42,33 @@ public class Terminal : Symbol
     {
         TokenType = tokenType;
         Value = value;
+
+        if (value is not null && string.IsNullOrEmpty(value))
+        {
+            throw new InvalidOperationException("The value cannot be empty.");
+        }
+    }
+
+    public Terminal(string value)
+    {
+        var tokens = Tokenizer.Instance.Tokenize(value, includeEoi: false).ToArray();
+
+        if (tokens.Length != 1)
+        {
+            throw new InvalidOperationException("The value must be a single token.");
+        }
+        if (tokens[0] is null)
+        {
+            throw new InvalidOperationException("The value must be a valid token.");
+        }
+
+        TokenType = tokens[0]!.Type;
+        Value = value;
+    }
+
+    public static Terminal From(string value)
+    {
+        return new Terminal(TokenType.Unknown, value);
     }
 
     /// <summary>
@@ -50,7 +77,7 @@ public class Terminal : Symbol
     /// <returns>A string representation of the terminal symbol.</returns>
     public override string ToString()
     {
-        return ToNotation(NotationType.Sentential);
+        return ToSententialNotation();
     }
 
     public override bool Equals(object? obj)
@@ -67,8 +94,8 @@ public class Terminal : Symbol
 
     public override bool Equals(Symbol? x, Symbol? y)
     {
-        return x is not null 
-            && y is not null 
+        return x is not null
+            && y is not null
             && x.Equals(y);
     }
 
@@ -87,6 +114,14 @@ public class Terminal : Symbol
     public override int GetHashCode([DisallowNull] Symbol obj)
     {
         return obj.GetHashCode();
+    }
+
+    public int CompareTo(Terminal? other)
+    {
+        var thisStr = ToString();
+        var otherStr = other?.ToString();
+
+        return string.Compare(thisStr, otherStr, StringComparison.Ordinal);
     }
 
     public override string ToNotation(NotationType notation)

@@ -1,4 +1,6 @@
-namespace ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Language.Components;
+
+namespace ModularSystem.Core.TextAnalysis.Language.Extensions;
 
 public static class ProductionRuleMacroExtensions
 {
@@ -14,7 +16,7 @@ public static class ProductionRuleMacroExtensions
             ?.AsMacro();
     }
 
-    public static IEnumerable<ProductionRule> ExpandMacros(this ProductionRule production)
+    public static IEnumerable<ProductionRule> ExpandMacros(this ProductionRule production, ProductionSet set)
     {
         var macro = production.GetLeftmostMacro();
 
@@ -25,7 +27,7 @@ public static class ProductionRuleMacroExtensions
         }
 
         var index = production.IndexOfSymbol(macro);
-        var nonTerminal = new NonTerminal($"{production.Head.Name}ʹ");
+        var nonTerminal = set.CreateNonTerminalPrime(production.Head.Name);
         var body = new List<Symbol>();
 
         body.AddRange(production.Body.Take(index));

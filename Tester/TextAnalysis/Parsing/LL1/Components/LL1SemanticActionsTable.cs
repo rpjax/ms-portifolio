@@ -31,7 +31,7 @@ namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
 //         Entries = entries ?? new();
 //     }
 
-//     public static string CreateKey(NonTerminal state, IEnumerable<Symbol> sentence)
+//     public static string CreateActionKey(NonTerminal state, IEnumerable<Symbol> sentence)
 //     {
 //         var sentenceStr = string.Join(" ", sentence.Select(x => x.ToString()));
 //         var key = $"{state}::{sentenceStr}";
@@ -40,7 +40,7 @@ namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
 
 //     public void Subscribe(Symbol symbol, LL1SemanticAction action)
 //     {
-//         if (!Entries.TryAdd(CreateKey(symbol), action))
+//         if (!Entries.TryAdd(CreateActionKey(symbol), action))
 //         {
 //             throw new InvalidOperationException("The action is already subscribed.");
 //         }
@@ -48,7 +48,7 @@ namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
 
 //     public void Unsubscribe(Symbol symbol)
 //     {
-//         if (!Entries.Remove(CreateKey(symbol)))
+//         if (!Entries.Remove(CreateActionKey(symbol)))
 //         {
 //             throw new InvalidOperationException("The action is not subscribed.");
 //         }
@@ -56,12 +56,12 @@ namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
 
 //     public bool IsSubscribed(Symbol symbol)
 //     {
-//         return Entries.ContainsKey(CreateKey(symbol));
+//         return Entries.ContainsKey(CreateActionKey(symbol));
 //     }
 
 //     public void InvokeMatch(LL1Context context, Symbol symbol)
 //     {
-//         if (!Entries.TryGetValue(CreateKey(symbol), out var action))
+//         if (!Entries.TryGetValue(CreateActionKey(symbol), out var action))
 //         {
 //             return;
 //         }
@@ -71,7 +71,7 @@ namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
 
 //     public void InvokeExpand(LL1Context context, NonTerminal symbol)
 //     {
-//         if (!Entries.TryGetValue(CreateKey(symbol), out var action))
+//         if (!Entries.TryGetValue(CreateActionKey(symbol), out var action))
 //         {
 //             return;
 //         }

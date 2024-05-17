@@ -7,18 +7,18 @@ namespace ModularSystem.Core.TextAnalysis.Parsing;
 
 public class LL1Parser
 {
-    static internal Tokenizer Tokenizer { get; } = new();
-
     private LL1Grammar Grammar { get; }
+    private Tokenizer Tokenizer { get; } 
 
     public LL1Parser(LL1Grammar grammar)
     {
         Grammar = grammar;
+        Tokenizer = new Tokenizer();
     }
 
     public CstNode Parse(string input)
     {
-        using var inputStream = new LL1InputStream(input);
+        using var inputStream = new LL1InputStream(input, Tokenizer);
         var stack = new LL1Stack();
         var context = new LL1Context(Grammar, inputStream, stack);
 
@@ -55,12 +55,17 @@ public class LL1Parser
 
     private CstNode MatchEoi(LL1Context context)
     {
-        if (context.InputStream.Lookahead is not null)
+        if(context.InputStream.Lookahead is null)
+        {
+            throw new Exception("Unexpected end of tokens.");
+        }
+        if (context.InputStream.Lookahead.TokenType != TokenType.Eoi)
         {
             throw new Exception($"Unexpected token ({context.InputStream.Lookahead}). Expected EOI.");
         }
 
         context.Stack.Pop();
+        context.InputStream.Consume();
         return context.SyntaxContext.BuildConcreteSyntaxTree();
     }
 

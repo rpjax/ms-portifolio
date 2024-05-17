@@ -1,3 +1,5 @@
+using ModularSystem.Core.TextAnalysis.Language.Extensions;
+
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 public class Derivation
@@ -36,7 +38,7 @@ public class Derivation
 
     public override string ToString()
     {
-        return $"{OriginalSentence} -> {DerivedSentence} ({Production})";
+        return $"Derived ({NonTerminal}) from ({OriginalSentence}) using ({Production}) yielding ({DerivedSentence})";
     }
 
 }

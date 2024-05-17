@@ -16,7 +16,7 @@ public static class CstNodeExtensions
     {
         var builder = new CstNodeBuilder(node.Identifier);
 
-        foreach (var attribute in node.Attributes)
+        foreach (var attribute in node.Lexemes)
         {
             builder.AddAttribute(attribute);
         }
