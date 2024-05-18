@@ -9,7 +9,7 @@
 // </lexer>
 
 grammar 
-    : [ lexer_settings ] { production_list } 
+    : [ lexer_settings ] production_list 
     ;
 
 lexer_settings

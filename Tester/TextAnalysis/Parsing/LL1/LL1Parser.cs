@@ -5,6 +5,7 @@ using ModularSystem.Core.TextAnalysis.Parsing.Components;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing;
 
+[Obsolete("This parser is under maintenance. CST builder integration is pending.")]
 public class LL1Parser
 {
     private LL1Grammar Grammar { get; }

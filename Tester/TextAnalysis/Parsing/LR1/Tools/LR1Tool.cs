@@ -1,4 +1,5 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+﻿using ModularSystem.Core.Emulation.Components;
+using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Language.Extensions;
 using ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 
@@ -27,8 +28,7 @@ public class LR1Tool
             {
                 var nextStates = ComputeNextStates(
                     set: set,
-                    state: state,
-                    kernelBlacklist: Array.Empty<LR1Item>()
+                    state: state
                 );
 
                 foreach (var nextState in nextStates)
@@ -52,7 +52,7 @@ public class LR1Tool
         return states.ToArray();
     }
 
-    public static Dictionary<int, LR1State> ComputeStateDictionary(
+    public static Dictionary<int, LR1State> ComputeStatesDictionary(
         ProductionSet set)
     {
         var dictionary = new Dictionary<int, LR1State>();
@@ -87,10 +87,9 @@ public class LR1Tool
             lookaheads: Eoi.Instance
         );
 
-        var closure = ComputeClosure(
+        var closure = ComputeKernelClosure(
             set: set,
-            kernel: kernel,
-            new()
+            kernel: new LR1Item[] { kernel }
         );
 
         return new LR1State(
@@ -99,26 +98,50 @@ public class LR1Tool
         );
     }
 
-    private static LR1Item[] ComputeClosure(
-        ProductionSet set,
-        LR1Item kernel,
-        List<LR1Item> context)
+    private static LR1State[] ComputeNextStates(
+    ProductionSet set,
+    LR1State state)
     {
-        var kernelSymbol = kernel.Symbol;
-        var kernelSignature = kernel.GetSignature(useLookaheads: true);
+        var states = new List<LR1State>();
 
-        var canExpand = kernelSymbol is not null
-            && kernelSymbol.IsNonTerminal
-            ;
+        var gotosDictionary = ComputeGotoDictionary(
+            state: state,
+            kernelBlacklist: Array.Empty<LR1Item>()
+        );
 
-        if (!canExpand)
+        foreach (var entry in gotosDictionary)
         {
-            return context.ToArray();
+            var nextStateKernel = entry.Value;
+
+            var nextStateClosure = ComputeKernelClosure(
+                set: set,
+                kernel: nextStateKernel
+            );
+
+            var nextState = new LR1State(
+                kernel: nextStateKernel,
+                closure: nextStateClosure
+            );
+
+            states.Add(nextState);
         }
 
-        if (kernelSymbol is not NonTerminal nonTerminal)
+        return states.ToArray();
+    }
+
+    /*
+     * Closure rewritten to use a stack instead of recursion.
+     */
+    private static LR1Item[] ComputeItemClosure(
+        ProductionSet set,
+        LR1Item item)
+    {
+        var items = new List<LR1Item>();
+        var symbol = item.Symbol;
+
+        if (symbol is not NonTerminal nonTerminal)
         {
-            throw new InvalidOperationException("The expanded symbol is not a nonterminal.");
+            return items.ToArray();
         }
 
         var productions = set.Lookup(nonTerminal)
@@ -133,8 +156,8 @@ public class LR1Tool
         {
             var lookaheads = ComputeLookaheads(
                 set: set,
-                beta: kernel.GetBeta(),
-                alpha: kernel.Lookaheads
+                beta: item.GetBeta(),
+                alpha: item.Lookaheads
             );
 
             var newItem = new LR1Item(
@@ -143,30 +166,49 @@ public class LR1Tool
                 lookaheads: lookaheads
             );
 
-            var newItemSignature = newItem.GetSignature(useLookaheads: true);
-
-            var isNewItemClosureProcessed = context
-                .Any(item => item.GetSignature(useLookaheads: true) == newItemSignature);
-
-            if (isNewItemClosureProcessed)
-            {
-                continue;
-            }
-
-            context.Add(newItem);
-
-            /*
-             * Computes the closure for the new kernel.
-             */
-            ComputeClosure(
-                set: set,
-                kernel: newItem,
-                context: context
-            );
-
+            items.Add(newItem);
         }
 
-        var groups = context
+        return items.ToArray();
+    }
+
+    private static LR1Item[] ComputeKernelClosure(
+        ProductionSet set,
+        LR1Item[] kernel)
+    {
+        var items = new List<LR1Item>(kernel);
+
+        while (true)
+        {
+            var counter = 0;
+
+            foreach (var item in items.ToArray())
+            {
+                var closure = ComputeItemClosure(
+                    set: set,
+                    item: item
+                );
+
+                foreach (var newItem in closure)
+                {
+                    if (items.Any(x => x.Equals(newItem)))
+                    {
+                        continue;
+                    }
+
+                    items.Add(newItem);
+                    counter++;
+                }
+            }
+
+            if (counter == 0)
+            {
+                break;
+            }
+        }
+
+        var groups = items
+            .Skip(kernel.Length)
             .GroupBy(item => item.GetSignature(useLookaheads: false))
             .ToArray();
 
@@ -191,29 +233,6 @@ public class LR1Tool
         }
 
         return uniqueItems
-            .ToArray();
-    }
-
-    private static LR1Item[] ComputeClosure(
-        ProductionSet set,
-        LR1Item[] kernel)
-    {
-        var items = new List<LR1Item>();
-        var context = new List<LR1Item>();
-
-        foreach (var item in kernel)
-        {
-            var closure = ComputeClosure(
-                set: set,
-                kernel: item,
-                context: context
-            );
-
-            items.AddRange(closure);
-        }
-
-        return items
-            .Distinct()
             .ToArray();
     }
 
@@ -278,39 +297,7 @@ public class LR1Tool
             .ToArray();
     }
 
-    private static LR1State[] ComputeNextStates(
-        ProductionSet set,
-        LR1State state,
-        LR1Item[] kernelBlacklist)
-    {
-        var states = new List<LR1State>();
-
-        var gotosDictionary = ComputeGoto(
-            state: state,
-            kernelBlacklist: kernelBlacklist
-        );
-
-        foreach (var entry in gotosDictionary)
-        {
-            var nextStateKernel = entry.Value;
-
-            var nextStateClosure = ComputeClosure(
-                set: set,
-                kernel: nextStateKernel
-            );
-
-            var nextState = new LR1State(
-                kernel: nextStateKernel,
-                closure: nextStateClosure
-            );
-
-            states.Add(nextState);
-        }
-
-        return states.ToArray();
-    }
-
-    private static Dictionary<Symbol, LR1Item[]> ComputeGoto(
+    private static Dictionary<Symbol, LR1Item[]> ComputeGotoDictionary(
         LR1State state,
         LR1Item[] kernelBlacklist)
     {
@@ -340,4 +327,5 @@ public class LR1Tool
 
         return dictionary;
     }
+
 }

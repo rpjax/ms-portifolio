@@ -44,20 +44,18 @@ public static class Program
 
          */
 
-        var g = new LR1TestGrammar2();
-        g.Productions.AutoTransformLR1();
+        var grammar = new LR1TestGrammar2();
+        var parser = new LR1Parser(grammar);
+        var input = "// <lexer>\r\n\r\n// use standard;\r\n// use csharp;\r\n\r\n// lexeme hex_number '[0-9a-fA-F]+' ;\r\n// lexeme string '\"[^\"]*\"|\\'[^\\']*\\'' ;\r\n\r\n// </lexer>\r\n\r\ngrammar \r\n    : [ lexer_settings ] production_list \r\n    ;\r\n\r\nlexer_settings\r\n    : '<lexer>' { lexer_statement } '</lexer>'\r\n    ;\r\n\r\nlexer_statement\r\n    : 'use' $id ';'\r\n    | 'lexeme' $id regex ';'\r\n    ;\r\n\r\nregex\r\n    : $string\r\n    ;\r\n\r\nproduction_list\r\n    : production { production }\r\n    ;\r\n\r\nproduction\r\n    : $id ':' production_body ';'\r\n    ;\r\n\r\nproduction_body\r\n    : symbol { symbol } [ semantic_action ]\r\n    ;\r\n\r\nsymbol\r\n    : terminal\r\n    | non_terminal\r\n    | macro\r\n    ;\r\n\r\nterminal \r\n    : $string\r\n    | lexeme\r\n    | epsilon\r\n    ;\r\n\r\nnon_terminal\r\n    : $id\r\n    ;\r\n\r\nepsilon\r\n    : 'ε'\r\n    ;\r\n\r\nmacro\r\n    : group\r\n    | option\r\n    | repetition\r\n    | alternative\r\n    ;\r\n\r\ngroup\r\n    : '(' symbol { symbol } ')'\r\n    ;\r\n\r\noption\r\n    : '[' symbol { symbol } ']'\r\n    ;\r\n\r\nrepetition\r\n    : '{' symbol { symbol } '}'\r\n    ;\r\n\r\nalternative\r\n    : '|'\r\n    ;\r\n\r\nlexeme\r\n    : '$' $id \r\n    ;\r\n\r\nsemantic_action\r\n    : '{' '$' semantic_value '}'\r\n    ;\r\n\r\nsemantic_value\r\n    : '$' $int\r\n    ;";
 
-        var parser = new LR1Parser(g);
-        var input = "5 + 3 * 2";
-
-        parser.Parse(input);
+        var cst = parser.Parse("5 + 3 * 2");
       
         Console.WriteLine("Original grammar:");
-        Console.WriteLine(g.GetOriginalGrammar());
+        Console.WriteLine(grammar.GetOriginalGrammar());
         Console.WriteLine("Transformations:");
-        Console.WriteLine(g.Productions.TransformationCollection);
+        Console.WriteLine(grammar.Productions.TransformationCollection);
         Console.WriteLine("Final grammar:");
-        Console.WriteLine(g.Productions);
+        Console.WriteLine(grammar.Productions);
 
         return;
     }

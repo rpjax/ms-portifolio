@@ -15,14 +15,14 @@ public class LR1ParsingTableFactory : IFactory<LR1ParsingTable>
 
     public LR1ParsingTable Create()
     {
-        var states = LR1Tool.ComputeStateDictionary(Set);
+        var states = LR1Tool.ComputeStatesDictionary(Set);
         var entries = new List<LR1ParsingTableEntry>();
 
         foreach (var entry in states)
         {
             var state = entry.Value;
             var id = entry.Key;
-            var actions = CreateActionsForState(id, state, states);
+            var actions = ComputeActionsForState(id, state, states);
             var newEntry = new LR1ParsingTableEntry(id, actions);
 
             entries.Add(newEntry);
@@ -34,7 +34,7 @@ public class LR1ParsingTableFactory : IFactory<LR1ParsingTable>
         );
     }
 
-    private Dictionary<Symbol, LR1Action> CreateActionsForState(
+    private Dictionary<Symbol, LR1Action> ComputeActionsForState(
         int id, 
         LR1State state,
         Dictionary<int, LR1State> computedStates)
@@ -52,7 +52,7 @@ public class LR1ParsingTableFactory : IFactory<LR1ParsingTable>
             .ToArray();
 
         var stateActions = symbolItems
-            .SelectMany(item => CreateActionsForStateItem(id, state, item, computedStates))
+            .SelectMany(item => ComputeActionsForStateItem(id, state, item, computedStates))
             .ToArray();
 
         foreach (var action in stateActions)
@@ -68,7 +68,7 @@ public class LR1ParsingTableFactory : IFactory<LR1ParsingTable>
         return actions;
     }
 
-    private Dictionary<Symbol, LR1Action> CreateActionsForStateItem(
+    private Dictionary<Symbol, LR1Action> ComputeActionsForStateItem(
         int id,
         LR1State state,
         LR1Item item,

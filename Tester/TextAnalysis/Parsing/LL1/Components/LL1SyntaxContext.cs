@@ -5,7 +5,7 @@ namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
 
 public class LL1SyntaxContext
 {
-    private Stack<CstNodeBuilder> TreeBuilderStack { get; }
+    private Stack<CstBuilder> TreeBuilderStack { get; }
 
     public LL1SyntaxContext()
     {
@@ -14,7 +14,7 @@ public class LL1SyntaxContext
 
     public void CreateBranch(NonTerminal state)
     {
-        TreeBuilderStack.Push(new CstNodeBuilder(state.Name));
+        TreeBuilderStack.Push(new CstBuilder());
     }
 
     public void AddAttribute(Terminal symbol)
@@ -29,26 +29,26 @@ public class LL1SyntaxContext
             throw new InvalidOperationException("No tree builder on the stack.");
         }
 
-        builder.AddAttribute(symbol.Value);
+        builder.AddTerminal(symbol);
     }
 
     public void FinilizeBranch()
     {
-        if (TreeBuilderStack.Count == 0)
-        {
-            throw new InvalidOperationException("The tree builder stack must contain at least one builder.");
-        }
+        //if (TreeBuilderStack.Count == 0)
+        //{
+        //    throw new InvalidOperationException("The tree builder stack must contain at least one builder.");
+        //}
 
-        var child = TreeBuilderStack.Pop();
+        //var child = TreeBuilderStack.Pop();
 
-        if (TreeBuilderStack.TryPeek(out var parent))
-        {
-            parent.AddChild(child.Build());
-        }
-        else
-        {
-            TreeBuilderStack.Push(child);
-        }
+        //if (TreeBuilderStack.TryPeek(out var parent))
+        //{
+        //    parent.Reduce(state, child.AccumulatorCount);
+        //}
+        //else
+        //{
+        //    TreeBuilderStack.Push(child);
+        //}
     }
 
     public CstNode BuildConcreteSyntaxTree()

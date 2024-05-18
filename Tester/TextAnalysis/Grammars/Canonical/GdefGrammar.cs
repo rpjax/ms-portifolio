@@ -1,10 +1,9 @@
 using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 using ModularSystem.Core.TextAnalysis.Tokenization;
 
 namespace ModularSystem.Core.TextAnalysis.Grammars;
 
-public class GdefGrammar : LR1Grammar
+public class GdefGrammar : Grammar
 {
     public GdefGrammar() : base(GetStart(), GetProductions())
     {

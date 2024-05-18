@@ -2,7 +2,10 @@
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 
-public enum LR1ParserActionType
+/// <summary>
+/// Represents an action type in a LR(1) parsing table.
+/// </summary>
+public enum LR1ActionType
 {
     Shift,
     Reduce,
@@ -10,11 +13,14 @@ public enum LR1ParserActionType
     Accept,
 }
 
+/// <summary>
+/// Defines an action in a LR(1) parsing table. Concrete implementations are <see cref="LR1ShiftAction"/>, <see cref="LR1ReduceAction"/>, <see cref="LR1GotoAction"/> and <see cref="LR1AcceptAction"/>.
+/// </summary>
 public abstract class LR1Action : 
     IEquatable<LR1Action>, 
     IEqualityComparer<LR1Action>
 {
-    public LR1ParserActionType Type { get; init; }
+    public LR1ActionType Type { get; init; }
 
     public abstract override string ToString();
 
@@ -63,13 +69,16 @@ public abstract class LR1Action :
 
 }
 
+/// <summary>
+/// Represents a SHIFT action in a LR(1) parsing table.
+/// </summary>
 public class LR1ShiftAction : LR1Action
 {
     public int NextState { get; }
 
     public LR1ShiftAction(int nextState)
     {
-        Type = LR1ParserActionType.Shift;
+        Type = LR1ActionType.Shift;
         NextState = nextState;
     }
 
@@ -84,13 +93,16 @@ public class LR1ShiftAction : LR1Action
     }
 }
 
+/// <summary>
+/// Represents a REDUCE action in a LR(1) parsing table.
+/// </summary>
 public class LR1ReduceAction : LR1Action
 {
     public int ProductionIndex { get; }
 
     public LR1ReduceAction(int productionIndex)
     {
-        Type = LR1ParserActionType.Reduce;
+        Type = LR1ActionType.Reduce;
         ProductionIndex = productionIndex;
     }
 
@@ -105,13 +117,16 @@ public class LR1ReduceAction : LR1Action
     }
 }
 
+/// <summary>
+/// Represents a GOTO action in a LR(1) parsing table.
+/// </summary>
 public class LR1GotoAction : LR1Action
 {
     public int NextState { get; }
 
     public LR1GotoAction(int nextState)
     {
-        Type = LR1ParserActionType.Goto;
+        Type = LR1ActionType.Goto;
         NextState = nextState;
     }
 
@@ -126,11 +141,14 @@ public class LR1GotoAction : LR1Action
     }
 }
 
+/// <summary>
+/// Represents an ACCEPT action in a LR(1) parsing table.
+/// </summary>
 public class LR1AcceptAction : LR1Action
 {
     public LR1AcceptAction()
     {
-        Type = LR1ParserActionType.Accept;
+        Type = LR1ActionType.Accept;
     }
 
     public override string ToString()

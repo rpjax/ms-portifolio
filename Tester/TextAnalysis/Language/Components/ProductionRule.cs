@@ -81,10 +81,6 @@ public class ProductionRule
         {
             throw new InvalidOperationException("The head of a production rule cannot be null.");
         }
-        if(Body is null)
-        {
-            throw new InvalidOperationException("The body of a production rule cannot be null.");
-        }
         if(Body.Length == 0)
         {
             throw new InvalidOperationException("The body of a production rule cannot be empty.");

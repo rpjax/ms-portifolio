@@ -1,166 +1,98 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Language.Extensions;
 using ModularSystem.Core.TextAnalysis.Parsing.Components;
 using ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 using ModularSystem.Core.TextAnalysis.Tokenization;
-using System.Security.Cryptography.X509Certificates;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing;
 
-public class LR1Stack
-{
-    private Stack<int> States { get; }
-    private Stack<Symbol> Symbols { get; }
-
-    private bool UseDebug { get; }
-    private Stack<object> DebugStack { get; }
-
-    public LR1Stack(bool useDebug = false)
-    {
-        States = new Stack<int>();
-        Symbols = new Stack<Symbol>();
-        UseDebug = useDebug;
-        DebugStack = new Stack<object>();
-    }
-
-    public override string ToString()
-    {
-        return string.Join(" ", DebugStack.Reverse().Select(x => x.ToString()));
-    }
-
-    public int PeekState()
-    {
-        if(States.Count == 0)
-        {
-            throw new InvalidOperationException("The stack is empty.");
-        }
-
-        return States.Peek();
-    }
-
-    public Symbol? PeekSymbol()
-    {
-        if(Symbols.Count == 0)
-        {
-            return null;
-        }
-
-        return Symbols.Peek();
-    }
-
-    public void PushState(int state)
-    {
-        States.Push(state);
-
-        if(UseDebug)
-        {
-            DebugStack.Push(state);
-        }
-    }
-
-    public void PushSymbol(Symbol symbol)
-    {
-        Symbols.Push(symbol);
-
-        if(UseDebug)
-        {
-            DebugStack.Push(symbol);
-        }
-    }
-
-    public int PopState()
-    {
-        if(States.Count == 0)
-        {
-            throw new InvalidOperationException("The stack is empty.");
-        }
-
-        if(UseDebug)
-        {
-            DebugStack.Pop();
-        }
-
-        return States.Pop();
-    }
-
-    public Symbol PopSymbol()
-    {
-        if(Symbols.Count == 0)
-        {
-            throw new InvalidOperationException("The stack is empty.");
-        }
-
-        if(UseDebug)
-        {
-            DebugStack.Pop();
-        }
-
-        return Symbols.Pop();
-    }
-}
-
-public class LR1Context
-{
-    public InputStream Input { get; }
-    public LR1Stack Stack { get; }
-
-    public LR1Context(InputStream input, LR1Stack stack)
-    {
-        Input = input;
-        Stack = stack;
-    }
-
-    public Exception UnexpectedEndOfTokens()
-    {
-        return new InvalidOperationException("Unexpected end of tokens.");
-    }
-
-    public Exception SyntaxError()
-    {
-        return new InvalidOperationException("Syntax error.");
-    }
-}
-
+/// <summary>
+/// Represents a LR(1) parser. 
+/// </summary>
 public class LR1Parser
 {
-    private LR1ParsingTable Table { get; }
-
-    public LR1Parser(Grammar grammar)
+    private static readonly TokenType[] DefaultIgnoreSet = new TokenType[]
     {
-        Table = LR1ParsingTable.Create(grammar.Productions);
+        TokenType.Comment
+    };
+
+    private LR1ParsingTable ParsingTable { get; }
+    private TokenType[]? TokenIgnoreSet { get; }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="LR1Parser"/>. It automatically transforms the grammar to LR(1) and creates a parsing table.
+    /// </summary>
+    /// <param name="grammar"> The grammar to parse. </param>
+    /// <param name="tokenIgnoreSet"> The set of tokens to ignore. </param>
+    public LR1Parser(Grammar grammar, TokenType[]? tokenIgnoreSet = null)
+    {
+        grammar.AutoTransformLR1();
+        ParsingTable = LR1ParsingTable.Create(grammar.Productions);
+        TokenIgnoreSet = tokenIgnoreSet ?? DefaultIgnoreSet;
     }
 
-    public void Parse(string text)
+    /// <summary>
+    /// Creates a new instance of <see cref="LR1Parser"/>. It uses the provided parsing table.
+    /// </summary>
+    /// <param name="parsingTable"> The parsing table to use. </param>
+    /// <param name="tokenIgnoreSet"> The set of tokens to ignore. </param>
+    public LR1Parser(LR1ParsingTable parsingTable, TokenType[]? tokenIgnoreSet = null)
     {
-        using var input = new InputStream(text, Tokenizer.Instance);
-        var stack = new LR1Stack(useDebug: true);
-        var context = new LR1Context(input, stack);
+        ParsingTable = parsingTable;
+        TokenIgnoreSet = tokenIgnoreSet ?? DefaultIgnoreSet;
+    }
 
+    public CstNode Parse(string text)
+    {
+        using var inputStream = new InputStream(
+            input: text, 
+            tokenizer: Tokenizer.Instance,
+            ignoreSet: TokenIgnoreSet
+        );
+
+        var stack = new LR1Stack(
+            useDebug: true
+        );
+
+        var context = new LR1Context(
+            inputStream: inputStream, 
+            stack: stack
+        );
+        
+        //* pushes the initial state onto the stack
         stack.PushState(0);
 
         while (true)
         {
-            var action = GetNextAction(context);
+            LR1Action action = GetNextAction(context);
 
             ExecuteAction(context, action);
 
-            if (action.Type == LR1ParserActionType.Accept)
+            if (action.Type == LR1ActionType.Accept)
             {
                 break;
             }            
         }
+
+        return context.CstBuilder.Build();
     }
 
+    /// <summary>
+    /// Gets the next action to execute by performing a lookup in the parsing parsingTable using the current state and the lookahead token.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
     private LR1Action GetNextAction(LR1Context context)
     {
         var currentState = context.Stack.PeekState();
-        var lookahead = context.Input.Lookahead;
+        var lookahead = context.InputStream.Lookahead;
 
         if(lookahead is null)
         {
             throw context.UnexpectedEndOfTokens();
         }
 
-        var action = Table.Lookup(currentState, lookahead);
+        var action = ParsingTable.Lookup(currentState, lookahead);
 
         if(action is null)
         {
@@ -170,23 +102,29 @@ public class LR1Parser
         return action;
     }
 
+    /// <summary>
+    /// Dynamically executes the action based on its type.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="action"></param>
+    /// <exception cref="InvalidOperationException"></exception>
     private void ExecuteAction(LR1Context context,  LR1Action action)
     {
         switch (action.Type)
         {
-            case LR1ParserActionType.Shift:
+            case LR1ActionType.Shift:
                 Shift(context, action.AsShift());
                 return;
 
-            case LR1ParserActionType.Reduce:
+            case LR1ActionType.Reduce:
                 Reduce(context, action.AsReduce());
                 return;
 
-            case LR1ParserActionType.Goto:
+            case LR1ActionType.Goto:
                 Goto(context, action.AsGoto());
                 break;
 
-            case LR1ParserActionType.Accept:
+            case LR1ActionType.Accept:
                 Accept(context, action.AsAccept());
                 break;
 
@@ -197,19 +135,22 @@ public class LR1Parser
 
     private void Shift(LR1Context context, LR1ShiftAction action)
     {
-        if(context.Input.Lookahead is null)
+        if(context.InputStream.Lookahead is null)
         {
             throw context.UnexpectedEndOfTokens();
         }
 
-        context.Stack.PushSymbol(context.Input.Lookahead);
+        var terminal = context.InputStream.Lookahead;
+
+        context.Stack.PushSymbol(terminal);
         context.Stack.PushState(action.NextState);
-        context.Input.Consume();
+        context.InputStream.Consume();
+        context.CstBuilder.AddTerminal(terminal);
     }
 
     private void Reduce(LR1Context context, LR1ReduceAction reduceAction)
     {
-        var production = Table.GetProduction(reduceAction.ProductionIndex);
+        var production = ParsingTable.GetProduction(reduceAction.ProductionIndex);
 
         for (int i = 0; i < production.Body.Length; i++)
         {
@@ -217,10 +158,12 @@ public class LR1Parser
             context.Stack.PopSymbol();
         }
 
-        context.Stack.PushSymbol(production.Head);
+        var nonTerminal = production.Head;
+
+        context.Stack.PushSymbol(nonTerminal);
 
         var currentState = context.Stack.PeekState();
-        var gotoAction = Table.LookupGoto(currentState, production.Head);
+        var gotoAction = ParsingTable.LookupGoto(currentState, nonTerminal);
 
         if(gotoAction is null)
         {
@@ -228,6 +171,7 @@ public class LR1Parser
         }
 
         context.Stack.PushState(gotoAction.NextState);
+        context.CstBuilder.Reduce(nonTerminal, production.Body.Length);
     }
 
     private void Goto(LR1Context context, LR1GotoAction gotoAction)

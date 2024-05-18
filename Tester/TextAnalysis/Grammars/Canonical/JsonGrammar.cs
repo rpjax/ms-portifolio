@@ -1,7 +1,7 @@
 using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Tokenization;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Grammars;
+namespace ModularSystem.Core.TextAnalysis.Grammars;
 
 public class JsonGrammar : Grammar
 {

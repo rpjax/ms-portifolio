@@ -49,6 +49,12 @@ public static class GrammarExtensions
         return self;
     }
 
+    public static Grammar AutoTransformLR1(this Grammar self)
+    {
+        self.Productions.AutoTransformLR1();
+        return self;
+    }
+
     public static LL1Grammar ToLL1(this Grammar self)
     {
         return new LL1Grammar(self.Start, self.Productions);

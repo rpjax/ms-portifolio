@@ -7,11 +7,11 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
     Helper constructs.
 */
 
-public class Sentence : 
-    IEnumerable<Symbol>, IEquatable<Sentence>, IEqualityComparer<Sentence>
+public struct Sentence : 
+    IEnumerable<Symbol>, 
+    IEquatable<Sentence>, 
+    IEqualityComparer<Sentence>
 {
-    public int Length => Symbols.Length;
-
     internal Symbol[] Symbols { get; set; }
 
     public Sentence(params Symbol[] symbols)
@@ -30,6 +30,8 @@ public class Sentence :
             .Concat(symbols)
             .ToArray();
     }
+
+    public int Length => Symbols.Length;
 
     public Symbol this[int index]
     {
@@ -104,17 +106,14 @@ public class Sentence :
         }
     }
 
-    public bool Equals(Sentence? other)
+    public bool Equals(Sentence other)
     {
-        return other is not null
-            && other.SequenceEqual(this);
+        return other.SequenceEqual(this);
     }
 
-    public bool Equals(Sentence? x, Sentence? y)
+    public bool Equals(Sentence x, Sentence y)
     {
-        return x is not null
-            && y is not null
-            && x.SequenceEqual(y);
+        return x.Symbols.SequenceEqual(y.Symbols);
     }
 
     public int GetHashCode([DisallowNull] Sentence obj)
@@ -201,4 +200,5 @@ public class Sentence :
         Symbols = new Symbol[1];
         Symbols[0] = alternationMacro;
     }
+
 }
