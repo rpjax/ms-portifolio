@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 
 public enum LR1ParserActionType
 {
@@ -8,13 +10,36 @@ public enum LR1ParserActionType
     Accept,
 }
 
-public abstract class LR1Action : IEquatable<LR1Action>
+public abstract class LR1Action : 
+    IEquatable<LR1Action>, 
+    IEqualityComparer<LR1Action>
 {
     public LR1ParserActionType Type { get; init; }
 
     public abstract override string ToString();
 
     public abstract bool Equals(LR1Action? other);
+
+    public bool Equals(LR1Action? x, LR1Action? y)
+    {
+        return x is not null && y is not null 
+            && x.Equals(y);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as LR1Action);
+    }
+
+    public override int GetHashCode()
+    {
+        return ToString().GetHashCode();
+    }
+
+    public int GetHashCode([DisallowNull] LR1Action obj)
+    {
+        throw new NotImplementedException();
+    }
 
     public LR1ShiftAction AsShift()
     {

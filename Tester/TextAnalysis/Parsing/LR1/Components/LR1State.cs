@@ -40,7 +40,7 @@ public class LR1State : IEquatable<LR1State>, IEqualityComparer<LR1State>
         var kernelStr = string.Join("\n", Kernel.Select(x => x.ToString()));
         var closureStr = string.Join("\n", Closure.Select(x => x.ToString()));
 
-        return $"Kernel:\n{kernelStr}\nClosure:\n{closureStr}";
+        return $"Kernel:\n{kernelStr}\n Closure:\n{closureStr}";
     }
 
     public bool IsAcceptingState(ProductionSet set)
@@ -50,7 +50,7 @@ public class LR1State : IEquatable<LR1State>, IEqualityComparer<LR1State>
             return false;
         }
 
-        var augmentedProduction = set.TryGetAugmentedProduction();
+        var augmentedProduction = set.TryGetAugmentedStartProduction();
 
         if(augmentedProduction is null)
         {
@@ -71,8 +71,7 @@ public class LR1State : IEquatable<LR1State>, IEqualityComparer<LR1State>
 
     private bool GetIsFinalState()
     {
-        return Items.Length == 1
-            && Items[0].Symbol is null;
+        return Kernel.Any(item => item.Symbol is null);
     }
 
     public bool Equals(LR1State? x, LR1State? y)

@@ -12,13 +12,18 @@ public class GdefGrammar : LR1Grammar
 
     private static NonTerminal GetStart()
     {
-        return new NonTerminal("grammar");
+        return new NonTerminal("grammar'");
     }
 
     private static ProductionRule[] GetProductions()
     {
         return new ProductionRule[]
         {
+            new ProductionRule(
+                "grammar'",
+                new NonTerminal("grammar")
+            ),
+
             new ProductionRule(
                 "grammar",
 

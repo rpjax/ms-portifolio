@@ -137,7 +137,7 @@ public static partial class ProductionSetTransformationsExtensions
     public static void AutoTransformLR1(this ProductionSet set)
     {
         set.ExpandMacros();
-        set.LR1AugmentStart();
+        set.AugmentStart();
 
         var errors = set.GetLR1Errors();
 
@@ -148,7 +148,7 @@ public static partial class ProductionSetTransformationsExtensions
     }
 
 
-    public static void LR1AugmentStart(this ProductionSet set)
+    public static void AugmentStart(this ProductionSet set)
     {
         new AugmentGrammarTransformation()
             .ExecuteTransformations(set);

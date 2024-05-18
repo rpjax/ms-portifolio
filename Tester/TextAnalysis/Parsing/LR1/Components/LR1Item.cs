@@ -38,10 +38,7 @@ public class LR1Item :
 
     public bool Equals(LR1Item? other)
     {
-        return other is not null 
-            && Production.Equals(other.Production) 
-            && Position == other.Position 
-            && Lookaheads.SequenceEqual(other.Lookaheads);
+        return other?.GetSignature(useLookaheads: true) == GetSignature(useLookaheads: true);
     }
 
     public bool Equals(LR1Item? left, LR1Item? right)

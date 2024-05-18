@@ -44,31 +44,25 @@ public class LR1ParsingTableFactory : IFactory<LR1ParsingTable>
         if (state.IsAcceptingState(Set))
         {
             actions.Add(Eoi.Instance, new LR1AcceptAction());
-            return actions;
         }
 
-        var _actions = state.Items
+        var symbolItems = state.Items
+            .GroupBy(x => x.Symbol)
+            .Select(x => x.First())
+            .ToArray();
+
+        var stateActions = symbolItems
             .SelectMany(item => CreateActionsForStateItem(id, state, item, computedStates))
             .ToArray();
 
-        foreach (var item in state.Items)
+        foreach (var action in stateActions)
         {
-            var itemActions = CreateActionsForStateItem(
-                id: id,
-                state: state,
-                item: item, 
-                computedStates: computedStates
-            );
-
-            foreach (var action in itemActions)
+            if (actions.ContainsKey(action.Key))
             {
-                if (actions.ContainsKey(action.Key))
-                {
-                    throw new Exception($"Conflict at state {id} with symbol {action.Key}.");
-                }
-
-                actions.Add(action.Key, action.Value);
+                throw new Exception($"Conflict at state {id} with symbol {action.Key}.");
             }
+
+            actions.Add(action.Key, action.Value);
         }
 
         return actions;
@@ -97,6 +91,11 @@ public class LR1ParsingTableFactory : IFactory<LR1ParsingTable>
 
             foreach (var lookahead in item.Lookaheads)
             {
+                if(lookahead == Eoi.Instance && state.IsAcceptingState(Set))
+                {
+                    continue;
+                }
+
                 actions.Add(lookahead, new LR1ReduceAction(productionIndex));
             }
             
@@ -110,7 +109,7 @@ public class LR1ParsingTableFactory : IFactory<LR1ParsingTable>
         var nextStateSignature = item.GetNextItem().GetSignature(useLookaheads: true);
 
         var nextStates = computedStates
-            .Where(x => x.Value.Kernel.Any(kernel => kernel.GetSignature(useLookaheads: true) == nextStateSignature))
+            .Where(x => x.Value.Kernel[0].GetSignature(useLookaheads: true) == nextStateSignature)
             .ToArray();
             ;
 

@@ -48,7 +48,7 @@ public static class Program
         g.Productions.AutoTransformLR1();
 
         var parser = new LR1Parser(g);
-        var input = "5+3*2";
+        var input = "5 + 3 * 2";
 
         parser.Parse(input);
       

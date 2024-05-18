@@ -16,8 +16,7 @@ public class AugmentGrammarTransformation : ISetTransformer
         }
 
         var start = set.Start;
-        var eoi = Eoi.Instance;
-        var augmentedStart = new Sentence(start, eoi);
+        var augmentedStart = new Sentence(start);
 
         if (set.Productions.Any(x => x.Head == start && x.Body == augmentedStart))
         {
@@ -26,17 +25,17 @@ public class AugmentGrammarTransformation : ISetTransformer
 
         var newStart = set.CreateNonTerminalPrime(start);
 
-        var newProduction = new ProductionRule(
+        var augmentedProduction = new ProductionRule(
             head: newStart,
             body: augmentedStart
         );
 
-        set.GetTransformationBuilder("LR1AugmentStart Grammar")
-            .AddProductions(newProduction)
+        set.GetTransformationBuilder("Augment Grammar")
+            .AddProductions(augmentedProduction)
             .SetStart(newStart)
             .Build()
             ;
-
+        
         return set.GetTrackedTransformations();
     }
 }

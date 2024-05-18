@@ -11,10 +11,20 @@ public class LR1Stack
     private Stack<int> States { get; }
     private Stack<Symbol> Symbols { get; }
 
-    public LR1Stack()
+    private bool UseDebug { get; }
+    private Stack<object> DebugStack { get; }
+
+    public LR1Stack(bool useDebug = false)
     {
         States = new Stack<int>();
         Symbols = new Stack<Symbol>();
+        UseDebug = useDebug;
+        DebugStack = new Stack<object>();
+    }
+
+    public override string ToString()
+    {
+        return string.Join(" ", DebugStack.Reverse().Select(x => x.ToString()));
     }
 
     public int PeekState()
@@ -40,11 +50,21 @@ public class LR1Stack
     public void PushState(int state)
     {
         States.Push(state);
+
+        if(UseDebug)
+        {
+            DebugStack.Push(state);
+        }
     }
 
     public void PushSymbol(Symbol symbol)
     {
         Symbols.Push(symbol);
+
+        if(UseDebug)
+        {
+            DebugStack.Push(symbol);
+        }
     }
 
     public int PopState()
@@ -52,6 +72,11 @@ public class LR1Stack
         if(States.Count == 0)
         {
             throw new InvalidOperationException("The stack is empty.");
+        }
+
+        if(UseDebug)
+        {
+            DebugStack.Pop();
         }
 
         return States.Pop();
@@ -62,6 +87,11 @@ public class LR1Stack
         if(Symbols.Count == 0)
         {
             throw new InvalidOperationException("The stack is empty.");
+        }
+
+        if(UseDebug)
+        {
+            DebugStack.Pop();
         }
 
         return Symbols.Pop();
@@ -102,8 +132,10 @@ public class LR1Parser
     public void Parse(string text)
     {
         using var input = new InputStream(text, Tokenizer.Instance);
-        var stack = new LR1Stack();
+        var stack = new LR1Stack(useDebug: true);
         var context = new LR1Context(input, stack);
+
+        stack.PushState(0);
 
         while (true)
         {
@@ -175,24 +207,38 @@ public class LR1Parser
         context.Input.Consume();
     }
 
-    private void Reduce(LR1Context context, LR1ReduceAction action)
+    private void Reduce(LR1Context context, LR1ReduceAction reduceAction)
     {
-        var production = Table.GetProduction(action.ProductionIndex);
+        var production = Table.GetProduction(reduceAction.ProductionIndex);
 
         for (int i = 0; i < production.Body.Length; i++)
         {
             context.Stack.PopState();
             context.Stack.PopSymbol();
         }
+
+        context.Stack.PushSymbol(production.Head);
+
+        var currentState = context.Stack.PeekState();
+        var gotoAction = Table.LookupGoto(currentState, production.Head);
+
+        if(gotoAction is null)
+        {
+            throw context.SyntaxError();
+        }
+
+        context.Stack.PushState(gotoAction.NextState);
     }
 
-    private void Goto(LR1Context context, LR1GotoAction action)
+    private void Goto(LR1Context context, LR1GotoAction gotoAction)
     {
-        context.Stack.PushState(action.NextState);
+        context.Stack.PushState(gotoAction.NextState);
     }
 
     private void Accept(LR1Context context, LR1AcceptAction action)
     {
         context.Stack.PopState();
+        context.Stack.PopSymbol();
     }
+
 }

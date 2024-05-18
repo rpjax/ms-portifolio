@@ -258,16 +258,16 @@ public static class ProductionSetAnalysisExtensions
                 continue;
             }
 
-            if(production.Body[0] is not NonTerminal nonTerminal)
+            if (production.Body[0] is not NonTerminal nonTerminal)
             {
                 continue;
             }
 
-            if(set.Lookup(nonTerminal).All(x => !x.IsEpsilonProduction()))
+            if (set.Lookup(nonTerminal).All(x => !x.IsEpsilonProduction()))
             {
                 continue;
             }
- 
+
             var firstSet = LL1FirstSetTool.ComputeFirstSet(set, nonTerminal);
             var followSet = LL1FollowSetTool.ComputeFollowSet(set, nonTerminal);
 
@@ -342,14 +342,32 @@ public static class ProductionSetAnalysisExtensions
      * LR1 Analysis helpers.
      */
 
-    public static bool IsAugmented(this ProductionSet set)
+    public static ProductionRule? TryGetAugmentedStartProduction(this ProductionSet set)
     {
-        return set.Any(x => x.Body.Length == 2 && x.Body[1].IsEoi);
+        var startProductions = set.Lookup(set.Start).ToArray();
+
+        if (startProductions.Length != 1)
+        {
+            return null;
+        }
+
+        var startProduction = startProductions[0];
+
+        if (startProduction.Body.Length != 1)
+        {
+            return null;
+        }
+        if (startProduction.Body[0] is not NonTerminal nonTerminal)
+        {
+            return null;
+        }
+
+        return startProduction;
     }
 
-    public static ProductionRule? TryGetAugmentedProduction(this ProductionSet set)
+    public static bool IsAugmented(this ProductionSet set)
     {
-        return set.FirstOrDefault(x => x.Body.Length == 2 && x.Body[1].IsEoi);
+        return TryGetAugmentedStartProduction(set) is not null;
     }
 
     public static void EnsureAugmented(this ProductionSet set)
@@ -357,11 +375,6 @@ public static class ProductionSetAnalysisExtensions
         if (!set.IsAugmented())
         {
             throw new InvalidOperationException("The production set is not augmented.");
-        }
-
-        if (set.Count(x => x.Body.Length == 2 && x.Body[1].IsEoi) != 1)
-        {
-            throw new InvalidOperationException("The production set contains more than one augmented production.");
         }
     }
 
@@ -373,7 +386,7 @@ public static class ProductionSetAnalysisExtensions
         {
             if (set[i] == production)
             {
-                if(index != -1)
+                if (index != -1)
                 {
                     throw new InvalidOperationException("The production set contains duplicate productions.");
                 }

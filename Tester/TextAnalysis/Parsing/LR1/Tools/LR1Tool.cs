@@ -6,27 +6,54 @@ namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Tools;
 
 public class LR1Tool
 {
-    public static LR1State[] ComputeStates(ProductionSet set)
+    public static LR1State[] ComputeStates(
+        ProductionSet set)
     {
         set.EnsureNoMacros();
         set.EnsureAugmented();
 
-        var states = new List<LR1State>();
         var initialState = ComputeInitialState(set);
-        var context = new List<LR1State>();
 
-        var gotoStates = ComputeNextStatesRecursively(
-            set: set,
-            state: initialState,
-            context: context
-        );
+        var states = new List<LR1State>
+        {
+            initialState
+        };
 
-        states.AddRange(gotoStates);
+        while (true)
+        {
+            var counter = 0;
+
+            foreach (var state in states.ToArray())
+            {
+                var nextStates = ComputeNextStates(
+                    set: set,
+                    state: state,
+                    kernelBlacklist: Array.Empty<LR1Item>()
+                );
+
+                foreach (var nextState in nextStates)
+                {
+                    if (states.Any(x => x.Equals(nextState)))
+                    {
+                        continue;
+                    }
+
+                    states.Add(nextState);
+                    counter++;
+                }
+            }
+
+            if (counter == 0)
+            {
+                break;
+            }
+        }
 
         return states.ToArray();
     }
 
-    public static Dictionary<int, LR1State> ComputeStateDictionary(ProductionSet set)
+    public static Dictionary<int, LR1State> ComputeStateDictionary(
+        ProductionSet set)
     {
         var dictionary = new Dictionary<int, LR1State>();
         var states = ComputeStates(set);
@@ -39,9 +66,10 @@ public class LR1Tool
         return dictionary;
     }
 
-    private static LR1State ComputeInitialState(ProductionSet set)
+    private static LR1State ComputeInitialState(
+        ProductionSet set)
     {
-        var augmentedProduction = set.TryGetAugmentedProduction();
+        var augmentedProduction = set.TryGetAugmentedStartProduction();
 
         if (augmentedProduction is null)
         {
@@ -61,7 +89,7 @@ public class LR1Tool
 
         var closure = ComputeClosure(
             set: set,
-            kernel: kernel, 
+            kernel: kernel,
             new()
         );
 
@@ -69,52 +97,6 @@ public class LR1Tool
             kernel: kernel,
             closure: closure
         );
-    }
-
-    private static LR1State[] ComputeNextStatesRecursively(
-        ProductionSet set,
-        LR1State state,
-        List<LR1State> context)
-    {
-        if(!context.Contains(state))
-        {
-            context.Add(state);  
-        }
-
-        var nextStates = ComputeNextStates(
-            set: set,
-            state: state,
-            context: context
-        );
-
-        var counter = 0;
-
-        foreach (var nextState in nextStates)
-        {
-            if(context.Contains(nextState))
-            {
-                continue;
-            }
-
-            context.Add(nextState);
-            counter++;
-        }
-
-        if(counter == 0)
-        {
-            return context.ToArray();
-        }
-
-        foreach (var nextState in nextStates)
-        {
-            ComputeNextStatesRecursively(
-                set: set,
-                state: nextState,
-                context: context
-            );
-        }
-
-        return context.ToArray();
     }
 
     private static LR1Item[] ComputeClosure(
@@ -125,7 +107,7 @@ public class LR1Tool
         var kernelSymbol = kernel.Symbol;
         var kernelSignature = kernel.GetSignature(useLookaheads: true);
 
-        var canExpand = kernelSymbol is not null 
+        var canExpand = kernelSymbol is not null
             && kernelSymbol.IsNonTerminal
             ;
 
@@ -200,8 +182,8 @@ public class LR1Tool
                 .ToArray();
 
             var uniqueItem = new LR1Item(
-                production: production, 
-                position: position, 
+                production: production,
+                position: position,
                 lookaheads: lookaheads
             );
 
@@ -299,12 +281,16 @@ public class LR1Tool
     private static LR1State[] ComputeNextStates(
         ProductionSet set,
         LR1State state,
-        List<LR1State> context)
+        LR1Item[] kernelBlacklist)
     {
         var states = new List<LR1State>();
-        var gotoKernels = ComputeGotoKernelItems(state, context);
 
-        foreach (var entry in gotoKernels)
+        var gotosDictionary = ComputeGoto(
+            state: state,
+            kernelBlacklist: kernelBlacklist
+        );
+
+        foreach (var entry in gotosDictionary)
         {
             var nextStateKernel = entry.Value;
 
@@ -324,9 +310,9 @@ public class LR1Tool
         return states.ToArray();
     }
 
-    private static Dictionary<Symbol, LR1Item[]> ComputeGotoKernelItems(
+    private static Dictionary<Symbol, LR1Item[]> ComputeGoto(
         LR1State state,
-        List<LR1State> context)
+        LR1Item[] kernelBlacklist)
     {
         var symbolGroups = state.Items
             .Where(item => item.Symbol is not null)
@@ -334,9 +320,6 @@ public class LR1Tool
             .ToArray();
 
         var dictionary = new Dictionary<Symbol, LR1Item[]>();
-        var kernelSignatures = context
-            .SelectMany(x => x.Kernel.Select(item => item.GetSignature(useLookaheads: true)))
-            .ToArray();
 
         foreach (var entry in symbolGroups)
         {
@@ -344,10 +327,10 @@ public class LR1Tool
 
             var kernel = entry
                 .Select(item => item.GetNextItem())
-                .Where(item => !kernelSignatures.Any(signature => signature == item.GetSignature(useLookaheads: true)))
+                .Where(item => !kernelBlacklist.Any(k => k.Equals(item)))
                 .ToArray();
 
-            if(kernel.Length == 0)
+            if (kernel.Length == 0)
             {
                 continue;
             }

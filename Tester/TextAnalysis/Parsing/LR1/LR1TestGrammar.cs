@@ -17,8 +17,7 @@ public class LR1TestGrammar : LR1Grammar
         {
             new ProductionRule(
                 "S′",
-                new NonTerminal("S"),
-                Eoi.Instance
+                new NonTerminal("S")
             ),
 
             new ProductionRule(
@@ -55,8 +54,7 @@ public class LR1TestGrammar2 : LR1Grammar
         {
             new ProductionRule(
                 "E′",
-                new NonTerminal("E"),
-                Eoi.Instance
+                new NonTerminal("E")
             ),
 
             new ProductionRule(

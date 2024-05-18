@@ -109,7 +109,7 @@ public class LR1ParsingTable
 
     public static string CreateActionKey(Symbol symbol, KeyStrategy strategy)
     {
-        if (symbol.IsNonTerminal)
+        if (symbol is NonTerminal || symbol is Epsilon)
         {
             return symbol.ToString();
         }
@@ -119,9 +119,9 @@ public class LR1ParsingTable
             throw new InvalidOperationException("The symbol is not a terminal.");
         }
 
-        if (terminal.Value is null)
+        if(terminal.Value is null)
         {
-            return terminal.ToString();
+            return terminal.TokenType.ToString();
         }
 
         switch (strategy)
@@ -130,7 +130,7 @@ public class LR1ParsingTable
                 return terminal.TokenType.ToString();
 
             case KeyStrategy.TypeAndValue:
-                return terminal.ToString();
+                return $"{terminal.TokenType}({terminal.Value})";
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(strategy));
@@ -150,6 +150,42 @@ public class LR1ParsingTable
         }
 
         return Entries[state].Lookup(symbol: symbol);
+    }
+
+    public LR1ShiftAction? LookupShift(int state, Symbol symbol)
+    {
+        var action = Lookup(state, symbol);
+
+        if (action is LR1ShiftAction shiftAction)
+        {
+            return shiftAction;
+        }
+
+        return null;
+    }
+
+    public LR1ReduceAction? LookupReduce(int state, Symbol symbol)
+    {
+        var action = Lookup(state, symbol);
+
+        if (action is LR1ReduceAction reduceAction)
+        {
+            return reduceAction;
+        }
+
+        return null;
+    }
+
+    public LR1GotoAction? LookupGoto(int state, Symbol symbol)
+    {
+        var action = Lookup(state, symbol);
+
+        if (action is LR1GotoAction gotoAction)
+        {
+            return gotoAction;
+        }
+
+        return null;
     }
 
     public ProductionRule GetProduction(int index)
