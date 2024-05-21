@@ -27,7 +27,7 @@ public class LR1Parser
     public LR1Parser(Grammar grammar, TokenType[]? tokenIgnoreSet = null)
     {
         grammar.AutoTransformLR1();
-        ParsingTable = LR1ParsingTable.Create(grammar.Productions);
+        ParsingTable = LR1ParsingTable.Create(grammar);
         TokenIgnoreSet = tokenIgnoreSet ?? DefaultIgnoreSet;
     }
 
@@ -152,6 +152,18 @@ public class LR1Parser
     {
         var production = ParsingTable.GetProduction(reduceAction.ProductionIndex);
 
+        if (production.IsEpsilonProduction)
+        {
+            EpsilonReduce(context, production);
+        }
+        else
+        {
+            NormalReduce(context, production);
+        }
+    }
+
+    private void NormalReduce(LR1Context context, ProductionRule production)
+    {
         for (int i = 0; i < production.Body.Length; i++)
         {
             context.Stack.PopState();
@@ -165,13 +177,32 @@ public class LR1Parser
         var currentState = context.Stack.PeekState();
         var gotoAction = ParsingTable.LookupGoto(currentState, nonTerminal);
 
-        if(gotoAction is null)
+        if (gotoAction is null)
         {
             throw context.SyntaxError();
         }
 
         context.Stack.PushState(gotoAction.NextState);
         context.CstBuilder.Reduce(nonTerminal, production.Body.Length);
+    }
+
+    private void EpsilonReduce(LR1Context context, ProductionRule production)
+    {
+        var nonTerminal = production.Head;
+
+        context.Stack.PushSymbol(nonTerminal);
+
+        var currentState = context.Stack.PeekState();
+        var gotoAction = ParsingTable.LookupGoto(currentState, nonTerminal);
+
+        if (gotoAction is null)
+        {
+            throw context.SyntaxError();
+        }
+
+        context.Stack.PushState(gotoAction.NextState);
+        context.CstBuilder.AddEpsilon();
+        //context.CstBuilder.Reduce(nonTerminal, production.Body.Length);
     }
 
     private void Goto(LR1Context context, LR1GotoAction gotoAction)

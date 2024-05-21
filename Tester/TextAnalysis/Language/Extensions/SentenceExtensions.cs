@@ -172,42 +172,42 @@ public static class SentenceExtensions
 
     public static Sentence Add(this Sentence self, Symbol symbol)
     {
-        var list = new List<Symbol>(self.Symbols);
+        var list = new List<Symbol>(self.ToArray());
         list.Add(symbol);
         return list;
     }
 
     public static Sentence Add(this Sentence self, IEnumerable<Symbol> symbols)
     {
-        var list = new List<Symbol>(self.Symbols);
+        var list = new List<Symbol>(self.ToArray());
         list.AddRange(symbols);
         return list;
     }
 
     public static Sentence InsertAt(this Sentence self, int index, Symbol symbol)
     {
-        var list = new List<Symbol>(self.Symbols);
+        var list = new List<Symbol>(self.ToArray());
         list.Insert(index, symbol);
         return list;
     }
 
     public static Sentence InsertTerminalAt(this Sentence self, int index, string value)
     {
-        var list = new List<Symbol>(self.Symbols);
+        var list = new List<Symbol>(self.ToArray());
         list.Insert(index, Terminal.From(value));
         return list;
     }
 
     public static Sentence InsertAt(this Sentence self, int index, IEnumerable<Symbol> symbols)
     {
-        var list = new List<Symbol>(self.Symbols);
+        var list = new List<Symbol>(self.ToArray());
         list.InsertRange(index, symbols);
         return list;
     }
 
     public static Sentence RemoveAt(this Sentence self, int index)
     {
-        var list = new List<Symbol>(self.Symbols);
+        var list = new List<Symbol>(self.ToArray());
         list.RemoveAt(index);
         return list;
     }
@@ -231,20 +231,20 @@ public static class SentenceExtensions
         return symbols;
     }
 
-    public static Sentence GetRange(this Sentence self, int start, int end)
+    public static Sentence GetRange(this Sentence self, int start, int count)
     {
-        if(start < 0 || start > self.Length)
+        if(start < 0 || start >= self.Length)
         {
             throw new ArgumentOutOfRangeException(nameof(start), "The start index is out of range.");
         }
-        if(end < 0 || end > self.Length)
+        if(count < 0 || start + count > self.Length)
         {
-            throw new ArgumentOutOfRangeException(nameof(end), "The end index is out of range.");
+            throw new ArgumentOutOfRangeException(nameof(count), "The count is out of range.");
         }
 
         return self
             .Skip(start)
-            .Take(end - start + 1)
+            .Take(count)
             .ToArray();
     }
 

@@ -1,7 +1,6 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Language.Extensions;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 
@@ -22,12 +21,12 @@ public class LR1Item :
 
     public static bool operator ==(LR1Item left, LR1Item right)
     {
-        return left.Equals(right);
+        return left.GetSignature(useLookaheads: true) == right.GetSignature(useLookaheads: true);
     }
 
     public static bool operator !=(LR1Item left, LR1Item right)
     {
-        return !left.Equals(right);
+        return left.GetSignature(useLookaheads: true) != right.GetSignature(useLookaheads: true);
     }
 
     public Symbol? Symbol => Position < Production.Body.Length 
@@ -38,13 +37,14 @@ public class LR1Item :
 
     public bool Equals(LR1Item? other)
     {
-        return other?.GetSignature(useLookaheads: true) == GetSignature(useLookaheads: true);
+        return other is not null 
+            && other == this;
     }
 
     public bool Equals(LR1Item? left, LR1Item? right)
     {
         return (left is not null && right is not null)
-            && left.Equals(right);
+            && left == right;
     }
 
     public override bool Equals(object? obj)
@@ -123,12 +123,24 @@ public class LR1Item :
 
     public Sentence GetAlpha()
     {
+        if(Position == 0)
+        {
+            return new Sentence();
+        }
+
         return Production.Body.GetRange(0, Position);
     }
 
     public Sentence GetBeta()
     {
-        return Production.Body.GetRange(Position + 1, Production.Body.Length - Position);
+        var start = Position + 1;
+
+        if ((Production.Body.Length - start) < 1)
+        {
+            return new Sentence();
+        }
+
+        return Production.Body.GetRange(start, Production.Body.Length - start);
     }
 
     public LR1Item GetNextItem()
@@ -139,6 +151,26 @@ public class LR1Item :
         }
 
         return new LR1Item(Production, Position + 1, Lookaheads);
+    }
+
+    public bool ContainsLookaheads(Terminal[] lookaheads)
+    {
+        foreach (var lookahead in lookaheads)
+        {
+            if (!Lookaheads.Any(x => x == lookahead))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public bool ContainsItem(LR1Item item)
+    {
+        return Production == item.Production
+            && Position == item.Position
+            && ContainsLookaheads(item.Lookaheads);
     }
 
 }

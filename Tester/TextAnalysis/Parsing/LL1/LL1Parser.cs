@@ -9,7 +9,7 @@ namespace ModularSystem.Core.TextAnalysis.Parsing;
 public class LL1Parser
 {
     private LL1Grammar Grammar { get; }
-    private Tokenizer Tokenizer { get; } 
+    private Tokenizer Tokenizer { get; }
 
     public LL1Parser(LL1Grammar grammar)
     {
@@ -56,7 +56,7 @@ public class LL1Parser
 
     private CstNode MatchEoi(LL1Context context)
     {
-        if(context.InputStream.Lookahead is null)
+        if (context.InputStream.Lookahead is null)
         {
             throw new Exception("Unexpected end of tokens.");
         }
@@ -130,9 +130,7 @@ public class LL1Parser
             throw new Exception("Unexpected end of tokens.");
         }
 
-        var production = parsingTable.Lookup(nonTerminal, input.Lookahead);
-
-        if (production is null)
+        if (!parsingTable.Lookup(nonTerminal, input.Lookahead, out var production))
         {
             throw new Exception("Syntax error");
         }

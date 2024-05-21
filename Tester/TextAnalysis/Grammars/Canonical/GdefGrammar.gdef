@@ -85,7 +85,7 @@ lexeme
     ;
 
 semantic_action
-    : '{' '$' semantic_value '}'
+    : ':' '{' '$' semantic_value '}'
     ;
 
 semantic_value

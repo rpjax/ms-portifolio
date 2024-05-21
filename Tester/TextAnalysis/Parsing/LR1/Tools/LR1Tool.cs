@@ -1,5 +1,4 @@
-﻿using ModularSystem.Core.Emulation.Components;
-using ModularSystem.Core.TextAnalysis.Language.Components;
+﻿using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Language.Extensions;
 using ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 
@@ -26,9 +25,14 @@ public class LR1Tool
 
             foreach (var state in states.ToArray())
             {
+                var kernelBlacklist = states
+                    .SelectMany(x => x.Kernel)
+                    .ToArray();
+
                 var nextStates = ComputeNextStates(
                     set: set,
-                    state: state
+                    state: state,
+                    kernelBlacklist: kernelBlacklist
                 );
 
                 foreach (var nextState in nextStates)
@@ -69,12 +73,7 @@ public class LR1Tool
     private static LR1State ComputeInitialState(
         ProductionSet set)
     {
-        var augmentedProduction = set.TryGetAugmentedStartProduction();
-
-        if (augmentedProduction is null)
-        {
-            throw new InvalidOperationException("The production set does not have an augmented production.");
-        }
+        var augmentedProduction = set.GetAugmentedStartProduction();
 
         var initialItemProduction = new ProductionRule(
             head: augmentedProduction.Head,
@@ -100,13 +99,14 @@ public class LR1Tool
 
     private static LR1State[] ComputeNextStates(
     ProductionSet set,
-    LR1State state)
+    LR1State state,
+    LR1Item[] kernelBlacklist)
     {
         var states = new List<LR1State>();
 
         var gotosDictionary = ComputeGotoDictionary(
             state: state,
-            kernelBlacklist: Array.Empty<LR1Item>()
+            kernelBlacklist: kernelBlacklist
         );
 
         foreach (var entry in gotosDictionary)
@@ -137,6 +137,7 @@ public class LR1Tool
         LR1Item item)
     {
         var items = new List<LR1Item>();
+
         var symbol = item.Symbol;
 
         if (symbol is not NonTerminal nonTerminal)
@@ -157,7 +158,7 @@ public class LR1Tool
             var lookaheads = ComputeLookaheads(
                 set: set,
                 beta: item.GetBeta(),
-                alpha: item.Lookaheads
+                originalLookaheads: item.Lookaheads
             );
 
             var newItem = new LR1Item(
@@ -191,7 +192,7 @@ public class LR1Tool
 
                 foreach (var newItem in closure)
                 {
-                    if (items.Any(x => x.Equals(newItem)))
+                    if (items.Any(x => x == newItem))
                     {
                         continue;
                     }
@@ -234,13 +235,25 @@ public class LR1Tool
 
         return uniqueItems
             .ToArray();
+
+        return items
+            .Skip(kernel.Length)
+            .Select(x => new { Item = x, Signature = x.GetSignature(useLookaheads:true) })
+            .DistinctBy(x => x.Signature)
+            .Select(x => x.Item)
+            .ToArray();
     }
 
     private static Terminal[] ComputeLookaheads(
         ProductionSet set,
         Sentence beta,
-        Terminal[] alpha)
+        Terminal[] originalLookaheads)
     {
+        return ComputeFirstSet(
+            set: set,
+            beta: beta,
+            originalLookaheads: originalLookaheads
+        );
         var lookaheads = new List<Terminal>();
         var position = 0;
 
@@ -248,7 +261,7 @@ public class LR1Tool
         {
             if (position == beta.Length)
             {
-                lookaheads.AddRange(alpha);
+                lookaheads.AddRange(originalLookaheads);
                 break;
             }
 
@@ -283,7 +296,7 @@ public class LR1Tool
                 var lookaheadsForProduction = ComputeLookaheads(
                     set: set,
                     beta: production.Body,
-                    alpha: alpha
+                    originalLookaheads: originalLookaheads
                 );
 
                 lookaheads.AddRange(lookaheadsForProduction);
@@ -297,12 +310,89 @@ public class LR1Tool
             .ToArray();
     }
 
+    private static Terminal[] ComputeFirstSet(
+        ProductionSet set,
+        Sentence beta,
+        Terminal[] originalLookaheads)
+    {
+        var stack = new Stack<Sentence>();
+        var lookaheads = new List<Terminal>();
+
+        stack.Push(beta);
+
+        while (true)
+        {
+            if(stack.Count == 0)
+            {
+                break;
+            }
+
+            var sentence = stack.Pop();
+
+            if(sentence.Length == 0)
+            {
+                lookaheads.AddRange(originalLookaheads);
+                continue;
+            }
+
+            var symbol = sentence[0];
+
+            if(symbol is Terminal terminal)
+            {
+                lookaheads.Add(terminal);
+                continue;
+            }
+
+            if(symbol is Epsilon)
+            {
+                throw new NotImplementedException();
+            }
+
+            if(symbol is not NonTerminal nonTerminal)
+            {
+                throw new InvalidOperationException("The symbol is not a nonterminal.");
+            }
+
+            var productions = set.Lookup(nonTerminal).ToArray();
+            var producesEpsilon = productions.Any(x => x.IsEpsilonProduction);
+
+            // S -> .A B c (beta is B c)
+            // B -> b
+            // B -> .epsilon
+
+            foreach (var production in productions)
+            {
+                if(production.IsEpsilonProduction)
+                {
+                    stack.Push(sentence.Skip(1).ToArray());
+                    continue;
+                }
+
+                var newSentence = new Sentence(
+                    production.Body.Concat(sentence.Skip(1)).ToArray()
+                );
+
+                if(newSentence.Length == 0)
+                {
+                    Console.WriteLine();
+                }
+
+                stack.Push(newSentence);
+            }
+        }
+
+        return lookaheads
+            .Distinct()
+            .ToArray();
+    }
+
     private static Dictionary<Symbol, LR1Item[]> ComputeGotoDictionary(
         LR1State state,
         LR1Item[] kernelBlacklist)
     {
         var symbolGroups = state.Items
             .Where(item => item.Symbol is not null)
+            .Where(item => item.Symbol is not Epsilon)
             .GroupBy(item => item.Symbol!)
             .ToArray();
 
@@ -314,7 +404,8 @@ public class LR1Tool
 
             var kernel = entry
                 .Select(item => item.GetNextItem())
-                .Where(item => !kernelBlacklist.Any(k => k.Equals(item)))
+                .Where(item => !kernelBlacklist.Any(blacklistedKernel => blacklistedKernel.ContainsItem(item)))
+                //.Where(item => !kernelBlacklist.Any(blacklistedKernel => blacklistedKernel.Equals(item)))
                 .ToArray();
 
             if (kernel.Length == 0)

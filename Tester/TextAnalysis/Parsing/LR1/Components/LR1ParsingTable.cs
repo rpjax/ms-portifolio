@@ -81,9 +81,10 @@ public class LR1ParsingTable
         }
     }
 
-    public static LR1ParsingTable Create(ProductionSet set)
+    public static LR1ParsingTable Create(Grammar grammar)
     {
-        return new LR1ParsingTableFactory(set).Create();
+        return new LR1ParsingTableFactory()
+            .Create(grammar);
     }
 
     public LR1Action? Lookup(int state, Symbol symbol)

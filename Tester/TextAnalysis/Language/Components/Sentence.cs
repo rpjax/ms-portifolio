@@ -3,32 +3,42 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
-/*
-    Helper constructs.
-*/
-
+/// <summary>
+/// Represents an immutable sequence of <see cref="Symbol"/> that form a sentence.
+/// </summary>
 public struct Sentence : 
     IEnumerable<Symbol>, 
     IEquatable<Sentence>, 
     IEqualityComparer<Sentence>
 {
-    internal Symbol[] Symbols { get; set; }
+    private Symbol[] Symbols { get; }
+
+    public Sentence()
+    {
+        Symbols = Array.Empty<Symbol>();
+    }
 
     public Sentence(params Symbol[] symbols)
     {
-        Symbols = Array.Empty<Symbol>()
-            .Concat(symbols)
-            .ToArray();
-
-        ExpandPipeMacros();
+        Symbols = ExpandPipeMacros(symbols);
     }
 
     public Sentence(Symbol symbol, params Symbol[] symbols)
     {
-        Symbols = Array.Empty<Symbol>()
+        symbols = Array.Empty<Symbol>()
             .Append(symbol)
             .Concat(symbols)
             .ToArray();
+        Symbols = ExpandPipeMacros(symbols);
+    }
+
+    public Sentence(IEnumerable<Symbol> firstSegment, IEnumerable<Symbol> secondSegment)
+    {
+        var symbols = Array.Empty<Symbol>()
+            .Concat(firstSegment)
+            .Concat(secondSegment)
+            .ToArray();
+        Symbols = ExpandPipeMacros(symbols);
     }
 
     public int Length => Symbols.Length;
@@ -68,7 +78,39 @@ public struct Sentence :
         return new Sentence(productions.ToArray());
     }
 
-    // copilot, generate implicit conversion from and to productionSymbol array and list
+    private static Symbol[] ExpandPipeMacros(Symbol[] symbols)
+    {
+        if (symbols.All(x => x is not AlternativeMacro))
+        {
+            return symbols;
+        }
+
+        var pipeIndexes = symbols
+            .Select((x, i) => (x, i))
+            .Where(x => x.x is AlternativeMacro)
+            .Select(x => x.i)
+            .ToList();
+
+        var alternatives = new List<Sentence>();
+        var start = 0;
+
+        pipeIndexes.Add(symbols.Length);
+
+        foreach (var index in pipeIndexes)
+        {
+            var end = index;
+            var length = end - start;
+
+            var alternative = new Sentence(symbols.Skip(start).Take(length).ToArray());
+            alternatives.Add(alternative);
+
+            start = end + 1;
+        }
+
+        var alternationMacro = new ExpandedAlternativeMacro(alternatives.ToArray());
+
+        return new Symbol[] { alternationMacro };
+    }
 
     public IEnumerator<Symbol> GetEnumerator()
     {
@@ -108,7 +150,20 @@ public struct Sentence :
 
     public bool Equals(Sentence other)
     {
-        return other.SequenceEqual(this);
+        if(Length != other.Length)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < Length; i++)
+        {
+            if (!this[i].Equals(other[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public bool Equals(Sentence x, Sentence y)
@@ -164,41 +219,6 @@ public struct Sentence :
     private string ToEbnfKleeneNotation()
     {
         return string.Join(" ", this.Select(x => x.ToNotation(NotationType.EbnfKleene)));
-    }
-
-    private void ExpandPipeMacros()
-    {
-        if (Symbols.All(x => x is not AlternativeMacro))
-        {
-            return;
-        }
-
-        var pipeIndexes = Symbols
-            .Select((x, i) => (x, i))
-            .Where(x => x.x is AlternativeMacro)
-            .Select(x => x.i)
-            .ToList();
-
-        var alternatives = new List<Sentence>();
-        var start = 0;
-
-        pipeIndexes.Add(Symbols.Length);
-
-        foreach (var index in pipeIndexes)
-        {
-            var end = index;
-            var length = end - start;
-
-            var alternative = new Sentence(Symbols.Skip(start).Take(length).ToArray());
-            alternatives.Add(alternative);
-
-            start = end + 1;
-        }
-
-        var alternationMacro = new ExpandedAlternativeMacro(alternatives.ToArray());
-
-        Symbols = new Symbol[1];
-        Symbols[0] = alternationMacro;
     }
 
 }

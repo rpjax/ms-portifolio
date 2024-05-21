@@ -20,7 +20,7 @@ public class LL1ParsingTableEntry
         var strategy = Lookahead.Value != null
             ? LL1ParsingTable.KeyStrategy.TypeAndValue
             : LL1ParsingTable.KeyStrategy.TypeOnly;
-       
+
         return LL1ParsingTable.CreateKey(State, Lookahead, strategy);
     }
 }
@@ -75,19 +75,22 @@ public class LL1ParsingTable
         return string.Join("\n", keys.Zip(values, (k, v) => $"[{k}] = ({v})"));
     }
 
-    public ProductionRule? Lookup(NonTerminal state, Terminal lookahead)
+    public bool Lookup(NonTerminal state, Terminal lookahead, out ProductionRule production)
     {
-        if (InternalEntries.TryGetValue(CreateKey(state, lookahead, KeyStrategy.TypeAndValue), out var production))
+        if (InternalEntries.TryGetValue(CreateKey(state, lookahead, KeyStrategy.TypeAndValue), out var value1))
         {
-            return production;
+            production = value1;
+            return true;
         }
 
-        if (InternalEntries.TryGetValue(CreateKey(state, lookahead, KeyStrategy.TypeOnly), out var _production))
+        if (InternalEntries.TryGetValue(CreateKey(state, lookahead, KeyStrategy.TypeOnly), out var value2))
         {
-            return _production;
+            production = value2;
+            return true;
         }
 
-        return null;
+        production = default;
+        return false;
     }
 
 }

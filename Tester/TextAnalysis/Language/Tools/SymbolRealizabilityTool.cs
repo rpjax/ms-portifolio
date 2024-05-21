@@ -9,11 +9,11 @@ public class SymbolRealizabilityTool
     {
         var realizableSymbols = new List<Symbol>();
         var progress = false;
-        var workingSet = set.Copy();
+        var workingSet = set.ToList();
 
         while (true)
         {
-            foreach (var production in workingSet.Copy())
+            foreach (var production in workingSet.ToArray())
             {
                 if (realizableSymbols.Contains(production.Head))
                 {

@@ -11,7 +11,7 @@ public class GdefGrammar : Grammar
 
     private static NonTerminal GetStart()
     {
-        return new NonTerminal("grammar'");
+        return new NonTerminal("grammar′");
     }
 
     private static ProductionRule[] GetProductions()
@@ -19,7 +19,7 @@ public class GdefGrammar : Grammar
         return new ProductionRule[]
         {
             new ProductionRule(
-                "grammar'",
+                "grammar′",
                 new NonTerminal("grammar")
             ),
 
@@ -174,6 +174,7 @@ public class GdefGrammar : Grammar
 
             new ProductionRule(
                 "semantic_action",
+                new Terminal(TokenType.Punctuation, ":"),
                 new Terminal(TokenType.Punctuation, "{"),
                 new Terminal(TokenType.Punctuation, "$"),
                 new NonTerminal("semantic_value"),

@@ -44,7 +44,7 @@ public class LeftRecursionRemoval : ISetTransformer
                     throw new InvalidOperationException("The recursive production is null.");
                 }
 
-                var recursiveSymbol = recursiveProduction.Head;
+                var recursiveSymbol = recursiveProduction.Value.Head;
 
                 /*
                  * get all the productions of the root symbol that don't start with the recursive symbol. 
@@ -71,7 +71,7 @@ public class LeftRecursionRemoval : ISetTransformer
                     throw new InvalidOperationException("The grammar is not in the correct form.");
                 }
 
-                var suffix = recursiveProduction.Body.Skip(1).ToArray();
+                var suffix = recursiveProduction.Value.Body.Skip(1).ToArray();
                 var builder = set.GetTransformationBuilder("Left Recursion Removal");
 
                 foreach (var item in productions)
@@ -84,7 +84,7 @@ public class LeftRecursionRemoval : ISetTransformer
                     builder.AddProductions(newProduction);
                 }
 
-                builder.RemoveProductions(recursiveProduction);
+                builder.RemoveProductions(recursiveProduction.Value);
                 builder.Build();
             }
 

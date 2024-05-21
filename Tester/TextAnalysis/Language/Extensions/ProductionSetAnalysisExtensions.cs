@@ -48,7 +48,7 @@ public static class ProductionSetAnalysisExtensions
             .Execute(set);
     }
 
-    public static ProductionSet GetUnreachableProductions(this ProductionSet set)
+    public static ProductionRule[] GetUnreachableProductions(this ProductionSet set)
     {
         set.EnsureNoMacros();
 
@@ -58,7 +58,7 @@ public static class ProductionSetAnalysisExtensions
             .Where(x => !reachableSymbols.Contains(x.Head))
             .ToArray();
 
-        return new ProductionSet(set.Start, unreachableProductions);
+        return unreachableProductions;
     }
 
     public static NonTerminal[] GetUnrealizableNonTerminals(this ProductionSet set)
@@ -69,7 +69,7 @@ public static class ProductionSetAnalysisExtensions
             .Execute(set);
     }
 
-    public static ProductionSet GetUnrealizableProductions(this ProductionSet set)
+    public static ProductionRule[] GetUnrealizableProductions(this ProductionSet set)
     {
         set.EnsureNoMacros();
 
@@ -81,7 +81,7 @@ public static class ProductionSetAnalysisExtensions
             productions.AddRange(set.Lookup(nonTerminal));
         }
 
-        return new ProductionSet(set.Start, productions);
+        return productions.ToArray();
     }
 
     public static LL1LeftRecursionCicle[] GetLeftRecursionCicles(this ProductionSet set)
@@ -112,13 +112,13 @@ public static class ProductionSetAnalysisExtensions
 
                 if (node.Parent?.Production is not null)
                 {
-                    originalSentence = originalSentence.Add(node.Parent.Production.Body);
+                    originalSentence = originalSentence.Add(node.Parent.Production.Value.Body);
                 }
 
-                var derivedSentence = new Sentence(node.Production.Body);
+                var derivedSentence = new Sentence(node.Production.Value.Body);
 
                 var derivation = new Derivation(
-                    production: node.Production,
+                    production: node.Production.Value,
                     nonTerminal: nonTerminal,
                     originalSentence: originalSentence,
                     derivedSentence: derivedSentence
@@ -365,6 +365,18 @@ public static class ProductionSetAnalysisExtensions
         return startProduction;
     }
 
+    public static ProductionRule GetAugmentedStartProduction(this ProductionSet set)
+    {
+        var production = set.TryGetAugmentedStartProduction();
+
+        if (production is null)
+        {
+            throw new InvalidOperationException("The production set does not have an augmented production.");
+        }
+
+        return production.Value;
+    }
+
     public static bool IsAugmented(this ProductionSet set)
     {
         return TryGetAugmentedStartProduction(set) is not null;
@@ -498,10 +510,11 @@ public static class ProductionSetAnalysisExtensions
 
         if (unrealizableProductions.Length != 0)
         {
-            var error = new Error("The grammar contains unrealizable productionsGroup.")
-                .AddDetails("The unrealizable productionsGroup", unrealizableProductions.ToString())
+            var str = string.Join(Environment.NewLine, unrealizableProductions.Select(x => x.ToString()));
+            var error = new Error("The grammar contains unrealizable productions.")
+                .AddDetails("The unrealizable productions", str)
                 .AddDetails("The production set", set.ToString())
-                .AddJsonData("The unrealizable productionsGroup", unrealizableProductions)
+                .AddJsonData("The unrealizable productions", unrealizableProductions)
                 .AddJsonData("The production set", set)
                 ;
 
@@ -512,10 +525,11 @@ public static class ProductionSetAnalysisExtensions
 
         if (unreachableProductions.Length != 0)
         {
+            var str = string.Join(Environment.NewLine, unreachableProductions.Select(x => x.ToString()));
             var error = new Error("The grammar contains unreachable symbols.")
-                .AddDetails("The unreachable productionsGroup", unreachableProductions.ToString())
+                .AddDetails("The unreachable productions", str)
                 .AddDetails("The production set", set.ToString())
-                .AddJsonData("The unreachable productionsGroup", unreachableProductions)
+                .AddJsonData("The unreachable productions", unreachableProductions)
                 .AddJsonData("The production set", set)
                 ;
 

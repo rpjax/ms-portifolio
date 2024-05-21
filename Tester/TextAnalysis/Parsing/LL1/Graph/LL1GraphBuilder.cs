@@ -47,7 +47,7 @@ public static class LL1GraphBuilder
                 throw new InvalidOperationException("The symbol production is null.");
             }
 
-            terminalProducers.Add(symbolProduction.Head);
+            terminalProducers.Add(symbolProduction.Value.Head);
 
             return new LL1GraphNode(
                 symbol: symbol,
@@ -68,7 +68,7 @@ public static class LL1GraphBuilder
                 throw new InvalidOperationException("The symbol production is null.");
             }
 
-            foreach (var item in symbolProduction.Body)
+            foreach (var item in symbolProduction.Value.Body)
             {
                 if (ReferenceEquals(item, symbol))
                 {
@@ -306,13 +306,17 @@ public static class LL1GraphBuilder
 
         if (recursionStack.Contains(leftmostNonTerminal))
         {
-            var epsilonProduction = set.Lookup(leftmostNonTerminal)
-                .FirstOrDefault(x => x.Body == new Sentence(Epsilon.Instance));
+            var epsilonProductions = set.Lookup(leftmostNonTerminal)
+                .Where(x => x.Body == new Sentence(Epsilon.Instance))
+                .ToArray()
+                ;
 
-            if(epsilonProduction is null)
+            if (epsilonProductions.Length == 0)
             {
                 throw new InvalidOperationException("The non-terminal does not have branch to end the recursion.");
             }
+
+            var epsilonProduction = epsilonProductions.First();
 
             var derivation = sentence.DeriveLeftmostNonTerminal(epsilonProduction);
 

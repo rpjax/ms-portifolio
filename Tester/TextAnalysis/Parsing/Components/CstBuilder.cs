@@ -18,6 +18,11 @@ public class CstBuilder
         Accumulator.Add(new TerminalCstNode(terminal));
     }
 
+    public void AddEpsilon()
+    {
+        Accumulator.Add(new EpsilonCstNode());
+    }
+
     public void Reduce(NonTerminal nonTerminal, int count)
     {
         var children = Accumulator
@@ -25,6 +30,11 @@ public class CstBuilder
             .ToList();
 
         Accumulator.RemoveRange(Accumulator.Count - count, count);
+
+        children = children
+            //.Where(c => c is not EpsilonCstNode)
+            .ToList();
+
         Accumulator.Add(new NonTerminalCstNode(nonTerminal, children));
     }
 

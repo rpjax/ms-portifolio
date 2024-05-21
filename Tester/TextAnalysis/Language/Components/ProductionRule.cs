@@ -1,9 +1,9 @@
-namespace ModularSystem.Core.TextAnalysis.Language.Components;
+﻿namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 /// <summary>
 /// A production rule is a rule that defines how a non-terminal symbol can be replaced by a sequence of other symbols.
 /// </summary>
-public class ProductionRule
+public struct ProductionRule
 {
     // LHS
     public NonTerminal Head { get; }
@@ -18,9 +18,12 @@ public class ProductionRule
         Validate();
     }
 
+    public bool IsEpsilonProduction => Body.Length == 1 && Body[0] is Epsilon;
+
     public static bool operator ==(ProductionRule left, ProductionRule right)
     {
-        return left.Head == right.Head && left.Body == right.Body;
+        return left.Head == right.Head 
+            && left.Body == right.Body;
     }
 
     public static bool operator !=(ProductionRule left, ProductionRule right)
@@ -79,11 +82,15 @@ public class ProductionRule
     {
         if(Head is null)
         {
-            throw new InvalidOperationException("The head of a production rule cannot be null.");
+            throw new Exception("The head of a production rule cannot be null.");
         }
         if(Body.Length == 0)
         {
-            throw new InvalidOperationException("The body of a production rule cannot be empty.");
+            throw new Exception("The body of a production rule cannot be empty.");
+        }
+        if (Body.Length > 1 && Body.Any(x => x is Epsilon))
+        {
+            throw new Exception("Invalid production rule. In a production rule's body, epsilon can only appear as the only symbol in the body. Example: A -> ε.");
         }
     }
 

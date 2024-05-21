@@ -3,6 +3,46 @@ using System.Diagnostics.CodeAnalysis;
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 /// <summary>
+/// Represents a production symbol in a context-free grammar.
+/// </summary>
+public interface ISymbol : 
+    IEquatable<ISymbol>, 
+    IEqualityComparer<ISymbol>
+{
+    /// <summary>
+    /// Gets a value indicating whether the production symbol is a terminal symbol.
+    /// </summary>
+    bool IsTerminal { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the production symbol is a non-terminal symbol.
+    /// </summary>
+    bool IsNonTerminal { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the production symbol is an epsilon symbol.
+    /// </summary>
+    bool IsEpsilon { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this production symbol is a macro.
+    /// </summary>
+    bool IsMacro { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the production symbol is an end-of-input symbol.
+    /// </summary>
+    bool IsEoi { get; }
+
+    /// <summary>
+    /// Returns a string representation of the production symbol in the specified notation.
+    /// </summary>
+    /// <param name="notation"></param>
+    /// <returns></returns>
+    string ToNotation(NotationType notation);
+}
+
+/// <summary>
 /// Abstract base class for production symbols in a context-free grammar.
 /// </summary>
 public abstract class Symbol : IEquatable<Symbol>, IEqualityComparer<Symbol>
@@ -91,4 +131,3 @@ public abstract class Symbol : IEquatable<Symbol>, IEqualityComparer<Symbol>
     }
 
 }
-

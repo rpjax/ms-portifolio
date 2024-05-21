@@ -6,14 +6,17 @@ namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 public class LR1ParsingTableEntry
 {
     public int Id { get; }
-    internal Dictionary<string, LR1Action> ActionTable { get; }
+    public LR1State State { get; }
+    public Dictionary<string, LR1Action> ActionTable { get; }
 
     public LR1ParsingTableEntry(
         int id,
-        Dictionary<Symbol, LR1Action> actionTable)
+        LR1State state,
+        Dictionary<Symbol, LR1Action> actionsTable)
     {
         Id = id;
-        ActionTable = actionTable
+        State = state;
+        ActionTable = actionsTable
             .ToDictionary(x => CreateKey(x.Key), x => x.Value);
     }
 

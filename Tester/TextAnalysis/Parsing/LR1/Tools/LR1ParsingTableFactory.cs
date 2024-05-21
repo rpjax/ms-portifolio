@@ -4,44 +4,60 @@ using ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Tools;
 
-public class LR1ParsingTableFactory : IFactory<LR1ParsingTable>
+public class LR1ParsingTableFactory : IFactory<Grammar, LR1ParsingTable>
 {
-    private ProductionSet Set { get; }
-
-    public LR1ParsingTableFactory(ProductionSet set)
+    public LR1ParsingTable Create(Grammar grammar)
     {
-        Set = set;
-    }
-
-    public LR1ParsingTable Create()
-    {
-        var states = LR1Tool.ComputeStatesDictionary(Set);
+        var states = LR1Tool.ComputeStatesDictionary(grammar.Productions);
         var entries = new List<LR1ParsingTableEntry>();
 
+        var productions = states.Values
+            .SelectMany(s => s.Items)
+            .Select(i => i.Production)
+            .Distinct()
+            ;
+
+        var set = new ProductionSet(
+            start: grammar.Start,
+            productions: productions.ToArray()
+        );
+       
         foreach (var entry in states)
         {
             var state = entry.Value;
             var id = entry.Key;
-            var actions = ComputeActionsForState(id, state, states);
-            var newEntry = new LR1ParsingTableEntry(id, actions);
+
+            var actions = ComputeActionsForState(
+                set: set, 
+                id: id, 
+                state: state, 
+                computedStates: states
+            );
+
+            var newEntry = new LR1ParsingTableEntry(
+                id: id, 
+                state: state, 
+                actionsTable: actions
+            );
 
             entries.Add(newEntry);
         }
 
         return new LR1ParsingTable(
             entries: entries.ToArray(),
-            productions: Set.Productions.ToArray()
+            productions: set.ToArray()
         );
     }
 
     private Dictionary<Symbol, LR1Action> ComputeActionsForState(
+        ProductionSet set,
         int id, 
         LR1State state,
         Dictionary<int, LR1State> computedStates)
     {
         var actions = new Dictionary<Symbol, LR1Action>();
 
-        if (state.IsAcceptingState(Set))
+        if (state.IsAcceptingState(set))
         {
             actions.Add(Eoi.Instance, new LR1AcceptAction());
         }
@@ -52,7 +68,7 @@ public class LR1ParsingTableFactory : IFactory<LR1ParsingTable>
             .ToArray();
 
         var stateActions = symbolItems
-            .SelectMany(item => ComputeActionsForStateItem(id, state, item, computedStates))
+            .SelectMany(item => ComputeActionsForStateItem(set, id, state, item, computedStates))
             .ToArray();
 
         foreach (var action in stateActions)
@@ -69,6 +85,7 @@ public class LR1ParsingTableFactory : IFactory<LR1ParsingTable>
     }
 
     private Dictionary<Symbol, LR1Action> ComputeActionsForStateItem(
+        ProductionSet set,
         int id,
         LR1State state,
         LR1Item item,
@@ -80,9 +97,9 @@ public class LR1ParsingTableFactory : IFactory<LR1ParsingTable>
         /*
          * Create reduce actions for all lookaheads of the item.
          */
-        if (stackSymbol is null)
+        if (stackSymbol is null || stackSymbol is Epsilon)
         {
-            var productionIndex = Set.GetProductionIndex(item.Production);
+            var productionIndex = set.GetProductionIndex(item.Production);
 
             if (productionIndex == -1)
             {
@@ -91,7 +108,7 @@ public class LR1ParsingTableFactory : IFactory<LR1ParsingTable>
 
             foreach (var lookahead in item.Lookaheads)
             {
-                if(lookahead == Eoi.Instance && state.IsAcceptingState(Set))
+                if(lookahead == Eoi.Instance && state.IsAcceptingState(set))
                 {
                     continue;
                 }
@@ -109,7 +126,7 @@ public class LR1ParsingTableFactory : IFactory<LR1ParsingTable>
         var nextStateSignature = item.GetNextItem().GetSignature(useLookaheads: true);
 
         var nextStates = computedStates
-            .Where(x => x.Value.Kernel[0].GetSignature(useLookaheads: true) == nextStateSignature)
+            .Where(x => x.Value.Kernel.Any(k => k.GetSignature(useLookaheads: true) == nextStateSignature))
             .ToArray();
             ;
 

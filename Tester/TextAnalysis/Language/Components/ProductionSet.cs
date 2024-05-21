@@ -3,7 +3,8 @@ using ModularSystem.Core.TextAnalysis.Language.Transformations;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
-public class ProductionSet : IEnumerable<ProductionRule>
+public class ProductionSet :
+    IEnumerable<ProductionRule>
 {
     public NonTerminal Start { get; internal set; }
     internal List<ProductionRule> Productions { get; }
@@ -31,6 +32,10 @@ public class ProductionSet : IEnumerable<ProductionRule>
         if (Transformations is null)
         {
             throw new ArgumentNullException(nameof(transformations));
+        }
+        if(!Productions.Any(x => x.Head != Start))
+        {
+            throw new ArgumentException("The start symbol must be the head of at least one production rule.");
         }
     }
 

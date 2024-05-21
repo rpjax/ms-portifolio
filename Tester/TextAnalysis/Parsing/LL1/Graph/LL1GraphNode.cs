@@ -97,9 +97,9 @@ public class LL1GraphNode : IEnumerable<LL1GraphNode>
             return -1;
         }
 
-        for (var i = 0; i < Production.Body.Length; i++)
+        for (var i = 0; i < Production.Value.Body.Length; i++)
         {
-            if (ReferenceEquals(Production.Body[i], Symbol))
+            if (ReferenceEquals(Production.Value.Body[i], Symbol))
             {
                 return i;
             }
@@ -119,13 +119,13 @@ public class LL1GraphNode : IEnumerable<LL1GraphNode>
             return false;
         }
 
-        for (var i = 0; i < Production.Body.Length; i++)
+        for (var i = 0; i < Production.Value.Body.Length; i++)
         {
-            if (ReferenceEquals(Production.Body[i], Symbol))
+            if (ReferenceEquals(Production.Value.Body[i], Symbol))
             {
                 return true;
             }
-            if (Production.Body[i].IsNonTerminal)
+            if (Production.Value.Body[i].IsNonTerminal)
             {
                 return false;
             }
@@ -140,7 +140,7 @@ public class LL1GraphNode : IEnumerable<LL1GraphNode>
 
         for (var i = 0; i < Position; i++)
         {
-            prefix.Add(Production!.Body[i]);
+            prefix.Add(Production!.Value.Body[i]);
         }
 
         return new Sentence(prefix.ToArray());
@@ -150,9 +150,9 @@ public class LL1GraphNode : IEnumerable<LL1GraphNode>
     {
         var suffix = new List<Symbol>();
 
-        for (var i = Position + 1; i < Production!.Body.Length; i++)
+        for (var i = Position + 1; i < Production!.Value.Body.Length; i++)
         {
-            suffix.Add(Production.Body[i]);
+            suffix.Add(Production.Value.Body[i]);
         }
 
         return new Sentence(suffix.ToArray());

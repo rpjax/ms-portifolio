@@ -74,9 +74,9 @@ public class LR1State : IEquatable<LR1State>, IEqualityComparer<LR1State>
         return Kernel.Any(item => item.Symbol is null);
     }
 
-    public bool Equals(LR1State? x, LR1State? y)
+    public bool Equals(LR1State? left, LR1State? right)
     {
-        return x?.GetSignature(useLookaheads:true) == y?.GetSignature(useLookaheads:true);
+        return left?.GetSignature(useLookaheads:true) == right?.GetSignature(useLookaheads:true);
     }
 
     public int GetHashCode([DisallowNull] LR1State obj)
@@ -86,7 +86,8 @@ public class LR1State : IEquatable<LR1State>, IEqualityComparer<LR1State>
 
     public bool Equals(LR1State? other)
     {
-        return other is not null && Equals(this, other);
+        return other is not null 
+            && Equals(this, other);
     }
 
     public override bool Equals(object? obj)

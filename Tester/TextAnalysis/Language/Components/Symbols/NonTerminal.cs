@@ -54,6 +54,16 @@ public class NonTerminal : Symbol
         return new NonTerminal(name);
     }
 
+    public static bool operator ==(NonTerminal left, NonTerminal right)
+    {
+        return left.Name == right.Name;
+    }
+
+    public static bool operator !=(NonTerminal left, NonTerminal right)
+    {
+        return left.Name != right.Name;
+    }
+
     /// <summary>
     /// Returns a string representation of the non-terminal symbol.
     /// </summary>
@@ -119,7 +129,7 @@ public class NonTerminal : Symbol
 
     private string ToSententialNotation()
     {
-        return Name.ToPascalCase();
+        return Name;
     }
 
     private string ToBnfNotation()

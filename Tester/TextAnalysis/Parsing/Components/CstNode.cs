@@ -1,11 +1,12 @@
-using ModularSystem.Core.TextAnalysis.Language.Components;
+﻿using ModularSystem.Core.TextAnalysis.Language.Components;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.Components;
 
 public enum CstNodeType
 {
     Terminal,
-    NonTerminal
+    NonTerminal,
+    Epsilon
 }
 
 public abstract class CstNode
@@ -47,3 +48,9 @@ public class NonTerminalCstNode : CstNode
     }
 }
 
+class EpsilonCstNode : CstNode
+{
+    public override CstNodeType NodeType => CstNodeType.Epsilon;
+
+    public override string ToString() => "ε";
+}

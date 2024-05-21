@@ -66,6 +66,17 @@ public class Terminal : Symbol, IComparable<Terminal>
         Value = value;
     }
 
+    public static bool operator ==(Terminal left, Terminal right)
+    {
+        return left.TokenType == right.TokenType
+            && left.Value == right.Value;
+    }
+
+    public static bool operator !=(Terminal left, Terminal right)
+    {
+        return !(left == right);
+    }
+
     public static Terminal From(string value)
     {
         return new Terminal(TokenType.Unknown, value);
