@@ -136,7 +136,7 @@ semantic_value
     : '$' $int
     ;
 ";
-       
+
         //* PARSER
         var cst = parser.Parse(gdefGrammarString);
 
@@ -212,6 +212,134 @@ semantic_value
         {
             Console.WriteLine(item);
         }
+    }
+
+    /*
+     * Benchmark results for LR(1) parser to parse the gdef grammar using itself:   
+     * 
+     * Total iterations: 100.000
+     * Warm-up iterations: 1.000 (1%)
+     * Average iteration time: 0,000625697309090909 s (625 microseconds)
+     * Worst time: 0,0171312 s
+     * Best time: 0,000567 s
+     */
+    private static void BenchmarkLR1Parser()
+    {
+        var input = @"
+grammar 
+    : [ lexer_settings ] production_list 
+    ;
+
+lexer_settings
+    : '<lexer>' { lexer_statement } '</lexer>'
+    ;
+
+lexer_statement
+    : 'use' $id ';'
+    | 'lexeme' $id regex ';'
+    ;
+
+regex
+    : $string
+    ;
+
+production_list
+    : production { production }
+    ;
+
+production
+    : $id ':' production_body ';'
+    ;
+
+production_body
+    : symbol { symbol } [ semantic_action ]
+    ;
+
+symbol
+    : terminal
+    | non_terminal
+    | macro
+    ;
+
+terminal 
+    : $string
+    | lexeme
+    | epsilon
+    ;
+
+non_terminal
+    : $id
+    ;
+
+epsilon
+    : 'ε'
+    ;
+
+macro
+    : group
+    | option
+    | repetition
+    | alternative
+    ;
+
+group
+    : '(' symbol { symbol } ')'
+    ;
+
+option
+    : '[' symbol { symbol } ']'
+    ;
+
+repetition
+    : '{' symbol { symbol } '}'
+    ;
+
+alternative
+    : '|'
+    ;
+
+lexeme
+    : '$' $id 
+    ;
+
+semantic_action
+    : ':' '{' '$' semantic_value '}'
+    ;
+
+semantic_value
+    : '$' $int
+    ;
+";
+
+        var stopwatch = new Stopwatch();
+        var times = new List<long>();
+
+        var parser = new LR1Parser(new GdefGrammar());
+
+        for (int i = 0; i < 100000; i++)
+        {
+            stopwatch.Start();
+
+            _ = parser.Parse(input);
+
+            stopwatch.Stop();
+            times.Add(stopwatch.ElapsedTicks);
+            stopwatch.Reset();
+        }
+
+        //* Skip the warp-up iterations.
+        times = times.Skip(1000).ToList();
+
+        var totalTime = times.Sum() / (double)Stopwatch.Frequency;
+        var averageTime = times.Average() / Stopwatch.Frequency;
+        var worstTime = times.Max() / (double)Stopwatch.Frequency;
+        var bestTime = times.Min() / (double)Stopwatch.Frequency;
+
+        Console.WriteLine($"Average iteration time: {ToNonScientificString(averageTime)} s");
+        Console.WriteLine($"Worst time: {ToNonScientificString(worstTime)} s");
+        Console.WriteLine($"Best time: {ToNonScientificString(bestTime)} s");
+        Console.WriteLine($"Total elaped time: {ToNonScientificString(totalTime)} s");
+        Console.WriteLine();
     }
 
     private static string ToNonScientificString(double value)
