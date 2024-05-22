@@ -9,7 +9,7 @@ public static class ProductionRuleMacroExtensions
         return production.Body.Any(x => x.IsMacro);
     }
 
-    public static ProductionMacro? GetLeftmostMacro(this ProductionRule production)
+    public static MacroSymbol? GetLeftmostMacro(this ProductionRule production)
     {
         return production.Body
             .FirstOrDefault(x => x.IsMacro)

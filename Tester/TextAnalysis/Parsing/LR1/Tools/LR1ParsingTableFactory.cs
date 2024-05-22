@@ -123,10 +123,11 @@ public class LR1ParsingTableFactory : IFactory<Grammar, LR1ParsingTable>
          * Create shift or goto actions for the stack symbol.
          */
 
-        var nextStateSignature = item.GetNextItem().GetSignature(useLookaheads: true);
+        var nextStateItem = item.GetNextItem();
+        var nextStateSignature = nextStateItem.GetSignature(useLookaheads: true);
 
         var nextStates = computedStates
-            .Where(x => x.Value.Kernel.Any(k => k.GetSignature(useLookaheads: true) == nextStateSignature))
+            .Where(x => x.Value.Kernel.Any(k => k.ContainsItem(nextStateItem)))
             .ToArray();
             ;
 

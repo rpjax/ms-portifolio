@@ -208,6 +208,18 @@ public class LR1Tool
             }
         }
 
+        //return items
+        //    .Skip(kernel.Length)
+        //    .ToArray();
+
+        /*
+         * This section is commented out because i'm currently figuring out if the code bellow is correct for LR(1). 
+         * It combines kernels, withing the same closure, with identical productions and dot positions but different lookaheads. 
+         * Ex: (A -> .a b, {c}) and (A -> .a b, {d}) into (A -> .a b, {c, d}).
+         * 
+         * NOTE: for now i'll uncomment it because it seems to be working.
+         */
+
         var groups = items
             .Skip(kernel.Length)
             .GroupBy(item => item.GetSignature(useLookaheads: false))
@@ -236,81 +248,18 @@ public class LR1Tool
         return uniqueItems
             .ToArray();
 
-        return items
-            .Skip(kernel.Length)
-            .Select(x => new { Item = x, Signature = x.GetSignature(useLookaheads:true) })
-            .DistinctBy(x => x.Signature)
-            .Select(x => x.Item)
-            .ToArray();
+        /*
+         * some debugging code
+         */
+        //return items
+        //    .Skip(kernel.Length)
+        //    .Select(x => new { Item = x, Signature = x.GetSignature(useLookaheads:true) })
+        //    .DistinctBy(x => x.Signature)
+        //    .Select(x => x.Item)
+        //    .ToArray();
     }
 
     private static Terminal[] ComputeLookaheads(
-        ProductionSet set,
-        Sentence beta,
-        Terminal[] originalLookaheads)
-    {
-        return ComputeFirstSet(
-            set: set,
-            beta: beta,
-            originalLookaheads: originalLookaheads
-        );
-        var lookaheads = new List<Terminal>();
-        var position = 0;
-
-        while (true)
-        {
-            if (position == beta.Length)
-            {
-                lookaheads.AddRange(originalLookaheads);
-                break;
-            }
-
-            var symbol = beta[position];
-
-            if (symbol is Epsilon)
-            {
-                position++;
-                continue;
-            }
-
-            if (symbol is Terminal terminal)
-            {
-                lookaheads.Add(terminal);
-                break;
-            }
-
-            if (symbol is not NonTerminal nonTerminal)
-            {
-                throw new InvalidOperationException("The lrItemSymbol is not a nonterminal.");
-            }
-
-            var productions = set.Lookup(nonTerminal).ToArray();
-
-            if (productions.Length == 0)
-            {
-                throw new InvalidOperationException($"The non-terminal '{nonTerminal}' does not have any productions.");
-            }
-
-            foreach (var production in productions)
-            {
-                var lookaheadsForProduction = ComputeLookaheads(
-                    set: set,
-                    beta: production.Body,
-                    originalLookaheads: originalLookaheads
-                );
-
-                lookaheads.AddRange(lookaheadsForProduction);
-            }
-
-            break;
-        }
-
-        return lookaheads
-            .Distinct()
-            .ToArray();
-    }
-
-    private static Terminal[] ComputeFirstSet(
         ProductionSet set,
         Sentence beta,
         Terminal[] originalLookaheads)
@@ -322,14 +271,14 @@ public class LR1Tool
 
         while (true)
         {
-            if(stack.Count == 0)
+            if (stack.Count == 0)
             {
                 break;
             }
 
             var sentence = stack.Pop();
 
-            if(sentence.Length == 0)
+            if (sentence.Length == 0)
             {
                 lookaheads.AddRange(originalLookaheads);
                 continue;
@@ -337,18 +286,18 @@ public class LR1Tool
 
             var symbol = sentence[0];
 
-            if(symbol is Terminal terminal)
+            if (symbol is Terminal terminal)
             {
                 lookaheads.Add(terminal);
                 continue;
             }
 
-            if(symbol is Epsilon)
+            if (symbol is Epsilon)
             {
                 throw new NotImplementedException();
             }
 
-            if(symbol is not NonTerminal nonTerminal)
+            if (symbol is not NonTerminal nonTerminal)
             {
                 throw new InvalidOperationException("The symbol is not a nonterminal.");
             }
@@ -362,7 +311,7 @@ public class LR1Tool
 
             foreach (var production in productions)
             {
-                if(production.IsEpsilonProduction)
+                if (production.IsEpsilonProduction)
                 {
                     stack.Push(sentence.Skip(1).ToArray());
                     continue;
@@ -372,7 +321,7 @@ public class LR1Tool
                     production.Body.Concat(sentence.Skip(1)).ToArray()
                 );
 
-                if(newSentence.Length == 0)
+                if (newSentence.Length == 0)
                 {
                     Console.WriteLine();
                 }

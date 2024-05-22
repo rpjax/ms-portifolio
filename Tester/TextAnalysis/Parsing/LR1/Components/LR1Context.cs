@@ -8,11 +8,11 @@ public class LR1Context
     public LR1Stack Stack { get; }
     public CstBuilder CstBuilder { get; }
 
-    public LR1Context(InputStream inputStream, LR1Stack stack)
+    public LR1Context(InputStream inputStream, LR1Stack stack, CstBuilder cstBuilder)
     {
         InputStream = inputStream;
         Stack = stack;
-        CstBuilder = new CstBuilder();
+        CstBuilder = cstBuilder;
     }
 
     public Exception UnexpectedEndOfTokens()

@@ -45,8 +45,8 @@ public static class Program
 
          */
 
-        Grammar grammar = new LR1TestGrammar3();
-        grammar = new GdefGrammar();
+        Grammar grammar = new GdefGrammar();
+
         var parser = new LR1Parser(grammar);
         var input = "grammar : [ lexer_settings ] production_list ;";
         var gString = grammar.ToString();

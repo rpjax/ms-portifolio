@@ -1,11 +1,16 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 /// <summary>
-/// Represents the end-of-input symbol.
+/// Represents the end-of-input symbol($).
 /// </summary>
-public sealed class Eoi : Terminal
+public interface IEoi : ISymbol
+{
+}
+
+/// <summary>
+/// Represents the end-of-input symbol($).
+/// </summary>
+public sealed class Eoi : Terminal, IEoi
 {
     /// <inheritdoc/>
     public override bool IsEoi => true;
@@ -19,13 +24,15 @@ public sealed class Eoi : Terminal
 
     public static Eoi Instance { get; } = new Eoi();
 
-    /// <summary>
-    /// Returns a string representation of the end-of-input symbol.
-    /// </summary>
-    /// <returns>A string representation of the end-of-input symbol.</returns>
-    public override string ToString()
+    public override int GetHashCode()
     {
-        return "$";
+        unchecked
+        {
+            int hash = (int)2166136261;
+
+            hash = (hash * 16777619) ^ ToString().GetHashCode();
+            return hash;
+        }
     }
 
     public override bool Equals(object? obj)
@@ -38,25 +45,18 @@ public sealed class Eoi : Terminal
         return other is Eoi;
     }
 
-    public override bool Equals(Symbol? x, Symbol? y)
+    public override bool Equals(ISymbol? other)
     {
-        return x is Eoi && y is Eoi;
+        return other is IEoi;
     }
 
-    public override int GetHashCode([DisallowNull] Symbol obj)
+    /// <summary>
+    /// Returns a string representation of the end-of-input symbol.
+    /// </summary>
+    /// <returns>A string representation of the end-of-input symbol.</returns>
+    public override string ToString()
     {
-        return obj.GetHashCode();
-    }
-
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            int hash = (int)2166136261;
-
-            hash = (hash * 16777619) ^ ToString().GetHashCode();
-            return hash;
-        }
+        return "$";
     }
 
     public override string ToNotation(NotationType notation)

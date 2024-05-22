@@ -1,11 +1,16 @@
-using System.Diagnostics.CodeAnalysis;
-
-namespace ModularSystem.Core.TextAnalysis.Language.Components;
+﻿namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 /// <summary>
-/// Represents an epsilon symbol in a context-free grammar.
+/// Represents an epsilon(ε) symbol in a context-free grammar.
 /// </summary>
-public class Epsilon : Symbol
+public interface IEpsilon : ISymbol
+{
+}
+
+/// <summary>
+/// Represents an epsilon(ε) symbol in a context-free grammar.
+/// </summary>
+public class Epsilon : Symbol, IEpsilon
 {
     /// <inheritdoc/>
     public override bool IsTerminal => true;
@@ -31,13 +36,15 @@ public class Epsilon : Symbol
 
     public static Epsilon Instance { get; } = new Epsilon();
 
-    /// <summary>
-    /// Returns a string representation of the epsilon symbol.
-    /// </summary>
-    /// <returns>A string representation of the epsilon symbol.</returns>
-    public override string ToString()
+    public override int GetHashCode()
     {
-        return GreekLetters.Epsilon.ToString();
+        unchecked
+        {
+            int hash = (int)2166136261;
+
+            hash = (hash * 16777619) ^ ToString().GetHashCode();
+            return hash;
+        }
     }
 
     public override bool Equals(object? obj)
@@ -50,28 +57,21 @@ public class Epsilon : Symbol
         return other is Epsilon;
     }
 
-    public override bool Equals(Symbol? x, Symbol? y)
+    public override bool Equals(ISymbol? other)
     {
-        return x is Epsilon && y is Epsilon;
-    }
-
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            int hash = (int)2166136261;
-
-            hash = (hash * 16777619) ^ ToString().GetHashCode();
-            return hash;
-        }
-    }
-
-    public override int GetHashCode([DisallowNull] Symbol obj)
-    {
-        return obj.GetHashCode();
+        return other is IEpsilon;
     }
 
     public override string ToNotation(NotationType notation)
+    {
+        return GreekLetters.Epsilon.ToString();
+    }
+
+    /// <summary>
+    /// Returns a string representation of the epsilon symbol.
+    /// </summary>
+    /// <returns>A string representation of the epsilon symbol.</returns>
+    public override string ToString()
     {
         return GreekLetters.Epsilon.ToString();
     }

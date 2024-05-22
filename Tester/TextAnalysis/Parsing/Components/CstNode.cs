@@ -51,6 +51,12 @@ public class NonTerminalCstNode : CstNode
 class EpsilonCstNode : CstNode
 {
     public override CstNodeType NodeType => CstNodeType.Epsilon;
+    public NonTerminal NonTerminal { get; }
+
+    public EpsilonCstNode(NonTerminal nonTerminal)
+    {
+        NonTerminal = nonTerminal;
+    }
 
     public override string ToString() => "ε";
 }

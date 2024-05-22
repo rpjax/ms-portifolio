@@ -72,12 +72,33 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 */
 
-
+/// <summary>
+/// Represents the type of a macro symbol. 
+/// </summary>
 public enum MacroType
 {
+    /// <summary>
+    /// Represents a grouping macro.
+    /// </summary>
+    Grouping,
+
+    /// <summary>
+    /// Represents an option macro.
+    /// </summary>
     Option,
+
+    /// <summary>
+    /// Represents a repetition macro.
+    /// </summary>
     Repetition,
+
+    /// <summary>
+    /// Represents a pipe macro. 
+    /// </summary>
     Alternative,
+
+    /// <summary>
+    /// Represents an expanded alternative macro.
+    /// </summary>
     ExpandedAlternative
 }
-

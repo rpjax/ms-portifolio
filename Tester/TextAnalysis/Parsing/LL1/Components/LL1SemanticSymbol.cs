@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using ModularSystem.Core.TextAnalysis.Language.Components;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
@@ -49,17 +48,12 @@ public class LL1SemanticSymbol : Symbol
         throw new NotImplementedException();
     }
 
-    public override int GetHashCode([DisallowNull] Symbol obj)
-    {
-        throw new NotImplementedException();
-    }
-
     public override bool Equals(Symbol? other)
     {
         throw new NotImplementedException();
     }
 
-    public override bool Equals(Symbol? x, Symbol? y)
+    public override bool Equals(ISymbol? other)
     {
         throw new NotImplementedException();
     }

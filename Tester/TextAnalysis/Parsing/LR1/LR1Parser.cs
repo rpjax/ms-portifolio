@@ -54,9 +54,14 @@ public class LR1Parser
             useDebug: true
         );
 
+        var cstBuilder = new CstBuilder(
+            useEpsilons: true
+        );
+
         var context = new LR1Context(
             inputStream: inputStream, 
-            stack: stack
+            stack: stack,
+            cstBuilder: cstBuilder
         );
         
         //* pushes the initial state onto the stack
@@ -64,7 +69,7 @@ public class LR1Parser
 
         while (true)
         {
-            LR1Action action = GetNextAction(context);
+            var action = GetNextAction(context);
 
             ExecuteAction(context, action);
 
@@ -171,10 +176,10 @@ public class LR1Parser
         }
 
         var nonTerminal = production.Head;
+        var currentState = context.Stack.PeekState();
 
         context.Stack.PushSymbol(nonTerminal);
 
-        var currentState = context.Stack.PeekState();
         var gotoAction = ParsingTable.LookupGoto(currentState, nonTerminal);
 
         if (gotoAction is null)
@@ -183,16 +188,19 @@ public class LR1Parser
         }
 
         context.Stack.PushState(gotoAction.NextState);
-        context.CstBuilder.Reduce(nonTerminal, production.Body.Length);
+        context.CstBuilder.Reduce(
+            nonTerminal: nonTerminal, 
+            length: production.Body.Length
+        );
     }
 
     private void EpsilonReduce(LR1Context context, ProductionRule production)
     {
         var nonTerminal = production.Head;
+        var currentState = context.Stack.PeekState();
 
         context.Stack.PushSymbol(nonTerminal);
 
-        var currentState = context.Stack.PeekState();
         var gotoAction = ParsingTable.LookupGoto(currentState, nonTerminal);
 
         if (gotoAction is null)
@@ -201,8 +209,9 @@ public class LR1Parser
         }
 
         context.Stack.PushState(gotoAction.NextState);
-        context.CstBuilder.AddEpsilon();
-        //context.CstBuilder.Reduce(nonTerminal, production.Body.Length);
+        context.CstBuilder.ReduceEpsilon(
+            nonTerminal: nonTerminal
+        );
     }
 
     private void Goto(LR1Context context, LR1GotoAction gotoAction)

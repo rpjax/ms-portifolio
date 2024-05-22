@@ -5,10 +5,12 @@ namespace ModularSystem.Core.TextAnalysis.Parsing.Components;
 public class CstBuilder
 {
     private List<CstNode> Accumulator { get; }
+    private bool UseEpsilons { get; set; }
 
-    public CstBuilder()
+    public CstBuilder(bool useEpsilons = false)
     {
         Accumulator = new List<CstNode>();
+        UseEpsilons = useEpsilons;
     }
 
     public int AccumulatorCount => Accumulator.Count;
@@ -18,22 +20,31 @@ public class CstBuilder
         Accumulator.Add(new TerminalCstNode(terminal));
     }
 
-    public void AddEpsilon()
+    public void ReduceEpsilon(NonTerminal nonTerminal)
     {
-        Accumulator.Add(new EpsilonCstNode());
+        Accumulator.Add(new EpsilonCstNode(nonTerminal));
     }
 
-    public void Reduce(NonTerminal nonTerminal, int count)
+    public void Reduce(NonTerminal nonTerminal, int length)
     {
+        var offset = Accumulator.Count - length;
         var children = Accumulator
-            .Skip(Accumulator.Count - count)
+            .Skip(offset)
             .ToList();
 
-        Accumulator.RemoveRange(Accumulator.Count - count, count);
+        Accumulator.RemoveRange(offset, length);
 
-        children = children
-            //.Where(c => c is not EpsilonCstNode)
-            .ToList();
+        if(UseEpsilons)
+        {
+            children = children
+                .ToList();
+        }
+        else
+        {
+            children = children
+                .Where(c => c is not EpsilonCstNode)
+                .ToList();
+        }
 
         Accumulator.Add(new NonTerminalCstNode(nonTerminal, children));
     }

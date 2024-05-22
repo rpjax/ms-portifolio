@@ -1,11 +1,19 @@
-using System.Diagnostics.CodeAnalysis;
+using ModularSystem.Core.TextAnalysis.Language.Extensions;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 /// <summary>
 /// Represents a non-terminal symbol in a context-free grammar.
 /// </summary>
-public class NonTerminal : Symbol
+public interface INonTerminal : ISymbol
+{
+    string Name { get; }
+}
+
+/// <summary>
+/// Represents a non-terminal symbol in a context-free grammar.
+/// </summary>
+public class NonTerminal : Symbol, INonTerminal
 {
     /// <inheritdoc/>
     public override bool IsTerminal => false;
@@ -37,7 +45,7 @@ public class NonTerminal : Symbol
         {
             throw new ArgumentException("The name of a non-terminal symbol cannot be empty.");
         }
-        if (name.Contains(" "))
+        if (name.Contains(' '))
         {
             throw new ArgumentException("The name of a non-terminal symbol cannot contain spaces.");
         }
@@ -64,13 +72,19 @@ public class NonTerminal : Symbol
         return left.Name != right.Name;
     }
 
-    /// <summary>
-    /// Returns a string representation of the non-terminal symbol.
-    /// </summary>
-    /// <returns>A string representation of the non-terminal symbol.</returns>
-    public override string ToString()
+    /*
+     * instance methods.
+     */
+
+    public override int GetHashCode()
     {
-        return ToNotation(NotationType.Sentential);
+        unchecked
+        {
+            int hash = (int)2166136261;
+
+            hash = (hash * 16777619) ^ Name.GetHashCode();
+            return hash;
+        }
     }
 
     public override bool Equals(object? obj)
@@ -84,27 +98,10 @@ public class NonTerminal : Symbol
             && nonTerminal.Name == Name;
     }
 
-    public override bool Equals(Symbol? x, Symbol? y)
+    public override bool Equals(ISymbol? other)
     {
-        return x is NonTerminal nonTerminal
-            && y is NonTerminal other
-            && nonTerminal.Name == other.Name;
-    }
-
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            int hash = (int)2166136261;
-
-            hash = (hash * 16777619) ^ Name.GetHashCode();
-            return hash;
-        }
-    }
-
-    public override int GetHashCode([DisallowNull] Symbol obj)
-    {
-        return obj.GetHashCode();
+        return other is INonTerminal nonTerminal
+            && nonTerminal.Name == Name;
     }
 
     public override string ToNotation(NotationType notation)
@@ -112,38 +109,28 @@ public class NonTerminal : Symbol
         switch (notation)
         {
             case NotationType.Sentential:
-                return ToSententialNotation();
+                return this.ToSententialNotation();
 
             case NotationType.Bnf:
-                return ToBnfNotation();
+                return this.ToBnfNotation();
 
             case NotationType.Ebnf:
-                return ToEbnfNotation();
+                return this.ToEbnfNotation();
 
             case NotationType.EbnfKleene:
-                return ToEbnfKleeneNotation();
+                return this.ToEbnfKleeneNotation();
         }
 
         throw new InvalidOperationException("Invalid notation type.");
     }
 
-    private string ToSententialNotation()
+    /// <summary>
+    /// Returns a string representation of the non-terminal symbol.
+    /// </summary>
+    /// <returns>A string representation of the non-terminal symbol.</returns>
+    public override string ToString()
     {
-        return Name;
+        return ToNotation(NotationType.Sentential);
     }
 
-    private string ToBnfNotation()
-    {
-        return $"<{Name}>";
-    }
-
-    private string ToEbnfNotation()
-    {
-        return Name;
-    }
-
-    private string ToEbnfKleeneNotation()
-    {
-        return Name;
-    }
 }

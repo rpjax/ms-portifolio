@@ -5,9 +5,7 @@ namespace ModularSystem.Core.TextAnalysis.Language.Components;
 /// <summary>
 /// Represents a production symbol in a context-free grammar.
 /// </summary>
-public interface ISymbol : 
-    IEquatable<ISymbol>, 
-    IEqualityComparer<ISymbol>
+public interface ISymbol : IEquatable<ISymbol>
 {
     /// <summary>
     /// Gets a value indicating whether the production symbol is a terminal symbol.
@@ -45,7 +43,7 @@ public interface ISymbol :
 /// <summary>
 /// Abstract base class for production symbols in a context-free grammar.
 /// </summary>
-public abstract class Symbol : IEquatable<Symbol>, IEqualityComparer<Symbol>
+public abstract class Symbol : ISymbol, IEquatable<Symbol>
 {
     /// <summary>
     /// Gets a value indicating whether the production symbol is a terminal symbol.
@@ -82,52 +80,15 @@ public abstract class Symbol : IEquatable<Symbol>, IEqualityComparer<Symbol>
         return !left.Equals(right);
     }
 
+    public abstract override int GetHashCode();
+    public abstract override bool Equals(object? obj);
+    public abstract bool Equals(Symbol? other);
+    public abstract bool Equals(ISymbol? other);
+
     /// <summary>
     /// Returns a string representation of the production symbol.
     /// </summary>
     /// <returns>A string representation of the production symbol.</returns>
     public abstract override string ToString();
-
     public abstract string ToNotation(NotationType notation);
-
-    public abstract override bool Equals(object? obj);
-
-    public abstract override int GetHashCode();
-
-    public abstract int GetHashCode([DisallowNull] Symbol obj);
-
-    public abstract bool Equals(Symbol? other);
-
-    public abstract bool Equals(Symbol? x, Symbol? y);
-
-    public Terminal AsTerminal()
-    {
-        if (this is not Terminal terminal)
-        {
-            throw new InvalidCastException("The production symbol is not a terminal symbol.");
-        }
-
-        return terminal;
-    }
-
-    public NonTerminal AsNonTerminal()
-    {
-        if (this is not NonTerminal nonTerminal)
-        {
-            throw new InvalidCastException("The production symbol is not a non-terminal symbol.");
-        }
-
-        return nonTerminal;
-    }
-
-    public ProductionMacro AsMacro()
-    {
-        if (this is not ProductionMacro productionMacro)
-        {
-            throw new InvalidCastException("The production symbol is not a macro.");
-        }
-
-        return productionMacro;
-    }
-
 }

@@ -1,12 +1,28 @@
+using ModularSystem.Core.TextAnalysis.Language.Extensions;
 using ModularSystem.Core.TextAnalysis.Tokenization;
-using System.Diagnostics.CodeAnalysis;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 /// <summary>
 /// Represents a terminal symbol in a context-free grammar.
 /// </summary>
-public class Terminal : Symbol, IComparable<Terminal>
+public interface ITerminal : ISymbol, IComparable<ITerminal>
+{
+    /// <summary>
+    /// Gets the token type associated with the terminal symbol.
+    /// </summary>
+    TokenType TokenType { get; }
+
+    /// <summary>
+    /// Gets the value associated with the terminal symbol.
+    /// </summary>
+    string? Value { get; }
+}
+
+/// <summary>
+/// Represents a terminal symbol in a context-free grammar.
+/// </summary>
+public class Terminal : Symbol, ITerminal, IComparable<Terminal>
 {
     /// <inheritdoc/>
     public override bool IsTerminal => true;
@@ -23,14 +39,10 @@ public class Terminal : Symbol, IComparable<Terminal>
     /// <inheritdoc/>
     public override bool IsEoi => false;
 
-    /// <summary>
-    /// Gets the token type associated with the terminal symbol.
-    /// </summary>
+    /// <inheritdoc/>
     public TokenType TokenType { get; }
 
-    /// <summary>
-    /// Gets the value associated with the terminal symbol.
-    /// </summary>
+    /// <inheritdoc/>
     public string? Value { get; }
 
     /// <summary>
@@ -82,13 +94,20 @@ public class Terminal : Symbol, IComparable<Terminal>
         return new Terminal(TokenType.Unknown, value);
     }
 
-    /// <summary>
-    /// Returns a string representation of the terminal symbol.
-    /// </summary>
-    /// <returns>A string representation of the terminal symbol.</returns>
-    public override string ToString()
+    /*
+     * instance methods.
+     */
+
+    public override int GetHashCode()
     {
-        return ToSententialNotation();
+        unchecked
+        {
+            int hash = (int)2166136261;
+
+            hash = (hash * 16777619) ^ TokenType.GetHashCode();
+            hash = (hash * 16777619) ^ (Value?.GetHashCode() ?? 0);
+            return hash;
+        }
     }
 
     public override bool Equals(object? obj)
@@ -103,105 +122,64 @@ public class Terminal : Symbol, IComparable<Terminal>
             && terminal.Value == Value;
     }
 
-    public override bool Equals(Symbol? x, Symbol? y)
-    {
-        return x is not null
-            && y is not null
-            && x.Equals(y);
-    }
-
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            int hash = (int)2166136261;
-
-            hash = (hash * 16777619) ^ TokenType.GetHashCode();
-            hash = (hash * 16777619) ^ (Value?.GetHashCode() ?? 0);
-            return hash;
-        }
-    }
-
-    public override int GetHashCode([DisallowNull] Symbol obj)
-    {
-        return obj.GetHashCode();
-    }
-
     public int CompareTo(Terminal? other)
     {
-        var thisStr = ToString();
-        var otherStr = other?.ToString();
+        var thisStr = ToNotation(NotationType.Sentential);
+        var otherStr = other?.ToNotation(NotationType.Sentential);
 
         return string.Compare(thisStr, otherStr, StringComparison.Ordinal);
     }
+
+    /*
+     * ISymbol interface transition additions.
+     */
+
+    public override bool Equals(ISymbol? other)
+    {
+        return other is ITerminal terminal
+            && terminal.TokenType == TokenType
+            && terminal.Value == Value;
+    }
+
+    public int CompareTo(ITerminal? other)
+    {
+        var thisStr = ToNotation(NotationType.Sentential);
+        var otherStr = other?.ToNotation(NotationType.Sentential);
+
+        return string.Compare(thisStr, otherStr, StringComparison.Ordinal);
+    }
+
+    /*
+     * Stringification methods.
+     */
 
     public override string ToNotation(NotationType notation)
     {
         switch (notation)
         {
             case NotationType.Sentential:
-                return ToSententialNotation();
+                return this.ToSententialNotation();
 
             case NotationType.Bnf:
-                return ToBnfNotation();
+                return this.ToBnfNotation();
 
             case NotationType.Ebnf:
-                return ToEbnfNotation();
+                return this.ToEbnfNotation();
 
             case NotationType.EbnfKleene:
-                return ToEbnfKleeneNotation();
+                return this.ToEbnfKleeneNotation();
         }
 
         throw new InvalidOperationException("Invalid notation type.");
     }
 
-    private string ToSententialNotation()
+    /// <summary>
+    /// Returns a string representation of the terminal symbol.
+    /// </summary>
+    /// <returns>A string representation of the terminal symbol.</returns>
+    public override string ToString()
     {
-        var typeStr = TokenType.ToString();
-
-        if (!string.IsNullOrEmpty(Value))
-        {
-            return $"\"{Value}\"";
-        }
-
-        return typeStr.ToCamelCase();
-    }
-
-    private string ToBnfNotation()
-    {
-        var typeStr = TokenType.ToString();
-
-        if (!string.IsNullOrEmpty(Value))
-        {
-            return $"\"{Value}\"";
-        }
-
-        return typeStr;
-    }
-
-    private string ToEbnfNotation()
-    {
-        var typeStr = TokenType.ToString();
-
-        if (!string.IsNullOrEmpty(Value))
-        {
-            return $"\"{Value}\"";
-        }
-
-        return typeStr;
-    }
-
-    private string ToEbnfKleeneNotation()
-    {
-        var typeStr = TokenType.ToString();
-
-        if (!string.IsNullOrEmpty(Value))
-        {
-            return $"\"{Value}\"";
-        }
-
-        return typeStr;
+        return this.ToSententialNotation();
     }
 
 }
-

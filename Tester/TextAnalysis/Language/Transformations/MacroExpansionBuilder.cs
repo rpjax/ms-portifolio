@@ -20,7 +20,7 @@ public class MacroExpansion : ISetTransformer
 
                 var expandedProductions = production.ExpandMacros(set).ToArray();
 
-                set.GetTransformationBuilder("Macro Expansion")
+                set.GetTransformationBuilder("MacroSymbol Expansion")
                     .RemoveProductions(production)
                     .AddProductions(expandedProductions)
                     .Build();
