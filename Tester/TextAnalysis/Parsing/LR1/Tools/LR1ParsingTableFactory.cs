@@ -4,8 +4,16 @@ using ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Tools;
 
+/// <summary>
+/// Represents a factory that creates a LR(1) parsing table from a grammar.
+/// </summary>
 public class LR1ParsingTableFactory : IFactory<Grammar, LR1ParsingTable>
 {
+    /// <summary>
+    /// Creates a LR(1) parsing table from a grammar. 
+    /// </summary>
+    /// <param name="grammar"></param>
+    /// <returns></returns>
     public LR1ParsingTable Create(Grammar grammar)
     {
         var states = LR1Tool.ComputeStatesDictionary(grammar.Productions);
@@ -168,4 +176,5 @@ public class LR1ParsingTableFactory : IFactory<Grammar, LR1ParsingTable>
 
         return actions;
     }
+
 }

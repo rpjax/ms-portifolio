@@ -122,7 +122,7 @@ public class GdefGrammar : Grammar
 
             new ProductionRule(
                 "macro",
-                new NonTerminal("group"),
+                new NonTerminal("grouping"),
                 new AlternativeMacro(),
                 new NonTerminal("option"),
                 new AlternativeMacro(),
@@ -132,7 +132,7 @@ public class GdefGrammar : Grammar
             ),
 
             new ProductionRule(
-                "group",
+                "grouping",
                 new Terminal(TokenType.Punctuation, "("),
                 new NonTerminal("symbol"),
                 new RepetitionMacro(

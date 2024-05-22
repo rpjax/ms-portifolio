@@ -2,6 +2,9 @@
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.Components;
 
+/// <summary>
+/// Represents the type of a node in the concrete syntax tree (CST).
+/// </summary>
 public enum CstNodeType
 {
     Terminal,
@@ -9,53 +12,91 @@ public enum CstNodeType
     Epsilon
 }
 
-public abstract class CstNode
+/// <summary>
+/// Represents a node in the concrete syntax tree (CST).
+/// </summary>
+public abstract class CstNode 
 {
-    public abstract CstNodeType NodeType { get; }
+    /// <summary>
+    /// Gets the type of the node.
+    /// </summary>
+    public abstract CstNodeType Type { get; }
+
+    /// <summary>
+    /// Accepts a visitor.
+    /// </summary>
+    /// <param name="visitor"></param>
+    /// <returns></returns>
+    public abstract CstNode Accept(CstNodeVisitor visitor);
 }
 
-public class TerminalCstNode : CstNode
+/// <summary>
+/// Represents a symbol node in the concrete syntax tree (CST).
+/// </summary>
+public class CstTerminal : CstNode
 {
-    public override CstNodeType NodeType => CstNodeType.Terminal;
-    public Terminal Terminal { get; }
+    public override CstNodeType Type => CstNodeType.Terminal;
+    public Terminal Symbol { get; }
 
-    public TerminalCstNode(Terminal terminal)
+    public CstTerminal(Terminal symbol)
     {
-        Terminal = terminal;
+        Symbol = symbol;
+    }
+
+    public override CstNode Accept(CstNodeVisitor visitor)
+    {
+        return visitor.VisitTerminal(this);
     }
 
     public override string ToString()
     {
-        return Terminal.ToString();
+        return Symbol.ToString();
     }
+
 }
 
-public class NonTerminalCstNode : CstNode
+/// <summary>
+/// Represents a non-symbol node in the concrete syntax tree (CST).
+/// </summary>
+public class CstNonTerminal : CstNode
 {
-    public override CstNodeType NodeType => CstNodeType.NonTerminal;
-    public NonTerminal NonTerminal { get; }
-    public List<CstNode> Children { get; }
+    public override CstNodeType Type => CstNodeType.NonTerminal;
+    public NonTerminal Symbol { get; }
+    public CstNode[] Children { get; }
 
-    public NonTerminalCstNode(NonTerminal nonTerminal, List<CstNode> children)
+    public CstNonTerminal(NonTerminal symbol, CstNode[] children)
     {
-        NonTerminal = nonTerminal;
+        Symbol = symbol;
         Children = children;
     }
 
+    public override CstNode Accept(CstNodeVisitor visitor)
+    {
+        return visitor.VisitNonTerminal(this);
+    }
+
     public override string ToString()
     {
-        return NonTerminal.ToString();
+        return Symbol.ToString();
     }
 }
 
-class EpsilonCstNode : CstNode
+/// <summary>
+/// Represents an epsilon node in the concrete syntax tree (CST).
+/// </summary>
+public class CstEpsilon : CstNode
 {
-    public override CstNodeType NodeType => CstNodeType.Epsilon;
+    public override CstNodeType Type => CstNodeType.Epsilon;
     public NonTerminal NonTerminal { get; }
 
-    public EpsilonCstNode(NonTerminal nonTerminal)
+    public CstEpsilon(NonTerminal nonTerminal)
     {
         NonTerminal = nonTerminal;
+    }
+
+    public override CstNode Accept(CstNodeVisitor visitor)
+    {
+        return visitor.VisitEpsilon(this);
     }
 
     public override string ToString() => "ε";

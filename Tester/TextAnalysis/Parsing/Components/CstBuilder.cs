@@ -17,12 +17,12 @@ public class CstBuilder
 
     public void AddTerminal(Terminal terminal)
     {
-        Accumulator.Add(new TerminalCstNode(terminal));
+        Accumulator.Add(new CstTerminal(terminal));
     }
 
     public void ReduceEpsilon(NonTerminal nonTerminal)
     {
-        Accumulator.Add(new EpsilonCstNode(nonTerminal));
+        Accumulator.Add(new CstEpsilon(nonTerminal));
     }
 
     public void Reduce(NonTerminal nonTerminal, int length)
@@ -42,11 +42,11 @@ public class CstBuilder
         else
         {
             children = children
-                .Where(c => c is not EpsilonCstNode)
+                .Where(c => c is not CstEpsilon)
                 .ToList();
         }
 
-        Accumulator.Add(new NonTerminalCstNode(nonTerminal, children));
+        Accumulator.Add(new CstNonTerminal(nonTerminal, children.ToArray()));
     }
 
     public CstNode Build()

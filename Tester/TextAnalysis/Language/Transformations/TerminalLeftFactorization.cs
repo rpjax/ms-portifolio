@@ -170,7 +170,7 @@ public class NonTerminalLeftFactorization : ISetTransformer
 
         var producesEpsilon = betas.Any(x => x.Length == 0);
 
-        var builder = set.GetTransformationBuilder("Non-Terminal Left Factorization");
+        var builder = set.GetTransformationBuilder("Non-Symbol Left Factorization");
 
         var newNonTerminal = set.CreateNonTerminalPrime(head);
         var newHeadProduction = new ProductionRule(

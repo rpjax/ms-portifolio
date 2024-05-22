@@ -108,7 +108,7 @@ public class LR1ReduceAction : LR1Action
 
     public override string ToString()
     {
-        return $"Reduce using {ProductionIndex}";
+        return $"ReduceRoot using {ProductionIndex}";
     }
 
     public override bool Equals(LR1Action? other)

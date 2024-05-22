@@ -7,6 +7,8 @@ using ModularSystem.Core.TextAnalysis.Parsing.LR1.Tools;
 using ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 using ModularSystem.Core.TextAnalysis.Parsing;
 using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Parsing.Components;
+using ModularSystem.Core.TextAnalysis.Parsing.Tools;
 
 namespace ModularSystem.Tester;
 
@@ -48,10 +50,110 @@ public static class Program
         Grammar grammar = new GdefGrammar();
 
         var parser = new LR1Parser(grammar);
-        var input = "grammar : [ lexer_settings ] production_list ;";
-        var gString = grammar.ToString();
-        Console.WriteLine(gString);
-        var cst = parser.Parse(input);
+        var input = "foo : [ optional_bar ] baz ;";
+        var gdefGrammarString = @"
+grammar 
+    : [ lexer_settings ] production_list 
+    ;
+
+lexer_settings
+    : '<lexer>' { lexer_statement } '</lexer>'
+    ;
+
+lexer_statement
+    : 'use' $id ';'
+    | 'lexeme' $id regex ';'
+    ;
+
+regex
+    : $string
+    ;
+
+production_list
+    : production { production }
+    ;
+
+production
+    : $id ':' production_body ';'
+    ;
+
+production_body
+    : symbol { symbol } [ semantic_action ]
+    ;
+
+symbol
+    : terminal
+    | non_terminal
+    | macro
+    ;
+
+terminal 
+    : $string
+    | lexeme
+    | epsilon
+    ;
+
+non_terminal
+    : $id
+    ;
+
+epsilon
+    : 'ε'
+    ;
+
+macro
+    : group
+    | option
+    | repetition
+    | alternative
+    ;
+
+group
+    : '(' symbol { symbol } ')'
+    ;
+
+option
+    : '[' symbol { symbol } ']'
+    ;
+
+repetition
+    : '{' symbol { symbol } '}'
+    ;
+
+alternative
+    : '|'
+    ;
+
+lexeme
+    : '$' $id 
+    ;
+
+semantic_action
+    : ':' '{' '$' semantic_value '}'
+    ;
+
+semantic_value
+    : '$' $int
+    ;
+";
+       
+        //* PARSER
+        var cst = parser.Parse(gdefGrammarString);
+
+        var whitelist = new string[] 
+        {
+            "production",
+            "epsilon",
+            "terminal",
+            "lexeme",
+            "non_terminal",
+            "grouping",
+            "option",
+            "repetition",
+            "alternative",
+        };
+        var reduced = new CstReducer(cst, whitelist)
+            .ReduceRoot();
       
         return;
     }

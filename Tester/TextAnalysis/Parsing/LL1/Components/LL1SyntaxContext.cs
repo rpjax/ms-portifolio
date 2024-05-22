@@ -43,7 +43,7 @@ public class LL1SyntaxContext
 
         //if (TreeBuilderStack.TryPeek(out var parent))
         //{
-        //    parent.Reduce(state, child.AccumulatorCount);
+        //    parent.ReduceRoot(state, child.AccumulatorCount);
         //}
         //else
         //{

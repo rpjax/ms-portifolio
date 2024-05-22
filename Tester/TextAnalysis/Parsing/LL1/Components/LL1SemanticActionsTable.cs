@@ -3,9 +3,9 @@ namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
 // public class LL1SemanticAction
 // {
 //     private Action<LL1Context, Symbol>? InternalOnMatch { get; }
-//     private Action<LL1Context, NonTerminal>? InternalOnExpand { get; }
+//     private Action<LL1Context, Symbol>? InternalOnExpand { get; }
 
-//     public LL1SemanticAction(Action<LL1Context, Symbol>? onMatch = null, Action<LL1Context, NonTerminal>? onExpand = null)
+//     public LL1SemanticAction(Action<LL1Context, Symbol>? onMatch = null, Action<LL1Context, Symbol>? onExpand = null)
 //     {
 //         InternalOnMatch = onMatch;
 //         InternalOnExpand = onExpand;
@@ -16,7 +16,7 @@ namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
 //         InternalOnMatch?.Invoke(context, symbol);
 //     }
 
-//     public virtual void OnExpand(LL1Context context, NonTerminal symbol)
+//     public virtual void OnExpand(LL1Context context, Symbol symbol)
 //     {
 //         InternalOnExpand?.Invoke(context, symbol);
 //     }
@@ -31,7 +31,7 @@ namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
 //         Entries = entries ?? new();
 //     }
 
-//     public static string CreateActionKey(NonTerminal state, IEnumerable<Symbol> sentence)
+//     public static string CreateActionKey(Symbol state, IEnumerable<Symbol> sentence)
 //     {
 //         var sentenceStr = string.Join(" ", sentence.Select(x => x.ToString()));
 //         var key = $"{state}::{sentenceStr}";
@@ -69,7 +69,7 @@ namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
 //         action.OnMatch(context, symbol);
 //     }
 
-//     public void InvokeExpand(LL1Context context, NonTerminal symbol)
+//     public void InvokeExpand(LL1Context context, Symbol symbol)
 //     {
 //         if (!Entries.TryGetValue(CreateActionKey(symbol), out var action))
 //         {

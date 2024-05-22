@@ -101,7 +101,7 @@ public class LL1ParsingTableTool
 //         context.SyntaxContext.FinilizeBranch();
 //     }
 
-//     private static void OnHeadExpand(LL1Context context, NonTerminal symbol)
+//     private static void OnHeadExpand(LL1Context context, Symbol symbol)
 //     {
 //         context.SyntaxContext.CreateBranch(symbol);
 //     }
