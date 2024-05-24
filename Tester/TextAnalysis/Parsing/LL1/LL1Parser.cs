@@ -60,7 +60,7 @@ public class LL1Parser
         {
             throw new Exception("Unexpected end of tokens.");
         }
-        if (context.InputStream.Lookahead.TokenType != TokenType.Eoi)
+        if (context.InputStream.Lookahead.Type != TokenType.Eoi)
         {
             throw new Exception($"Unexpected token ({context.InputStream.Lookahead}). Expected EOI.");
         }
@@ -86,7 +86,7 @@ public class LL1Parser
         {
             throw new Exception("Unexpected end of tokens.");
         }
-        if (stackTop.TokenType != lookahead.TokenType)
+        if (stackTop.Type != lookahead.Type)
         {
             throw new Exception($"Unexpected token ({input.Lookahead}). Expected {stackTop}.");
         }

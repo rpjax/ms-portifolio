@@ -65,16 +65,16 @@ public class LR1ParsingTable
 
         if(terminal.Value is null)
         {
-            return terminal.TokenType.ToString();
+            return terminal.Type.ToString();
         }
 
         switch (strategy)
         {
             case KeyStrategy.Type:
-                return terminal.TokenType.ToString();
+                return terminal.Type.ToString();
 
             case KeyStrategy.TypeAndValue:
-                return $"{terminal.TokenType}({terminal.Value})";
+                return $"{terminal.Type}({terminal.Value})";
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(strategy));

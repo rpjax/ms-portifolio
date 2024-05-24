@@ -60,7 +60,7 @@ public class LL1ParsingTable
 
     internal static string CreateKey(NonTerminal state, Terminal lookahead, KeyStrategy strategy)
     {
-        return CreateKey(state.Name, lookahead.TokenType, lookahead.Value, strategy);
+        return CreateKey(state.Name, lookahead.Type, lookahead.Value, strategy);
     }
 
     public override string ToString()

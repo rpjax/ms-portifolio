@@ -1,30 +1,36 @@
-﻿using ModularSystem.Core.TextAnalysis.Parsing.Components;
+﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Parsing.Components;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.Tools;
 
+/// <summary>
+/// Defines a class that reduces a concrete syntax tree (CST) to a more compact form.
+/// </summary>
 public class CstReducer
 {
-    private CstNode Root { get; }
+    private CstRoot Root { get; }
     private string[] NonTerminalWhitelist { get; }
 
-    public CstReducer(CstNode root, string[] nonTerminalWhitelist)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CstReducer"/> class.
+    /// </summary>
+    /// <param name="root"></param>
+    /// <param name="nonTerminalWhitelist"></param>
+    public CstReducer(CstRoot root, string[] nonTerminalWhitelist)
     {
         Root = root;
         NonTerminalWhitelist = nonTerminalWhitelist;
     }
 
-    public CstNode ReduceRoot()
+    /// <summary>
+    /// Reduces the concrete syntax tree (CST) to a more compact form.
+    /// </summary>
+    /// <returns></returns>
+    public CstRoot ReduceCst()
     {
-        if(Root is not CstNonTerminal nonTerminal)
-        {
-            throw new InvalidOperationException();
-        }
-
-        var newChildren = Reduce(nonTerminal);
-
-        return new CstNonTerminal(
-            nonTerminal.Symbol, 
-            newChildren
+        return new CstRoot(
+            Root.Symbol,
+            Reduce(Root)
         );
     }
 
@@ -32,49 +38,77 @@ public class CstReducer
     {
         switch (node.Type)
         {
-            case CstNodeType.Terminal:
-                return ReduceTerminal((CstTerminal)node);
+            case CstNodeType.Root:
+                return ReduceRoot((CstRoot)node);
 
-            case CstNodeType.NonTerminal:
-                return ReduceNonTerminal((CstNonTerminal)node);
+            case CstNodeType.Internal:
+                return ReduceInternal((CstInternal)node);
 
-            case CstNodeType.Epsilon:
-                return Array.Empty<CstNode>();
+            case CstNodeType.Leaf:
+                return ReduceLeaf((CstLeaf)node);
 
             default:
                 throw new InvalidOperationException();
         }
     }
 
-    private CstNode[] ReduceNonTerminal(CstNonTerminal nonTerminal)
+    private CstNode[] ReduceRoot(CstRoot node)
     {
-        if (!NonTerminalWhitelist.Contains(nonTerminal.Symbol.Name))
+        if (node.Symbol is not NonTerminal nonTerminal)
         {
-            return ReduceChildren(nonTerminal);
+            throw new InvalidOperationException();
         }
 
-        var children = nonTerminal.Children;
+        if (!NonTerminalWhitelist.Contains(nonTerminal.Name))
+        {
+            return ReduceMany(node.Children);
+        }
+
         var newChildren = new List<CstNode>();
 
-        foreach (var child in children)
+        foreach (var child in node.Children)
         {
             newChildren.AddRange(Reduce(child));
         }
 
-        return new CstNonTerminal[]
+        return new CstInternal[]
         {
-            new CstNonTerminal(nonTerminal.Symbol, newChildren.ToArray())
+            new CstInternal(nonTerminal, newChildren.ToArray())
         };
     }
 
-    private CstNode[] ReduceTerminal(CstTerminal terminal)
+    private CstNode[] ReduceInternal(CstInternal node)
     {
-        return new CstNode[] { terminal };
+        if(node.Symbol is not NonTerminal nonTerminal)
+        {
+            throw new InvalidOperationException();
+        }
+
+        if (!NonTerminalWhitelist.Contains(nonTerminal.Name))
+        {
+            return ReduceMany(node.Children);
+        }
+
+        var newChildren = new List<CstNode>();
+
+        foreach (var child in node.Children)
+        {
+            newChildren.AddRange(Reduce(child));
+        }
+
+        return new CstInternal[]
+        {
+            new CstInternal(nonTerminal, newChildren.ToArray())
+        };
     }
 
-    private CstNode[] ReduceChildren(CstNonTerminal nonTerminal)
+    private CstNode[] ReduceLeaf(CstLeaf leaf)
     {
-        var children = nonTerminal.Children;
+        return new CstNode[] { leaf };
+    }
+
+    private CstNode[] ReduceMany(CstNode[] children)
+    {
         var newChildren = new List<CstNode>();
 
         foreach (var child in children)

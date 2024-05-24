@@ -1,6 +1,6 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing;
+namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 
 public class LR1Stack
 {
@@ -17,6 +17,8 @@ public class LR1Stack
         UseDebug = useDebug;
         DebugStack = new Stack<object>();
     }
+
+    public int StatesCount => States.Count;
 
     public override string ToString()
     {

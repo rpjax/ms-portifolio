@@ -12,7 +12,7 @@ public static class CollectionAggregationOperatorExpressionAnalyser
     {
         //switch (OperatorHelper.GetCollectionAggregationOperatorType(symbol.Operator))
         //{
-        //    case CollectionAggregationOperatorType.Count:
+        //    case CollectionAggregationOperatorType.StatesCount:
         //        return AnalyseCountOperatorExpression(context, (CountOperatorExpressionSymbol)symbol);
 
         //    case CollectionAggregationOperatorType.Index:

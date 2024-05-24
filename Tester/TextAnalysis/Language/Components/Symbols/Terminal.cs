@@ -11,7 +11,7 @@ public interface ITerminal : ISymbol, IComparable<ITerminal>
     /// <summary>
     /// Gets the token type associated with the terminal symbol.
     /// </summary>
-    TokenType TokenType { get; }
+    TokenType Type { get; }
 
     /// <summary>
     /// Gets the value associated with the terminal symbol.
@@ -40,7 +40,7 @@ public class Terminal : Symbol, ITerminal, IComparable<Terminal>
     public override bool IsEoi => false;
 
     /// <inheritdoc/>
-    public TokenType TokenType { get; }
+    public TokenType Type { get; }
 
     /// <inheritdoc/>
     public string? Value { get; }
@@ -52,7 +52,7 @@ public class Terminal : Symbol, ITerminal, IComparable<Terminal>
     /// <param name="value">The value associated with the terminal symbol.</param>
     public Terminal(TokenType tokenType, string? value = null)
     {
-        TokenType = tokenType;
+        Type = tokenType;
         Value = value;
 
         if (value is not null && string.IsNullOrEmpty(value))
@@ -74,13 +74,13 @@ public class Terminal : Symbol, ITerminal, IComparable<Terminal>
             throw new InvalidOperationException("The value must be a valid token.");
         }
 
-        TokenType = tokens[0]!.Type;
+        Type = tokens[0]!.Type;
         Value = value;
     }
 
     public static bool operator ==(Terminal left, Terminal right)
     {
-        return left.TokenType == right.TokenType
+        return left.Type == right.Type
             && left.Value == right.Value;
     }
 
@@ -104,7 +104,7 @@ public class Terminal : Symbol, ITerminal, IComparable<Terminal>
         {
             int hash = (int)2166136261;
 
-            hash = (hash * 16777619) ^ TokenType.GetHashCode();
+            hash = (hash * 16777619) ^ Type.GetHashCode();
             hash = (hash * 16777619) ^ (Value?.GetHashCode() ?? 0);
             return hash;
         }
@@ -118,7 +118,7 @@ public class Terminal : Symbol, ITerminal, IComparable<Terminal>
     public override bool Equals(Symbol? other)
     {
         return other is Terminal terminal
-            && terminal.TokenType == TokenType
+            && terminal.Type == Type
             && terminal.Value == Value;
     }
 
@@ -137,7 +137,7 @@ public class Terminal : Symbol, ITerminal, IComparable<Terminal>
     public override bool Equals(ISymbol? other)
     {
         return other is ITerminal terminal
-            && terminal.TokenType == TokenType
+            && terminal.Type == Type
             && terminal.Value == Value;
     }
 

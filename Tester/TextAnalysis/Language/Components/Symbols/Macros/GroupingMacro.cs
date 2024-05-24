@@ -14,7 +14,7 @@ public interface IGroupingMacro : ISentenceMacro
 /// </summary>
 public class GroupingMacro : SentenceMacro, IGroupingMacro
 {
-    public GroupingMacro(Sentence sentence) : base(sentence)
+    public GroupingMacro(params Symbol[] symbols) : base(symbols)
     {
     }
 

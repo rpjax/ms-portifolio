@@ -7,17 +7,17 @@ public class CstNodeVisitor
         return node.Accept(this);
     }
 
-    public virtual CstTerminal VisitTerminal(CstTerminal node)
+    public virtual CstNode VisitRoot(CstRoot node)
     {
         return node;
     }
 
-    public virtual CstNonTerminal VisitNonTerminal(CstNonTerminal node)
+    public virtual CstNode VisitNonTerminal(CstInternal node)
     {
         return node;
     }
 
-    public virtual CstEpsilon VisitEpsilon(CstEpsilon node)
+    public virtual CstNode VisitTerminal(CstLeaf node)
     {
         return node;
     }

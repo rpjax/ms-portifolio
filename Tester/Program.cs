@@ -1,14 +1,10 @@
 ﻿using System.Diagnostics;
 using ModularSystem.Core.TextAnalysis.Tokenization;
 using ModularSystem.Core.TextAnalysis.Grammars;
-using ModularSystem.Core.TextAnalysis.Language.Extensions;
-using ModularSystem.Core.TextAnalysis.Parsing.LR1.Debug;
-using ModularSystem.Core.TextAnalysis.Parsing.LR1.Tools;
-using ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 using ModularSystem.Core.TextAnalysis.Parsing;
-using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Parsing.Components;
 using ModularSystem.Core.TextAnalysis.Parsing.Tools;
+using ModularSystem.Core.TextAnalysis.Parsing.Extensions;
+using ModularSystem.Core.TextAnalysis.Gdef;
 
 namespace ModularSystem.Tester;
 
@@ -47,11 +43,8 @@ public static class Program
 
          */
 
-        Grammar grammar = new GdefGrammar();
-
-        var parser = new LR1Parser(grammar);
-        var input = "foo : [ optional_bar ] baz ;";
-        var gdefGrammarString = @"
+        var json = "{\r\n  \"name\": \"Sample JSON\",\r\n  \"version\": 1,\r\n  \"metadata\": {\r\n    \"description\": \"This is a sample JSON file with nested structures for testing.\",\r\n    \"author\": \"Test Author\",\r\n    \"tags\": [\"test\", \"json\", \"parser\"],\r\n    \"license\": {\r\n      \"type\": \"MIT\",\r\n      \"url\": \"https://opensource.org/licenses/MIT\"\r\n    }\r\n  },\r\n  \"items\": [\r\n    {\r\n      \"id\": 1,\r\n      \"name\": \"Item One\",\r\n      \"details\": {\r\n        \"price\": 19.99,\r\n        \"quantity\": 100,\r\n        \"attributes\": {\r\n          \"color\": \"red\",\r\n          \"size\": \"L\",\r\n          \"inStock\": true\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"id\": 2,\r\n      \"name\": \"Item Two\",\r\n      \"details\": {\r\n        \"price\": 29.99,\r\n        \"quantity\": 50,\r\n        \"attributes\": {\r\n          \"color\": \"blue\",\r\n          \"size\": \"M\",\r\n          \"inStock\": false\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"id\": 3,\r\n      \"name\": \"Item Three\",\r\n      \"details\": {\r\n        \"price\": 39.99,\r\n        \"quantity\": 25,\r\n        \"attributes\": {\r\n          \"color\": \"green\",\r\n          \"size\": \"S\",\r\n          \"inStock\": true\r\n        }\r\n      }\r\n    }\r\n  ],\r\n  \"configurations\": {\r\n    \"option1\": true,\r\n    \"option2\": \"default\",\r\n    \"thresholds\": {\r\n      \"min\": 10,\r\n      \"max\": 100,\r\n      \"alerts\": [\"email\", \"sms\"]\r\n    }\r\n  }\r\n}\r\n";
+        var gdefGdef = @"
 grammar 
     : [ lexer_settings ] production_list 
     ;
@@ -137,24 +130,64 @@ semantic_value
     ;
 ";
 
-        //* PARSER
-        var cst = parser.Parse(gdefGrammarString);
+        var jsonGdef = @"
+/*
+	lexer stuff
+*/
 
-        var whitelist = new string[] 
-        {
-            "production",
-            "epsilon",
-            "terminal",
-            "lexeme",
-            "non_terminal",
-            "grouping",
-            "option",
-            "repetition",
-            "alternative",
-        };
-        var reduced = new CstReducer(cst, whitelist)
-            .ReduceRoot();
-      
+start
+	: json
+	;
+
+json
+	: object
+	| array
+	;
+
+object
+	: '{' { members } '}'
+	;
+
+members
+	: pair  { ',' members }
+	;
+
+pair
+	: $string ':' value
+	;
+
+array
+	: '[' [ elements ] ']'
+	;
+
+elements
+	: value { ',' value }
+	;
+
+value 
+	: $string
+	| number
+	| object
+	| array
+	| 'true'
+	| 'false'
+	| 'null'
+	;
+
+number
+	: $int
+	| $float
+	| $hex
+	;
+
+foobar 
+    : '==:false'
+    ;
+";
+
+        //* PARSER
+        var g = GdefParser.ParseGrammar(jsonGdef);
+        
         return;
     }
 
@@ -215,7 +248,7 @@ semantic_value
     }
 
     /*
-     * Benchmark results for LR(1) parser to parse the gdef grammar using itself:   
+     * Benchmark results for LR(1) parser, parsing the gdef grammar using itself:   
      * 
      * Total iterations: 100.000
      * Warm-up iterations: 1.000 (1%)

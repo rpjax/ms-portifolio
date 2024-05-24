@@ -29,6 +29,8 @@ public class InputStream : IDisposable
     /// </summary>
     public Terminal? Lookahead => Peek();
 
+    public bool IsEoi => IsEndReached;
+
     public void Dispose()
     {
         TokenStream.Dispose();

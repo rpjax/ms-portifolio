@@ -1,7 +1,8 @@
 ﻿using ModularSystem.Core.TextAnalysis.Grammars;
-using ModularSystem.Core.TextAnalysis.Language.Extensions;
+using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Parsing;
 using ModularSystem.Core.TextAnalysis.Parsing.Components;
+using ModularSystem.Core.TextAnalysis.Parsing.Tools;
 
 namespace ModularSystem.Core.TextAnalysis.Gdef;
 
@@ -10,26 +11,40 @@ namespace ModularSystem.Core.TextAnalysis.Gdef;
 /// </summary>
 public static class GdefParser
 {
-    private static GdefGrammar Grammar { get; } = new GdefGrammar();
-    private static LL1Parser Parser { get; } = new LL1Parser(Grammar.ToLL1());
+    private static LR1Parser Parser { get; } = new LR1Parser(new GdefGrammar());
 
-    public static CstNode Parse(string text)
+    private static string[] ReduceWhitelist { get; } = new string[]
+    {
+        // high order constructs
+        "production",
+
+        // terminal constructs
+        //"terminal",
+        "lexeme",
+        "epsilon",
+
+        // non-terminal constructs
+        //"non_terminal",
+        "grouping",
+        "option",
+        "repetition",
+        "alternative",
+        "semantic_action",
+        "semantic_value"
+    };
+
+    public static CstRoot Parse(string text)
     {
         return Parser.Parse(text);
     }
-}
 
-public class GdefCstReducer
-{
-    private CstNode Root { get; }
-
-    public GdefCstReducer(CstNode root)
+    public static Grammar ParseGrammar(string text)
     {
-        Root = root;
-    }
+        var cst = Parse(text);
+        var reducer = new CstReducer(cst, ReduceWhitelist);
+        var reducedCst = reducer.ReduceCst();
 
-    public void Reduce()
-    {
-        
+        return new GdefGrammarBuilder(reducedCst)
+            .Build();
     }
 }

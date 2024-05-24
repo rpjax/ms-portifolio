@@ -229,7 +229,7 @@ public class ErrorEntry : IEFEntity
                 return item.Value;
             }
         }
-
+        
         return null;
     }
 

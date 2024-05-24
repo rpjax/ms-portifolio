@@ -4,6 +4,10 @@ using ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Tools;
 
+/// <summary>
+/// Provides a set of tools for working with LR(1) parsers. <br/>
+/// It can be used to compute the LR(1) canonical collection of sets of items, and the LR(1) set of states.
+/// </summary>
 public class LR1Tool
 {
     public static LR1State[] ComputeStates(

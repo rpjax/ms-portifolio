@@ -34,7 +34,7 @@ public class LL1SyntaxContext
 
     public void FinilizeBranch()
     {
-        //if (TreeBuilderStack.Count == 0)
+        //if (TreeBuilderStack.StatesCount == 0)
         //{
         //    throw new InvalidOperationException("The tree builder stack must contain at least one builder.");
         //}
@@ -43,7 +43,7 @@ public class LL1SyntaxContext
 
         //if (TreeBuilderStack.TryPeek(out var parent))
         //{
-        //    parent.ReduceRoot(state, child.AccumulatorCount);
+        //    parent.ReduceCst(state, child.AccumulatorCount);
         //}
         //else
         //{

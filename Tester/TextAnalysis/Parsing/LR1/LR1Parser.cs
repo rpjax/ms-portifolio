@@ -16,6 +16,7 @@ public class LR1Parser
         TokenType.Comment
     };
 
+    private Grammar Grammar { get; }
     private LR1ParsingTable ParsingTable { get; }
     private TokenType[]? TokenIgnoreSet { get; }
 
@@ -26,26 +27,20 @@ public class LR1Parser
     /// <param name="tokenIgnoreSet"> The set of tokens to ignore. </param>
     public LR1Parser(Grammar grammar, TokenType[]? tokenIgnoreSet = null)
     {
-        grammar.AutoTransformLR1();
-        ParsingTable = LR1ParsingTable.Create(grammar);
+        Grammar = grammar.AutoTransformLR1();
+        ParsingTable = LR1ParsingTable.Create(Grammar);
         TokenIgnoreSet = tokenIgnoreSet ?? DefaultIgnoreSet;
     }
 
     /// <summary>
-    /// Creates a new instance of <see cref="LR1Parser"/>. It uses the provided parsing table.
+    /// Parses the given text and returns the concrete syntax tree (CST) based on the grammar specified in the constructor.
     /// </summary>
-    /// <param name="parsingTable"> The parsing table to use. </param>
-    /// <param name="tokenIgnoreSet"> The set of tokens to ignore. </param>
-    public LR1Parser(LR1ParsingTable parsingTable, TokenType[]? tokenIgnoreSet = null)
-    {
-        ParsingTable = parsingTable;
-        TokenIgnoreSet = tokenIgnoreSet ?? DefaultIgnoreSet;
-    }
-
-    public CstNode Parse(string text)
+    /// <param name="text"></param>
+    /// <returns></returns>
+    public CstRoot Parse(string text)
     {
         using var inputStream = new InputStream(
-            input: text, 
+            input: text,
             tokenizer: Tokenizer.Instance,
             ignoreSet: TokenIgnoreSet
         );
@@ -59,11 +54,11 @@ public class LR1Parser
         );
 
         var context = new LR1Context(
-            inputStream: inputStream, 
+            inputStream: inputStream,
             stack: stack,
             cstBuilder: cstBuilder
         );
-        
+
         //* pushes the initial state onto the stack
         stack.PushState(0);
 
@@ -76,7 +71,7 @@ public class LR1Parser
             if (action.Type == LR1ActionType.Accept)
             {
                 break;
-            }            
+            }
         }
 
         return context.CstBuilder.Build();
@@ -92,14 +87,14 @@ public class LR1Parser
         var currentState = context.Stack.PeekState();
         var lookahead = context.InputStream.Lookahead;
 
-        if(lookahead is null)
+        if (lookahead is null)
         {
             throw context.UnexpectedEndOfTokens();
         }
 
         var action = ParsingTable.Lookup(currentState, lookahead);
 
-        if(action is null)
+        if (action is null)
         {
             throw context.SyntaxError();
         }
@@ -113,7 +108,7 @@ public class LR1Parser
     /// <param name="context"></param>
     /// <param name="action"></param>
     /// <exception cref="InvalidOperationException"></exception>
-    private void ExecuteAction(LR1Context context,  LR1Action action)
+    private void ExecuteAction(LR1Context context, LR1Action action)
     {
         switch (action.Type)
         {
@@ -140,7 +135,7 @@ public class LR1Parser
 
     private void Shift(LR1Context context, LR1ShiftAction action)
     {
-        if(context.InputStream.Lookahead is null)
+        if (context.InputStream.Lookahead is null)
         {
             throw context.UnexpectedEndOfTokens();
         }
@@ -187,10 +182,13 @@ public class LR1Parser
             throw context.SyntaxError();
         }
 
-        context.Stack.PushState(gotoAction.NextState);
+        var nextState = gotoAction.NextState;
+
+        context.Stack.PushState(nextState);
         context.CstBuilder.Reduce(
-            nonTerminal: nonTerminal, 
-            length: production.Body.Length
+            nonTerminal: nonTerminal,
+            length: production.Body.Length,
+            isRoot: nextState == 1
         );
     }
 
