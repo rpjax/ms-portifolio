@@ -19,7 +19,7 @@ public class LL1Parser
 
     public CstNode Parse(string input)
     {
-        using var inputStream = new LL1InputStream(input, Tokenizer);
+        using var inputStream = new InputStream(input, Tokenizer);
         var stack = new LL1Stack();
         var context = new LL1Context(Grammar, inputStream, stack);
 
@@ -56,13 +56,13 @@ public class LL1Parser
 
     private CstNode MatchEoi(LL1Context context)
     {
-        if (context.InputStream.Lookahead is null)
+        if (context.InputStream.LookaheadToken is null)
         {
             throw new Exception("Unexpected end of tokens.");
         }
-        if (context.InputStream.Lookahead.Type != TokenType.Eoi)
+        if (context.InputStream.LookaheadToken.Type != TokenType.Eoi)
         {
-            throw new Exception($"Unexpected token ({context.InputStream.Lookahead}). Expected EOI.");
+            throw new Exception($"Unexpected token ({context.InputStream.LookaheadToken}). Expected EOI.");
         }
 
         context.Stack.Pop();
@@ -80,7 +80,7 @@ public class LL1Parser
         var input = context.InputStream;
         var stack = context.Stack;
         var stackTop = (Terminal)context.Stack.Top!;
-        var lookahead = context.InputStream.Lookahead;
+        var lookahead = context.InputStream.LookaheadToken;
 
         if (lookahead is null)
         {
@@ -88,16 +88,16 @@ public class LL1Parser
         }
         if (stackTop.Type != lookahead.Type)
         {
-            throw new Exception($"Unexpected token ({input.Lookahead}). Expected {stackTop}.");
+            throw new Exception($"Unexpected token ({input.LookaheadToken}). Expected {stackTop}.");
         }
         if (stackTop.Value is not null && stackTop.Value != lookahead.Value)
         {
-            throw new Exception($"Unexpected token ({input.Lookahead}). Expected {stackTop}.");
+            throw new Exception($"Unexpected token ({input.LookaheadToken}). Expected {stackTop}.");
         }
 
         input.Consume();
         stack.Pop();
-        context.SyntaxContext.AddAttribute(lookahead);
+        context.SyntaxContext.AddAttribute(input.LookaheadToken!);
     }
 
     private void MatchSemanticSymbol(LL1Context context, LL1SemanticSymbol symbol)
@@ -125,12 +125,12 @@ public class LL1Parser
         {
             throw new InvalidOperationException("Invalid token at the top of the stack.");
         }
-        if (input.Lookahead is null)
+        if (input.LookaheadTerminal is null)
         {
             throw new Exception("Unexpected end of tokens.");
         }
 
-        if (!parsingTable.Lookup(nonTerminal, input.Lookahead, out var production))
+        if (!parsingTable.Lookup(nonTerminal, input.LookaheadTerminal, out var production))
         {
             throw new Exception("Syntax error");
         }

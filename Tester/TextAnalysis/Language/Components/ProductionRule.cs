@@ -126,3 +126,8 @@ public struct ProductionRule
         return $"{head} = {body} ;";
     }
 }
+
+public struct SemanticAction
+{
+    
+}

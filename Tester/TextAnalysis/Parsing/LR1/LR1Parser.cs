@@ -7,7 +7,7 @@ using ModularSystem.Core.TextAnalysis.Tokenization;
 namespace ModularSystem.Core.TextAnalysis.Parsing;
 
 /// <summary>
-/// Represents a LR(1) parser. 
+/// Represents a LR(1) parser. It is capable of parsing text based on a given grammar.
 /// </summary>
 public class LR1Parser
 {
@@ -46,11 +46,11 @@ public class LR1Parser
         );
 
         var stack = new LR1Stack(
-            useDebug: true
+            useDebug: false
         );
 
         var cstBuilder = new CstBuilder(
-            useEpsilons: true
+            useEpsilons: false
         );
 
         var context = new LR1Context(
@@ -85,7 +85,7 @@ public class LR1Parser
     private LR1Action GetNextAction(LR1Context context)
     {
         var currentState = context.Stack.PeekState();
-        var lookahead = context.InputStream.Lookahead;
+        var lookahead = context.InputStream.LookaheadTerminal;
 
         if (lookahead is null)
         {
@@ -133,21 +133,32 @@ public class LR1Parser
         }
     }
 
+    /// <summary>
+    /// Shifts the lookahead token onto the stack and consumes it from the input stream.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="action"></param>
     private void Shift(LR1Context context, LR1ShiftAction action)
     {
-        if (context.InputStream.Lookahead is null)
+        var token = context.InputStream.LookaheadToken;
+        var terminal = context.InputStream.LookaheadTerminal;
+
+        if (token is null)
         {
             throw context.UnexpectedEndOfTokens();
         }
 
-        var terminal = context.InputStream.Lookahead;
-
-        context.Stack.PushSymbol(terminal);
+        context.Stack.PushSymbol(terminal!);
         context.Stack.PushState(action.NextState);
         context.InputStream.Consume();
-        context.CstBuilder.AddTerminal(terminal);
+        context.CstBuilder.AddTerminal(token);
     }
 
+    /// <summary>
+    /// Reduces the stack based on the production rule specified in the action.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="reduceAction"></param>
     private void Reduce(LR1Context context, LR1ReduceAction reduceAction)
     {
         var production = ParsingTable.GetProduction(reduceAction.ProductionIndex);
@@ -162,6 +173,11 @@ public class LR1Parser
         }
     }
 
+    /// <summary>
+    /// Reduces the stack based on a normal production rule.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="production"></param>
     private void NormalReduce(LR1Context context, ProductionRule production)
     {
         for (int i = 0; i < production.Body.Length; i++)
@@ -192,6 +208,11 @@ public class LR1Parser
         );
     }
 
+    /// <summary>
+    /// Reduces the stack based on an epsilon production rule.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="production"></param>
     private void EpsilonReduce(LR1Context context, ProductionRule production)
     {
         var nonTerminal = production.Head;
@@ -212,11 +233,21 @@ public class LR1Parser
         );
     }
 
+    /// <summary>
+    /// Goes to the next state based on the goto action.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="gotoAction"></param>
     private void Goto(LR1Context context, LR1GotoAction gotoAction)
     {
         context.Stack.PushState(gotoAction.NextState);
     }
 
+    /// <summary>
+    /// Accepts the input.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="action"></param>
     private void Accept(LR1Context context, LR1AcceptAction action)
     {
         context.Stack.PopState();

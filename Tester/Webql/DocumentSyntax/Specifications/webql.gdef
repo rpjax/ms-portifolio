@@ -1,14 +1,13 @@
 /*
-	lexer stuff
+	Document Syntax for WebQL Version 3.0.0, created by Rodrigo Jacques.
 */
 
 start
 	: json 
 	;
 
-json
+document
 	: object
-	| array
 	;
 
 object

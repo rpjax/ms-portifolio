@@ -175,19 +175,16 @@ value
 	;
 
 number
-	: $int
+	: $int 
 	| $float
 	| $hex
 	;
 
-foobar 
-    : '==:false'
-    ;
 ";
 
         //* PARSER
         var g = GdefParser.ParseGrammar(jsonGdef);
-        
+
         return;
     }
 

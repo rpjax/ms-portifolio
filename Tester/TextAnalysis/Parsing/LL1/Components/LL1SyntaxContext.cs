@@ -1,5 +1,6 @@
 using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Parsing.Components;
+using ModularSystem.Core.TextAnalysis.Tokenization;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
 
@@ -17,11 +18,11 @@ public class LL1SyntaxContext
         TreeBuilderStack.Push(new CstBuilder());
     }
 
-    public void AddAttribute(Terminal symbol)
+    public void AddAttribute(Token token)
     {
-        if (symbol.Value is null)
+        if (token.Value is null)
         {
-            throw new ArgumentException(nameof(symbol));
+            throw new ArgumentException(nameof(token));
         }
 
         if (!TreeBuilderStack.TryPeek(out var builder))
@@ -29,7 +30,7 @@ public class LL1SyntaxContext
             throw new InvalidOperationException("No tree builder on the stack.");
         }
 
-        builder.AddTerminal(symbol);
+        builder.AddTerminal(token);
     }
 
     public void FinilizeBranch()

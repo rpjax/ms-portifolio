@@ -11,7 +11,7 @@ public class GdefGrammar : Grammar
 
     private static NonTerminal GetStart()
     {
-        return new NonTerminal("grammar′");
+        return new NonTerminal("start");
     }
 
     private static ProductionRule[] GetProductions()
@@ -19,13 +19,12 @@ public class GdefGrammar : Grammar
         return new ProductionRule[]
         {
             new ProductionRule(
-                "grammar′",
+                "start",
                 new NonTerminal("grammar")
             ),
 
             new ProductionRule(
                 "grammar",
-
                 new OptionMacro(
                     new NonTerminal("lexer_settings")
                 ),
@@ -172,20 +171,134 @@ public class GdefGrammar : Grammar
                 new Terminal(TokenType.Identifier)
             ),
 
+            /*
+             * Semantic Actions
+             */
+
+            //* semantic_action
             new ProductionRule(
                 "semantic_action",
-                new Terminal(TokenType.Punctuation, ":"),
+                new Terminal(TokenType.Punctuation, "="),
+                new Terminal(TokenType.Punctuation, ">"),
+                new NonTerminal("action_block")
+            ),
+
+            //* action_block
+            new ProductionRule(
+                "action_block",
                 new Terminal(TokenType.Punctuation, "{"),
-                new Terminal(TokenType.Punctuation, "$"),
-                new NonTerminal("semantic_value"),
+                new NonTerminal("semantic_statement"),
+                new RepetitionMacro(
+                    new Terminal(TokenType.Punctuation, ","),
+                    new NonTerminal("semantic_statement")
+                ),
                 new Terminal(TokenType.Punctuation, "}")
             ),
 
+            //* semantic_statement
             new ProductionRule(
-                "semantic_value",
+                "semantic_statement",
+                new NonTerminal("reduction")
+            ),
+            new ProductionRule(
+                "semantic_statement",
+                new NonTerminal("assignment")
+            ),
+
+            //* reduction
+            new ProductionRule(
+                "reduction",
                 new Terminal(TokenType.Punctuation, "$"),
+                new Terminal(TokenType.Punctuation, ":"),
+                new NonTerminal("expression")
+            ),
+
+            //* assignment
+            new ProductionRule(
+                "assignment",
+                new Terminal(TokenType.Identifier),
+                new Terminal(TokenType.Punctuation, ":"),
+                new NonTerminal("expression")
+            ),
+
+            //* expression
+            new ProductionRule(
+                "expression",
+                new NonTerminal("literal")
+            ),
+            new ProductionRule(
+                "expression",
+                new NonTerminal("reference")
+            ),
+            new ProductionRule(
+                "expression",
+                new NonTerminal("index_expression")
+            ),
+            new ProductionRule(
+                "expression",
+                new NonTerminal("function_call")
+            ),
+            new ProductionRule(
+                "expression",
+                new NonTerminal("expression"),
+                new Terminal(TokenType.Punctuation, "."),
+                new NonTerminal("function_call")
+            ),
+
+            //* literal
+            new ProductionRule(
+                "literal",
+                new Terminal(TokenType.String)
+            ),
+            new ProductionRule(
+                "literal",
                 new Terminal(TokenType.Integer)
-            )
+            ),
+            new ProductionRule(
+                "literal",
+                new Terminal(TokenType.Float)
+            ),
+
+            //* reference
+            new ProductionRule(
+                "reference",
+                new Terminal(TokenType.Identifier)
+            ),
+
+            //* index_expression
+            new ProductionRule(
+                "index_expression",
+                new Terminal(TokenType.Punctuation, "["),
+                new Terminal(TokenType.Integer),
+                new Terminal(TokenType.Punctuation, "]")
+            ),
+
+            //* function_call
+            new ProductionRule(
+                "function_call",
+                new Terminal(TokenType.Identifier),
+                new Terminal(TokenType.Punctuation, "("),
+                new OptionMacro(
+                    new NonTerminal("parameter_list")
+                ),
+                new Terminal(TokenType.Punctuation, ")")
+            ),
+
+            //* parameter_list
+            new ProductionRule(
+                "parameter_list",
+                new NonTerminal("parameter"),
+                new RepetitionMacro(
+                    new Terminal(TokenType.Punctuation, ","),
+                    new NonTerminal("parameter")
+                )
+            ),
+
+            //* parameter
+            new ProductionRule(
+                "parameter",
+                new Terminal(TokenType.Identifier)
+            ),
         };
     }
 }

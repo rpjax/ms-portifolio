@@ -80,7 +80,7 @@ public class CstNodeHtmlBuilder
     {
         Builder.Append("<li>");
         Builder.Append("<details>");
-        Builder.Append($"<summary>{node.Symbol.ToString()}</summary>");
+        Builder.Append($"<summary>{node.Name}</summary>");
         Builder.Append("<ul>");
 
         foreach (var child in node.Children)
@@ -97,7 +97,7 @@ public class CstNodeHtmlBuilder
     {
         Builder.Append("<li>");
         Builder.Append("<details>");
-        Builder.Append($"<summary>{node.Symbol.ToString()}</summary>");
+        Builder.Append($"<summary>{node.Name}</summary>");
         Builder.Append("<ul>");
 
         foreach (var child in node.Children)
@@ -113,12 +113,11 @@ public class CstNodeHtmlBuilder
 
     private void BuildLeaf(CstLeaf node)
     {
-        var text = node.IsEpsilon
-            ? $"<li> ε ({node.Symbol.ToString()})</li>"
-            : $"<li>{node.Symbol.ToString()}</li>"
-            ;
-
-        Builder.Append(text);
+        //var text = node.IsEpsilon
+        //    ? $"<li> ε ({node.Symbol.ToString()})</li>"
+        //    : $"<li>{node.Token.Value}</li>"
+        //    ;
+        Builder.Append($"<li>{node.Token.Value}</li>");
     }
 
     private string Indent(string text)

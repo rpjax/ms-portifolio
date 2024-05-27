@@ -29,7 +29,7 @@ public class CstReducer
     public CstRoot ReduceCst()
     {
         return new CstRoot(
-            Root.Symbol,
+            Root.Name,
             Reduce(Root)
         );
     }
@@ -54,12 +54,7 @@ public class CstReducer
 
     private CstNode[] ReduceRoot(CstRoot node)
     {
-        if (node.Symbol is not NonTerminal nonTerminal)
-        {
-            throw new InvalidOperationException();
-        }
-
-        if (!NonTerminalWhitelist.Contains(nonTerminal.Name))
+        if (!NonTerminalWhitelist.Contains(node.Name))
         {
             return ReduceMany(node.Children);
         }
@@ -73,18 +68,13 @@ public class CstReducer
 
         return new CstInternal[]
         {
-            new CstInternal(nonTerminal, newChildren.ToArray())
+            new CstInternal(node.Name, newChildren.ToArray())
         };
     }
 
     private CstNode[] ReduceInternal(CstInternal node)
     {
-        if(node.Symbol is not NonTerminal nonTerminal)
-        {
-            throw new InvalidOperationException();
-        }
-
-        if (!NonTerminalWhitelist.Contains(nonTerminal.Name))
+        if (!NonTerminalWhitelist.Contains(node.Name))
         {
             return ReduceMany(node.Children);
         }
@@ -98,7 +88,7 @@ public class CstReducer
 
         return new CstInternal[]
         {
-            new CstInternal(nonTerminal, newChildren.ToArray())
+            new CstInternal(node.Name, newChildren.ToArray())
         };
     }
 

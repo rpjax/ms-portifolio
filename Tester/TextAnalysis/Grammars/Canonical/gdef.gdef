@@ -85,9 +85,56 @@ lexeme
     ;
 
 semantic_action
-    : ':' '{' '$' semantic_value '}'
+    : '=>' action_block
     ;
 
-semantic_value
-    : '$' $int
+action_block
+	: '{' semantic_statement { ',' semantic_statement } '}'
+	;
+
+semantic_statement
+    : reduction 
+    | assignment
     ;
+
+reduction
+	: '$' ':' expression
+	;
+
+assignment
+	: $id ':' expression
+	;
+
+expression 
+    : literal
+    | reference
+    | index_expression
+    | function_call
+    | expression '.' function_call
+    ;
+
+literal
+    : $string
+    | $int
+    | $float
+    ;
+
+reference 
+	: $id
+	;
+
+index_expression
+	: '[' $int ']'
+	;
+
+function_call
+    : $id '(' [ parameter_list ] ')'
+	;
+
+parameter_list
+	: parameter { ',' parameter }
+	;
+
+parameter
+	: $id 
+	;

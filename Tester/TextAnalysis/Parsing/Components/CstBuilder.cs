@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Tokenization;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.Components;
 
@@ -29,9 +30,9 @@ public class CstBuilder
     /// Adds a terminal node to the accumulator.
     /// </summary>
     /// <param name="terminal">The terminal node to add.</param>
-    public void AddTerminal(Terminal terminal)
+    public void AddTerminal(Token token)
     {
-        Accumulator.Add(new CstLeaf(terminal));
+        Accumulator.Add(new CstLeaf(token));
     }
 
     /// <summary>
@@ -40,7 +41,11 @@ public class CstBuilder
     /// <param name="nonTerminal">The non-terminal associated with the epsilon node.</param>
     public void ReduceEpsilon(NonTerminal nonTerminal)
     {
-        Accumulator.Add(new CstLeaf(nonTerminal, isEpsilon: true));
+        Accumulator.Add(new CstInternal(
+            name: nonTerminal.Name,
+            children: Array.Empty<CstNode>(),
+            isEpsilon: true
+        ));
     }
 
     /// <summary>
@@ -65,13 +70,13 @@ public class CstBuilder
         else
         {
             children = children
-                .Where(c => c is CstLeaf leaf ? !leaf.IsEpsilon : true)
+                .Where(x => x is CstInternal node ? !node.IsEpsilon : true)
                 .ToList();
         }
 
         CstNode node = isRoot
-            ? new CstRoot(nonTerminal, children.ToArray())
-            : new CstInternal(nonTerminal, children.ToArray());
+            ? new CstRoot(nonTerminal.Name, children.ToArray())
+            : new CstInternal(nonTerminal.Name, children.ToArray());
 
         Accumulator.Add(node);
     }

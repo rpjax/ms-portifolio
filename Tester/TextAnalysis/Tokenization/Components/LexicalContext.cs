@@ -2,20 +2,18 @@
 
 namespace ModularSystem.Core.TextAnalysis.Tokenization.Components;
 
+/// <summary>
+/// Represents the lexical context of the lexer.
+/// </summary>
 public class LexicalContext : IDisposable
 {
     public int Position { get; private set; }
     public int Line { get; private set; }
     public int Column { get; private set; }
-    public string CurrentState { get; private set; }
-    public char? InputChar { get => GetInputChar(); }
-    public string? InputString { get => GetInput(); }
-    public string Accumulator { get => AccumulatorBuilder.ToString(); }
-    public string AccumulatorInput { get => $"{Accumulator}{InputString}"; }
-    public string CurrentStateInput { get => $"{CurrentState}{InputString}"; }
 
     private IEnumerable<char> Source { get; }
     private IEnumerator<char> Enumerator { get; }
+
     private bool IsInit { get; set; }
     private bool EndReached { get; set; }
     private StringBuilder AccumulatorBuilder { get; }
@@ -25,8 +23,10 @@ public class LexicalContext : IDisposable
         Source = source;
         Enumerator = source.GetEnumerator();
         AccumulatorBuilder = new StringBuilder(100);
-        CurrentState = "";
     }
+
+    public char? CurrentChar => GetCurrentChar();
+    public string AccumulatorValue => AccumulatorBuilder.ToString();
 
     public void Dispose()
     {
@@ -46,75 +46,10 @@ public class LexicalContext : IDisposable
     }
 
     /// <summary>
-    /// Reads the next character from the source and adds it to the accumulator.
+    /// Gets the next character in the source text without advancing the enumerator.
     /// </summary>
-    /// <returns><c>true</c> if a character is read successfully; otherwise, <c>false</c>.</returns>
-    public bool Read()
-    {
-        if(!EndReached)
-        {
-            AccumulatorBuilder.Append(Enumerator.Current);
-        }
-
-        EndReached = !Enumerator.MoveNext();
-
-        if (EndReached)
-        {
-            return false;
-        }
-        else
-        {
-            Position++;
-            Column++;
-
-            if (Enumerator.Current == '\n')
-            {
-                Line++;
-                Column = 0;
-            }
-
-            return true;
-        }        
-    }
-
-    public bool Skip()
-    {
-        EndReached = !Enumerator.MoveNext();
-
-        if (EndReached)
-        {
-            return false;
-        }
-        else
-        {
-            Position++;
-            Column++;
-
-            if (Enumerator.Current == '\n')
-            {
-                Line++;
-                Column = 0;
-            }
-
-            return true;
-        }
-    }
-
-    public void SetState(string state)
-    {
-        CurrentState = state;
-    }
-
-    public void ResetAccumulator()
-    {
-        AccumulatorBuilder.Clear();
-    }
-
-    /*
-     * private methods.
-     */
-
-    private char? GetInputChar()
+    /// <returns></returns>
+    public char? GetCurrentChar()
     {
         if (EndReached)
         {
@@ -124,23 +59,86 @@ public class LexicalContext : IDisposable
         return Enumerator.Current;
     }
 
-    private string? GetInput()
+    /// <summary>
+    /// Adds the current character to the accumulator and advances the enumerator by one character.
+    /// </summary>
+    /// <returns><c>true</c> if a character is read successfully; otherwise, <c>false</c>.</returns>
+    public bool Consume()
     {
-        if (EndReached)
+        if(EndReached)
         {
-            return null;
+            return false;
         }
 
-        return Enumerator.Current.ToString();
+        LoadCurrentCharToAccumulator();
+        UpdateMetadata();
+        Advance();
+        return true;
     }
 
-    internal TokenInfo GetMetadata()
+    /// <summary>
+    /// Advances the enumerator by one character without adding it to the accumulator.
+    /// </summary>
+    /// <returns></returns>
+    public bool Skip()
     {
-        return new TokenInfo(Position, Line, Column);
+        if(AccumulatorBuilder.Length != 0)
+        {
+            throw new InvalidOperationException("Invalid skip operation. The lexer character accumulator is not empty.");
+        }
+        if (EndReached)
+        {
+            return false;
+        }
+
+        UpdateMetadata();
+        Advance();
+        return true;
     }
 
-    internal TokenInfo GetEoiMetadata()
+    /// <summary>
+    /// Resets the character accumulator.
+    /// </summary>
+    public void ResetAccumulator()
     {
-        return new TokenInfo(Position + 1, Line, Column);
+        AccumulatorBuilder.Clear();
     }
+
+    /*
+     * private methods.
+     */
+
+    private bool Advance()
+    {
+        EndReached = !Enumerator.MoveNext();
+        return !EndReached;
+    }
+
+    private void UpdateMetadata()
+    {
+        Position++;
+        Column++;
+
+        if (Enumerator.Current == '\n')
+        {
+            Line++;
+            Column = 0;
+        }
+    }
+
+    private void LoadCurrentCharToAccumulator()
+    {
+        AccumulatorBuilder.Append(Enumerator.Current);
+    }
+
+    internal TokenMetadata GetMetadata()
+    {
+        return new TokenMetadata(
+            startPosition: Position - AccumulatorBuilder.Length,
+            endPosition: Position,
+            line: Line,
+            column: Column
+        );
+    }
+
 }

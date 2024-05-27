@@ -85,7 +85,7 @@ public class Tokenizer
 
         while (true)
         {
-            var transition = state.GetStateTransition(context.InputChar);
+            var transition = state.GetStateTransition(context.CurrentChar);
 
             switch (transition.Action)
             {
@@ -217,7 +217,7 @@ public class Tokenizer
 
     private void OnRead(LexicalContext context)
     {
-        context.Read();
+        context.Consume();
     }
 
     private void OnSkip(LexicalContext context)
@@ -234,7 +234,7 @@ public class Tokenizer
 
         var token = new Token(
             tokenType: acceptingState.TokenType,
-            value: context.Accumulator,
+            value: context.AccumulatorValue,
             metadata: context.GetMetadata()
         );
 
@@ -244,6 +244,6 @@ public class Tokenizer
 
     private void OnError(LexicalContext context)
     {
-        throw new Exception($"Unexpected character '{context.InputChar}' at line {context.Line}, column {context.Column}.");
+        throw new Exception($"Unexpected character '{context.CurrentChar}' at line {context.Line}, column {context.Column}.");
     }
 }

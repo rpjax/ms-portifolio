@@ -1,4 +1,4 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+﻿using ModularSystem.Core.TextAnalysis.Tokenization;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.Components;
 
@@ -12,6 +12,53 @@ public enum CstNodeType
     Leaf,
 }
 
+///// <summary>
+///// Represents a node in the concrete syntax tree (CST).
+///// </summary>
+//public interface ICstNode
+//{
+//    /// <summary>
+//    /// Gets the type of the node.
+//    /// </summary>
+//    CstNodeType Type { get; }
+
+//    /// <summary>
+//    /// Gets or sets a property by key.
+//    /// </summary>
+//    /// <param name="key"></param>
+//    /// <returns></returns>
+//    object this[string key] { get; set; }
+//}
+
+///// <summary>
+///// Represents a root node in the concrete syntax tree (CST).
+///// </summary>
+//public interface ICstRoot : ICstInternal
+//{
+
+//}
+
+///// <summary>
+///// Represents an internal node in the concrete syntax tree (CST).
+///// </summary>
+//public interface ICstInternal : ICstNode
+//{
+//    string Name { get; }
+//    ICstNode[] Children { get; }
+//    bool IsEpsilon { get; }
+//}
+
+///// <summary>
+///// Represents a leaf node in the concrete syntax tree (CST).
+///// </summary>
+//public interface ICstLeaf : ICstNode
+//{
+//    /// <summary>
+//    /// Gets the token associated with the leaf node.
+//    /// </summary>
+//    Token Token { get; }
+//}
+
 /// <summary>
 /// Represents a node in the concrete syntax tree (CST).
 /// </summary>
@@ -23,17 +70,24 @@ public abstract class CstNode
     public abstract CstNodeType Type { get; }
 
     /// <summary>
-    /// Gets the symbol associated with the node.
+    /// Gets or sets a property by key.
     /// </summary>
-    public Symbol Symbol { get; }
+    /// <param name="key"></param>
+    /// <returns></returns>
+    public object this[string key]
+    {
+        get => Properties[key];
+        set => Properties[key] = value;
+    }
+
+    private Dictionary<string, object> Properties { get; } = new();
 
     /// <summary>
     /// Creates a new instance of the <see cref="CstNode"/> class.
     /// </summary>
-    /// <param name="symbol"></param>
-    protected CstNode(Symbol symbol)
+    protected CstNode()
     {
-        Symbol = symbol;
+        
     }
 
     /// <summary>
@@ -49,14 +103,42 @@ public abstract class CstNode
 /// </summary>
 public class CstRoot : CstNode
 {
+    /// <summary>
+    /// Gets the type of the node.
+    /// </summary>
     public override CstNodeType Type => CstNodeType.Root;
+
+    /// <summary>
+    /// Gets the name of the root node.
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// Gets the children of the root node.
+    /// </summary>
     public CstNode[] Children { get; }
 
-    public CstRoot(Symbol symbol, CstNode[] children) : base(symbol)
+    /// <summary>
+    /// Gets a value indicating whether the root node is an epsilon node.
+    /// </summary>
+    public bool IsEpsilon { get; }
+
+    /// <summary>
+    /// Creates a new instance of the <see cref="CstRoot"/> class.
+    /// </summary>
+    /// <param name="children"></param>
+    public CstRoot(string name, CstNode[] children) 
     {
+        Name = name;
         Children = children;
+        IsEpsilon = false;
     }
 
+    /// <summary>
+    /// Accepts a visitor.
+    /// </summary>
+    /// <param name="visitor"></param>
+    /// <returns></returns>
     public override CstNode Accept(CstNodeVisitor visitor)
     {
         return visitor.VisitRoot(this);
@@ -68,15 +150,44 @@ public class CstRoot : CstNode
 /// </summary>
 public class CstInternal : CstNode
 {
+    /// <summary>
+    /// Gets the type of the node.
+    /// </summary>
     public override CstNodeType Type => CstNodeType.Internal;
 
+    /// <summary>
+    /// Gets the name of the internal node.
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// Gets the children of the internal node.
+    /// </summary>
     public CstNode[] Children { get; }
 
-    public CstInternal(NonTerminal symbol, CstNode[] children) : base(symbol)
+    /// <summary>
+    /// Gets a value indicating whether the internal node is an epsilon node.
+    /// </summary>
+    public bool IsEpsilon { get; }
+
+    /// <summary>
+    /// Creates a new instance of the <see cref="CstInternal"/> class.
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="children"></param>
+    /// <param name="isEpsilon"></param>
+    public CstInternal(string name, CstNode[] children, bool isEpsilon = false) 
     {
+        Name = name;
         Children = children;
+        IsEpsilon = isEpsilon;
     }
 
+    /// <summary>
+    /// Accepts a visitor.
+    /// </summary>
+    /// <param name="visitor"></param>
+    /// <returns></returns>
     public override CstNode Accept(CstNodeVisitor visitor)
     {
         return visitor.VisitNonTerminal(this);
@@ -84,7 +195,7 @@ public class CstInternal : CstNode
 
     public override string ToString()
     {
-        return Symbol.ToString();
+        return Name;
     }
 }
 
@@ -93,14 +204,26 @@ public class CstInternal : CstNode
 /// </summary>
 public class CstLeaf : CstNode
 {
+    /// <summary>
+    /// Gets the type of the node.
+    /// </summary>
     public override CstNodeType Type => CstNodeType.Leaf;
-    public bool IsEpsilon { get; }
 
-    public CstLeaf(Symbol symbol, bool isEpsilon = false) : base(symbol)
+    /// <summary>
+    /// Gets the token associated with the leaf node.
+    /// </summary>
+    public Token Token { get; }
+
+    /// <summary>
+    /// Creates a new instance of the <see cref="CstLeaf"/> class.
+    /// </summary>
+    /// <param name="token"></param>
+    public CstLeaf(Token token)
     {
-        IsEpsilon = isEpsilon;
+        Token = token;
     }
 
+    ///<inheritdoc/>
     public override CstNode Accept(CstNodeVisitor visitor)
     {
         return visitor.VisitTerminal(this);
@@ -108,12 +231,12 @@ public class CstLeaf : CstNode
 
     public override string ToString()
     {
-        if(IsEpsilon)
+        if(Token.Value is null)
         {
-            return $"ε ({Symbol.ToString()})";
+            return Token.Type.ToString();
         }
 
-        return Symbol.ToString();
+        return Token.Value;
     }
 
 }

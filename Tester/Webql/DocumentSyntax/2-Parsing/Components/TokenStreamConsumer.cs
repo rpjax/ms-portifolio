@@ -70,11 +70,11 @@ public class TokenStreamConsumer
 
         if (token.Type != type)
         {
-            throw new Exception($"Expected token of type {type} but got {token.Type}. At position {token.Details.Position}, line {token.Details.Line}, char {token.Details.Column}.");
+            throw new Exception($"Expected token of type {type} but got {token.Type}. At position {token.Metadata.StartPosition}, line {token.Metadata.Line}, char {token.Metadata.Column}.");
         }
         if (value is not null && token.Value != value)
         {
-            throw new Exception($"Expected {type} token with value {value} but got {token.Value}. At position {token.Details.Position}, line {token.Details.Line}, char {token.Details.Column}.");
+            throw new Exception($"Expected {type} token with value {value} but got {token.Value}. At position {token.Metadata.StartPosition}, line {token.Metadata.Line}, char {token.Metadata.Column}.");
         }
 
         return token;
@@ -126,7 +126,7 @@ public class TokenStreamConsumer
 
         if (!isLiteral)
         {
-            throw new Exception($"Expected token of type {TokenType.String}, {TokenType.Integer} or {TokenType.Float} but got {token.Type}. At position {token.Details.Position}, line {token.Details.Line}, char {token.Details.Column}.");
+            throw new Exception($"Expected token of type {TokenType.String}, {TokenType.Integer} or {TokenType.Float} but got {token.Type}. At position {token.Metadata.StartPosition}, line {token.Metadata.Line}, char {token.Metadata.Column}.");
         }
 
         return token;

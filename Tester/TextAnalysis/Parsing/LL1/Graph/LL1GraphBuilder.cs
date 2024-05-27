@@ -207,7 +207,7 @@ public static class LL1GraphBuilder
         //        ? RecursionType.Normal
         //        : RecursionType.IndirectLeft;
 
-        //    if (!terminalFound && stack.Peek() == recursiveNode)
+        //    if (!terminalFound && stack.PeekTerminal() == recursiveNode)
         //    {
         //        recursionType = RecursionType.Left;
         //    }

@@ -1,50 +1,39 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Language.Extensions;
 using ModularSystem.Core.TextAnalysis.Parsing.Components;
 using ModularSystem.Core.TextAnalysis.Tokenization;
+using ModularSystem.Core.TextAnalysis.Tokenization.Extensions;
 
 namespace ModularSystem.Core.TextAnalysis.Gdef;
 
-public class GdefGrammarBuilder
+/// <summary>
+/// Represents a translator for converting a Concrete Syntax Tree (CST) to a grammar.
+/// </summary>
+public class GdefTranslator
 {
-    private CstRoot Root { get; }
-
-    public GdefGrammarBuilder(CstRoot root)
+    enum SymbolType
     {
-        Root = root;
+        Terminal,
+        NonTerminal,
+        Macro
     }
 
-    public Grammar Build()
+    public static Grammar TranslateGrammar(CstRoot root)
     {
-        var start = GetStart(Root);
-        var productions = GetProductions(Root);
+        var productions = root.Children
+            .Where(x => x.Type == CstNodeType.Internal)
+            .Select(x => (CstInternal)x)
+            .Select(TranslateProductionRule)
+            .ToArray();
+            ;
+
+        var start = productions.First().Head;
 
         return new Grammar(start, productions);
     }
 
-    private NonTerminal GetStart(CstRoot root)
+    public static ProductionRule TranslateProductionRule(CstInternal node)
     {
-        return GetProductions(root).First().Head;
-    }
-
-    private IEnumerable<ProductionRule> GetProductions(CstRoot root)
-    {
-        var productionNodes = root.Children
-            .Where(x => x.Type == CstNodeType.Internal)
-            .Select(x => (CstInternal)x);
-
-        return productionNodes
-            .Select(BuildProduction);
-    }
-
-    private ProductionRule BuildProduction(CstInternal node)
-    {
-        if(node.Symbol is not NonTerminal nonTerminal)
-        {
-            throw new InvalidOperationException();
-        }
-
-        if (nonTerminal.Name != "production")
+        if (node.Name != "production")
         {
             throw new Exception();
         }
@@ -60,21 +49,16 @@ public class GdefGrammarBuilder
             throw new InvalidOperationException();
         }
 
-        if (leaf.Symbol is not Terminal terminal)
+        if (leaf.Token.Type != TokenType.Identifier)
+        {
+            throw new InvalidOperationException();
+        }
+        if (leaf.Token.Value is null)
         {
             throw new InvalidOperationException();
         }
 
-        if (terminal.Type != TokenType.Identifier)
-        {
-            throw new InvalidOperationException();
-        }
-        if (terminal.Value is null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        var head = new NonTerminal(terminal.Value);
+        var head = new NonTerminal(leaf.Token.Value);
 
         var bodyNodes = children
             .Skip(2)
@@ -86,79 +70,296 @@ public class GdefGrammarBuilder
         return new ProductionRule(head, body);
     }
 
-    private Sentence TranslateSentence(CstNode[] nodes)
+    public static Sentence TranslateSentence(CstNode[] nodes)
     {
         var symbols = nodes
-            .Where(x => x is CstLeaf leaf ? !leaf.IsEpsilon : true)
-            .SelectMany(x => TranslateNode(x))
+            .Where(x => x is CstInternal node ? !node.IsEpsilon : true)
+            .SelectMany(x => TranslateSymbol(x))
             .ToArray();
 
         return new Sentence(symbols);
     }
 
-    private IEnumerable<Symbol> TranslateNode(CstNode node)
+    public static IEnumerable<Symbol> TranslateSymbol(CstNode node)
     {
-        switch (node.Type)
+        if(node is not CstInternal internalNode)
         {
-            case CstNodeType.Internal:
-                return TranslateInternalNode((CstInternal)node);
+            throw new InvalidOperationException();
+        }
 
-            case CstNodeType.Leaf:
-                return TranslateLeafNode((CstLeaf)node);
+        switch (GetSymbolType(internalNode))
+        {
+            case SymbolType.Terminal:
+                return TranslateTerminal(internalNode);
+
+            case SymbolType.NonTerminal:
+                return TranslateNonTerminal(internalNode);
+
+            case SymbolType.Macro:
+                return TranslateMacro(internalNode);
 
             default:
                 throw new InvalidOperationException();
         }
     }
 
-    private IEnumerable<Symbol> TranslateInternalNode(CstInternal node)
+    /*
+     * translate terminals
+     */
+    public static IEnumerable<Symbol> TranslateTerminal(CstInternal node)
     {
-        if (node.Symbol is not NonTerminal nonTerminal)
+        if(node.Name != "terminal")
+        {
+            throw new InvalidOperationException();
+        }
+        if(node.Children.Length != 1)
         {
             throw new InvalidOperationException();
         }
 
-        var isLexeme = nonTerminal.Name == "lexeme";
+        var child = node.Children[0];
 
-        if(isLexeme)
+        if(child is CstLeaf leaf)
         {
-            yield return TranslateLexeme(node, nonTerminal);
+            return TranslateTerminalString(leaf);
+        }
+        if(child is not CstInternal internalNode)
+        {
+            throw new InvalidOperationException();
+        }
+
+        if(internalNode.Name == "lexeme")
+        {
+            return TranslateTerminalLexeme(internalNode);
+        }
+
+        if(internalNode.Name == "epsilon")
+        {
+            return TranslateTerminalEpsilon(internalNode);
+        }
+
+        throw new InvalidOperationException();
+    }
+
+    public static IEnumerable<Symbol> TranslateTerminalString(CstLeaf leaf)
+    {
+        var tokens = new List<Token>();
+
+        if (leaf.Token.Type == TokenType.String)
+        {
+            var leafTokens = Tokenizer.Instance.Tokenize(
+                source: leaf.Token.GetNormalizedStringValue(),
+                includeEoi: false
+            );
+
+            tokens.AddRange(leafTokens);
         }
         else
         {
-            yield return TranslateMacro(node, nonTerminal);
+            tokens.Add(leaf.Token);
+        }
+
+        return tokens
+            .Select(x => new Terminal(x.Type, x.Value));
+    }
+
+    public static IEnumerable<Symbol> TranslateTerminalLexeme(CstInternal node)
+    {
+        yield return new Terminal(GetLexemeType(node), null);
+        yield break;
+    }
+
+    public static IEnumerable<Symbol> TranslateTerminalEpsilon(CstInternal node)
+    {
+        if (node.Name != "epsilon")
+        {
+            throw new InvalidOperationException();
+        }
+
+        yield return new Epsilon();
+        yield break;
+    }
+
+    /*
+     * translate non terminal
+     */
+    public static IEnumerable<Symbol> TranslateNonTerminal(CstInternal node)
+    {
+        if(node.Name != "non_terminal")
+        {
+            throw new InvalidOperationException();
+        }
+
+        if(node.Children.Length != 1)
+        {
+            throw new InvalidOperationException();
+        }
+
+        if(node.Children[0] is not CstLeaf leaf)
+        {
+            throw new InvalidOperationException();
+        }
+
+        if(leaf.Token.Type != TokenType.Identifier)
+        {
+            throw new InvalidOperationException();
+        }
+
+        if(leaf.Token.Value is null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        yield return new NonTerminal(leaf.Token.Value);
+    }
+
+    /*
+     * translate macros
+     */
+    public static IEnumerable<Symbol> TranslateMacro(CstInternal node)
+    {
+        if(node.Name != "macro")
+        {
+            throw new InvalidOperationException();
+        }
+
+        if(node.Children.Length != 1)
+        {
+            throw new InvalidOperationException();
+        }
+
+        if(node.Children[0] is not CstInternal macroNode)
+        {
+            throw new InvalidOperationException();
+        }
+
+        switch (GetMacroType(macroNode))
+        {
+            case MacroType.Grouping:
+                return TranslateGroupingMacro(macroNode);
+
+            case MacroType.Option:
+                return TranslateOptionMacro(macroNode);
+
+            case MacroType.Repetition:
+                return TranslateRepetitionMacro(macroNode);
+
+            case MacroType.Alternative:
+                return TranslateAlternativeMacro(macroNode);
+
+            default:
+                throw new InvalidOperationException();
         }
     }
 
-    private Symbol TranslateLexeme(CstInternal node, NonTerminal nonTerminal)
+    public static IEnumerable<Symbol> TranslateGroupingMacro(CstInternal node)
     {
-        if(node.Children.Length != 2)
+        if(node.Name != "grouping")
         {
             throw new InvalidOperationException();
         }
 
-        if (node.Children[1] is not CstLeaf leaf)
+        if(node.Children.Length < 3)
         {
             throw new InvalidOperationException();
         }
 
-        if(leaf.Symbol is not Terminal terminal)
-        {
-            throw new InvalidOperationException();
-        }
-        if(terminal.Value is null)
-        {
-            throw new InvalidOperationException();
-        }
+        var children = node.Children
+            .Skip(1)
+            .Take(node.Children.Length - 2)
+            .ToArray();
 
-        var lexemeType = GetLexemeType(terminal.Value);
-
-        return new Terminal(lexemeType, null);
+        yield return new GroupingMacro(TranslateSentence(children));
     }
 
-    private TokenType GetLexemeType(string str)
+    public static IEnumerable<Symbol> TranslateOptionMacro(CstInternal node)
     {
-        switch (str)
+        if(node.Name != "option")
+        {
+            throw new InvalidOperationException();
+        }
+
+        if(node.Children.Length < 3)
+        {
+            throw new InvalidOperationException();
+        }
+
+        var children = node.Children
+            .Skip(1)
+            .Take(node.Children.Length - 2)
+            .ToArray();
+
+        yield return new OptionMacro(TranslateSentence(children));
+    }
+
+    public static IEnumerable<Symbol> TranslateRepetitionMacro(CstInternal node)
+    {
+        if(node.Name != "repetition")
+        {
+            throw new InvalidOperationException();
+        }
+
+        if(node.Children.Length < 3)
+        {
+            throw new InvalidOperationException();
+        }
+
+        var children = node.Children
+            .Skip(1)
+            .Take(node.Children.Length - 2)
+            .ToArray();
+
+        yield return new RepetitionMacro(TranslateSentence(children));
+    }
+
+    public static IEnumerable<Symbol> TranslateAlternativeMacro(CstInternal node)
+    {
+        if(node.Name != "alternative")
+        {
+            throw new InvalidOperationException();
+        }
+
+        yield return new AlternativeMacro();
+    }
+
+    /*
+     * private methods.
+     */
+    private static SymbolType GetSymbolType(CstInternal node)
+    {
+        switch (node.Name)
+        {
+            case "terminal":
+                return SymbolType.Terminal;
+
+            case "non_terminal":
+                return SymbolType.NonTerminal;
+
+            case "macro":
+                return SymbolType.Macro;
+
+            default:
+                throw new InvalidOperationException();
+        }
+    }
+
+    private static TokenType GetLexemeType(CstInternal node)
+    {
+        if (node.Name != "lexeme")
+        {
+            throw new InvalidOperationException();
+        }
+        if (node.Children.Length != 2)
+        {
+            throw new InvalidOperationException();
+        }
+
+        if (node.Children[1] is not CstLeaf lexemeNode)
+        {
+            throw new InvalidOperationException();
+        }
+
+        switch (lexemeNode.Token.Value)
         {
             case "id":
                 return TokenType.Identifier;
@@ -180,73 +381,9 @@ public class GdefGrammarBuilder
         }
     }
 
-    private Symbol TranslateMacro(CstInternal node, NonTerminal nonTerminal)
+    public static MacroType GetMacroType(CstInternal node)
     {
-        var macroType = GetMacroType(nonTerminal.Name);
-        var macroSentence = node.Children
-            .Skip(1)
-            .Take(node.Children.Length - 2)
-            .ToArray()
-            ;
-
-        switch (macroType)
-        {
-            case MacroType.Grouping:
-                
-                return new GroupingMacro(TranslateSentence(macroSentence));
-
-            case MacroType.Option:
-                return new OptionMacro(TranslateSentence(macroSentence));
-
-            case MacroType.Repetition:
-                return new RepetitionMacro(TranslateSentence(macroSentence));
-
-            case MacroType.Alternative:
-                return new AlternativeMacro();
-
-            default:
-                throw new InvalidOperationException();
-        }
-    }
-
-    private IEnumerable<Symbol> TranslateLeafNode(CstLeaf node)
-    {
-        if (node.Symbol is not Terminal terminal)
-        {
-            throw new InvalidOperationException();
-        }
-        if(terminal.Value is null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        switch (terminal.Type)
-        {
-            //* case a non-terminal identifier
-            case TokenType.Identifier:
-                yield return new NonTerminal(terminal.Value);
-                break;
-
-            //* case a terminal literal
-            case TokenType.String:
-                var normalizedValue = terminal.GetNormalizedValue();
-                var tokens = Tokenizer.Instance.Tokenize(normalizedValue, includeEoi: false);
-
-                foreach (var token in tokens)
-                {
-                    yield return new Terminal(token.Type, token.Value);
-                }
-                break;
-
-            default:
-                yield return terminal;
-                yield break;
-        }
-    }
-
-    private MacroType GetMacroType(string str)
-    {
-        switch (str)
+        switch (node.Name)
         {
             case "grouping":
                 return MacroType.Grouping;

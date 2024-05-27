@@ -27,7 +27,12 @@ public class InputStream : IDisposable
     /// <summary>
     /// Gets the lookahead token.
     /// </summary>
-    public Terminal? Lookahead => Peek();
+    public Token? LookaheadToken => Peek();
+
+    /// <summary>
+    /// Gets the lookahead terminal.
+    /// </summary>
+    public Terminal? LookaheadTerminal => PeekTerminal();
 
     public bool IsEoi => IsEndReached;
 
@@ -37,10 +42,24 @@ public class InputStream : IDisposable
     }
 
     /// <summary>
-    /// Gets the current token.
+    /// Peeks the next token.
     /// </summary>
     /// <returns></returns>
-    public Terminal? Peek()
+    public Token? Peek()
+    {
+        if (IsEndReached)
+        {
+            return null;
+        }
+
+        return TokenStream.Current;
+    }
+
+    /// <summary>
+    /// Peeks the next terminal.
+    /// </summary>
+    /// <returns></returns>
+    public Terminal? PeekTerminal()
     {
         if (IsEndReached)
         {

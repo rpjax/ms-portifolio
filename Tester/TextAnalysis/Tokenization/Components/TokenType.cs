@@ -1,6 +1,6 @@
 ﻿namespace ModularSystem.Core.TextAnalysis.Tokenization;
 
-public enum TokenType
+public enum TokenType : int
 {
     /// <summary>
     /// Represents an unknown token type.
@@ -45,12 +45,12 @@ public enum TokenType
     String,
 
     /// <summary>
-    /// Integer literal. Ex: <c>50</c>
+    /// Integer literal. Ex: <c>50</c>, <c>-50</c>.
     /// </summary>
     Integer,
 
     /// <summary>
-    /// Float literal. Ex: <c>0.25</c>
+    /// Float literal. Ex: <c>0.25</c>, <c>-0.25</c>.
     /// </summary>
     Float,
 

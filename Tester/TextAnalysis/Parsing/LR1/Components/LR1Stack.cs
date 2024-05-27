@@ -6,6 +6,7 @@ public class LR1Stack
 {
     private Stack<int> States { get; }
     private Stack<Symbol> Symbols { get; }
+    private Stack<object> Stack { get; }
 
     private bool UseDebug { get; }
     private Stack<object> DebugStack { get; }
@@ -14,6 +15,7 @@ public class LR1Stack
     {
         States = new Stack<int>();
         Symbols = new Stack<Symbol>();
+        Stack = new Stack<object>();
         UseDebug = useDebug;
         DebugStack = new Stack<object>();
     }
