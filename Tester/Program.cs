@@ -5,6 +5,7 @@ using ModularSystem.Core.TextAnalysis.Parsing;
 using ModularSystem.Core.TextAnalysis.Parsing.Tools;
 using ModularSystem.Core.TextAnalysis.Parsing.Extensions;
 using ModularSystem.Core.TextAnalysis.Gdef;
+using Webql.DocumentSyntax.Parsing;
 
 namespace ModularSystem.Tester;
 
@@ -43,149 +44,9 @@ public static class Program
 
          */
 
-        var json = "{\r\n  \"name\": \"Sample JSON\",\r\n  \"version\": 1,\r\n  \"metadata\": {\r\n    \"description\": \"This is a sample JSON file with nested structures for testing.\",\r\n    \"author\": \"Test Author\",\r\n    \"tags\": [\"test\", \"json\", \"parser\"],\r\n    \"license\": {\r\n      \"type\": \"MIT\",\r\n      \"url\": \"https://opensource.org/licenses/MIT\"\r\n    }\r\n  },\r\n  \"items\": [\r\n    {\r\n      \"id\": 1,\r\n      \"name\": \"Item One\",\r\n      \"details\": {\r\n        \"price\": 19.99,\r\n        \"quantity\": 100,\r\n        \"attributes\": {\r\n          \"color\": \"red\",\r\n          \"size\": \"L\",\r\n          \"inStock\": true\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"id\": 2,\r\n      \"name\": \"Item Two\",\r\n      \"details\": {\r\n        \"price\": 29.99,\r\n        \"quantity\": 50,\r\n        \"attributes\": {\r\n          \"color\": \"blue\",\r\n          \"size\": \"M\",\r\n          \"inStock\": false\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"id\": 3,\r\n      \"name\": \"Item Three\",\r\n      \"details\": {\r\n        \"price\": 39.99,\r\n        \"quantity\": 25,\r\n        \"attributes\": {\r\n          \"color\": \"green\",\r\n          \"size\": \"S\",\r\n          \"inStock\": true\r\n        }\r\n      }\r\n    }\r\n  ],\r\n  \"configurations\": {\r\n    \"option1\": true,\r\n    \"option2\": \"default\",\r\n    \"thresholds\": {\r\n      \"min\": 10,\r\n      \"max\": 100,\r\n      \"alerts\": [\"email\", \"sms\"]\r\n    }\r\n  }\r\n}\r\n";
-        var gdefGdef = @"
-grammar 
-    : [ lexer_settings ] production_list 
-    ;
-
-lexer_settings
-    : '<lexer>' { lexer_statement } '</lexer>'
-    ;
-
-lexer_statement
-    : 'use' $id ';'
-    | 'lexeme' $id regex ';'
-    ;
-
-regex
-    : $string
-    ;
-
-production_list
-    : production { production }
-    ;
-
-production
-    : $id ':' production_body ';'
-    ;
-
-production_body
-    : symbol { symbol } [ semantic_action ]
-    ;
-
-symbol
-    : terminal
-    | non_terminal
-    | macro
-    ;
-
-terminal 
-    : $string
-    | lexeme
-    | epsilon
-    ;
-
-non_terminal
-    : $id
-    ;
-
-epsilon
-    : 'ε'
-    ;
-
-macro
-    : group
-    | option
-    | repetition
-    | alternative
-    ;
-
-group
-    : '(' symbol { symbol } ')'
-    ;
-
-option
-    : '[' symbol { symbol } ']'
-    ;
-
-repetition
-    : '{' symbol { symbol } '}'
-    ;
-
-alternative
-    : '|'
-    ;
-
-lexeme
-    : '$' $id 
-    ;
-
-semantic_action
-    : ':' '{' '$' semantic_value '}'
-    ;
-
-semantic_value
-    : '$' $int
-    ;
-";
-
-        var jsonGdef = @"
-/*
-	lexer stuff
-*/
-
-start
-	: json
-	;
-
-json
-	: object
-	| array
-	;
-
-object
-	: '{' { members } '}'
-	;
-
-members
-	: pair  { ',' members }
-	;
-
-pair
-	: $string ':' value
-	;
-
-array
-	: '[' [ elements ] ']'
-	;
-
-elements
-	: value { ',' value }
-	;
-
-value 
-	: $string
-	| number
-	| object
-	| array
-	| 'true'
-	| 'false'
-	| 'null'
-	;
-
-number
-	: $int 
-	| $float
-	| $hex
-	;
-
-";
-
-        //* PARSER
-        var g = GdefParser.ParseGrammar(jsonGdef);
-
-        return;
+        var cst = DocumentSyntaxParser.Parse("{ where: { id: { $equals: 402 } } }");
+        var html = cst.ToHtmlTreeView();
+        Console.WriteLine(html);
     }
 
     /*
@@ -372,6 +233,51 @@ semantic_value
         Console.WriteLine();
     }
 
+    /*
+     * Benchmark results for WebQL Document-Syntax LR(1) parser:   
+     * 
+     * Total iterations: 100.000
+     * Warm-up iterations: 1.000 (1%)
+     * Average iteration time: 0,0000291751464646465 s (29.175 microseconds.)
+     * Worst time: 0,0067123 s
+     * Best time: 0,0000275 s
+     */
+    private static void BenchmarkWebqlParser()
+    {
+        var input = "{ where: { eventId: { $equals: 402 } } }";
+
+        var stopwatch = new Stopwatch();
+        var times = new List<long>();
+
+        var parser = DocumentSyntaxParser.GetParser();
+
+        for (int i = 0; i < 100000; i++)
+        {
+            stopwatch.Start();
+
+            _ = parser.Parse(input);
+
+            stopwatch.Stop();
+            times.Add(stopwatch.ElapsedTicks);
+            stopwatch.Reset();
+        }
+
+        //* Skip the warp-up iterations.
+        times = times.Skip(1000).ToList();
+
+        var totalTime = times.Sum() / (double)Stopwatch.Frequency;
+        var averageTime = times.Average() / Stopwatch.Frequency;
+        var worstTime = times.Max() / (double)Stopwatch.Frequency;
+        var bestTime = times.Min() / (double)Stopwatch.Frequency;
+
+        Console.WriteLine($"Average iteration time: {ToNonScientificString(averageTime)} s");
+        Console.WriteLine($"Worst time: {ToNonScientificString(worstTime)} s");
+        Console.WriteLine($"Best time: {ToNonScientificString(bestTime)} s");
+        Console.WriteLine($"Total elaped time: {ToNonScientificString(totalTime)} s");
+        Console.WriteLine();
+    }
+
+
     private static string ToNonScientificString(double value)
     {
         return value.ToString("#0." + new string('#', 339));
@@ -388,7 +294,7 @@ semantic_value
     //     var axiom = new AxiomParser()
     //         .ParseAxiom(new Webql.Analysis.Parsing.ParsingContext(), (ArrayToken)token);
 
-    //     new RootLambdasArgumentTypeFixer(new Type[] { source.GetType() })
+    //     new RootLambdasArgumentTypeFixer(new ExpressionType[] { source.GetType() })
     //         .Execute(axiom);
 
     //     new LambdaArgumentTypeFixer()
@@ -432,7 +338,7 @@ semantic_value
 //                 symbol: resultExpression
 //             );
 
-//             var declarationType = resultProducerSemantic.Type.AssemblyQualifiedName;
+//             var declarationType = resultProducerSemantic.ExpressionType.AssemblyQualifiedName;
 //             var declarationIdentifier = destination.GetNormalizedValue();
 
 //             var declaration = new DeclarationStatementSymbol(

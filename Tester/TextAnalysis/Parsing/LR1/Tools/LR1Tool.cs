@@ -23,14 +23,25 @@ public class LR1Tool
             initialState
         };
 
+        var proccessedStates = new List<LR1State>();
+
         while (true)
         {
             var counter = 0;
 
             foreach (var state in states.ToArray())
             {
+                if(proccessedStates.Any(x => x.Equals(state)))
+                {
+                    continue;
+                }
+
+                /*
+                 * The kernel blacklist is used to prevent the same kernel from being computed twice.
+                 * It exists for performance reasons only, so if left out the algorithm will still work, but slower.
+                 */
                 var kernelBlacklist = states
-                    .SelectMany(x => x.Kernel)
+                    .Select(x => x.Kernel)
                     .ToArray();
 
                 var nextStates = ComputeNextStates(
@@ -49,6 +60,8 @@ public class LR1Tool
                     states.Add(nextState);
                     counter++;
                 }
+
+                proccessedStates.Add(state);
             }
 
             if (counter == 0)
@@ -60,18 +73,10 @@ public class LR1Tool
         return states.ToArray();
     }
 
-    public static Dictionary<int, LR1State> ComputeStatesDictionary(
+    public static LR1StateCollection ComputeStatesCollection(
         ProductionSet set)
     {
-        var dictionary = new Dictionary<int, LR1State>();
-        var states = ComputeStates(set);
-
-        for (int i = 0; i < states.Length; i++)
-        {
-            dictionary.Add(i, states[i]);
-        }
-
-        return dictionary;
+        return new LR1StateCollection(ComputeStates(set));
     }
 
     private static LR1State ComputeInitialState(
@@ -84,15 +89,17 @@ public class LR1Tool
             body: augmentedProduction.Body[0]
         );
 
-        var kernel = new LR1Item(
+        var kernelItem = new LR1Item(
             production: initialItemProduction,
             position: 0,
             lookaheads: Eoi.Instance
         );
 
+        var kernel = new LR1Kernel(kernelItem);
+
         var closure = ComputeKernelClosure(
             set: set,
-            kernel: new LR1Item[] { kernel }
+            kernel: kernel
         );
 
         return new LR1State(
@@ -102,9 +109,9 @@ public class LR1Tool
     }
 
     private static LR1State[] ComputeNextStates(
-    ProductionSet set,
-    LR1State state,
-    LR1Item[] kernelBlacklist)
+        ProductionSet set,
+        LR1State state,
+        LR1Kernel[] kernelBlacklist)
     {
         var states = new List<LR1State>();
 
@@ -136,7 +143,7 @@ public class LR1Tool
     /*
      * Closure rewritten to use a stack instead of recursion.
      */
-    private static LR1Item[] ComputeItemClosure(
+    private static LR1Closure ComputeItemClosure(
         ProductionSet set,
         LR1Item item)
     {
@@ -146,7 +153,7 @@ public class LR1Tool
 
         if (symbol is not NonTerminal nonTerminal)
         {
-            return items.ToArray();
+            return new LR1Closure(items.ToArray());
         }
 
         var productions = set.Lookup(nonTerminal)
@@ -174,12 +181,12 @@ public class LR1Tool
             items.Add(newItem);
         }
 
-        return items.ToArray();
+        return new LR1Closure(items.ToArray());
     }
 
-    private static LR1Item[] ComputeKernelClosure(
+    private static LR1Closure ComputeKernelClosure(
         ProductionSet set,
-        LR1Item[] kernel)
+        LR1Kernel kernel)
     {
         var items = new List<LR1Item>(kernel);
 
@@ -211,10 +218,6 @@ public class LR1Tool
                 break;
             }
         }
-
-        //return items
-        //    .Skip(kernel.Length)
-        //    .ToArray();
 
         /*
          * This section is commented out because i'm currently figuring out if the code bellow is correct for LR(1). 
@@ -249,18 +252,7 @@ public class LR1Tool
             uniqueItems.Add(uniqueItem);
         }
 
-        return uniqueItems
-            .ToArray();
-
-        /*
-         * some debugging code
-         */
-        //return items
-        //    .Skip(kernel.Length)
-        //    .Select(x => new { Item = x, Signature = x.GetSignature(useLookaheads:true) })
-        //    .DistinctBy(x => x.Signature)
-        //    .Select(x => x.Item)
-        //    .ToArray();
+        return new LR1Closure(uniqueItems.ToArray());
     }
 
     private static Terminal[] ComputeLookaheads(
@@ -339,9 +331,9 @@ public class LR1Tool
             .ToArray();
     }
 
-    private static Dictionary<Symbol, LR1Item[]> ComputeGotoDictionary(
+    private static Dictionary<Symbol, LR1Kernel> ComputeGotoDictionary(
         LR1State state,
-        LR1Item[] kernelBlacklist)
+        LR1Kernel[] kernelBlacklist)
     {
         var symbolGroups = state.Items
             .Where(item => item.Symbol is not null)
@@ -349,19 +341,19 @@ public class LR1Tool
             .GroupBy(item => item.Symbol!)
             .ToArray();
 
-        var dictionary = new Dictionary<Symbol, LR1Item[]>();
+        var dictionary = new Dictionary<Symbol, LR1Kernel>();
 
         foreach (var entry in symbolGroups)
         {
             var symbol = entry.Key;
 
-            var kernel = entry
+            var kernelItems = entry
                 .Select(item => item.GetNextItem())
-                .Where(item => !kernelBlacklist.Any(blacklistedKernel => blacklistedKernel.ContainsItem(item)))
-                //.Where(item => !kernelBlacklist.Any(blacklistedKernel => blacklistedKernel.Equals(item)))
                 .ToArray();
 
-            if (kernel.Length == 0)
+            var kernel = new LR1Kernel(kernelItems);
+
+            if (kernelBlacklist.Any(x => x.Equals(kernel)))
             {
                 continue;
             }

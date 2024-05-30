@@ -46,7 +46,7 @@ public class LR1Parser
         );
 
         var stack = new LR1Stack(
-            useDebug: false
+            //useDebug: false
         );
 
         var cstBuilder = new CstBuilder(
@@ -54,6 +54,7 @@ public class LR1Parser
         );
 
         var context = new LR1Context(
+            parsingTable: ParsingTable,
             inputStream: inputStream,
             stack: stack,
             cstBuilder: cstBuilder
@@ -78,14 +79,19 @@ public class LR1Parser
     }
 
     /// <summary>
-    /// Gets the next action to execute by performing a lookup in the parsing parsingTable using the current state and the lookahead token.
+    /// Gets the next action to execute by performing a lookup in the parsing parsing table using the current state and the lookahead token.
     /// </summary>
     /// <param name="context"></param>
     /// <returns></returns>
     private LR1Action GetNextAction(LR1Context context)
     {
         var currentState = context.Stack.PeekState();
-        var lookahead = context.InputStream.LookaheadTerminal;
+        var lookahead = context.InputStream.LookaheadToken;
+
+        if (currentState == -1)
+        {
+            throw new Exception("Invalid state.");
+        }
 
         if (lookahead is null)
         {
@@ -96,7 +102,7 @@ public class LR1Parser
 
         if (action is null)
         {
-            throw context.SyntaxError();
+            throw context.SyntaxException(currentState, lookahead);
         }
 
         return action;
@@ -141,17 +147,16 @@ public class LR1Parser
     private void Shift(LR1Context context, LR1ShiftAction action)
     {
         var token = context.InputStream.LookaheadToken;
-        var terminal = context.InputStream.LookaheadTerminal;
 
         if (token is null)
         {
             throw context.UnexpectedEndOfTokens();
         }
 
-        context.Stack.PushSymbol(terminal!);
+        context.Stack.PushToken(token);
         context.Stack.PushState(action.NextState);
-        context.InputStream.Consume();
         context.CstBuilder.AddTerminal(token);
+        context.InputStream.Consume();
     }
 
     /// <summary>
@@ -180,22 +185,26 @@ public class LR1Parser
     /// <param name="production"></param>
     private void NormalReduce(LR1Context context, ProductionRule production)
     {
-        for (int i = 0; i < production.Body.Length; i++)
+        for (int i = 0; i < production.Body.Length * 2; i++)
         {
-            context.Stack.PopState();
-            context.Stack.PopSymbol();
+            context.Stack.Pop();
         }
 
         var nonTerminal = production.Head;
         var currentState = context.Stack.PeekState();
 
-        context.Stack.PushSymbol(nonTerminal);
+        if (currentState == -1)
+        {
+            throw new Exception("Invalid state.");
+        }
+
+        context.Stack.PushNonTerminal(nonTerminal);
 
         var gotoAction = ParsingTable.LookupGoto(currentState, nonTerminal);
 
         if (gotoAction is null)
         {
-            throw context.SyntaxError();
+            throw new InvalidOperationException();
         }
 
         var nextState = gotoAction.NextState;
@@ -218,13 +227,18 @@ public class LR1Parser
         var nonTerminal = production.Head;
         var currentState = context.Stack.PeekState();
 
-        context.Stack.PushSymbol(nonTerminal);
+        if(currentState == -1)
+        {
+            throw new Exception("Invalid state.");
+        }
+
+        context.Stack.PushNonTerminal(nonTerminal);
 
         var gotoAction = ParsingTable.LookupGoto(currentState, nonTerminal);
 
         if (gotoAction is null)
         {
-            throw context.SyntaxError();
+            throw new InvalidOperationException();
         }
 
         context.Stack.PushState(gotoAction.NextState);
@@ -250,8 +264,7 @@ public class LR1Parser
     /// <param name="action"></param>
     private void Accept(LR1Context context, LR1AcceptAction action)
     {
-        context.Stack.PopState();
-        context.Stack.PopSymbol();
+        context.Stack.Pop();
     }
 
 }

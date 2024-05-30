@@ -33,7 +33,7 @@ public class TokenizerTransition
 //            token.Append(character);
 //        }
 
-//        yield return new Token(Type.String, token.ToString());
+//        yield return new Token(ExpressionType.String, token.ToString());
 //    }
 
 //    private void TransitionState(char character)

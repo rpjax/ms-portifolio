@@ -26,7 +26,7 @@ public class CstReducer
     /// Reduces the concrete syntax tree (CST) to a more compact form.
     /// </summary>
     /// <returns></returns>
-    public CstRoot ReduceCst()
+    public CstRoot Execute()
     {
         return new CstRoot(
             Root.Name,

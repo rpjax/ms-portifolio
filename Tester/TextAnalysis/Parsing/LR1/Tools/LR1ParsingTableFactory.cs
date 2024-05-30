@@ -16,10 +16,10 @@ public class LR1ParsingTableFactory : IFactory<Grammar, LR1ParsingTable>
     /// <returns></returns>
     public LR1ParsingTable Create(Grammar grammar)
     {
-        var states = LR1Tool.ComputeStatesDictionary(grammar.Productions);
+        var states = LR1Tool.ComputeStatesCollection(grammar.Productions);
         var entries = new List<LR1ParsingTableEntry>();
 
-        var productions = states.Values
+        var productions = states
             .SelectMany(s => s.Items)
             .Select(i => i.Production)
             .Distinct()
@@ -29,22 +29,20 @@ public class LR1ParsingTableFactory : IFactory<Grammar, LR1ParsingTable>
             start: grammar.Start,
             productions: productions.ToArray()
         );
-       
-        foreach (var entry in states)
+
+        foreach (var state in states)
         {
-            var state = entry.Value;
-            var id = entry.Key;
+            var id = states.GetStateId(state);
 
             var actions = ComputeActionsForState(
-                set: set, 
-                id: id, 
-                state: state, 
+                set: set,
+                state: state,
                 computedStates: states
             );
 
             var newEntry = new LR1ParsingTableEntry(
-                id: id, 
-                state: state, 
+                id: id,
+                state: state,
                 actionsTable: actions
             );
 
@@ -59,31 +57,25 @@ public class LR1ParsingTableFactory : IFactory<Grammar, LR1ParsingTable>
 
     private Dictionary<Symbol, LR1Action> ComputeActionsForState(
         ProductionSet set,
-        int id, 
         LR1State state,
-        Dictionary<int, LR1State> computedStates)
+        LR1StateCollection computedStates)
     {
         var actions = new Dictionary<Symbol, LR1Action>();
 
-        if (state.IsAcceptingState(set))
-        {
-            actions.Add(Eoi.Instance, new LR1AcceptAction());
-        }
+        var shiftActions = ComputeShiftActions(set, state, computedStates);
+        var reduceActions = ComputeReduceActions(set, state, computedStates);
+        var gotoActions = ComputeGotoActions(set, state, computedStates);
 
-        var symbolItems = state.Items
-            .GroupBy(x => x.Symbol)
-            .Select(x => x.First())
-            .ToArray();
-
-        var stateActions = symbolItems
-            .SelectMany(item => ComputeActionsForStateItem(set, id, state, item, computedStates))
+        var stateActions = shiftActions
+            .Concat(reduceActions)
+            .Concat(gotoActions)
             .ToArray();
 
         foreach (var action in stateActions)
         {
             if (actions.ContainsKey(action.Key))
             {
-                throw new Exception($"Conflict at state {id} with symbol {action.Key}.");
+                throw new Exception($"Conflict at state {computedStates.GetStateId(state)} with symbol {action.Key}.");
             }
 
             actions.Add(action.Key, action.Value);
@@ -92,20 +84,67 @@ public class LR1ParsingTableFactory : IFactory<Grammar, LR1ParsingTable>
         return actions;
     }
 
-    private Dictionary<Symbol, LR1Action> ComputeActionsForStateItem(
+    /*
+     * New API
+     */
+
+    private Dictionary<Symbol, LR1Action> ComputeShiftActions(
         ProductionSet set,
-        int id,
         LR1State state,
-        LR1Item item,
-        Dictionary<int, LR1State> computedStates)
+        LR1StateCollection computedStates)
     {
         var actions = new Dictionary<Symbol, LR1Action>();
-        var stackSymbol = item.Symbol;
 
-        /*
-         * Create reduce actions for all lookaheads of the item.
-         */
-        if (stackSymbol is null || stackSymbol is Epsilon)
+        var shiftItems = state.Items
+            .Where(x => x.Symbol is not null && x.Symbol.IsTerminal && !x.Symbol.IsEpsilon)
+            .GroupBy(x => x.Symbol)
+            .Select(x => new 
+            { 
+                Symbol = x.Key!, 
+                GotoKernel = new LR1Kernel(x.Select(x => x.GetNextItem()).ToArray()) 
+            })
+            .ToArray();
+
+        foreach (var item in shiftItems)
+        {
+            var symbol = item.Symbol;
+            var gotoKernel = item.GotoKernel;
+            var nextStateId = computedStates.GetStateIdByKernel(gotoKernel);
+
+            if (nextStateId == -1)
+            {
+                throw new InvalidOperationException("The next state does not exist.");
+            }
+
+            if (actions.ContainsKey(symbol))
+            {
+                throw new Exception($"Conflict at state {state} with symbol {symbol}.");
+            }
+
+            actions.Add(symbol, new LR1ShiftAction(nextStateId));
+        }
+
+        return actions;
+    }
+
+    private Dictionary<Symbol, LR1Action> ComputeReduceActions(
+        ProductionSet set,
+        LR1State state,
+        LR1StateCollection computedStates)
+    {
+        var actions = new Dictionary<Symbol, LR1Action>();
+        var isAcceptingState = state.IsAcceptingState(set);
+
+        var reduceItems = state.Items
+            .Where(x => x.Symbol is null || x.Symbol.IsEpsilon)
+            .ToArray();
+
+        if (isAcceptingState)
+        {
+            actions.Add(Eoi.Instance, new LR1AcceptAction());
+        }
+
+        foreach (var item in reduceItems)
         {
             var productionIndex = set.GetProductionIndex(item.Production);
 
@@ -116,62 +155,52 @@ public class LR1ParsingTableFactory : IFactory<Grammar, LR1ParsingTable>
 
             foreach (var lookahead in item.Lookaheads)
             {
-                if(lookahead == Eoi.Instance && state.IsAcceptingState(set))
+                if (lookahead == Eoi.Instance && isAcceptingState)
                 {
                     continue;
                 }
 
                 actions.Add(lookahead, new LR1ReduceAction(productionIndex));
             }
-            
-            return actions;
         }
 
-        /*
-         * Create shift or goto actions for the stack symbol.
-         */
+        return actions;
+    }
 
-        var nextStateItem = item.GetNextItem();
-        var nextStateSignature = nextStateItem.GetSignature(useLookaheads: true);
+    private Dictionary<Symbol, LR1Action> ComputeGotoActions(
+        ProductionSet set,
+        LR1State state,
+        LR1StateCollection computedStates)
+    {
+        var actions = new Dictionary<Symbol, LR1Action>();
 
-        var nextStates = computedStates
-            .Where(x => x.Value.Kernel.Any(k => k.ContainsItem(nextStateItem)))
+        var gotoItems = state.Items
+            .Where(x => x.Symbol is not null && x.Symbol.IsNonTerminal)
+            .GroupBy(x => x.Symbol)
+            .Select(x => new
+            {
+                Symbol = x.Key!,
+                GotoKernel = new LR1Kernel(x.Select(x => x.GetNextItem()).ToArray())
+            })
             .ToArray();
-            ;
 
-        if(nextStates.Length == 0)
+        foreach (var item in gotoItems)
         {
-            throw new InvalidOperationException("The next state does not exist.");
-        }
-        if(nextStates.Length > 1)
-        {
-            throw new InvalidOperationException("The next state is ambiguous.");
-        }
+            var symbol = item.Symbol;
+            var gotoKernel = item.GotoKernel;
+            var nextStateId = computedStates.GetStateIdByKernel(gotoKernel);
 
-        var nextStateId = nextStates[0].Key;
-
-        if (nextStateId == -1)
-        {
-            throw new InvalidOperationException("The next state does not exist.");
-        }
-
-        if (stackSymbol.IsTerminal)
-        {
-            if (actions.ContainsKey(stackSymbol))
+            if (nextStateId == -1)
             {
-                throw new Exception($"Conflict at state {id} with symbol {stackSymbol}.");
+                throw new InvalidOperationException("The next state does not exist.");
             }
 
-            actions.Add(stackSymbol, new LR1ShiftAction(nextStateId));
-        }
-        else
-        {
-            if (actions.ContainsKey(stackSymbol))
+            if (actions.ContainsKey(symbol))
             {
-                throw new Exception($"Conflict at state {id} with symbol {stackSymbol}.");
+                throw new Exception($"Conflict at state {state} with symbol {symbol}.");
             }
 
-            actions.Add(stackSymbol, new LR1GotoAction(nextStateId));
+            actions.Add(symbol, new LR1GotoAction(nextStateId));
         }
 
         return actions;

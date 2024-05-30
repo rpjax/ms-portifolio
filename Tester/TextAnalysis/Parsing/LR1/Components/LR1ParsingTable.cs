@@ -1,13 +1,24 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Parsing.LR1.Tools;
+using ModularSystem.Core.TextAnalysis.Tokenization;
+using System.Collections;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 
-public class LR1ParsingTable
+/// <summary>
+/// Represents a LR(1) parsing table. Contains the entries and the production rules.
+/// </summary>
+public class LR1ParsingTable : IEnumerable<LR1ParsingTableEntry>
 {
     private LR1ParsingTableEntry[] Entries { get; }
     private ProductionRule[] Productions { get; }
 
+    /// <summary>
+    /// Creates a new instance of <see cref="LR1ParsingTable"/>.
+    /// </summary>
+    /// <param name="entries"></param>
+    /// <param name="productions"></param>
+    /// <exception cref="InvalidOperationException"></exception>
     public LR1ParsingTable(
         LR1ParsingTableEntry[] entries,
         ProductionRule[] productions)
@@ -45,25 +56,62 @@ public class LR1ParsingTable
 
     }
 
+    public LR1ParsingTableEntry this[int index] => Entries[index];
+
     public enum KeyStrategy
     {
         Type,
         TypeAndValue
     }
 
-    public static string CreateActionKey(Symbol symbol, KeyStrategy strategy)
+    public static string CreateActionKey(object obj, KeyStrategy strategy)
     {
-        if (symbol is NonTerminal || symbol is Epsilon)
+        if (obj is Token token)
         {
-            return symbol.ToString();
+            return CreateActionKey(token, strategy);
         }
 
-        if (symbol is not Terminal terminal)
+        if (obj is Terminal terminal)
         {
-            throw new InvalidOperationException("The symbol is not a terminal.");
+            return CreateActionKey(terminal, strategy);
         }
 
-        if(terminal.Value is null)
+        if (obj is NonTerminal nonterminal)
+        {
+            return CreateActionKey(nonterminal);
+        }
+
+        if(obj is Epsilon)
+        {
+            return Epsilon.Instance.ToString();
+        }
+
+        throw new Exception();
+    }
+
+    public static string CreateActionKey(Token token, KeyStrategy strategy)
+    {
+        if (token.Value is null)
+        {
+            return token.Type.ToString();
+        }
+
+        switch (strategy)
+        {
+            case KeyStrategy.Type:
+                return token.Type.ToString();
+
+            case KeyStrategy.TypeAndValue:
+                return $"{token.Type}({token.Value})";
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(strategy));
+        }
+    }
+
+    public static string CreateActionKey(Terminal terminal, KeyStrategy strategy)
+    {
+        if (terminal.Value is null)
         {
             return terminal.Type.ToString();
         }
@@ -81,49 +129,35 @@ public class LR1ParsingTable
         }
     }
 
+    public static string CreateActionKey(NonTerminal nonterminal)
+    {
+        return nonterminal.ToString();
+    }
+
     public static LR1ParsingTable Create(Grammar grammar)
     {
         return new LR1ParsingTableFactory()
             .Create(grammar);
     }
 
-    public LR1Action? Lookup(int state, Symbol symbol)
+    public LR1Action? Lookup(int state, Token token)
     {
         if(state < 0 || state >= Entries.Length)
         {
             throw new ArgumentOutOfRangeException(nameof(state));
         }
 
-        return Entries[state].Lookup(symbol: symbol);
+        return Entries[state].Lookup(token);
     }
 
-    public LR1ShiftAction? LookupShift(int state, Symbol symbol)
+    public LR1GotoAction? LookupGoto(int state, NonTerminal nonTerminal)
     {
-        var action = Lookup(state, symbol);
-
-        if (action is LR1ShiftAction shiftAction)
+        if (state < 0 || state >= Entries.Length)
         {
-            return shiftAction;
+            throw new ArgumentOutOfRangeException(nameof(state));
         }
 
-        return null;
-    }
-
-    public LR1ReduceAction? LookupReduce(int state, Symbol symbol)
-    {
-        var action = Lookup(state, symbol);
-
-        if (action is LR1ReduceAction reduceAction)
-        {
-            return reduceAction;
-        }
-
-        return null;
-    }
-
-    public LR1GotoAction? LookupGoto(int state, Symbol symbol)
-    {
-        var action = Lookup(state, symbol);
+        var action = Entries[state].Lookup(nonTerminal);
 
         if (action is LR1GotoAction gotoAction)
         {
@@ -143,4 +177,13 @@ public class LR1ParsingTable
         return Productions[index];
     }
 
+    public IEnumerator<LR1ParsingTableEntry> GetEnumerator()
+    {
+        return ((IEnumerable<LR1ParsingTableEntry>)Entries).GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
 }

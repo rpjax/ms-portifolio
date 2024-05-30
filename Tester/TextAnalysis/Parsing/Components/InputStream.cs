@@ -29,11 +29,6 @@ public class InputStream : IDisposable
     /// </summary>
     public Token? LookaheadToken => Peek();
 
-    /// <summary>
-    /// Gets the lookahead terminal.
-    /// </summary>
-    public Terminal? LookaheadTerminal => PeekTerminal();
-
     public bool IsEoi => IsEndReached;
 
     public void Dispose()

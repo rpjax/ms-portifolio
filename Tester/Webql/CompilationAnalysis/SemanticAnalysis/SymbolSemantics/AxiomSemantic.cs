@@ -2,9 +2,9 @@
 
 public class AxiomSemantic : SymbolSemantic
 {
-    //public Type QueryableType { get; }
+    //public ExpressionType QueryableType { get; }
 
-    //public AxiomSemantics(Type queryableType)
+    //public AxiomSemantics(ExpressionType queryableType)
     //{
     //    QueryableType = queryableType;
     //}

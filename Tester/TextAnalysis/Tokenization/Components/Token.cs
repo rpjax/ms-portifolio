@@ -35,6 +35,16 @@ public class Token
 
     public override string ToString()
     {
+        if(Value is null)
+        {
+            return Type.ToString();
+        }
+
+        return Value;
+    }
+
+    public string ToStringVerbose()
+    {
         if (Type == TokenType.String)
         {
             return $"{Type}: {Value} {Metadata}";
@@ -44,6 +54,7 @@ public class Token
             return $"{Type}: \"{Value}\"  {Metadata}";
         }
     }
+
 }
 
 /// <summary>

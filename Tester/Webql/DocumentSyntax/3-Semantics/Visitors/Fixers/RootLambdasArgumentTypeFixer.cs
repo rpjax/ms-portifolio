@@ -6,7 +6,7 @@ using ModularSystem.Webql.Analysis.Symbols;
 namespace ModularSystem.Webql.Analysis.DocumentSyntax.Semantics.Components;
 
 /*
- * The visitor job: accepts a Type and adds it FullName to the root lambda's argument symbol.
+ * The visitor job: accepts a ExpressionType and adds it FullName to the root lambda's argument symbol.
  */
 public class RootLambdasArgumentTypeFixer : FirstSemanticPass
 {

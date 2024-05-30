@@ -3,53 +3,121 @@
 */
 
 start
-	: json 
+	: document 
 	;
 
 document
-	: object
+	: expression
 	;
 
-object
-	: '{' { members } '}' 
+expression 
+	: lteral_expression
+	| reference_expression
+	| scope_access_expression
+	| object_expression
+	| operation_expression
 	;
 
-members
-	: pair  { ',' members } 
-	;
-
-pair
-	: $string ':' value 
-	;
-
-array
-	: '[' [ elements ] ']'
-	;
-
-elements
-	: value { ',' value }
-	;
-
-value 
-	: number 
-	| object 
-	| array
+lteral_expression
+	: bool
+	| null
+	| $int
+	| $float
+	| $hex
 	| $string
-	| bool
-	| null 
 	;
 
 bool
-	: 'true' 
-	| 'false' 
+	: 'true'
+	| 'false'
 	;
 
 null
-	: 'null' 
+	: 'null'
 	;
 
-number
-	: $int 
-	| $float 
-	| $hex 
+reference_expression
+	: $id
+	| '$' $string
 	;
+
+scope_access_expression
+	: reference_expression ':' expression
+	;
+
+object_expression
+	: '{' [ expression ] { ',' expression } '}' 
+	;
+
+operation_expression
+	: operator ':' expression
+	;
+
+operator 
+	: arithmetic_operator
+	| relational_operator
+	| string_relational_operator
+	| logical_operator
+	| collection_manipulation_operator
+	| collection_aggregation_operator
+	;
+
+arithmetic_operator
+	: '$add'
+	| '$subtract'
+	| '$multiply'
+	| '$divide'
+	;
+
+relational_operator
+	: '$equals'
+	| '$notEquals'
+	| '$greater'
+	| '$less'
+	| '$greaterEquals'
+	| '$lessEquals'
+	;
+
+string_relational_operator
+	: '$like'
+	;
+
+logical_operator
+	: '$and'
+	| '$or'
+	| '$not'
+	;
+
+collection_manipulation_operator
+	: '$filter'
+	| '$select'
+	| '$group'
+	| '$order'
+	| '$limit'
+	| '$skip'
+	;
+
+collection_aggregation_operator
+	: '$count'
+	| '$any'
+	| '$all'
+	| '$sum'
+	| '$average'
+	| '$min'
+	| '$max'
+	;
+
+/*
+	Language development sandbox:
+
+	How is the query pipeline structured?
+	- It starts with a function that accepts an IAsyncQueryable source.
+
+	What the query defines? 
+	- The query defines a document structure.
+
+	Available variables:
+	- $source: the source of the query data (IAsyncQueryable)
+	- $result: the current result of the query (IAsyncQueryable)
+	- ${name}: reference to a property, a variable declared in the $declare section
+*/

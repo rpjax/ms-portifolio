@@ -11,7 +11,7 @@ namespace ModularSystem.Core.TextAnalysis.Gdef;
 /// </summary>
 public static class GdefParser
 {
-    private static LR1Parser Parser { get; } = new LR1Parser(new GdefGrammar());
+    private static LR1Parser? ParserInstance { get; set; } 
 
     private static string[] ReduceWhitelist { get; } = new string[]
     {
@@ -49,6 +49,26 @@ public static class GdefParser
         "parameter"
     };
 
+    public static void Init()
+    {
+        if (ParserInstance is not null)
+        {
+            return;
+        }
+
+        GetParser();
+    }
+
+    public static LR1Parser GetParser()
+    {
+        if (ParserInstance is null)
+        {
+            ParserInstance = new LR1Parser(new GdefGrammar());
+        }
+
+        return ParserInstance;
+    }
+
     /// <summary>
     /// Parses a gdef file and returns a CST.
     /// </summary>
@@ -56,7 +76,7 @@ public static class GdefParser
     /// <returns></returns>
     public static CstRoot Parse(string text)
     {
-        return Parser.Parse(text);
+        return GetParser().Parse(text);
     }
 
     /// <summary>
@@ -68,7 +88,7 @@ public static class GdefParser
     {
         var cst = Parse(text);
         var reducer = new CstReducer(cst, ReduceWhitelist);
-        var reducedCst = reducer.ReduceCst();
+        var reducedCst = reducer.Execute();
 
         return GdefTranslator.TranslateGrammar(reducedCst);
     }

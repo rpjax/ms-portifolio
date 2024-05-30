@@ -20,7 +20,7 @@ public enum CstNodeType
 //    /// <summary>
 //    /// Gets the type of the node.
 //    /// </summary>
-//    CstNodeType Type { get; }
+//    CstNodeType ExpressionType { get; }
 
 //    /// <summary>
 //    /// Gets or sets a property by key.

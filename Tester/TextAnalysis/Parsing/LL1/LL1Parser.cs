@@ -117,28 +117,29 @@ public class LL1Parser
 
     private void Expand(LL1Context context)
     {
-        var input = context.InputStream;
-        var stack = context.Stack;
-        var parsingTable = context.ParsingTable;
+        throw new NotImplementedException();
+        //var input = context.InputStream;
+        //var stack = context.Stack;
+        //var parsingTable = context.ParsingTable;
 
-        if (stack.Top is not NonTerminal nonTerminal)
-        {
-            throw new InvalidOperationException("Invalid token at the top of the stack.");
-        }
-        if (input.LookaheadTerminal is null)
-        {
-            throw new Exception("Unexpected end of tokens.");
-        }
+        //if (stack.Top is not NonTerminal nonTerminal)
+        //{
+        //    throw new InvalidOperationException("Invalid token at the top of the stack.");
+        //}
+        //if (input.LookaheadTerminal is null)
+        //{
+        //    throw new Exception("Unexpected end of tokens.");
+        //}
 
-        if (!parsingTable.Lookup(nonTerminal, input.LookaheadTerminal, out var production))
-        {
-            throw new Exception("Syntax error");
-        }
+        //if (!parsingTable.Lookup(nonTerminal, input.LookaheadTerminal, out var production))
+        //{
+        //    throw new Exception("Syntax error");
+        //}
 
-        stack.Pop();
-        stack.Push(LL1SemanticSymbol.FinilizeBranch);
-        stack.Push(production);
-        context.SyntaxContext.CreateBranch(nonTerminal);
+        //stack.Pop();
+        //stack.Push(LL1SemanticSymbol.FinilizeBranch);
+        //stack.Push(production);
+        //context.SyntaxContext.CreateBranch(nonTerminal);
     }
 
 }

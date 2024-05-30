@@ -21,7 +21,7 @@ public static class LambdaExpressionAnalyser
         //    var param = symbol.Parameters[i];
         //    var semantic = paramsSemantics[i];
 
-        //    param.AddDeclaration(context, param.Identifier, semantic.Type);
+        //    param.AddDeclaration(context, param.Identifier, semantic.ExpressionType);
         //}
 
         var bodySemantic = SemanticAnalyser.AnalyseStatementBlock(

@@ -20,8 +20,15 @@ public class LexicalContext : IDisposable
 
     public LexicalContext(IEnumerable<char> source)
     {
+        Position = 0;
+        Line = 1;
+        Column = 1;
+
         Source = source;
         Enumerator = source.GetEnumerator();
+
+        IsInit = false;
+        EndReached = false;
         AccumulatorBuilder = new StringBuilder(100);
     }
 
@@ -37,11 +44,11 @@ public class LexicalContext : IDisposable
     {
         if (IsInit)
         {
-            return this;
+            throw new InvalidOperationException("The lexer context is already initialized.");
         }
 
         IsInit = true;
-        EndReached = !Enumerator.MoveNext();
+        Advance();
         return this;
     }
 
@@ -122,7 +129,7 @@ public class LexicalContext : IDisposable
         if (Enumerator.Current == '\n')
         {
             Line++;
-            Column = 0;
+            Column = 1;
         }
     }
 

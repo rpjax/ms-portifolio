@@ -67,7 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="CLI\" />
-    <Folder Include="Core\Application\Initializer\Internal\" />
+    <Folder Include="CoreLegacy\Application\Initializer\Internal\" />
   </ItemGroup>
 
 </Project>

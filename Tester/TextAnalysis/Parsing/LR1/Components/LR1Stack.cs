@@ -1,99 +1,81 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Tokenization;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 
 public class LR1Stack
 {
-    private Stack<int> States { get; }
-    private Stack<Symbol> Symbols { get; }
     private Stack<object> Stack { get; }
 
-    private bool UseDebug { get; }
-    private Stack<object> DebugStack { get; }
-
-    public LR1Stack(bool useDebug = false)
+    public LR1Stack()
     {
-        States = new Stack<int>();
-        Symbols = new Stack<Symbol>();
         Stack = new Stack<object>();
-        UseDebug = useDebug;
-        DebugStack = new Stack<object>();
     }
 
-    public int StatesCount => States.Count;
+    public int Count => Stack.Count;
 
     public override string ToString()
     {
-        return string.Join(" ", DebugStack.Reverse().Select(x => x.ToString()));
+        return string.Join(" ", Stack.Reverse().Select(x => x.ToString()));
     }
 
     public int PeekState()
     {
-        if(States.Count == 0)
+        if(Stack.Count == 0)
         {
             throw new InvalidOperationException("The stack is empty.");
         }
 
-        return States.Peek();
-    }
+        var state = Stack.Peek();
 
-    public Symbol? PeekSymbol()
-    {
-        if(Symbols.Count == 0)
+        if(state is int _int)
         {
-            return null;
+            return _int;
         }
 
-        return Symbols.Peek();
+        return -1;
+    }
+
+    public NonTerminal? PeekSymbol()
+    {
+        if (Stack.Count == 0)
+        {
+            throw new InvalidOperationException("The stack is empty.");
+        }
+
+        var state = Stack.Peek();
+
+        if (state is NonTerminal nonTerminal)
+        {
+            return nonTerminal;
+        }
+
+        return null;
     }
 
     public void PushState(int state)
     {
-        States.Push(state);
-
-        if(UseDebug)
-        {
-            DebugStack.Push(state);
-        }
+        Stack.Push(state);
     }
 
-    public void PushSymbol(Symbol symbol)
+    public void PushToken(Token token)
     {
-        Symbols.Push(symbol);
-
-        if(UseDebug)
-        {
-            DebugStack.Push(symbol);
-        }
+        Stack.Push(token);
     }
 
-    public int PopState()
+    public void PushNonTerminal(NonTerminal nonTerminal)
     {
-        if(States.Count == 0)
+        Stack.Push(nonTerminal);
+    }
+
+    public void Pop()
+    {
+        if(Stack.Count == 0)
         {
             throw new InvalidOperationException("The stack is empty.");
         }
 
-        if(UseDebug)
-        {
-            DebugStack.Pop();
-        }
-
-        return States.Pop();
+        Stack.Pop();
     }
 
-    public Symbol PopSymbol()
-    {
-        if(Symbols.Count == 0)
-        {
-            throw new InvalidOperationException("The stack is empty.");
-        }
-
-        if(UseDebug)
-        {
-            DebugStack.Pop();
-        }
-
-        return Symbols.Pop();
-    }
 }

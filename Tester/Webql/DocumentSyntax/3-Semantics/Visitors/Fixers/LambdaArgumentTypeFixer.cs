@@ -11,9 +11,9 @@ namespace ModularSystem.Webql.Analysis.DocumentSyntax.Semantics.Components;
 // The visitor job: Recursively analyses statement blocks looking for query or aggregation expressions,
 // where a lambda is accepted as argument.
 // EBNF Ex: filter_expr = destination, query_arg, lambda;
-// If the lambda passed as argument to the expression contains an argument (lambda_arg) with no Type value set,
-// it resolves the query argument Type as an IEnumerable<T> or IQueryable<T>, and it retrives it's element type T and assignes
-// its FullName property to the Type property of the lambda argument symbol (lambda_arg.Type). 
+// If the lambda passed as argument to the expression contains an argument (lambda_arg) with no ExpressionType value set,
+// it resolves the query argument ExpressionType as an IEnumerable<T> or IQueryable<T>, and it retrives it's element type T and assignes
+// its FullName property to the ExpressionType property of the lambda argument symbol (lambda_arg.ExpressionType). 
 //*
 
 public class LambdaArgumentTypeFixer : FirstSemanticPass
