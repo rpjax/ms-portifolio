@@ -14,7 +14,7 @@ expression
 	: lteral_expression
 	| reference_expression
 	| scope_access_expression
-	| object_expression
+	| block_expression
 	| operation_expression
 	;
 
@@ -45,7 +45,7 @@ scope_access_expression
 	: reference_expression ':' expression
 	;
 
-object_expression
+block_expression
 	: '{' [ expression ] { ',' expression } '}' 
 	;
 
@@ -120,4 +120,18 @@ collection_aggregation_operator
 	- $source: the source of the query data (IAsyncQueryable)
 	- $result: the current result of the query (IAsyncQueryable)
 	- ${name}: reference to a property, a variable declared in the $declare section
+
+	{
+		$where: {
+			id: 402,
+			id: {
+				$equals: 402
+			},
+			surnames: {
+				$any: {
+					$like: 'Jacques'
+				}
+			}
+		}
+	}
 */

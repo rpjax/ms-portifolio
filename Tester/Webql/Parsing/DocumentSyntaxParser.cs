@@ -1,9 +1,7 @@
 ﻿using ModularSystem.Core.TextAnalysis.Gdef;
-using ModularSystem.Core.TextAnalysis.Grammars;
 using ModularSystem.Core.TextAnalysis.Parsing;
 using ModularSystem.Core.TextAnalysis.Parsing.Components;
 using ModularSystem.Core.TextAnalysis.Parsing.Tools;
-using ModularSystem.Core.TextAnalysis.Tokenization;
 
 namespace Webql.DocumentSyntax.Parsing;
 
@@ -181,81 +179,3 @@ collection_aggregation_operator
 
 }
 
-public abstract class WebqlAstNode
-{
-
-}
-
-public class WebqlDocument : WebqlAstNode
-{
-    public WebqlAstNode[] Nodes { get; }
-
-    public WebqlDocument(IEnumerable<WebqlAstNode> nodes)
-    {
-        Nodes = nodes.ToArray();
-    }
-}
-
-public enum WebqlExpressionType
-{
-    Literal,
-    Reference,
-    ScopeAccess,
-    Object,
-    Operation
-}
-
-public abstract class WebqlExpression : WebqlAstNode
-{
-    public abstract WebqlExpressionType ExpressionType { get; }
-}
-
-public enum WebqlLiteralType
-{
-    Bool,
-    Null,
-    Int,
-    Float,
-    Hex,
-    String
-}
-
-public class WebqlLiteralExpression : WebqlExpression
-{
-    public override WebqlExpressionType ExpressionType { get; }
-    public WebqlLiteralType LiteralType { get; }
-    public string Value { get; }
-
-    public WebqlLiteralExpression(WebqlLiteralType literalType, string value)
-    {
-		ExpressionType = WebqlExpressionType.Literal;
-        LiteralType = literalType;
-        Value = value;
-    }
-}
-
-public class WebqlReferenceExpression : WebqlExpression
-{
-    public override WebqlExpressionType ExpressionType { get; }
-    public string Identifier { get; }
-
-    public WebqlReferenceExpression(string identifier)
-    {
-        ExpressionType = WebqlExpressionType.Reference;
-        Identifier = identifier;
-    }
-}
-
-public class WebqlScopeAccessExpression : WebqlExpression
-{
-    public override WebqlExpressionType ExpressionType { get; }
-    public WebqlReferenceExpression Reference { get; }
-    public WebqlExpression Expression { get; }
-
-    public WebqlScopeAccessExpression(WebqlReferenceExpression reference, WebqlExpression expression)
-    {
-        ExpressionType = WebqlExpressionType.ScopeAccess;
-        Reference = reference;
-        Expression = expression;
-    }
-}

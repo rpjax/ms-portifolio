@@ -1,5 +1,8 @@
 ﻿namespace ModularSystem.Core.TextAnalysis.Tokenization;
 
+/// <summary>
+/// Represents the type of a token. This enumeration is used by the tokenizer to classify tokens.
+/// </summary>
 public enum TokenType : int
 {
     /// <summary>
@@ -58,4 +61,9 @@ public enum TokenType : int
     /// Hexadecimal literal. Ex: <c>0x1A</c>
     /// </summary>
     Hexadecimal,
+
+    /// <summary>
+    /// Special identifier that carries a specific meaning in the context of the language. Ex: <c>if</c>, <c>else</c>, <c>for</c>, <c>while</c> etc...
+    /// </summary>
+    Keyword,
 }
