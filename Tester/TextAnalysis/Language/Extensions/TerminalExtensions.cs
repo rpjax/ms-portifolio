@@ -1,5 +1,7 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Tokenization;
+using ModularSystem.Core.TextAnalysis.Tokenization.Tools;
+using System.Runtime.CompilerServices;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Extensions;
 
@@ -51,6 +53,27 @@ public static class TerminalExtensions
         }
 
         return typeStr;
+    }
+
+    /// <summary>
+    /// Computes the FNV-1a hash of the given terminal. 
+    /// </summary>
+    /// <remarks>
+    /// The hash is computed based on the terminal's <see cref="TokenType"/> or value depending on the <paramref name="useValue"/> parameter.
+    /// <br/>
+    /// If <paramref name="useValue"/> is <see langword="true"/>, but the terminal's value is <see langword="null"/>, the hash is computed based on the terminal's type.
+    /// </remarks>
+    /// <param name="terminal"></param>
+    /// <param name="useValue"></param>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint ComputeFnv1aHash(this Terminal terminal, bool useValue = false)
+    {
+        var value = useValue
+            ? $"{TokenTypeHelper.ToString(terminal.Type)}{terminal.Value?.ToString()}"
+            : TokenTypeHelper.ToString(terminal.Type);
+
+        return TokenHashHelper.ComputeFnvHash(value);
     }
 }
 

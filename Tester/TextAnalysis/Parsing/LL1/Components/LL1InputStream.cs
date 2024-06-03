@@ -28,7 +28,7 @@ public class LL1InputStream : IDisposable
             return null;
         }
 
-        return new Terminal(TokenStream.Current.Type, TokenStream.Current.Value);
+        return new Terminal(TokenStream.Current.Type, TokenStream.Current.Value.ToString());
     }
 
     public void Consume()

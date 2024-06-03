@@ -1,6 +1,6 @@
 ﻿namespace ModularSystem.Core.TextAnalysis.Tokenization.Machine;
 
-public class TransitionResult : ITransitionResult
+public struct TransitionResult : ITransitionResult
 {
     public TokenizerState NextState { get; }
     public TokenizerAction Action { get; }

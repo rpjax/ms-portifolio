@@ -21,6 +21,11 @@ public enum TokenType : int
     Identifier,
 
     /// <summary>
+    /// Special identifier that carries a specific meaning in the context of the language. Ex: <c>if</c>, <c>else</c>, <c>for</c>, <c>while</c> etc...
+    /// </summary>
+    Keyword,
+
+    /// <summary>
     /// Single-character punctuators. Ex: <c>,</c> <c>:</c> <c>(</c> <c>[</c> <c>{</c> etc...
     /// </summary>
     Punctuation,
@@ -63,7 +68,7 @@ public enum TokenType : int
     Hexadecimal,
 
     /// <summary>
-    /// Special identifier that carries a specific meaning in the context of the language. Ex: <c>if</c>, <c>else</c>, <c>for</c>, <c>while</c> etc...
+    /// Binary literal. Ex: <c>0b1010</c>
     /// </summary>
-    Keyword,
+    Binary,
 }

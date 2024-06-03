@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core.TextAnalysis.Tokenization.Components;
+using System.Runtime.CompilerServices;
 
 namespace ModularSystem.Core.TextAnalysis.Tokenization.Machine;
 
@@ -8,6 +9,7 @@ public class SingleQuoteStringState : IState
     {
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ITransitionResult GetStateTransition(char? c)
     {
         if (c is null)
@@ -17,10 +19,11 @@ public class SingleQuoteStringState : IState
 
         if(c == TokenizerAlphabet.Escape)
         {
-            return new TransitionResult(TokenizerState.SingleQuoteStringEscape, TokenizerAction.Skip);
+            //return new TransitionResult(TokenizerState.SingleQuoteStringEscape, TokenizerAction.Skip);
+            return new TransitionResult(TokenizerState.SingleQuoteStringEscape, TokenizerAction.Read);
         }
 
-        if (c == '\'')
+        if (c == TokenizerAlphabet.SingleQuote)
         {
             return new TransitionResult(TokenizerState.StringEnd, TokenizerAction.Read);
         }
@@ -31,6 +34,7 @@ public class SingleQuoteStringState : IState
 
 public class SingleQuoteStringEscapeState : IState
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ITransitionResult GetStateTransition(char? c)
     {
         if (c is null)

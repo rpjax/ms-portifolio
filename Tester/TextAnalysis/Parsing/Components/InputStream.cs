@@ -51,20 +51,6 @@ public class InputStream : IDisposable
     }
 
     /// <summary>
-    /// Peeks the next terminal.
-    /// </summary>
-    /// <returns></returns>
-    public Terminal? PeekTerminal()
-    {
-        if (IsEndReached)
-        {
-            return null;
-        }
-
-        return new Terminal(TokenStream.Current.Type, TokenStream.Current.Value);
-    }
-
-    /// <summary>
     /// Consumes the current token and moves to the next one. 
     /// </summary>
     /// <remarks> 

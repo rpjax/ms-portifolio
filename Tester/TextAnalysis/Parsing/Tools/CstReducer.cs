@@ -28,10 +28,25 @@ public class CstReducer
     /// <returns></returns>
     public CstRoot Execute()
     {
-        return new CstRoot(
-            Root.Name,
-            Reduce(Root)
-        );
+        var rootName = Root.Name;
+        var rootChildren = Reduce(Root);
+
+        while (true)
+        {
+            var shouldReduceRoot = rootChildren.Length == 1 
+                && !NonTerminalWhitelist.Contains(Root.Name);
+
+            if (shouldReduceRoot && rootChildren[0] is CstInternal internalNode)
+            {
+                rootName = internalNode.Name;
+                rootChildren = internalNode.Children;
+                continue;
+            }
+
+            break;
+        }
+
+        return new CstRoot(rootName, rootChildren);
     }
 
     private CstNode[] Reduce(CstNode node)
@@ -39,7 +54,7 @@ public class CstReducer
         switch (node.Type)
         {
             case CstNodeType.Root:
-                return ReduceRoot((CstRoot)node);
+                return ReduceMany(((CstRoot)node).Children);
 
             case CstNodeType.Internal:
                 return ReduceInternal((CstInternal)node);
@@ -50,26 +65,6 @@ public class CstReducer
             default:
                 throw new InvalidOperationException();
         }
-    }
-
-    private CstNode[] ReduceRoot(CstRoot node)
-    {
-        if (!NonTerminalWhitelist.Contains(node.Name))
-        {
-            return ReduceMany(node.Children);
-        }
-
-        var newChildren = new List<CstNode>();
-
-        foreach (var child in node.Children)
-        {
-            newChildren.AddRange(Reduce(child));
-        }
-
-        return new CstInternal[]
-        {
-            new CstInternal(node.Name, newChildren.ToArray())
-        };
     }
 
     private CstNode[] ReduceInternal(CstInternal node)

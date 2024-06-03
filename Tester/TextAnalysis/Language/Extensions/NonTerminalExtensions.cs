@@ -1,4 +1,6 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Tokenization.Tools;
+using System.Runtime.CompilerServices;
 
 namespace ModularSystem.Core.TextAnalysis.Language.Extensions;
 
@@ -22,6 +24,22 @@ public static class NonTerminalExtensions
     public static string ToEbnfKleeneNotation(this NonTerminal nonTerminal)
     {
         return nonTerminal.Name;
+    }
+
+
+    /// <summary>
+    /// Computes the FNV-1a hash of the given non-terminal. 
+    /// </summary>
+    /// <remarks>
+    /// The hash is computed using the name of the non-terminal.
+    /// </remarks>
+    /// <param name="terminal"></param>
+    /// <param name="useValue"></param>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint ComputeFnv1aHash(this NonTerminal nonTerminal)
+    {
+        return TokenHashHelper.ComputeFnvHash(nonTerminal.Name);
     }
 
 }

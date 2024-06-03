@@ -3,6 +3,7 @@ using ModularSystem.Core.TextAnalysis.Language.Extensions;
 using ModularSystem.Core.TextAnalysis.Parsing.Components;
 using ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 using ModularSystem.Core.TextAnalysis.Tokenization;
+using System.Runtime.CompilerServices;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing;
 
@@ -83,6 +84,7 @@ public class LR1Parser
     /// </summary>
     /// <param name="context"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private LR1Action GetNextAction(LR1Context context)
     {
         var currentState = context.Stack.PeekState();
@@ -114,6 +116,7 @@ public class LR1Parser
     /// <param name="context"></param>
     /// <param name="action"></param>
     /// <exception cref="InvalidOperationException"></exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExecuteAction(LR1Context context, LR1Action action)
     {
         switch (action.Type)
@@ -144,6 +147,7 @@ public class LR1Parser
     /// </summary>
     /// <param name="context"></param>
     /// <param name="action"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Shift(LR1Context context, LR1ShiftAction action)
     {
         var token = context.InputStream.LookaheadToken;
@@ -164,6 +168,7 @@ public class LR1Parser
     /// </summary>
     /// <param name="context"></param>
     /// <param name="reduceAction"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Reduce(LR1Context context, LR1ReduceAction reduceAction)
     {
         var production = ParsingTable.GetProduction(reduceAction.ProductionIndex);
@@ -183,6 +188,7 @@ public class LR1Parser
     /// </summary>
     /// <param name="context"></param>
     /// <param name="production"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void NormalReduce(LR1Context context, ProductionRule production)
     {
         for (int i = 0; i < production.Body.Length * 2; i++)
@@ -222,6 +228,7 @@ public class LR1Parser
     /// </summary>
     /// <param name="context"></param>
     /// <param name="production"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EpsilonReduce(LR1Context context, ProductionRule production)
     {
         var nonTerminal = production.Head;
@@ -252,6 +259,7 @@ public class LR1Parser
     /// </summary>
     /// <param name="context"></param>
     /// <param name="gotoAction"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Goto(LR1Context context, LR1GotoAction gotoAction)
     {
         context.Stack.PushState(gotoAction.NextState);
@@ -262,6 +270,7 @@ public class LR1Parser
     /// </summary>
     /// <param name="context"></param>
     /// <param name="action"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Accept(LR1Context context, LR1AcceptAction action)
     {
         context.Stack.Pop();

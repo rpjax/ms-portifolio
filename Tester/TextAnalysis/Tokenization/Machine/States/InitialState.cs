@@ -1,9 +1,11 @@
 ﻿using ModularSystem.Core.TextAnalysis.Tokenization.Components;
+using System.Runtime.CompilerServices;
 
 namespace ModularSystem.Core.TextAnalysis.Tokenization.Machine;
 
 public class InitialState : IState
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ITransitionResult GetStateTransition(char? c)
     {
         if (c == null)
@@ -11,7 +13,7 @@ public class InitialState : IState
             return new TransitionResult(TokenizerState.None, TokenizerAction.End);
         }
 
-        switch (TokenizerAlphabet.GetCharType(c.Value))
+        switch (TokenizerAlphabet.LookupCharType(c.Value))
         {
             case CharType.Digit:
                 switch (c)

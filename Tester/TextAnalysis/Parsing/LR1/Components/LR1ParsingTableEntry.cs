@@ -1,5 +1,6 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Tokenization;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
@@ -41,9 +42,9 @@ public class LR1ParsingTableEntry
             .ToDictionary(x => CreateKey(x.Key), x => x.Value);
     }
 
-    private static string CreateKey(object obj)
+    private static string CreateKey(Symbol obj)
     {
-        return LR1ParsingTable.CreateActionKey(obj, LR1ParsingTable.KeyStrategy.TypeAndValue);
+        return LR1ParsingTable.CreateActionKey(obj, useValue: true);
     }
 
     public override string ToString()
@@ -67,16 +68,17 @@ public class LR1ParsingTableEntry
     /// </summary>
     /// <param name="token"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public LR1Action? Lookup(Token token)
     {
-        var key1 = LR1ParsingTable.CreateActionKey(token, LR1ParsingTable.KeyStrategy.TypeAndValue);
+        var key1 = LR1ParsingTable.CreateActionKey(token, useValue: true);
 
         if (ActionTable.TryGetValue(key1, out var action1))
         {
             return action1;
         }
 
-        var key2 = LR1ParsingTable.CreateActionKey(token, LR1ParsingTable.KeyStrategy.Type);
+        var key2 = LR1ParsingTable.CreateActionKey(token, useValue: false);
 
         if (ActionTable.TryGetValue(key2, out var action2))
         {
@@ -91,16 +93,17 @@ public class LR1ParsingTableEntry
     /// </summary>
     /// <param name="nonTemrinal"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public LR1Action? Lookup(NonTerminal nonTemrinal)
     {
-        var key1 = LR1ParsingTable.CreateActionKey(nonTemrinal, LR1ParsingTable.KeyStrategy.TypeAndValue);
+        var key1 = LR1ParsingTable.CreateActionKey(nonTemrinal, useValue: true);
 
         if (ActionTable.TryGetValue(key1, out var action1))
         {
             return action1;
         }
 
-        var key2 = LR1ParsingTable.CreateActionKey(nonTemrinal, LR1ParsingTable.KeyStrategy.Type);
+        var key2 = LR1ParsingTable.CreateActionKey(nonTemrinal, useValue: false);
 
         if (ActionTable.TryGetValue(key2, out var action2))
         {

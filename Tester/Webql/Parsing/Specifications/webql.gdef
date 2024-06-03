@@ -11,14 +11,14 @@ document
 	;
 
 expression 
-	: lteral_expression
+	: literal_expression
 	| reference_expression
 	| scope_access_expression
 	| block_expression
 	| operation_expression
 	;
 
-lteral_expression
+literal_expression
 	: bool
 	| null
 	| $int

@@ -3,7 +3,17 @@
 /// <summary>
 /// Represents a token produced by the lexical analyser, using a lexeme production rule.
 /// </summary>
-public class Token
+public interface IToken
+{
+    TokenType Type { get; }
+    ReadOnlyMemory<char> Value { get; }
+    TokenMetadata Metadata { get; }
+}
+
+/// <summary>
+/// Represents a token produced by the lexical analyser, using a lexeme production rule.
+/// </summary>
+public class Token : IToken
 {
     /// <summary>
     /// Gets the type of the token. (e.g. Identifier, Number, String, etc.)
@@ -11,9 +21,9 @@ public class Token
     public TokenType Type { get; }
 
     /// <summary>
-    /// Gets the value of the token. (e.g. "if", "123", "Hello World", etc.)
+    /// Gets the raw value of the token. (e.g. "if", "123", "Hello World", etc.)
     /// </summary>
-    public string Value { get; }
+    public ReadOnlyMemory<char> Value { get; }
 
     /// <summary>
     /// Gets the information associated with the token. (e.g. line number, column number, etc.)
@@ -23,24 +33,29 @@ public class Token
     /// <summary>
     /// Creates a new instance of the <see cref="Token"/> class.
     /// </summary>
-    /// <param name="tokenType"></param>
-    /// <param name="value"></param>
-    /// <param name="metadata"></param>
-    public Token(TokenType tokenType, string value, TokenMetadata metadata)
+    /// <param name="type"> The type of the token. </param>
+    /// <param name="value"> The value of the token. </param>
+    /// <param name="metadata"> The information associated with the token. </param>
+    public Token(TokenType type, ReadOnlyMemory<char> value, TokenMetadata metadata)
     {
-        Type = tokenType;
+        Type = type;
         Value = value;
         Metadata = metadata;
+
+        if (value.Length == 0)
+        {
+            throw new ArgumentException("The value of the token cannot be empty.", nameof(value));
+        }
     }
 
     public override string ToString()
     {
-        if(Value is null)
+        if(Type == TokenType.Eoi)
         {
-            return Type.ToString();
+            return "EOI";
         }
 
-        return Value;
+        return Value.ToString();
     }
 
     public string ToStringVerbose()

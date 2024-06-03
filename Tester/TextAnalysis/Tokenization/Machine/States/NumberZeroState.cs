@@ -1,7 +1,10 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Tokenization.Machine;
+﻿using System.Runtime.CompilerServices;
+
+namespace ModularSystem.Core.TextAnalysis.Tokenization.Machine;
 
 public class NumberZeroState : IState
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ITransitionResult GetStateTransition(char? c)
     {
         switch (c)

@@ -1,9 +1,11 @@
 ﻿using ModularSystem.Core.TextAnalysis.Tokenization.Components;
+using System.Runtime.CompilerServices;
 
 namespace ModularSystem.Core.TextAnalysis.Tokenization.Machine;
 
 public class IdentifierState : IState
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ITransitionResult GetStateTransition(char? c)
     {
         if (c is null)

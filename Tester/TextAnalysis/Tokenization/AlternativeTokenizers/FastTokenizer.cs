@@ -17,13 +17,6 @@ public interface ITokenStream
     ITokenStream Fork();
 }
 
-public interface IToken
-{
-    TokenType Type { get; }
-    ReadOnlyMemory<char> Value { get; }
-    TokenMetadata Metadata { get; }
-}
-
 public interface ITokenizer
 {
     ITokenStream Tokenize(ICharacterStream source);
@@ -44,7 +37,7 @@ public class CharacterStream : ICharacterStream
     {
         throw new NotImplementedException();
     }
-
+        
     public bool Advance()
     {
         throw new NotImplementedException();

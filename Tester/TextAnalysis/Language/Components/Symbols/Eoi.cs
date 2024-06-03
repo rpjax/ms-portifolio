@@ -12,13 +12,15 @@ public interface IEoi : ISymbol
 /// </summary>
 public sealed class Eoi : Terminal, IEoi
 {
+    public const string SententialRepresentation = "$";
+
     /// <inheritdoc/>
     public override bool IsEoi => true;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Eoi"/> class.
     /// </summary>
-    public Eoi() : base(Tokenization.TokenType.Eoi, "EOI")
+    public Eoi() : base(Tokenization.TokenType.Eoi, SententialRepresentation)
     {
     }
 
@@ -56,12 +58,12 @@ public sealed class Eoi : Terminal, IEoi
     /// <returns>A string representation of the end-of-input symbol.</returns>
     public override string ToString()
     {
-        return "$";
+        return SententialRepresentation;
     }
 
     public override string ToNotation(NotationType notation)
     {
-        return "$";
+        return SententialRepresentation;
     }
 
 }

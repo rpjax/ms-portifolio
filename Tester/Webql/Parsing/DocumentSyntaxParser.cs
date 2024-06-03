@@ -24,7 +24,7 @@ expression
 	: lteral_expression
 	| reference_expression
 	| scope_access_expression
-	| object_expression
+	| block_expression
 	| operation_expression
 	;
 
@@ -55,7 +55,7 @@ scope_access_expression
 	: reference_expression ':' expression
 	;
 
-object_expression
+block_expression
 	: '{' [ expression ] { ',' expression } '}' 
 	;
 
@@ -116,32 +116,20 @@ collection_aggregation_operator
 	| '$min'
 	| '$max'
 	;
-
-/*
-	Language development sandbox:
-
-	How is the query pipeline structured?
-	- It starts with a function that accepts an IAsyncQueryable source.
-
-	What the query defines? 
-	- The query defines a document structure.
-
-	Available variables:
-	- $source: the source of the query data (IAsyncQueryable)
-	- $result: the current result of the query (IAsyncQueryable)
-	- ${name}: identifier to a property, a variable declared in the $declare section
-*/
 ";
 
     private static string[] ReduceWhitelist { get; } = new string[]
     {
-        "expression",
+		// main constructs
+		"document",
+        //"expression",
         "operator",
 
+		// expressions
         "lteral_expression",
         "reference_expression",
-        "object_expression",
         "scope_access_expression",
+        "block_expression",
         "operation_expression",
     };
 

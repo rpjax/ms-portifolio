@@ -1,9 +1,11 @@
 ﻿using ModularSystem.Core.TextAnalysis.Tokenization.Components;
+using System.Runtime.CompilerServices;
 
 namespace ModularSystem.Core.TextAnalysis.Tokenization.Machine;
 
 public class HexadecimalNumberStartState : IState
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ITransitionResult GetStateTransition(char? c)
     {
         switch (c)
@@ -12,7 +14,7 @@ public class HexadecimalNumberStartState : IState
                 return new ErrorResult("Invalid hexadecimal literal, expected at least one value char.");
 
             default:
-                if (!TokenizerAlphabet.IsHexadecimal(c.Value))
+                if (!TokenizerAlphabet.IsValidHexadecimal(c.Value))
                 {
                     return new ErrorResult("Invalid hexadecimal literal.");
                 }
@@ -24,6 +26,7 @@ public class HexadecimalNumberStartState : IState
 
 public class HexadecimalNumberState : IState
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ITransitionResult GetStateTransition(char? c)
     {
         switch (c)
@@ -32,7 +35,7 @@ public class HexadecimalNumberState : IState
                 return new TokenResult(TokenizerState.Initial, TokenType.Hexadecimal);
 
             default:
-                if (TokenizerAlphabet.IsHexadecimal(c.Value))
+                if (TokenizerAlphabet.IsValidHexadecimal(c.Value))
                 {
                     return new TransitionResult(TokenizerState.None, TokenizerAction.Read);
                 }

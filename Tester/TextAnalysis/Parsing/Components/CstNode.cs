@@ -231,12 +231,7 @@ public class CstLeaf : CstNode
 
     public override string ToString()
     {
-        if(Token.Value is null)
-        {
-            return Token.Type.ToString();
-        }
-
-        return Token.Value;
+        return Token.Value.ToString();
     }
 
 }

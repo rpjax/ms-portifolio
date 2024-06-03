@@ -20,11 +20,6 @@ public class LL1SyntaxContext
 
     public void AddAttribute(Token token)
     {
-        if (token.Value is null)
-        {
-            throw new ArgumentException(nameof(token));
-        }
-
         if (!TreeBuilderStack.TryPeek(out var builder))
         {
             throw new InvalidOperationException("No tree builder on the stack.");

@@ -53,12 +53,8 @@ public class GdefTranslator
         {
             throw new InvalidOperationException();
         }
-        if (leaf.Token.Value is null)
-        {
-            throw new InvalidOperationException();
-        }
 
-        var head = new NonTerminal(leaf.Token.Value);
+        var head = new NonTerminal(leaf.Token.Value.ToString());
 
         var bodyNodes = children
             .Skip(2)
@@ -160,7 +156,7 @@ public class GdefTranslator
         }
 
         return tokens
-            .Select(x => new Terminal(x.Type, x.Value));
+            .Select(x => new Terminal(x.Type, x.Value.ToString()));
     }
 
     public static IEnumerable<Symbol> TranslateTerminalLexeme(CstInternal node)
@@ -205,12 +201,7 @@ public class GdefTranslator
             throw new InvalidOperationException();
         }
 
-        if(leaf.Token.Value is null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        yield return new NonTerminal(leaf.Token.Value);
+        yield return new NonTerminal(leaf.Token.Value.ToString());
     }
 
     /*
@@ -359,7 +350,7 @@ public class GdefTranslator
             throw new InvalidOperationException();
         }
 
-        switch (lexemeNode.Token.Value)
+        switch (lexemeNode.Token.Value.ToString())
         {
             case "id":
                 return TokenType.Identifier;

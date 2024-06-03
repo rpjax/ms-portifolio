@@ -1,9 +1,11 @@
 ﻿using ModularSystem.Core.TextAnalysis.Tokenization.Components;
+using System.Runtime.CompilerServices;
 
 namespace ModularSystem.Core.TextAnalysis.Tokenization.Machine;
 
 public class DoubleQuoteStringState : IState
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ITransitionResult GetStateTransition(char? c)
     {
         if (c is null)
@@ -13,10 +15,11 @@ public class DoubleQuoteStringState : IState
 
         if (c == TokenizerAlphabet.Escape)
         {
-            return new TransitionResult(TokenizerState.DoubleQuoteStringEscape, TokenizerAction.Skip);
+            //return new TransitionResult(TokenizerState.DoubleQuoteStringEscape, TokenizerAction.Skip);
+            return new TransitionResult(TokenizerState.DoubleQuoteStringEscape, TokenizerAction.Read);
         }
 
-        if (c == '"')
+        if (c == TokenizerAlphabet.DoubleQuote)
         {
             return new TransitionResult(TokenizerState.StringEnd, TokenizerAction.Read);
         }
@@ -27,6 +30,7 @@ public class DoubleQuoteStringState : IState
 
 public class DoubleQuoteStringEscapeState : IState
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ITransitionResult GetStateTransition(char? c)
     {
         if (c is null)

@@ -28,7 +28,7 @@ public class TokenStreamConsumer
         {
             return false;
         }
-        if (value is not null && token.Value != value)
+        if (value is not null && token.Value.ToString() != value)
         {
             return false;
         }
@@ -72,7 +72,7 @@ public class TokenStreamConsumer
         {
             throw new Exception($"Expected token of type {type} but got {token.Type}. At position {token.Metadata.StartPosition}, line {token.Metadata.Line}, char {token.Metadata.Column}.");
         }
-        if (value is not null && token.Value != value)
+        if (value is not null && token.Value.ToString() != value)
         {
             throw new Exception($"Expected {type} token with value {value} but got {token.Value}. At position {token.Metadata.StartPosition}, line {token.Metadata.Line}, char {token.Metadata.Column}.");
         }

@@ -6,6 +6,8 @@ using ModularSystem.Core.TextAnalysis.Parsing.Tools;
 using ModularSystem.Core.TextAnalysis.Parsing.Extensions;
 using ModularSystem.Core.TextAnalysis.Gdef;
 using Webql.DocumentSyntax.Parsing;
+using Microsoft.CodeAnalysis.CSharp;
+using ModularSystem.Core.TextAnalysis.Parsing.Components;
 
 namespace ModularSystem.Tester;
 
@@ -23,30 +25,78 @@ public class TestUser
 }
 
 /*
-    Bro, listen:
-    I'm falling asleep, I'm tired. The last conclusion i've reached is that the macros have to expand from the innermost to the outermost. From the leaves to the root. Each concrete macro must implement a method that expands itself. The expansion could be done with the help of a tree traversal algorithm. The tree traversal algorithm would require the base class Symbol to list it's children. At the moment this behavior does not exist. Also the tree traverser would need to have the hability to rewrite the tree. This is a very complex problem. I'm going to sleep now. I'm tired.
-*/
+ * Debate com o mano lá
+ */
+
+//public static int ComputeHashUsingMutableVariable(string value)
+//{
+//    int hash = 16777619;
+
+//    foreach (char c in value)
+//    {
+//        hash = (hash * 31) ^ c;
+//    }
+//    return hash;
+//}
+
+//public static int ComputeHashUsingRecursion(string value, bool isRecursiveCall)
+//{
+//    if (value.Length == 0)
+//    {
+//        return -1;
+//    }
+
+//    var c = value[0];
+//    var baseHash = 16777619;
+
+//    if(isRecursiveCall)
+//    {
+//        return (baseHash * 31) ^ c;
+//    }
+//}
+
+//public static int ComputeHashUsingStack(string value)
+//{
+//    var baseHash = 16777619;
+//    var stack = new Stack<int>();
+
+//    stack.Push(baseHash);
+
+//    foreach (char c in value)
+//    {
+//        var hash = stack.Pop();
+//        var newHash = (hash * 31) ^ c;
+
+//        stack.Push(newHash);
+//    }
+
+//    return stack.Pop();
+//}
 
 public static class Program
 {
     public static void Main()
     {
-        //BenchmarkTokenizer();
+        var query = @"
+        { 
+            $filter: { 
+                isActive: true,
+                nickname: { $like: 'jacques' },
+                balance: { $greater: 59 }
+            } 
+        }";
 
-        /*
-         * NOTE: the tokenizer has been optimized for performance and its running very fast.    
-         * The goal now is to implement the syntax analysis using a LL(1) parser. (top-down parser).
-         * The first step is to implement a way of reading normal EBNF grammars and convert them to a format that can be used by the parser.
-         * This envolves adjusing the production rules and the non-terminals to fix ambiguities and left-recursion.
-
-         * GRAMMAR ANALYSIS WEBSITE: https://smlweb.cpsc.ucalgary.ca 
-         * TAKE A LOOK AT THIS: https://en.wikipedia.org/wiki/Earley_parser
-
-         */
-
-        var cst = DocumentSyntaxParser.Parse("{ where: { id: { $equals: 402 } } }");
+        var cst = DocumentSyntaxParser.Parse(@"
+            { 
+                $filter: { 
+                    isActive: true,
+                    nickname: { $like: 'jacques' },
+                    balance: { $greater: 59 }
+                } 
+            }");
         var html = cst.ToHtmlTreeView();
-        Console.WriteLine(html);
+
+        BenchmarkWebqlParser();
     }
 
     /*
@@ -70,7 +120,7 @@ public static class Program
         var tokenCount = -1;
         var tokens = new Token?[0];
 
-        for (int i = 0; i < 100000; i++)
+        for (int i = 0; i < 100_000; i++)
         {
             stopwatch.Start();
 
@@ -103,6 +153,42 @@ public static class Program
         {
             Console.WriteLine(item);
         }
+    }
+
+    private static void BenchmarkRoslynTokenizer()
+    {
+        var input = "syntax         = { production } ;\r\nproduction     = identifier \"=\" expression \";\" ;\r\nexpression     = term { \"|\" term } ;\r\nterm           = factor { factor } ;\r\nfactor         = identifier\r\n               | literal\r\n               | \"[\" expression \"]\"     (* optional sequence *)\r\n               | \"{\" expression \"}\"     (* repetition *)\r\n               | \"(\" expression \")\"     (* grouping *) ;\r\nidentifier     = letter { letter | digit | \"_\" } ;\r\nliteral        = \"'\" character { character } \"'\" \r\n               | '\"' character { character } '\"' ;\r\nletter         = \"A\" | \"B\" | ... | \"Z\" | \"a\" | \"b\" | ... | \"z\" ;\r\ndigit          = \"0\" | \"1\" | ... | \"9\" ;\r\ncharacter      = letter | digit | symbol | escape ;\r\nsymbol         = \"[\" | \"]\" | \"{\" | \"}\" | \"(\" | \")\" | \"<\" | \">\" | \"'\" | '\"' | \"=\" | \"|\" | \".\" | \",\" | \";\" | \":\" ;\r\nescape         = \"\\\\\" ( [\"'\"] | [\"\\\"\"] | [\"n\"] | [\"t\"] | [\"\\\\\"] ) ;\r\n";
+
+        var stopwatch = new Stopwatch();
+        var times = new List<long>();
+        var tokenCount = -1;
+
+        for (int i = 0; i < 100_000; i++)
+        {
+            stopwatch.Start();
+
+            var _tokens = SyntaxFactory.ParseTokens(input)
+                .ToArray();
+
+            stopwatch.Stop();
+            times.Add(stopwatch.ElapsedTicks);
+            stopwatch.Reset();
+
+            tokenCount = _tokens.Length;
+        }
+
+        //* Skip the warp-up iterations.
+        times = times.Skip(1000).ToList();
+
+        var totalTime = times.Sum() / (double)Stopwatch.Frequency;
+        var averageTime = times.Average() / Stopwatch.Frequency;
+        var worstTime = times.Max() / (double)Stopwatch.Frequency;
+        var bestTime = times.Min() / (double)Stopwatch.Frequency;
+
+        Console.WriteLine($"Tokens generated per iteration: {tokenCount}");
+        Console.WriteLine($"Average iteration time: {ToNonScientificString(averageTime)} s");
+        Console.WriteLine($"Worst time: {ToNonScientificString(worstTime)} s");
+        Console.WriteLine($"Best time: {ToNonScientificString(bestTime)} s");
     }
 
     /*
@@ -206,12 +292,13 @@ semantic_value
         var times = new List<long>();
 
         var parser = new LR1Parser(new GdefGrammar());
+        var root = null as CstRoot;
 
-        for (int i = 0; i < 100000; i++)
+        for (int i = 0; i < 10_000; i++)
         {
             stopwatch.Start();
 
-            _ = parser.Parse(input);
+            root = parser.Parse(input);
 
             stopwatch.Stop();
             times.Add(stopwatch.ElapsedTicks);
@@ -231,6 +318,7 @@ semantic_value
         Console.WriteLine($"Best time: {ToNonScientificString(bestTime)} s");
         Console.WriteLine($"Total elaped time: {ToNonScientificString(totalTime)} s");
         Console.WriteLine();
+        Console.WriteLine(root?.ToHtmlTreeView());
     }
 
     /*
@@ -238,20 +326,28 @@ semantic_value
      * 
      * Total iterations: 100.000
      * Warm-up iterations: 1.000 (1%)
-     * Average iteration time: 0,0000291751464646465 s (29.175 microseconds.)
-     * Worst time: 0,0067123 s
-     * Best time: 0,0000275 s
+     * Average iteration time: 0,0000653526434343434 s (65 microseconds)
+     * Worst time: 0,00399 s
+     * Best time: 0,0000616 s
+     * Total elaped time: 6,4699117 s
      */
     private static void BenchmarkWebqlParser()
     {
-        var input = "{ where: { eventId: { $equals: 402 } } }";
+        var input = @"
+            { 
+                $filter: { 
+                    isActive: true,
+                    nickname: { $like: 'jacques' },
+                    balance: { $greater: 59 }
+                } 
+            }";
 
         var stopwatch = new Stopwatch();
         var times = new List<long>();
 
         var parser = DocumentSyntaxParser.GetParser();
 
-        for (int i = 0; i < 100000; i++)
+        for (int i = 0; i < 100_000; i++)
         {
             stopwatch.Start();
 

@@ -144,7 +144,7 @@ namespace ModularSystem.Core.TextAnalysis.Tokenization.Experimental;
 //        return context.CurrentStateInput;
 //    }
 
-//    private CharType GetCharType(char c)
+//    private CharType ComputeCharType(char c)
 //    {
 //        if (char.IsDigit(c))
 //        {

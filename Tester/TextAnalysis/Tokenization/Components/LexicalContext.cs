@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Tokenization.Tools;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace ModularSystem.Core.TextAnalysis.Tokenization.Components;
 
@@ -8,71 +11,41 @@ namespace ModularSystem.Core.TextAnalysis.Tokenization.Components;
 public class LexicalContext : IDisposable
 {
     public int Position { get; private set; }
+    public char? CurrentChar { get; private set; }
+    public bool IsEndOfInput { get; private set; }
+
     public int Line { get; private set; }
     public int Column { get; private set; }
 
-    private IEnumerable<char> Source { get; }
-    private IEnumerator<char> Enumerator { get; }
+    private string Source { get; }
+    private int AccumulatorLength { get; set; }
 
-    private bool IsInit { get; set; }
-    private bool EndReached { get; set; }
-    private StringBuilder AccumulatorBuilder { get; }
-
-    public LexicalContext(IEnumerable<char> source)
+    public LexicalContext(string source)
     {
-        Position = 0;
+        Position = -1;
         Line = 1;
         Column = 1;
 
         Source = source;
-        Enumerator = source.GetEnumerator();
-
-        IsInit = false;
-        EndReached = false;
-        AccumulatorBuilder = new StringBuilder(100);
+        AccumulatorLength = 0;
+        Advance();
     }
 
-    public char? CurrentChar => GetCurrentChar();
-    public string AccumulatorValue => AccumulatorBuilder.ToString();
+    public ReadOnlyMemory<char> AccumulatorValue => Source.AsMemory(Position - AccumulatorLength, AccumulatorLength);
 
     public void Dispose()
     {
-        Enumerator.Dispose();
-    }
-
-    public LexicalContext Init()
-    {
-        if (IsInit)
-        {
-            throw new InvalidOperationException("The lexer context is already initialized.");
-        }
-
-        IsInit = true;
-        Advance();
-        return this;
-    }
-
-    /// <summary>
-    /// Gets the next character in the source text without advancing the enumerator.
-    /// </summary>
-    /// <returns></returns>
-    public char? GetCurrentChar()
-    {
-        if (EndReached)
-        {
-            return null;
-        }
-
-        return Enumerator.Current;
+      
     }
 
     /// <summary>
     /// Adds the current character to the accumulator and advances the enumerator by one character.
     /// </summary>
     /// <returns><c>true</c> if a character is read successfully; otherwise, <c>false</c>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Consume()
     {
-        if(EndReached)
+        if (IsEndOfInput)
         {
             return false;
         }
@@ -87,13 +60,14 @@ public class LexicalContext : IDisposable
     /// Advances the enumerator by one character without adding it to the accumulator.
     /// </summary>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Skip()
     {
-        if(AccumulatorBuilder.Length != 0)
-        {
-            throw new InvalidOperationException("Invalid skip operation. The lexer character accumulator is not empty.");
-        }
-        if (EndReached)
+        //if (AccumulatorLength != 0)
+        //{
+        //    throw new InvalidOperationException("Invalid skip operation. The lexer character accumulator is not empty.");
+        //}
+        if (IsEndOfInput)
         {
             return false;
         }
@@ -106,42 +80,53 @@ public class LexicalContext : IDisposable
     /// <summary>
     /// Resets the character accumulator.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ResetAccumulator()
     {
-        AccumulatorBuilder.Clear();
+        AccumulatorLength = 0;
     }
 
     /*
      * private methods.
      */
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool Advance()
     {
-        EndReached = !Enumerator.MoveNext();
-        return !EndReached;
+        Position++;
+        IsEndOfInput = Position >= Source.Length;
+        CurrentChar = IsEndOfInput
+            ? null
+            : Source[Position];
+
+        return !IsEndOfInput;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void UpdateMetadata()
     {
-        Position++;
-        Column++;
-
-        if (Enumerator.Current == '\n')
+        if (CurrentChar == '\n')
         {
             Line++;
             Column = 1;
         }
+        else
+        {
+            Column++;
+        }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void LoadCurrentCharToAccumulator()
     {
-        AccumulatorBuilder.Append(Enumerator.Current);
+        AccumulatorLength++;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal TokenMetadata GetMetadata()
     {
         return new TokenMetadata(
-            startPosition: Position - AccumulatorBuilder.Length,
+            startPosition: Position - AccumulatorLength,
             endPosition: Position,
             line: Line,
             column: Column

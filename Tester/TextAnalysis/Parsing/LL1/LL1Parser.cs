@@ -2,6 +2,8 @@
 using ModularSystem.Core.TextAnalysis.Tokenization;
 using ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
 using ModularSystem.Core.TextAnalysis.Parsing.Components;
+using ModularSystem.Core.TextAnalysis.Language.Extensions;
+using ModularSystem.Core.TextAnalysis.Tokenization.Extensions;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing;
 
@@ -90,7 +92,7 @@ public class LL1Parser
         {
             throw new Exception($"Unexpected token ({input.LookaheadToken}). Expected {stackTop}.");
         }
-        if (stackTop.Value is not null && stackTop.Value != lookahead.Value)
+        if (stackTop.Value is not null && stackTop.ComputeFnv1aHash() != lookahead.ComputeFnv1aHash())
         {
             throw new Exception($"Unexpected token ({input.LookaheadToken}). Expected {stackTop}.");
         }

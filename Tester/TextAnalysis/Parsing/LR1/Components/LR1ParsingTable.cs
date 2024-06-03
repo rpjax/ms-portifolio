@@ -1,7 +1,10 @@
 ﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Language.Extensions;
 using ModularSystem.Core.TextAnalysis.Parsing.LR1.Tools;
 using ModularSystem.Core.TextAnalysis.Tokenization;
+using ModularSystem.Core.TextAnalysis.Tokenization.Extensions;
 using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
 
@@ -61,77 +64,65 @@ public class LR1ParsingTable : IEnumerable<LR1ParsingTableEntry>
     public enum KeyStrategy
     {
         Type,
-        TypeAndValue
+        Value
     }
 
-    public static string CreateActionKey(object obj, KeyStrategy strategy)
+    //public static string CreateActionKey(object obj, KeyStrategy strategy)
+    //{
+    //    if (obj is Token token)
+    //    {
+    //        return CreateActionKey(token, strategy);
+    //    }
+
+    //    if (obj is Terminal terminal)
+    //    {
+    //        return CreateActionKey(terminal, strategy);
+    //    }
+
+    //    if (obj is NonTerminal nonterminal)
+    //    {
+    //        return CreateActionKey(nonterminal);
+    //    }
+
+    //    if(obj is Epsilon)
+    //    {
+    //        return Epsilon.Instance.ToString();
+    //    }
+
+    //    throw new Exception();
+    //}
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string CreateActionKey(Token token, bool useValue = false)
     {
-        if (obj is Token token)
-        {
-            return CreateActionKey(token, strategy);
-        }
+        return token.ComputeFnv1aHash(useValue).ToString();
+    }
 
-        if (obj is Terminal terminal)
-        {
-            return CreateActionKey(terminal, strategy);
-        }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string CreateActionKey(Terminal terminal, bool useValue = false)
+    {
+        return terminal.ComputeFnv1aHash(useValue).ToString();
+    }
 
-        if (obj is NonTerminal nonterminal)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string CreateActionKey(NonTerminal nonterminal)
+    {
+        return nonterminal.ComputeFnv1aHash().ToString();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string CreateActionKey(Symbol symbol, bool useValue = false)
+    {
+        if(symbol is Terminal terminal)
+        {
+            return CreateActionKey(terminal, useValue);
+        }
+        if(symbol is NonTerminal nonterminal)
         {
             return CreateActionKey(nonterminal);
         }
 
-        if(obj is Epsilon)
-        {
-            return Epsilon.Instance.ToString();
-        }
-
-        throw new Exception();
-    }
-
-    public static string CreateActionKey(Token token, KeyStrategy strategy)
-    {
-        if (token.Value is null)
-        {
-            return token.Type.ToString();
-        }
-
-        switch (strategy)
-        {
-            case KeyStrategy.Type:
-                return token.Type.ToString();
-
-            case KeyStrategy.TypeAndValue:
-                return $"{token.Type}({token.Value})";
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(strategy));
-        }
-    }
-
-    public static string CreateActionKey(Terminal terminal, KeyStrategy strategy)
-    {
-        if (terminal.Value is null)
-        {
-            return terminal.Type.ToString();
-        }
-
-        switch (strategy)
-        {
-            case KeyStrategy.Type:
-                return terminal.Type.ToString();
-
-            case KeyStrategy.TypeAndValue:
-                return $"{terminal.Type}({terminal.Value})";
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(strategy));
-        }
-    }
-
-    public static string CreateActionKey(NonTerminal nonterminal)
-    {
-        return nonterminal.ToString();
+        throw new Exception("Invalid symbol type.");
     }
 
     public static LR1ParsingTable Create(Grammar grammar)
@@ -140,6 +131,7 @@ public class LR1ParsingTable : IEnumerable<LR1ParsingTableEntry>
             .Create(grammar);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public LR1Action? Lookup(int state, Token token)
     {
         if(state < 0 || state >= Entries.Length)
@@ -150,6 +142,7 @@ public class LR1ParsingTable : IEnumerable<LR1ParsingTableEntry>
         return Entries[state].Lookup(token);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public LR1GotoAction? LookupGoto(int state, NonTerminal nonTerminal)
     {
         if (state < 0 || state >= Entries.Length)
@@ -167,6 +160,7 @@ public class LR1ParsingTable : IEnumerable<LR1ParsingTableEntry>
         return null;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ProductionRule GetProduction(int index)
     {
         if(index < 0 || index >= Productions.Length)
