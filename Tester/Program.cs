@@ -86,17 +86,9 @@ public static class Program
             } 
         }";
 
-        var cst = DocumentSyntaxParser.Parse(@"
-            { 
-                $filter: { 
-                    isActive: true,
-                    nickname: { $like: 'jacques' },
-                    balance: { $greater: 59 }
-                } 
-            }");
-        var html = cst.ToHtmlTreeView();
+        var ast = DocumentSyntaxParser.ParseToAst(query);
 
-        BenchmarkWebqlParser();
+        return;
     }
 
     /*
@@ -341,6 +333,8 @@ semantic_value
                     balance: { $greater: 59 }
                 } 
             }";
+
+        //input = "{ where: { eventId: { $equals: 402 } } }";
 
         var stopwatch = new Stopwatch();
         var times = new List<long>();

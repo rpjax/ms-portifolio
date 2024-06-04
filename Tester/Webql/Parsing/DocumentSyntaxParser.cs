@@ -2,9 +2,15 @@
 using ModularSystem.Core.TextAnalysis.Parsing;
 using ModularSystem.Core.TextAnalysis.Parsing.Components;
 using ModularSystem.Core.TextAnalysis.Parsing.Tools;
+using System.Runtime.CompilerServices;
+using Webql.DocumentSyntax.Parsing.Components;
+using Webql.DocumentSyntax.Parsing.Tools;
 
 namespace Webql.DocumentSyntax.Parsing;
 
+/// <summary>
+/// Parser for the WebQL document syntax (V3).
+/// </summary>
 public static class DocumentSyntaxParser
 {
     const string RawGrammarText = @"
@@ -21,14 +27,14 @@ document
 	;
 
 expression 
-	: lteral_expression
+	: literal_expression
 	| reference_expression
 	| scope_access_expression
 	| block_expression
 	| operation_expression
 	;
 
-lteral_expression
+literal_expression
 	: bool
 	| null
 	| $int
@@ -126,7 +132,7 @@ collection_aggregation_operator
         "operator",
 
 		// expressions
-        "lteral_expression",
+        "literal_expression",
         "reference_expression",
         "scope_access_expression",
         "block_expression",
@@ -135,16 +141,16 @@ collection_aggregation_operator
 
     private static LR1Parser? ParserInstance { get; set; }
 
-    public static void Init()
+    static DocumentSyntaxParser()
     {
-        if (ParserInstance is not null)
-        {
-            return;
-        }
-
+		// initialize the parser instance
         GetParser();
     }
 
+	/// <summary>
+	/// Get the LR1 parser instance for the WebQL syntax grammar.
+	/// </summary>
+	/// <returns></returns>
     public static LR1Parser GetParser()
     {
         if (ParserInstance is null)
@@ -157,12 +163,34 @@ collection_aggregation_operator
         return ParserInstance;
     }
 
-    public static CstNode Parse(string text)
+    /// <summary>
+    /// Parse a text into a CST and reduce it into to a more manageable CST.
+    /// </summary>
+    /// <remarks>
+    /// Note that the reduction process does not create an AST, but a CST with a reduced set of nodes. 
+    /// <br/>
+    /// To create the AST use the <see cref="ParseToAst"/> class.
+    /// </remarks>
+    /// <param name="text"></param>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static CstRoot Parse(string text)
     {
         var cst = GetParser().Parse(text);
         var reducer = new CstReducer(cst, ReduceWhitelist);
 
         return reducer.Execute();
+    }
+
+	/// <summary>
+	/// Parse a text into an AST according to the WebQL syntax grammar.
+	/// </summary>
+	/// <param name="text"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static WebqlQuery ParseToAst(string text)
+    {
+        return WebqlAstBuilder.TranslateQuery(Parse(text));
     }
 
 }

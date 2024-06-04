@@ -108,7 +108,7 @@ collection_aggregation_operator
 	;
 
 /*
-	Language development sandbox:
+	Language development notes:
 
 	How is the query pipeline structured?
 	- It starts with a function that accepts an IAsyncQueryable source.
