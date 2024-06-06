@@ -1,24 +1,66 @@
 ﻿namespace ModularSystem.Core.TextAnalysis.Language.Components;
 
 /// <summary>
-/// A production rule is a rule that defines how a non-terminal symbol can be replaced by a sequence of other symbols.
+/// A production rule is a rule that defines how a non-terminal symbol can be replaced by a sequence of other symbols. <br/>
+/// The production rules are components of a context-free grammar that describe the syntax of a language.
 /// </summary>
-public struct ProductionRule
+/// <remarks>
+/// The arrow symbol represents the replacement operation. So, (X -> Y), reads as "X can be replaced by Y". <br/>
+/// Examples: (sentential notation):
+/// <br/>
+/// <list type="bullet">
+///    <item> <code>integer -> [ sign ] digit { digit }.</code> </item>
+///    <item> <code>sign -> '+' | '-'.</code> </item>
+///    <item> <code>digit -> '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'. </code> </item>
+/// </list>
+/// </remarks>
+public struct ProductionRule : IEquatable<ProductionRule>
 {
-    // LHS
+    /// <summary>
+    /// The head of the production rule. It is the non-terminal symbol that is being replaced. The left-hand side of the rule (LHS).
+    /// </summary>
     public NonTerminal Head { get; }
 
-    // RHS
+    /// <summary>
+    /// The body of the production rule. It is the sequence of symbols that replace the head. The right-hand side of the rule (RHS).
+    /// </summary>
     public Sentence Body { get; }
 
+    /// <summary>
+    /// The number of terminal symbols in the body of the production rule.
+    /// </summary>
+    public int TerminalCount { get; }
+
+    /// <summary>
+    /// The number of non-terminal symbols in the body of the production rule.
+    /// </summary>
+    public int NonTerminalCount { get; }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="ProductionRule"/>.
+    /// </summary>
+    /// <param name="head"> The head of the production rule. </param>
+    /// <param name="body"> The body of the production rule. </param>
     public ProductionRule(NonTerminal head, params Symbol[] body)
     {
         Head = head;
         Body = body;
+        TerminalCount = Body.Count(x => x.IsTerminal);
+        NonTerminalCount = Body.Count(x => x.IsNonTerminal);
         Validate();
     }
 
+    /// <summary>
+    /// Determines whether the production rule is an epsilon production. 
+    /// <br/>
+    /// An epsilon production is a production rule where the body is a single epsilon symbol.
+    /// </summary>
     public bool IsEpsilonProduction => Body.Length == 1 && Body[0] is Epsilon;
+
+    /// <summary>
+    /// Gets the length of the production rule's body. The length is the number of symbols in the right-hand side of the rule.
+    /// </summary>
+    public int Length => Body.Length;
 
     public static bool operator ==(ProductionRule left, ProductionRule right)
     {
@@ -29,6 +71,11 @@ public struct ProductionRule
     public static bool operator !=(ProductionRule left, ProductionRule right)
     {
         return !(left == right);
+    }
+
+    public bool Equals(ProductionRule other)
+    {
+        return other == this;
     }
 
     public override bool Equals(object? obj)
@@ -73,10 +120,9 @@ public struct ProductionRule
         throw new InvalidOperationException("Invalid notation type.");
     }
 
-    public ProductionRule Copy()
-    {
-        return new ProductionRule(Head, Body.Copy());
-    }
+    /*
+     * private helpers.
+     */
 
     private void Validate()
     {

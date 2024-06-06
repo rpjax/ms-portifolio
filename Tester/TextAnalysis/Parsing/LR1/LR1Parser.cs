@@ -51,7 +51,7 @@ public class LR1Parser
         );
 
         var cstBuilder = new CstBuilder(
-            useEpsilons: false
+            includeEpsilons: false
         );
 
         var context = new LR1Context(
@@ -159,7 +159,7 @@ public class LR1Parser
 
         context.Stack.PushToken(token);
         context.Stack.PushState(action.NextState);
-        context.CstBuilder.AddTerminal(token);
+        context.CstBuilder.CreateLeaf(token);
         context.InputStream.Consume();
     }
 
@@ -215,12 +215,21 @@ public class LR1Parser
 
         var nextState = gotoAction.NextState;
 
+        // The state 1 is always the accept state due to the way the LR(1) parser is constructed.
+        // The only reduction that occurs in state 1 is the start symbol reduction, wich is the accept condition.
+        // So after reducing the start symbol, the parser should accept the input, and the CST build process should be finished.
+        var isAcceptState = nextState == 1;
+
         context.Stack.PushState(nextState);
-        context.CstBuilder.Reduce(
-            nonTerminal: nonTerminal,
-            length: production.Body.Length,
-            isRoot: nextState == 1
-        );
+
+        if (isAcceptState)
+        {
+            context.CstBuilder.CreateRoot(production);
+        }
+        else
+        {
+            context.CstBuilder.CreateInternal(production);
+        }
     }
 
     /// <summary>
@@ -249,9 +258,7 @@ public class LR1Parser
         }
 
         context.Stack.PushState(gotoAction.NextState);
-        context.CstBuilder.ReduceEpsilon(
-            nonTerminal: nonTerminal
-        );
+        context.CstBuilder.CreateEpsilonInternal(production);
     }
 
     /// <summary>

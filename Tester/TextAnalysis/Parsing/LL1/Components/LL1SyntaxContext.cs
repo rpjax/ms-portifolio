@@ -25,7 +25,7 @@ public class LL1SyntaxContext
             throw new InvalidOperationException("No tree builder on the stack.");
         }
 
-        builder.AddTerminal(token);
+        builder.CreateLeaf(token);
     }
 
     public void FinilizeBranch()

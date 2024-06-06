@@ -150,7 +150,7 @@ public class LR1ReduceAction : LR1Action
 
     public override string ToString()
     {
-        return $"Reduce using {ProductionIndex}";
+        return $"CreateInternal using {ProductionIndex}";
     }
 }
 

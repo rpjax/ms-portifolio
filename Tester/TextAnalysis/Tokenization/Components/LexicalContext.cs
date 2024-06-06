@@ -126,8 +126,16 @@ public class LexicalContext : IDisposable
     internal TokenMetadata GetMetadata()
     {
         return new TokenMetadata(
-            startPosition: Position - AccumulatorLength,
-            endPosition: Position,
+            position: GetTokenPosition()
+        );
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal TokenPosition GetTokenPosition()
+    {
+        return new TokenPosition(
+            startIndex: Position - AccumulatorLength,
+            endIndex: Position,
             line: Line,
             column: Column
         );

@@ -95,7 +95,7 @@ namespace ModularSystem.Core.TextAnalysis.Tokenization.Experimental;
 //                    yield return new Token(
 //                        tokenType: acceptingState.TokenType,
 //                        value: context.AccumulatorValue,
-//                        metadata: context.GetMetadata()
+//                        metadata: context.GetInternalMetadata()
 //                    );
 
 //                    context.ResetAccumulator();

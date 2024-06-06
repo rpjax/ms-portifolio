@@ -24,12 +24,16 @@ public static class WebqlAstBuilder
         }
         if (node.Children.Length == 0)
         {
-            return new WebqlQuery(null);
+            return new WebqlQuery(
+                expression: null, 
+                metadata: TranslateNodeMetadata(node)
+            );
         }
 
-        var html = node.ToHtmlTreeView();
-
-        return new WebqlQuery(TranslateExpression(node.Children[0].AsInternal()));
+        return new WebqlQuery(
+            expression: TranslateExpression(node.Children[0].AsInternal()), 
+            metadata: TranslateNodeMetadata(node)
+        );
     }
 
     /// <summary>
@@ -78,6 +82,8 @@ public static class WebqlAstBuilder
             throw new Exception("Invalid literal expression");
         }
 
+        var metadata = TranslateNodeMetadata(leaf);
+
         switch (leaf.Token.Type)
         {
             case TokenType.Identifier:
@@ -86,26 +92,26 @@ public static class WebqlAstBuilder
                 switch (identifier)
                 {
                     case "true":
-                        return new WebqlLiteralExpression(WebqlLiteralType.Bool, identifier);
+                        return new WebqlLiteralExpression(WebqlLiteralType.Bool, identifier, metadata);
 
                     case "false":
-                        return new WebqlLiteralExpression(WebqlLiteralType.Bool, identifier);
+                        return new WebqlLiteralExpression(WebqlLiteralType.Bool, identifier, metadata);
 
                     default:
-                        return new WebqlReferenceExpression(leaf.Token.Value.ToString());
+                        return new WebqlReferenceExpression(leaf.Token.Value.ToString(), metadata);
                 }
 
             case TokenType.String:
-                return new WebqlLiteralExpression(WebqlLiteralType.String, leaf.Token.GetNormalizedStringValue());
+                return new WebqlLiteralExpression(WebqlLiteralType.String, leaf.Token.GetNormalizedStringValue(), metadata);
 
             case TokenType.Integer:
-                return new WebqlLiteralExpression(WebqlLiteralType.Int, leaf.Token.Value.ToString());
+                return new WebqlLiteralExpression(WebqlLiteralType.Int, leaf.Token.Value.ToString(), metadata);
 
             case TokenType.Float:
-                return new WebqlLiteralExpression(WebqlLiteralType.Float, leaf.Token.Value.ToString());
+                return new WebqlLiteralExpression(WebqlLiteralType.Float, leaf.Token.Value.ToString(), metadata);
 
             case TokenType.Hexadecimal:
-                return new WebqlLiteralExpression(WebqlLiteralType.Hex, leaf.Token.Value.ToString());
+                return new WebqlLiteralExpression(WebqlLiteralType.Hex, leaf.Token.Value.ToString(), metadata);
 
             default:
                 throw new InvalidOperationException();
@@ -144,7 +150,7 @@ public static class WebqlAstBuilder
             throw new Exception("Invalid scope access expression");
         }
 
-        return new WebqlReferenceExpression(identifier);
+        return new WebqlReferenceExpression(identifier, TranslateNodeMetadata(leaf));
     }
 
     /// <summary>
@@ -162,7 +168,7 @@ public static class WebqlAstBuilder
         var reference = TranslateReferenceExpression(node.Children[0].AsInternal());
         var expression = TranslateExpression(node.Children[2].AsInternal());
 
-        return new WebqlScopeAccessExpression(reference.Identifier, expression);
+        return new WebqlScopeAccessExpression(reference.Identifier, expression, TranslateNodeMetadata(node));
     }
 
     /// <summary>
@@ -185,7 +191,7 @@ public static class WebqlAstBuilder
             expressions.Add(TranslateExpression(child.AsInternal()));
         }
 
-        return new WebqlBlockExpression(expressions);
+        return new WebqlBlockExpression(expressions, TranslateNodeMetadata(node));
     }
 
     /// <summary>
@@ -202,8 +208,9 @@ public static class WebqlAstBuilder
 
         var @operator = TranslateOperator(node.Children[0].AsInternal());
         var expression = TranslateExpression(node.Children[2].AsInternal());
+        var expressionArray = new WebqlExpression[] { expression };
 
-        return new WebqlOperationExpression(@operator, expression);
+        return new WebqlOperationExpression(@operator, expressionArray, TranslateNodeMetadata(node));
     }
 
     /// <summary>
@@ -225,4 +232,17 @@ public static class WebqlAstBuilder
 
         return WebqlAstBuilderHelper.GetCstOperatorType(leaf.Token.ToString());
     }
+
+    /*
+     * private helper methods.
+     */
+
+    private static SyntaxNodeMetadata TranslateNodeMetadata(CstNode node)
+    {
+        return new SyntaxNodeMetadata(
+            startPosition: node.Metadata.StartPosition,   
+            endPosition: node.Metadata.EndPosition
+        );
+    }
+
 }

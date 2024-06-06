@@ -1,19 +1,19 @@
 ﻿namespace ModularSystem.Core.TextAnalysis.Tokenization;
 
 /// <summary>
-/// Represents the set of information associated with a token.
+/// Represents the position of a token in the source text. 
 /// </summary>
-public struct TokenMetadata
+public struct TokenPosition
 {
     /// <summary>
-    /// Gets the character startPosition in the source text where the token starts. (0-based)
+    /// Gets the character index position in the source text where the token starts. (0-based)
     /// </summary>
-    public int StartPosition { get; }
+    public int StartIndex { get; }
 
     /// <summary>
-    /// Gets the character startPosition in the source text where the token ends. (0-based)
+    /// Gets the character index position in the source text where the token ends. (0-based)
     /// </summary>
-    public int EndPosition { get; }
+    public int EndIndex { get; }
 
     /// <summary>
     /// Gets the line number in which the token is located in the source text. (0-based)
@@ -25,19 +25,32 @@ public struct TokenMetadata
     /// </summary>
     public int Column { get; }
 
-    /// <summary>
-    /// Creates a new instance of the <see cref="TokenMetadata"/> struct.
-    /// </summary>
-    /// <param name="startPosition"></param>
-    /// <param name="endPosition"></param>
-    /// <param name="line"></param>
-    /// <param name="column"></param>
-    public TokenMetadata(int startPosition, int endPosition, int line, int column)
+    public TokenPosition(int startIndex, int endIndex, int line, int column)
     {
-        StartPosition = startPosition;
-        EndPosition = endPosition;
+        StartIndex = startIndex;
+        EndIndex = endIndex;
         Line = line;
         Column = column;
+    }
+}
+
+/// <summary>
+/// Represents the set of information associated with a token.
+/// </summary>
+public struct TokenMetadata
+{
+    /// <summary>
+    /// Gets the position of the token in the source text.
+    /// </summary>
+    public TokenPosition Position { get; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TokenMetadata"/> struct.
+    /// </summary>
+    /// <param name="position"></param>
+    public TokenMetadata(TokenPosition position)
+    {
+        Position = position;
     }
 
     /// <summary>
@@ -46,6 +59,6 @@ public struct TokenMetadata
     /// <returns></returns>
     public override string ToString()
     {
-        return $"line: {Line + 1}, column: {Column + 1}";
+        return $"line: {Position.Line + 1}, column: {Position.Column + 1} ({Position.StartIndex} - {Position.EndIndex})";
     }
 }

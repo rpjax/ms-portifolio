@@ -88,6 +88,11 @@ public static class Program
 
         var ast = DocumentSyntaxParser.ParseToAst(query);
 
+        /*
+         * NOTES:
+         * The next step is to implement the semantic analysis for the AST. Good night!
+         */
+
         return;
     }
 

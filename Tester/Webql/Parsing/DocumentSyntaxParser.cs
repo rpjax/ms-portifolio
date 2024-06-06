@@ -128,7 +128,6 @@ collection_aggregation_operator
     {
 		// main constructs
 		"document",
-        //"expression",
         "operator",
 
 		// expressions

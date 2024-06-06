@@ -30,6 +30,7 @@ public class CstReducer
     {
         var rootName = Root.Name;
         var rootChildren = Reduce(Root);
+        var rootMetadata = Root.Metadata;
 
         while (true)
         {
@@ -46,7 +47,7 @@ public class CstReducer
             break;
         }
 
-        return new CstRoot(rootName, rootChildren);
+        return new CstRoot(rootName, rootChildren, rootMetadata);
     }
 
     private CstNode[] Reduce(CstNode node)
@@ -83,7 +84,7 @@ public class CstReducer
 
         return new CstInternal[]
         {
-            new CstInternal(node.Name, newChildren.ToArray())
+            new CstInternal(node.Name, newChildren.ToArray(), node.Metadata)
         };
     }
 

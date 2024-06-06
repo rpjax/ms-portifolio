@@ -1,108 +1,294 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+﻿using Microsoft.CodeAnalysis;
+using ModularSystem.Core.TextAnalysis.Language.Components;
 using ModularSystem.Core.TextAnalysis.Tokenization;
+using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.Components;
+
+internal class TokenCollection : IEnumerable<Token>
+{
+    internal Token[] Tokens { get; }
+
+    public TokenCollection(params Token[] tokens)
+    {
+        Tokens = tokens;
+    }
+
+    public int Length => Tokens.Length;
+
+    public static TokenCollection FromNodes(params TokenCollection[] nodes)
+    {
+        return new TokenCollection(nodes.SelectMany(x => x.Tokens).ToArray());
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IEnumerator<Token> GetEnumerator()
+    {
+        return ((IEnumerable<Token>)Tokens).GetEnumerator();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return ((IEnumerable<Token>)Tokens).GetEnumerator();
+    }
+
+}
 
 /// <summary>
 /// Represents a builder for constructing a Concrete Syntax Tree (CST).
 /// </summary>
 public class CstBuilder
 {
-    private List<CstNode> Accumulator { get; }
-    private bool UseEpsilons { get; set; }
+    private List<TokenCollection> TokenAccumulator { get; }
+    private List<CstNode> NodeAccumulator { get; }
+    private bool IncludeEpsilons { get; set; }
+
+    private Token[] SingleTokenBuffer { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CstBuilder"/> class.
     /// </summary>
-    /// <param name="useEpsilons">Indicates whether to use epsilon nodes in the CST.</param>
-    public CstBuilder(bool useEpsilons = false)
+    /// <param name="includeEpsilons">Indicates whether to include epsilon nodes in the final CST.</param>
+    public CstBuilder(bool includeEpsilons = false)
     {
-        Accumulator = new List<CstNode>();
-        UseEpsilons = useEpsilons;
+        TokenAccumulator = new List<TokenCollection>(50);
+        NodeAccumulator = new List<CstNode>(50);
+        IncludeEpsilons = includeEpsilons;
+        SingleTokenBuffer = new Token[1];
     }
 
     /// <summary>
     /// Gets the number of nodes in the accumulator.
     /// </summary>
-    public int AccumulatorCount => Accumulator.Count;
+    public int AccumulatorCount => NodeAccumulator.Count;
 
     /// <summary>
-    /// Adds a terminal node to the accumulator.
+    /// Adds a terminal collection to the accumulator.
     /// </summary>
-    /// <param name="terminal">The terminal node to add.</param>
-    public void AddTerminal(Token token)
+    /// <param name="terminal">The terminal collection to add.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void CreateLeaf(Token token)
     {
-        Accumulator.Add(new CstLeaf(token));
+        TokenAccumulator.Add(new TokenCollection(token));
+        NodeAccumulator.Add(new CstLeaf(token: token, metadata: GetLeafMetadata(token)));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void CreateInternal(ProductionRule production)
+    {
+        var length = production.Length;
+
+        var children = PopNodes(length);
+        var tokens = ReduceTokens(length);
+        var metadata = GetInternalMetadata(tokens);
+
+        if (!IncludeEpsilons)
+        {
+            children = children
+                 .Where(x => x is CstInternal node ? !node.IsEpsilon : true)
+                 .ToArray();
+        }
+
+        var node = new CstInternal(
+            name: production.Head.Name,
+            children: children,
+            metadata: metadata,
+            isEpsilon: production.IsEpsilonProduction
+        );
+
+        NodeAccumulator.Add(node);
     }
 
     /// <summary>
-    /// Reduces an epsilon node in the accumulator.
+    /// Reduces an epsilon collection in the accumulator.
     /// </summary>
-    /// <param name="nonTerminal">The non-terminal associated with the epsilon node.</param>
-    public void ReduceEpsilon(NonTerminal nonTerminal)
+    /// <param name="nonTerminal">The non-terminal associated with the epsilon collection.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void CreateEpsilonInternal(ProductionRule production)
     {
-        Accumulator.Add(new CstInternal(
-            name: nonTerminal.Name,
+        if (!production.IsEpsilonProduction)
+        {
+            throw new InvalidOperationException("Production rule is not an epsilon production.");
+        }
+
+        TokenAccumulator.Add(new TokenCollection(Array.Empty<Token>()));
+
+        // Adds the epsilon collection to the collection accumulator.
+        // The epsilon collection has no children and is marked as an epsilon collection.
+        // This ensures that reduction length is consistent when reducing non-terminals that contain epsilon nodes.
+        // Ex:
+        //  function_body -> '{' statement statement_tail '}'
+        //  statement_tail -> statement statement_tail | epsilon
+        // 
+        // In this case when reducing function_body, the epsilon collection is added to the collection accumulator,
+        // and the length of the reduction is consistent, 2 in this case to form the function_body collection.
+        // It also helps to debug the parser by showing where an epsilon reduction occurred.
+        //
+        // The metadata for the epsilon collection is derived from the last token in the token accumulator.
+        NodeAccumulator.Add(new CstInternal(
+            name: production.Head.Name,
             children: Array.Empty<CstNode>(),
+            metadata: GetEpsilonInternalMetadata(),
             isEpsilon: true
         ));
     }
 
-    /// <summary>
-    /// Reduces a non-terminal node in the accumulator.
-    /// </summary>
-    /// <param name="nonTerminal">The non-terminal associated with the node.</param>
-    /// <param name="length">The number of nodes to reduce.</param>
-    public void Reduce(NonTerminal nonTerminal, int length, bool isRoot)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void CreateRoot(ProductionRule production)
     {
-        var offset = Accumulator.Count - length;
-        var children = Accumulator
-            .Skip(offset)
-            .ToList();
+        var length = production.Length;
 
-        Accumulator.RemoveRange(offset, length);
+        var children = PopNodes(length);
+        var tokens = ReduceTokens(length);
+        var metadata = GetInternalMetadata(tokens);
 
-        if (UseEpsilons)
+        if (!IncludeEpsilons)
         {
             children = children
-                .ToList();
-        }
-        else
-        {
-            children = children
-                .Where(x => x is CstInternal node ? !node.IsEpsilon : true)
-                .ToList();
+                 .Where(x => x is CstInternal node ? !node.IsEpsilon : true)
+                 .ToArray();
         }
 
-        CstNode node = isRoot
-            ? new CstRoot(nonTerminal.Name, children.ToArray())
-            : new CstInternal(nonTerminal.Name, children.ToArray());
+        var node = new CstRoot(
+            name: production.Head.Name,
+            children: children,
+            metadata: metadata
+        );
 
-        Accumulator.Add(node);
+        NodeAccumulator.Add(node);
     }
 
     /// <summary>
     /// Builds the Concrete Syntax Tree (CST) from the accumulator.
     /// </summary>
-    /// <returns>The root node of the CST.</returns>
+    /// <returns>The root collection of the CST.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the CST is empty or not complete.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public CstRoot Build()
     {
-        if (Accumulator.Count == 0)
+        if (NodeAccumulator.Count == 0)
         {
             throw new InvalidOperationException("CST is empty.");
         }
-        if (Accumulator.Count != 1)
+        if (NodeAccumulator.Count != 1)
         {
             throw new InvalidOperationException("CST is not complete.");
         }
 
-        if(Accumulator.Single() is not CstRoot root)
+        if (NodeAccumulator.Single() is not CstRoot root)
         {
             throw new InvalidOperationException("CST is not complete.");
         }
 
         return root;
     }
+
+    /*
+     * private helper methods.
+     */
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private TokenCollection ReduceTokens(int length)
+    {
+        if (length == 0)
+        {
+            throw new InvalidOperationException("Token array is empty.");
+        }
+
+        var offset = TokenAccumulator.Count - length;
+        var tokenNodes = TokenAccumulator
+            .Skip(offset)
+            .ToArray();
+
+        var tokens = TokenCollection.FromNodes(tokenNodes);
+
+        TokenAccumulator.RemoveRange(offset, length);
+        TokenAccumulator.Add(tokens);
+        return tokens;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private CstNode[] PopNodes(int length)
+    {
+        if (length == 0)
+        {
+            return Array.Empty<CstNode>();
+        }
+
+        var offset = NodeAccumulator.Count - length;
+        var nodes = NodeAccumulator
+            .Skip(offset)
+            .ToArray();
+
+        NodeAccumulator.RemoveRange(offset, length);
+        return nodes;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private CstNodeMetadata GetLeafMetadata(Token token)
+    {
+        return new CstNodeMetadata(
+            startPosition: new SyntaxElementPosition(
+                index: token.Metadata.Position.StartIndex,
+                line: token.Metadata.Position.Line,
+                column: token.Metadata.Position.Column
+            ),
+            endPosition: new SyntaxElementPosition(
+                index: token.Metadata.Position.EndIndex,
+                line: token.Metadata.Position.Line,
+                column: token.Metadata.Position.Column
+            ),
+            tokens: new Token[] { token }
+        );
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private CstNodeMetadata GetInternalMetadata(TokenCollection collection)
+    {
+        if (collection.Length == 0)
+        {
+            throw new InvalidOperationException("Token array is empty.");
+        }
+
+        var firstToken = collection.First();
+        var lastToken = collection.Last();
+
+        return new CstNodeMetadata(
+            startPosition: new SyntaxElementPosition(
+                index: firstToken.Metadata.Position.StartIndex,
+                line: firstToken.Metadata.Position.Line,
+                column: firstToken.Metadata.Position.Column
+            ),
+            endPosition: new SyntaxElementPosition(
+                index: lastToken.Metadata.Position.EndIndex,
+                line: lastToken.Metadata.Position.Line,
+                column: lastToken.Metadata.Position.Column
+            ),
+            tokens: collection.Tokens
+        );
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private CstNodeMetadata GetEpsilonInternalMetadata()
+    {
+        var lastToken = TokenAccumulator.LastOrDefault()?.FirstOrDefault();
+
+        return new CstNodeMetadata(
+            startPosition: new SyntaxElementPosition(
+                index: lastToken?.Metadata.Position.EndIndex ?? 0,
+                line: lastToken?.Metadata.Position.Line ?? 0,
+                column: lastToken?.Metadata.Position.Column ?? 0
+            ),
+            endPosition: new SyntaxElementPosition(
+                index: lastToken?.Metadata.Position.EndIndex ?? 0,
+                line: lastToken?.Metadata.Position.Line ?? 0,
+                column: lastToken?.Metadata.Position.Column ?? 0
+            ),
+            tokens: Array.Empty<Token>()
+        );
+    }
+
 }
 
