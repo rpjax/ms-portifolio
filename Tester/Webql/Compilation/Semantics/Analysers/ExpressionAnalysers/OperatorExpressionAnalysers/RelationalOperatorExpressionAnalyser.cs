@@ -37,13 +37,13 @@ public static class RelationalOperatorExpressionAnalyser
         var leftType = leftSemantic.Type;
         var rightType = rightSemantic.Type;
 
-        if (SemanticHelper.TypeIsNullable(leftType))
+        if (SemanticsHelper.TypeIsNullable(leftType))
         {
-            leftType = SemanticHelper.GetNullableUnderlyingType(leftType);
+            leftType = SemanticsHelper.GetNullableUnderlyingType(leftType);
         }
-        if (SemanticHelper.TypeIsNullable(rightType))
+        if (SemanticsHelper.TypeIsNullable(rightType))
         {
-            rightType = SemanticHelper.GetNullableUnderlyingType(rightType);
+            rightType = SemanticsHelper.GetNullableUnderlyingType(rightType);
         }
 
         if (leftType != rightType)

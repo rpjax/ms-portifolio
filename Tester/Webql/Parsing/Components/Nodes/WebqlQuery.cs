@@ -1,16 +1,29 @@
-﻿namespace Webql.DocumentSyntax.Parsing.Components;
+﻿using Webql.DocumentSyntax.Parsing.Tools;
 
-public class WebqlQuery : WebqlAstNode
+namespace Webql.DocumentSyntax.Parsing.Components;
+
+public class WebqlQuery : WebqlSyntaxNode
 {
     public override WebqlNodeType NodeType { get; }
-    public override SyntaxNodeMetadata Metadata { get; }
+    public override WebqlSyntaxNodeMetadata Metadata { get; }
     public WebqlExpression? Expression { get; }
 
-    public WebqlQuery(WebqlExpression? expression, SyntaxNodeMetadata metadata)
+    protected override Dictionary<string, object> Attributes { get; }
+
+    public WebqlQuery(
+        WebqlExpression? expression, 
+        WebqlSyntaxNodeMetadata metadata, 
+        Dictionary<string, object>? attributes = null)
     {
         NodeType = WebqlNodeType.Query;
         Expression = expression;
         Metadata = metadata;
+        Attributes = attributes ?? new Dictionary<string, object>();
+    }
+
+    public override WebqlSyntaxNode Accept(SyntaxNodeVisitor visitor)
+    {
+        return visitor.VisitQuery(this);
     }
 }
 

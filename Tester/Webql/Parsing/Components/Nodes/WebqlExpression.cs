@@ -1,6 +1,6 @@
 ﻿namespace Webql.DocumentSyntax.Parsing.Components;
 
-public abstract class WebqlExpression : WebqlAstNode
+public abstract class WebqlExpression : WebqlSyntaxNode
 {
     public override WebqlNodeType NodeType { get; }
     public abstract WebqlExpressionType ExpressionType { get; }

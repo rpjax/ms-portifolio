@@ -237,9 +237,9 @@ public static class WebqlAstBuilder
      * private helper methods.
      */
 
-    private static SyntaxNodeMetadata TranslateNodeMetadata(CstNode node)
+    private static WebqlSyntaxNodeMetadata TranslateNodeMetadata(CstNode node)
     {
-        return new SyntaxNodeMetadata(
+        return new WebqlSyntaxNodeMetadata(
             startPosition: node.Metadata.StartPosition,   
             endPosition: node.Metadata.EndPosition
         );

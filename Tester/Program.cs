@@ -8,6 +8,7 @@ using ModularSystem.Core.TextAnalysis.Gdef;
 using Webql.DocumentSyntax.Parsing;
 using Microsoft.CodeAnalysis.CSharp;
 using ModularSystem.Core.TextAnalysis.Parsing.Components;
+using Webql.DocumentSyntax.Semantics.Components;
 
 namespace ModularSystem.Tester;
 
@@ -86,7 +87,9 @@ public static class Program
             } 
         }";
 
-        var ast = DocumentSyntaxParser.ParseToAst(query);
+        var ast = DocumentSyntaxParser.ParseToAst("50");
+        SemanticAnalyzer.ExecuteFirstPass(ast);
+        var semantics = ast.GetSemantics();
 
         /*
          * NOTES:
@@ -428,7 +431,7 @@ semantic_value
 
 //             var resultExpression = resultProducer.As<ExpressionSymbol>();
 
-//             var resultProducerSemantic = SemanticAnalyser.AnalyseExpression(
+//             var resultProducerSemantic = SemanticAnalyzer.CreateExpressionSymbol(
 //                 context: Context.GetSymbolContext(resultExpression),
 //                 symbol: resultExpression
 //             );

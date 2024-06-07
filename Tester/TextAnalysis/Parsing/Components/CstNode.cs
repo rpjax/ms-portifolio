@@ -43,7 +43,7 @@ public enum CstNodeType
 ///// </summary>
 //public interface ICstInternal : ICstNode
 //{
-//    string Name { get; }
+//    string Identifier { get; }
 //    ICstNode[] Children { get; }
 //    bool IsEpsilon { get; }
 //}

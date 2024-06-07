@@ -5,12 +5,12 @@ namespace Webql.DocumentSyntax.Parsing.Components;
 /// <summary>
 /// Represents the metadata associated with a syntax node.
 /// </summary>
-public class SyntaxNodeMetadata
+public class WebqlSyntaxNodeMetadata
 {
     public SyntaxElementPosition StartPosition { get; }
     public SyntaxElementPosition EndPosition { get; }
 
-    public SyntaxNodeMetadata(SyntaxElementPosition startPosition, SyntaxElementPosition endPosition)
+    public WebqlSyntaxNodeMetadata(SyntaxElementPosition startPosition, SyntaxElementPosition endPosition)
     {
         StartPosition = startPosition;
         EndPosition = endPosition;

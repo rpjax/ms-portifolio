@@ -28,20 +28,20 @@ public static class ArithmeticOperatorExpressionAnalyser
         var leftType = leftSemantic.Type;
         var rightType = rightSemantic.Type;
 
-        if (SemanticHelper.TypeIsNullable(leftType))
+        if (SemanticsHelper.TypeIsNullable(leftType))
         {
-            leftType = SemanticHelper.GetNullableUnderlyingType(leftType);
+            leftType = SemanticsHelper.GetNullableUnderlyingType(leftType);
         }
-        if (SemanticHelper.TypeIsNullable(rightType))
+        if (SemanticsHelper.TypeIsNullable(rightType))
         {
-            rightType = SemanticHelper.GetNullableUnderlyingType(rightType);
+            rightType = SemanticsHelper.GetNullableUnderlyingType(rightType);
         }
 
-        if (!SemanticHelper.TypeIsNumber(leftType))
+        if (!SemanticsHelper.TypeIsNumber(leftType))
         {
             throw new Exception();
         }
-        if (!SemanticHelper.TypeIsNumber(rightType))
+        if (!SemanticsHelper.TypeIsNumber(rightType))
         {
             throw new Exception();
         }
@@ -55,8 +55,8 @@ public static class ArithmeticOperatorExpressionAnalyser
 
     private static Type ResolveType(Type leftType, Type rightType)
     {
-        var anyIsFloat = SemanticHelper.TypeIsFloatNumber(leftType) || SemanticHelper.TypeIsFloatNumber(rightType);
-        var anyIsInt = SemanticHelper.TypeIsIntNumber(leftType) || SemanticHelper.TypeIsIntNumber(rightType);
+        var anyIsFloat = SemanticsHelper.TypeIsFloatNumber(leftType) || SemanticsHelper.TypeIsFloatNumber(rightType);
+        var anyIsInt = SemanticsHelper.TypeIsIntNumber(leftType) || SemanticsHelper.TypeIsIntNumber(rightType);
 
         if (anyIsFloat)
         {

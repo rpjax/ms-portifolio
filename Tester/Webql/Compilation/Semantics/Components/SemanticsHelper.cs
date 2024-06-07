@@ -1,6 +1,6 @@
 ﻿namespace ModularSystem.Webql.Analysis.Semantics.Helpers;
 
-public static class SemanticHelper
+public static class SemanticsHelper
 {
     public static bool TypeIsNumber(this Type type)
     {
