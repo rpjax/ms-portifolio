@@ -1,4 +1,4 @@
-﻿namespace Webql.DocumentSyntax.Parsing.Components;
+﻿namespace Webql.Parsing.Components;
 
 public enum WebqlNodeType
 {

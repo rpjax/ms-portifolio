@@ -1,16 +1,38 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Webql.Components;
 using Webql.DocumentSyntax.Parsing.Components;
-using Webql.DocumentSyntax.Parsing.Tools;
+using Webql.Parsing.Components;
 
-namespace Webql.DocumentSyntax.Semantics.Components;
+namespace Webql.Semantics.Components;
 
 public static class SemanticAnalyzer
 {
-    public static void ExecuteFirstPass(WebqlSyntaxNode node)
+    public static void ExecuteAnalysisPipeline(
+        WebqlCompilationSettings compilationSettings, 
+        WebqlSyntaxNode tree, 
+        Type entityType)
     {
-        new InitialAnalysisVisitor()
+        AnnotateTree(tree);
+        DeclareSymbols(compilationSettings, tree, entityType);
+    }
+
+    public static void AnnotateTree(WebqlSyntaxNode node)
+    {
+        new ContextBinderVisitor()
             .Visit(node);
     }
+
+    public static void DeclareSymbols(
+        WebqlCompilationSettings compilationSettings,
+        WebqlSyntaxNode tree,
+        Type entityType)
+    {
+        new SymbolDeclaratorVisitor(entityType)
+            .Visit(tree);
+    }
+
+    /*
+     * Main entry point for the semantic analysis.
+     */
 
     public static ISemantics CreateSemantics(WebqlSyntaxNode node)
     {
@@ -27,13 +49,25 @@ public static class SemanticAnalyzer
         }
     }
 
+    /*
+     * QUERY SEMANTICS
+     */
+
     public static IQuerySemantics CreateQuerySemantics(WebqlQuery query)
     {
+        if(query.Expression is null)
+        {
+            return new QuerySemantics(typeof(void));
+        }
+
         return new QuerySemantics(
-            type: query.Expression?.GetSemantics<IExpressionSemantics>()?.Type ?? new VoidTypeSymbol()
+            type: query.Expression.GetSemantics<IExpressionSemantics>().Type
         );
     }
 
+    /*
+     * EXPRESSION SEMANTICS
+     */
     public static IExpressionSemantics CreateExpressionSemantics(WebqlExpression expression)
     {
         switch (expression.ExpressionType)
@@ -42,7 +76,7 @@ public static class SemanticAnalyzer
                 return CreateLiteralExpressionSymbol((WebqlLiteralExpression)expression);
 
             case WebqlExpressionType.Reference:
-                throw new NotImplementedException();
+                return CreateReferenceExpressionSymbol((WebqlReferenceExpression)expression);
 
             case WebqlExpressionType.ScopeAccess:
                 throw new NotImplementedException();
@@ -61,161 +95,80 @@ public static class SemanticAnalyzer
         }
     }
 
+    /*
+     * LITERAL EXPRESSION SEMANTICS
+     */
+
     public static IExpressionSemantics CreateLiteralExpressionSymbol(WebqlLiteralExpression expression)
     {
         switch (expression.LiteralType)
         {
             case WebqlLiteralType.Bool:
-                throw new NotImplementedException();
+                return CreateBoolSemantics(expression);
 
             case WebqlLiteralType.Null:
-                throw new NotImplementedException();
+                return CreateNullSemantics(expression);
 
             case WebqlLiteralType.Int:
                 return CreateIntLiteralSemantics(expression);
 
             case WebqlLiteralType.Float:
-                throw new NotImplementedException();
+                return CreateFloatLiteralSemantics(expression);
 
             case WebqlLiteralType.Hex:
                 throw new NotImplementedException();
 
             case WebqlLiteralType.String:
-                throw new NotImplementedException();
+                return CreateStringLiteralSemantics(expression);
 
             default:
                 throw new InvalidOperationException();
         }
     }
 
-    public static IExpressionSemantics CreateIntLiteralSemantics(WebqlLiteralExpression expression)
+    public static IExpressionSemantics CreateBoolSemantics(WebqlLiteralExpression expression)
     {
         return new ExpressionSemantics(
-            type: new IntTypeSymbol()
+            type: typeof(bool)
         );
     }
 
-}
-
-public static class SyntaxNodeSemanticExtensions
-{
-    public static string GetSemanticIdentifier(this WebqlSyntaxNode node)
+    public static IExpressionSemantics CreateNullSemantics(WebqlLiteralExpression expression)
     {
-        return "not implemented yet";
-    }
-}
-
-public class InitialAnalysisVisitor : SyntaxNodeVisitor
-{
-    public InitialAnalysisVisitor()
-    {
-
+        return new ExpressionSemantics(
+            type: typeof(Nullable)
+        );
     }
 
-    [return: NotNullIfNotNull("node")]
-    public override WebqlSyntaxNode? Visit(WebqlSyntaxNode? node)
+    public static IExpressionSemantics CreateIntLiteralSemantics(WebqlLiteralExpression expression)
     {
-        if (node is null)
-        {
-            return null;
-        }
+        return new ExpressionSemantics(
+            type: typeof(int)
+        );
+    }
 
-        var context = null as SemanticContext;
+    public static IExpressionSemantics CreateFloatLiteralSemantics(WebqlLiteralExpression expression)
+    {
+        return new ExpressionSemantics(
+            type: typeof(float)
+        );
+    }
 
-        if (node.HasSemanticContext())
-        {
-            context = node.GetSemanticContext();
-        }
-        else
-        {
-            context = SemanticContext.CreateRootContext();
-        }
+    public static IExpressionSemantics CreateStringLiteralSemantics(WebqlLiteralExpression expression)
+    {
+        return new ExpressionSemantics(
+            type: typeof(string)
+        );
+    }
 
-        if (node.IsScopeSource())
-        {
-            context = context.CreateSubContext();
-        }
+    /*
+     * REFERENCE EXPRESSION SEMANTICS
+     */
 
-        node?.AddSemanticContext(context);
-
-        return base.Visit(node);
+    public static IExpressionSemantics CreateReferenceExpressionSymbol(WebqlReferenceExpression expression)
+    {
+        throw new NotImplementedException(); 
     }
 
 }
 
-/// <summary>
-/// Provides semantic related extensions for the <see cref="WebqlSyntaxNode"/> class.
-/// </summary>
-public static class WebqlSyntaxNodeSemanticExtensions
-{
-    public static bool HasSemanticContext(this WebqlSyntaxNode node)
-    {
-        return node.HasAttribute(SemanticsHelper.ContextAttribute);
-    }
-
-    public static bool HasSemantics(this WebqlSyntaxNode node)
-    {
-        return node.HasAttribute(SemanticsHelper.SemanticsAttribute);
-    }
-
-    public static bool IsScopeSource(this WebqlSyntaxNode node)
-    {
-        return node.HasAttribute(SemanticsHelper.ScopeSourceAttribute);
-    }
-
-    public static SemanticContext GetSemanticContext(this WebqlSyntaxNode node)
-    {
-        var attribute = node.TryGetAttribute<SemanticContext>(SemanticsHelper.ContextAttribute);
-
-        if (attribute is null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        return attribute;
-    }
-
-    public static ISemantics GetSemantics(this WebqlSyntaxNode node)
-    {
-        if(!node.HasSemantics())
-        {
-            return node.GetSemanticContext().GetSemantics(node);
-        }
-
-        var attribute = node.TryGetAttribute<ISemantics>(SemanticsHelper.SemanticsAttribute);
-
-        if (attribute is null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        return attribute;
-    }
-
-    public static TSemantics GetSemantics<TSemantics>(this WebqlSyntaxNode node) where TSemantics : ISemantics
-    {
-        if(!node.HasSemantics())
-        {
-            return node.GetSemanticContext().GetSemantics<TSemantics>(node);
-        }
-
-        var attribute = node.TryGetAttribute<TSemantics>(SemanticsHelper.SemanticsAttribute);
-
-        if (attribute is null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        return attribute;
-    }
-
-    public static void AddSemanticContext(this WebqlSyntaxNode node, SemanticContext context)
-    {
-        node.AddAttribute(SemanticsHelper.ContextAttribute, context);
-    }
-
-    public static void AddSemantics(this WebqlSyntaxNode node, ISemantics semantics)
-    {
-        node.AddAttribute(SemanticsHelper.SemanticsAttribute, semantics);
-    }
-}

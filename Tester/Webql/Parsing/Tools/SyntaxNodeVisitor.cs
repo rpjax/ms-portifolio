@@ -1,7 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Webql.DocumentSyntax.Parsing.Components;
+using Webql.Parsing.Components;
 
-namespace Webql.DocumentSyntax.Parsing.Tools;
+namespace Webql.Parsing.Tools;
 
 /// <summary>
 /// Represents a visitor that traverses the syntax tree and performs an action on each node. <br/>

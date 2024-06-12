@@ -2,20 +2,20 @@
 
 namespace ModularSystem.Core;
 
+
 /// <summary>
-/// Represents update instructions for entities of type <typeparamref name="T"/>.
-/// Contains filtering criteria and modifications to be applied.
+/// Represents an interface for updating entities.
 /// </summary>
-/// <typeparam name="T">Type of entity to be updated.</typeparam>
+/// <typeparam name="T">The type of entity.</typeparam>
 public interface IUpdate<T>
 {
     /// <summary>
-    /// Specifies which entities should be targeted for the update operation.
+    /// Gets the filter expression used to filter the entities to be updated.
     /// </summary>
-    Expression? Filter { get; set; }
+    Expression? Filter { get; }
 
     /// <summary>
-    /// Contains expressions detailing the modifications to be made on the target entities.
+    /// Gets an array of expressions representing the modifications to be applied to the entities.
     /// </summary>
-    List<Expression> Modifications { get; set; }
+    Expression[] Modifications { get; }
 }

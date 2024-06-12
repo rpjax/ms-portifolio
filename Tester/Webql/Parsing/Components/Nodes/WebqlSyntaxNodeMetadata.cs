@@ -1,6 +1,6 @@
 ﻿using ModularSystem.Core.TextAnalysis.Parsing.Components;
 
-namespace Webql.DocumentSyntax.Parsing.Components;
+namespace Webql.Parsing.Components;
 
 /// <summary>
 /// Represents the metadata associated with a syntax node.

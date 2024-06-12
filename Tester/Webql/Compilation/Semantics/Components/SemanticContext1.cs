@@ -1,82 +1,13 @@
-﻿using Microsoft.CodeAnalysis;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Webql.DocumentSyntax.Parsing.Components;
 
 namespace Webql.DocumentSyntax.Semantics.Components;
 
-/*
- * Semantics
- */
-
-public interface ISemantics
-{
-
-}
-
-public interface ITypedSemantics : ISemantics
-{
-
-}
-
-public interface IQuerySemantics : ISemantics
-{
-    ITypeSymbol Type { get; }
-}
-
-public interface IExpressionSemantics : ISemantics
-{
-    ITypeSymbol Type { get; }
-}
-
-/*
- * Symbols
- */
-
-public interface ISymbol
-{
-    string Identifier { get; }
-}
-
-public interface ITypeSymbol : ISymbol
-{
-    string Name { get; }
-}
-
-public class QuerySemantics : IQuerySemantics
-{
-    public ITypeSymbol Type { get; }
-
-    public QuerySemantics(ITypeSymbol type)
-    {
-        Type = type;
-    }
-}
-
-public class ExpressionSemantics : IExpressionSemantics
-{
-    public ITypeSymbol Type { get; }
-
-    public ExpressionSemantics(ITypeSymbol type)
-    {
-        Type = type;
-    }
-}
-
-public class VoidTypeSymbol : ITypeSymbol
-{
-    public string Identifier { get; } = "void";
-    public string Name { get; } = "void";
-}
-
-public class IntTypeSymbol : ITypeSymbol
-{
-    public string Identifier { get; } = "int";
-    public string Name { get; } = "int";
-}
-
 public class SemanticContext
 {
+    const string LeftHandSideKey = "<lhs>";
+
     /// <summary>
     /// Provides a cache for all the information produced by the semantic analysis. <br/>
     /// It's shared across all the contexts that are related to the same analysis process.
@@ -112,12 +43,12 @@ public class SemanticContext
     private CacheObject Cache { get; }
 
     private SemanticContext(
-        IEnumerable<ISymbol> symbols, 
+        Dictionary<string, ISymbol> symbols,
         SemanticContext? parent,
         CacheObject cache)
     {
         Id = Guid.NewGuid();
-        SymbolTable = symbols.ToDictionary(s => s.Identifier);
+        SymbolTable = symbols.ToDictionary(x => x.Key, x => x.Value);
         ParentContext = parent;
         Cache = cache;
     }
@@ -125,7 +56,7 @@ public class SemanticContext
     public static SemanticContext CreateRootContext()
     {
         return new SemanticContext(
-            symbols: Enumerable.Empty<ISymbol>(), 
+            symbols: new Dictionary<string, ISymbol>(),
             parent: null,
             cache: new CacheObject()
         );
@@ -134,35 +65,38 @@ public class SemanticContext
     public SemanticContext CreateSubContext()
     {
         return new SemanticContext(
-            symbols: SymbolTable.Select(x => x.Value),
+            symbols: SymbolTable.ToDictionary(x => x.Key, x => x.Value),
             parent: this,
             cache: Cache
         );
     }
 
-    public bool ContainsSymbol(string id)
+    public bool ContainsSymbol(string identifier)
     {
-        return SymbolTable.ContainsKey(id) || ParentContext?.ContainsSymbol(id) == true;
+        return SymbolTable.ContainsKey(identifier)
+            || ParentContext?.ContainsSymbol(identifier) == true;
     }
 
-    public ISymbol? TryGetSymbol(string id)
+    public ISymbol? TryGetSymbol(string identifier)
     {
-        if (SymbolTable.TryGetValue(id, out var symbol))
+        if (SymbolTable.TryGetValue(identifier, out var symbol))
         {
             return symbol;
         }
 
-        return ParentContext?.TryGetSymbol(id);
+        return ParentContext?.TryGetSymbol(identifier);
     }
 
-    public void AddSymbol(ISymbol symbol)
+    public void AddSymbol(string identifier, ISymbol symbol)
     {
-        SymbolTable.Add(symbol.Identifier, symbol);
+        SymbolTable.Add(identifier, symbol);
     }
 
     public ISemantics GetSemantics(WebqlSyntaxNode node)
     {
-        return ParentContext?.TryGetCachedSemantics(node) ?? SemanticAnalyzer.CreateSemantics(node);
+        return TryGetCachedSemantics(node)
+            ?? ParentContext?.TryGetCachedSemantics(node) 
+            ?? SemanticAnalyzer.CreateSemantics(node);
     }
 
     public TSemantics GetSemantics<TSemantics>(WebqlSyntaxNode node) where TSemantics : ISemantics
@@ -175,6 +109,15 @@ public class SemanticContext
         }
 
         throw new InvalidOperationException();
+    }
+
+    /*
+     * lhs helper methods
+     */
+
+    public void SetLeftHandSide(ISymbol symbol)
+    {
+        SymbolTable[LeftHandSideKey] = symbol;
     }
 
     /*

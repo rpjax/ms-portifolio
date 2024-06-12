@@ -1,4 +1,6 @@
-﻿namespace Webql.DocumentSyntax.Parsing.Components;
+﻿using Webql.DocumentSyntax.Parsing.Components;
+
+namespace Webql.Parsing.Components;
 
 public abstract class WebqlExpression : WebqlSyntaxNode
 {

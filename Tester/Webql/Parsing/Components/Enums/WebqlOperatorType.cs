@@ -58,3 +58,13 @@ public enum WebqlOperatorType
     Average,
 }
 
+public enum WebqlOperatorCategory
+{
+    Arithmetic,
+    Relational,
+    StringRelational,
+    Logical,
+    Semantic,
+    CollectionManipulation,
+    CollectionAggregation,
+}

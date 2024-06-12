@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
-using Webql.DocumentSyntax.Parsing.Tools;
+using Webql.Parsing.Tools;
 
-namespace Webql.DocumentSyntax.Parsing.Components;
+namespace Webql.Parsing.Components;
 
 /// <summary>
 /// Represents a node in the abstract syntax tree for the WebQL language.
@@ -16,7 +16,7 @@ public abstract class WebqlSyntaxNode
     /// <summary>
     /// Gets the syntax metadata associated with the node.
     /// </summary>
-    public abstract WebqlSyntaxNodeMetadata Metadata { get; }
+    public abstract WebqlSyntaxNodeMetadata Metadata { get; }   
 
     /// <summary>
     /// Gets the attributes associated with the node.

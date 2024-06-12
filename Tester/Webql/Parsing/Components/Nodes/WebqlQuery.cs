@@ -1,6 +1,8 @@
-﻿using Webql.DocumentSyntax.Parsing.Tools;
+﻿using Webql.DocumentSyntax.Parsing.Components;
+using Webql.DocumentSyntax.Parsing.Tools;
+using Webql.Parsing.Tools;
 
-namespace Webql.DocumentSyntax.Parsing.Components;
+namespace Webql.Parsing.Components;
 
 public class WebqlQuery : WebqlSyntaxNode
 {

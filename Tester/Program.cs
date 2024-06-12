@@ -88,7 +88,7 @@ public static class Program
         }";
 
         var ast = DocumentSyntaxParser.ParseToAst("50");
-        SemanticAnalyzer.ExecuteFirstPass(ast);
+        SemanticAnalyzer.AnnotateTree(ast);
         var semantics = ast.GetSemantics();
 
         /*
