@@ -7,7 +7,7 @@ namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
 public static class LogicalOperatorExpressionAnalyser
 {
     public static OperatorExpressionSemantic AnalyseLogicalOperatorExpression(
-      SemanticContext context,
+      SemanticContextOld context,
       OperatorExpressionSymbol symbol)
     {
         switch (OperatorHelper.GetLogicalOperatorType(symbol.Operator))
@@ -26,7 +26,7 @@ public static class LogicalOperatorExpressionAnalyser
     }
 
     public static OperatorExpressionSemantic AnalyseOrOperatorExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         OrOperatorExpressionSymbol symbol)
     {
         foreach (var expression in symbol.Expressions)
@@ -48,7 +48,7 @@ public static class LogicalOperatorExpressionAnalyser
     }
 
     public static OperatorExpressionSemantic AnalyseAndOperatorExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         AndOperatorExpressionSymbol symbol)
     {
         foreach (var expression in symbol.Expressions)
@@ -70,7 +70,7 @@ public static class LogicalOperatorExpressionAnalyser
     }
 
     public static OperatorExpressionSemantic AnalyseNotOperatorExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         NotOperatorExpressionSymbol symbol)
     {
         var semantic = SemanticAnalyser.AnalyseExpression(

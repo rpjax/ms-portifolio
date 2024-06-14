@@ -7,7 +7,7 @@ namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
 public static class ArithmeticOperatorExpressionAnalyser
 {
     public static OperatorExpressionSemantic AnalyseArithmeticOperatorExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
         if (symbol is not ArithmeticOperatorExpressionSymbol arithmeticExpression)

@@ -4,7 +4,7 @@ namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
 
 public static class StatementBlockAnalyser
 {
-    public static StatementBlockSemantic AnalyseStatementBlock(SemanticContext context, StatementBlockSymbol symbol)
+    public static StatementBlockSemantic AnalyseStatementBlock(SemanticContextOld context, StatementBlockSymbol symbol)
     {
         var lastStatement = symbol.LastOrDefault();
         var type = typeof(void);

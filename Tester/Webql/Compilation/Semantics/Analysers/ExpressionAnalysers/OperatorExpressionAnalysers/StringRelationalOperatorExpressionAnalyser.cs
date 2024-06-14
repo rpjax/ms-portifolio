@@ -6,7 +6,7 @@ namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
 public static class StringRelationalOperatorExpressionAnalyser
 {
     public static OperatorExpressionSemantic AnalyseStringRelationalOperatorExpression(
-      SemanticContext context,
+      SemanticContextOld context,
       OperatorExpressionSymbol symbol)
     {
         if (symbol is not StringRelationalOperatorExpressionSymbol strRelationalExpression)

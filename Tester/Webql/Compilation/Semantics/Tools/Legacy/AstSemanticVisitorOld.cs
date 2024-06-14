@@ -5,7 +5,7 @@ namespace ModularSystem.Webql.Analysis.Semantics;
 
 public abstract class AstSemanticVisitorOld
 {
-    protected virtual AxiomSymbol VisitAxiom(SemanticContext context, AxiomSymbol symbol)
+    protected virtual AxiomSymbol VisitAxiom(SemanticContextOld context, AxiomSymbol symbol)
     {
         OnVisit(context, symbol);
 
@@ -19,7 +19,7 @@ public abstract class AstSemanticVisitorOld
         );
     }
 
-    protected virtual StatementBlockSymbol VisitStatementBlock(SemanticContext context, StatementBlockSymbol symbol)
+    protected virtual StatementBlockSymbol VisitStatementBlock(SemanticContextOld context, StatementBlockSymbol symbol)
     {
         OnVisit(context, symbol);
 
@@ -31,7 +31,7 @@ public abstract class AstSemanticVisitorOld
         return symbol;
     }
 
-    protected virtual StatementSymbol VisitStatement(SemanticContext context, StatementSymbol symbol)
+    protected virtual StatementSymbol VisitStatement(SemanticContextOld context, StatementSymbol symbol)
     {
         OnVisit(context, symbol);
 
@@ -47,7 +47,7 @@ public abstract class AstSemanticVisitorOld
         throw new Exception();
     }
 
-    protected virtual ExpressionSymbol VisitExpression(SemanticContext context, ExpressionSymbol symbol)
+    protected virtual ExpressionSymbol VisitExpression(SemanticContextOld context, ExpressionSymbol symbol)
     {
         OnVisit(context, symbol);
 
@@ -72,13 +72,13 @@ public abstract class AstSemanticVisitorOld
         throw new Exception();
     }
 
-    protected virtual DeclarationStatementSymbol VisitDeclaration(SemanticContext context, DeclarationStatementSymbol symbol)
+    protected virtual DeclarationStatementSymbol VisitDeclaration(SemanticContextOld context, DeclarationStatementSymbol symbol)
     {
         OnVisit(context, symbol);
         return symbol;
     }
 
-    protected virtual ExpressionSymbol VisitLiteralExpression(SemanticContext context, LiteralExpressionSymbol symbol)
+    protected virtual ExpressionSymbol VisitLiteralExpression(SemanticContextOld context, LiteralExpressionSymbol symbol)
     {
         OnVisit(context, symbol);
 
@@ -100,13 +100,13 @@ public abstract class AstSemanticVisitorOld
         throw new Exception();
     }
 
-    protected virtual ExpressionSymbol VisitReferenceExpression(SemanticContext context, ReferenceExpressionSymbol symbol)
+    protected virtual ExpressionSymbol VisitReferenceExpression(SemanticContextOld context, ReferenceExpressionSymbol symbol)
     {
         OnVisit(context, symbol);
         return symbol;
     }
 
-    protected virtual ExpressionSymbol VisitOperatorExpression(SemanticContext context, OperatorExpressionSymbol symbol)
+    protected virtual ExpressionSymbol VisitOperatorExpression(SemanticContextOld context, OperatorExpressionSymbol symbol)
     {
         OnVisit(context, symbol);
 
@@ -118,7 +118,7 @@ public abstract class AstSemanticVisitorOld
         return symbol;
     }
 
-    protected virtual LambdaExpressionSymbol VisitLambdaExpression(SemanticContext context, LambdaExpressionSymbol symbol)
+    protected virtual LambdaExpressionSymbol VisitLambdaExpression(SemanticContextOld context, LambdaExpressionSymbol symbol)
     {
         OnVisit(context, symbol);
         return new LambdaExpressionSymbol(
@@ -130,7 +130,7 @@ public abstract class AstSemanticVisitorOld
     }
 
     protected virtual AnonymousTypeExpressionSymbol VisitTypeProjectionExpression(
-        SemanticContext context, 
+        SemanticContextOld context, 
         AnonymousTypeExpressionSymbol symbol
     )
     {
@@ -138,25 +138,25 @@ public abstract class AstSemanticVisitorOld
         return symbol;
     }
 
-    protected virtual NullSymbol VisitNull(SemanticContext context, NullSymbol symbol)
+    protected virtual NullSymbol VisitNull(SemanticContextOld context, NullSymbol symbol)
     {
         OnVisit(context, symbol);
         return symbol;
     }
 
-    protected virtual StringSymbol VisitString(SemanticContext context, StringSymbol symbol)
+    protected virtual StringSymbol VisitString(SemanticContextOld context, StringSymbol symbol)
     {
         OnVisit(context, symbol);
         return symbol;
     }
 
-    protected virtual BoolSymbol VisitBool(SemanticContext context, BoolSymbol symbol)
+    protected virtual BoolSymbol VisitBool(SemanticContextOld context, BoolSymbol symbol)
     {
         OnVisit(context, symbol);
         return symbol;
     }
 
-    protected virtual NumberSymbol VisitNumber(SemanticContext context, NumberSymbol symbol)
+    protected virtual NumberSymbol VisitNumber(SemanticContextOld context, NumberSymbol symbol)
     {
         OnVisit(context, symbol);
         return symbol;
@@ -166,7 +166,7 @@ public abstract class AstSemanticVisitorOld
     //* Hooks
     //*
 
-    protected virtual void OnVisit(SemanticContext context, Symbol symbol)
+    protected virtual void OnVisit(SemanticContextOld context, Symbol symbol)
     {
 
     }

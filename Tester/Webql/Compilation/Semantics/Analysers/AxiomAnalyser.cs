@@ -11,7 +11,7 @@ public class AxiomAnalyser
     //
     // params = '(' [ arg { ',' , arg  } ] ')' ;
     // arg = type identifier ;
-    public AxiomSemantic AnalyseAxiom(SemanticContext context, AxiomSymbol symbol)
+    public AxiomSemantic AnalyseAxiom(SemanticContextOld context, AxiomSymbol symbol)
     {
         return new AxiomSemantic();
     }

@@ -16,7 +16,7 @@ public class RootLambdasArgumentTypeFixer : FirstSemanticPass
     public RootLambdasArgumentTypeFixer(
         Type[] argumentsTypes
     ) 
-    : base(new SemanticContext())
+    : base(new SemanticContextOld())
     {
         ArgumentsTypes = argumentsTypes;
     }

@@ -1,17 +1,17 @@
-﻿using ModularSystem.Core.TextAnalysis.Gdef;
+﻿using System.Runtime.CompilerServices;
+using ModularSystem.Core.TextAnalysis.Gdef;
 using ModularSystem.Core.TextAnalysis.Parsing;
 using ModularSystem.Core.TextAnalysis.Parsing.Components;
 using ModularSystem.Core.TextAnalysis.Parsing.Tools;
-using System.Runtime.CompilerServices;
-using Webql.DocumentSyntax.Parsing.Components;
-using Webql.DocumentSyntax.Parsing.Tools;
+using Webql.Parsing.Components;
+using Webql.Parsing.Tools;
 
-namespace Webql.DocumentSyntax.Parsing;
+namespace Webql.Parsing;
 
 /// <summary>
 /// Parser for the WebQL document syntax (V3).
 /// </summary>
-public static class DocumentSyntaxParser
+public static class WebqlParser
 {
     const string RawGrammarText = @"
 /*
@@ -140,7 +140,7 @@ collection_aggregation_operator
 
     private static LR1Parser? ParserInstance { get; set; }
 
-    static DocumentSyntaxParser()
+    static WebqlParser()
     {
 		// initialize the parser instance
         GetParser();

@@ -4,7 +4,7 @@ namespace ModularSystem.Webql.Analysis.Semantics.Components;
 
 public class FirstSemanticPass : AstSemanticTraverser
 {
-    public FirstSemanticPass(SemanticContext context) : base(context)
+    public FirstSemanticPass(SemanticContextOld context) : base(context)
     {
     }
 

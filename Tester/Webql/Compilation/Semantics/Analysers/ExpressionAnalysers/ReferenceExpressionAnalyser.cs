@@ -5,7 +5,7 @@ namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
 public static class ReferenceExpressionAnalyser
 {
     public static ReferenceExpressionSemantic AnalyseReferenceExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         ReferenceExpressionSymbol symbol)
     {
         var identifier = symbol.GetNormalizedValue();

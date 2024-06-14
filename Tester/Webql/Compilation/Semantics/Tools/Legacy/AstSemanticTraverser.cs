@@ -12,13 +12,13 @@ public abstract class AstSemanticTraverser : AstTraverser
     /// <summary>
     /// Gets the semantic context used during the traversal.
     /// </summary>
-    protected SemanticContext Context { get; set; }
+    protected SemanticContextOld Context { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AstSemanticTraverser"/> class.
     /// </summary>
     /// <param name="context">The semantic context to use during the traversal.</param>
-    protected AstSemanticTraverser(SemanticContext context)
+    protected AstSemanticTraverser(SemanticContextOld context)
     {
         Context = context;
     }

@@ -15,23 +15,22 @@ public class Update<T> : IUpdate<T>
     /// <summary>
     /// Gets or sets the filter expression to determine which entities should be updated.
     /// </summary>
-    public Expression? Filter { get; set; } = null;
+    public Expression? Filter { get; }
 
     /// <summary>
     /// Gets or sets the list of modification expressions to be applied to the entities.
     /// </summary>
-    public List<Expression> Modifications { get; set; } = new();
+    public Expression[] Modifications { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Update{T}"/> class.
-    /// Optionally, an existing update can be provided to initialize the new instance.
+    /// Initializes a new instance of the <see cref="Update{T}"/> class. 
     /// </summary>
-    /// <param name="update">An existing update to initialize the new instance, if any.</param>
-    public Update(IUpdate<T>? update = null)
+    /// <param name="filter">The filter expression to determine which entities should be updated.</param>
+    /// <param name="modifications">The list of modification expressions to be applied to the entities.</param>
+    public Update(Expression? filter, Expression[] modifications)
     {
-        if (update == null) return;
-        Filter = update.Filter;
-        Modifications = update.Modifications;
+        Filter = filter;
+        Modifications = modifications;
     }
 
     /// <summary>
@@ -54,10 +53,10 @@ public class Update<T> : IUpdate<T>
 /// Provides a factory for building and refining <see cref="Update{T}"/> objects for entities of type <typeparamref name="T"/>.
 /// </summary>
 /// <remarks>
-/// This factory is designed to be used in a fluent manner. <br/>
+/// This factory is designed to be used in a fluent manner. 
 /// The update creation and refinement methods return the factory itself, allowing for chaining of modifications.
 /// </remarks>
-public class UpdateWriter<T> : IFactory<Update<T>>
+public class UpdateBuilder<T> : IBuilder<Update<T>>
 {
     /// <summary>
     /// Defines strategies for handling conflicts when setting modifications.
@@ -80,68 +79,51 @@ public class UpdateWriter<T> : IFactory<Update<T>>
         Override
     }
 
-    /// <summary>
-    /// Gets or sets the strategy to use when a conflict is detected.
-    /// </summary>
-    public ConflictStrategyType ConflictStrategy { get; set; }
+    private ConflictStrategyType ConflictStrategy { get; set; }
+    private Expression? Filter { get; set; }
+    private List<Expression> Modifications { get; }
 
     /// <summary>
-    /// Gets the update being constructed.
+    /// Initializes a new instance of the <see cref="UpdateBuilder{T}"/> class.
     /// </summary>
-    private Update<T> Update { get; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UpdateWriter{T}"/> class.
-    /// </summary>
-    /// <param name="update">An existing update to initialize the writer, if provided.</param>
-    /// <param name="conflictStrategy">The strategy to use when a conflict is detected during modification setting. Defaults to <see cref="ConflictStrategyType.Throw"/>.</param>
-    public UpdateWriter(IUpdate<T>? update = null, ConflictStrategyType conflictStrategy = ConflictStrategyType.Throw)
+    /// <param name="conflictStrategy">The conflict strategy for handling conflicts when setting modifications.</param>
+    public UpdateBuilder(ConflictStrategyType conflictStrategy = ConflictStrategyType.Throw)
     {
-        Update = new();
-
-        if (update != null)
-        {
-            Update.Filter = update.Filter;
-            Update.Modifications = update.Modifications;
-        }
+        ConflictStrategy = conflictStrategy;
+        Filter = null;
+        Modifications = new();
     }
 
     /// <summary>
-    /// Creates and returns the constructed update.
+    /// Creates an <see cref="UpdateBuilder{T}"/> instance from an existing <see cref="IUpdate{T}"/> object.
+    /// </summary>
+    /// <param name="update">The existing update object.</param>
+    /// <param name="conflictStrategy">The conflict strategy for handling conflicts when setting modifications.</param>
+    /// <returns>An <see cref="UpdateBuilder{T}"/> instance.</returns>
+    public static UpdateBuilder<T> FromUpdate(IUpdate<T> update, ConflictStrategyType conflictStrategy = ConflictStrategyType.Throw)
+    {
+        return new UpdateBuilder<T>(conflictStrategy)
+            .SetFilter(update.Filter)
+            .SetModifications(update.Modifications);
+    }
+
+    /// <summary>
+    /// Builds and returns the constructed update.
     /// </summary>
     /// <returns>The constructed update.</returns>
-    public Update<T> Create()
+    public Update<T> Build()
     {
-        return Update;
-    }
-
-    /// <summary>
-    /// Produces a serializable representation of the <see cref="Update{T}"/> object as constructed by this factory.
-    /// </summary>
-    /// <returns>The serialized representation of the constructed query object.</returns>
-    public SerializableUpdate CreateSerializable()
-    {
-        return Update.ToSerializable();
-    }
-
-    /// <summary>
-    /// Produces a <see cref="string"/> representation of the <see cref="Update{T}"/> object as constructed by this factory.
-    /// </summary>
-    /// <returns>The serialized string representation of the constructed query object.</returns>
-    public string ToJson(JsonSerializerOptions? options = null)
-    {
-        var serializer = new ExprJsonSerializer(options);
-        return serializer.Serialize(CreateSerializable());
+        return new Update<T>(Filter, Modifications.ToArray());
     }
 
     /// <summary>
     /// Sets the filter expression for the update.
     /// </summary>
-    /// <param name="expression">The filter expression.</param>
-    /// <returns>The current instance of the writer.</returns>
-    public UpdateWriter<T> SetFilter(Expression<Func<T, bool>>? expression)
+    /// <param name="expression">The filter expression to determine which entities should be updated.</param>
+    /// <returns>The current instance of the <see cref="UpdateBuilder{T}"/>.</returns>
+    public UpdateBuilder<T> SetFilter(Expression<Func<T, bool>>? expression)
     {
-        Update.Filter = expression;
+        Filter = expression;
         return this;
     }
 
@@ -151,24 +133,27 @@ public class UpdateWriter<T> : IFactory<Update<T>>
     /// <typeparam name="TField">The type of the field being modified.</typeparam>
     /// <param name="selector">The selector expression for the field.</param>
     /// <param name="value">The new value for the field.</param>
-    /// <returns>The current instance of the writer.</returns>
-    public UpdateWriter<T> SetModification<TField>(Expression<Func<T, TField>> selector, TField value)
+    /// <returns>The current instance of the <see cref="UpdateBuilder{T}"/>.</returns>
+    public UpdateBuilder<T> SetModification<TField>(Expression<Func<T, TField>> selector, TField value)
     {
-        var analyser = new SelectorExpressionAnalyzer<T, TField>(selector)
-            .Execute();
-        var valueExpr = Expression.Constant(value, typeof(TField));
-        var modification =
-            new UpdateSetExpression(analyser.GetFieldName(), analyser.GetFieldType(), selector, valueExpr);
-        var reader = new UpdateReader<T>(Update);
+        var analyser = new SelectorExpressionAnalyzer<T, TField>(selector).Execute();
 
-        var updatesForSelectedField = reader
-            .TryGetUpdateSetExpressions()
+        var valueExpr = Expression.Constant(value, typeof(TField));
+
+        var modification = new UpdateSetExpression(
+            fieldName: analyser.GetFieldName(),
+            type: analyser.GetFieldType(),
+            selector: selector,
+            value: valueExpr
+        );
+
+        var updatesForSelectedField = Modifications.Cast<UpdateSetExpression>()
             .Where(x => x.FieldName == modification.FieldName)
             .ToArray();
 
         if (updatesForSelectedField.IsEmpty())
         {
-            Update.Modifications.Add(modification);
+            Modifications.Add(modification);
             return this;
         }
 
@@ -183,11 +168,26 @@ public class UpdateWriter<T> : IFactory<Update<T>>
 
         var oldModification = updatesForSelectedField.First();
 
-        Update.Modifications.Remove(oldModification);
-        Update.Modifications.Add(modification);
+        Modifications.Remove(oldModification);
+        Modifications.Add(modification);
         return this;
     }
 
+    internal UpdateBuilder<T> SetFilter(Expression? expression)
+    {
+        Filter = expression;
+        return this;
+    }
+
+    internal UpdateBuilder<T> SetModifications(IEnumerable<Expression> modifications)
+    {
+        foreach (var modification in modifications)
+        {
+            Modifications.Add(modification);
+        }
+
+        return this;
+    }
 }
 
 /// <summary>
@@ -198,19 +198,9 @@ public class UpdateWriter<T> : IFactory<Update<T>>
 /// <typeparam name="T">The type of the entity being targeted by the update.</typeparam>
 public class UpdateReader<T>
 {
-    private readonly Update<T> Update;
-    private readonly Configs Config;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UpdateReader{T}"/> class, offering an interpretative perspective over the provided update data structure.
-    /// </summary>
-    /// <param name="update">The update data structure containing the raw expressions to be interpreted.</param>
-    /// <param name="configs">Optional configuration settings influencing the interpretation process.</param>
-    public UpdateReader(Update<T> update, Configs? configs = null)
-    {
-        Update = update ?? throw new ArgumentNullException(nameof(update));
-        Config = configs ?? new Configs();
-    }
+    private Expression? Filter { get; }
+    private Expression[] Modifications { get; }
+    private Configs Config { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UpdateReader{T}"/> class using an interface representation of an update.
@@ -218,8 +208,10 @@ public class UpdateReader<T>
     /// <param name="update">The update data structure containing the raw expressions to be interpreted.</param>
     /// <param name="configs">Optional configuration settings influencing the interpretation process.</param>
     public UpdateReader(IUpdate<T> update, Configs? configs = null)
-        : this(new Update<T>(update), configs)
     {
+        Filter = update.Filter;
+        Modifications = update.Modifications;
+        Config = configs ?? new Configs();
     }
 
     /// <summary>
@@ -229,8 +221,8 @@ public class UpdateReader<T>
     public Expression<Func<T, bool>>? GetFilterExpression()
     {
         return Config.UseParameterUniformityVisitor
-            ? VisitExpression(Update.Filter as Expression<Func<T, bool>>)
-            : Update.Filter as Expression<Func<T, bool>>;
+            ? VisitExpression(Filter as Expression<Func<T, bool>>)
+            : Filter as Expression<Func<T, bool>>;
     }
 
     /// <summary>
@@ -239,7 +231,7 @@ public class UpdateReader<T>
     /// <returns>An enumerable of update set expressions.</returns>
     public IEnumerable<UpdateSetExpression> TryGetUpdateSetExpressions()
     {
-        foreach (var expression in Update.Modifications)
+        foreach (var expression in Modifications)
         {
             if (expression is UpdateSetExpression cast)
             {
@@ -254,7 +246,7 @@ public class UpdateReader<T>
     /// <returns>An enumerable of update set expressions.</returns>
     public IEnumerable<UpdateSetExpression> GetUpdateSetExpressions()
     {
-        foreach (var expression in Update.Modifications)
+        foreach (var expression in Modifications)
         {
             if (expression is UpdateSetExpression updateSetExpression)
             {

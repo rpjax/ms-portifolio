@@ -7,13 +7,13 @@ namespace ModularSystem.Webql.Analysis.Semantics;
 
 public static class SemanticAnalyser
 {
-    public static Type GetType(SemanticContext context, string identifier)
+    public static Type GetType(SemanticContextOld context, string identifier)
     {
         return Type.GetType(identifier)
            ?? throw new Exception();
     }
 
-    public static LambdaExpressionSemantic AnalyseLambda(SemanticContext context, LambdaExpressionSymbol symbol)
+    public static LambdaExpressionSemantic AnalyseLambda(SemanticContextOld context, LambdaExpressionSymbol symbol)
     {
         if (GetCachedSemantics<LambdaExpressionSemantic>(context, symbol, out var cached))
         {
@@ -23,7 +23,7 @@ public static class SemanticAnalyser
         return ExpressionAnalyser.AnalyseLambdaExpression(context, symbol);
     }
 
-    public static DeclarationStatementSemantic AnalyseDeclaration(SemanticContext context, IDeclarationSymbol symbol)
+    public static DeclarationStatementSemantic AnalyseDeclaration(SemanticContextOld context, IDeclarationSymbol symbol)
     {
         if (GetCachedSemantics<DeclarationStatementSemantic>(context, symbol, out var cached))
         {
@@ -33,12 +33,12 @@ public static class SemanticAnalyser
         return DeclarationAnalyser.AnalyseDeclaration(context, symbol);
     }
 
-    public static DeclarationStatementSemantic[] AnalyseDeclarations(SemanticContext context, IDeclarationSymbol[] symbol)
+    public static DeclarationStatementSemantic[] AnalyseDeclarations(SemanticContextOld context, IDeclarationSymbol[] symbol)
     {
         return DeclarationAnalyser.AnalyseDeclarations(context, symbol);
     }
 
-    public static StatementBlockSemantic AnalyseStatementBlock(SemanticContext context, StatementBlockSymbol symbol)
+    public static StatementBlockSemantic AnalyseStatementBlock(SemanticContextOld context, StatementBlockSymbol symbol)
     {
         if (GetCachedSemantics<StatementBlockSemantic>(context, symbol, out var cached))
         {
@@ -48,7 +48,7 @@ public static class SemanticAnalyser
         return StatementBlockAnalyser.AnalyseStatementBlock(context, symbol);
     }
 
-    public static ExpressionSemantic AnalyseExpression(SemanticContext context, ExpressionSymbol symbol)
+    public static ExpressionSemantic AnalyseExpression(SemanticContextOld context, ExpressionSymbol symbol)
     {
         if (GetCachedSemantics<ExpressionSemantic>(context, symbol, out var cached))
         {
@@ -63,7 +63,7 @@ public static class SemanticAnalyser
     //*
 
     private static bool GetCachedSemantics<T>(
-        SemanticContext context,
+        SemanticContextOld context,
         ISymbol symbol,
         [NotNullWhen(true)] out T? value) where T : SymbolSemantic
     {

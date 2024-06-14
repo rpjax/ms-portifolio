@@ -62,6 +62,7 @@ public class LambdaFactory<T> : IFactory<T>
         _lambda = lambda;
     }
 
+    /// <inheritdoc/>
     public T Create()
     {
         return _lambda.Invoke();

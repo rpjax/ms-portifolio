@@ -253,7 +253,7 @@ public static class ErrorExtensions
     /// <returns></returns>
     public static Error SetText(this Error error, string text)
     {
-        error.Text = text;
+        error.Message = text;
         return error;
     }
 

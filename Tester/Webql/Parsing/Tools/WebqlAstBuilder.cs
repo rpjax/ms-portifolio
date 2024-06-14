@@ -2,9 +2,9 @@
 using ModularSystem.Core.TextAnalysis.Parsing.Extensions;
 using ModularSystem.Core.TextAnalysis.Tokenization;
 using ModularSystem.Core.TextAnalysis.Tokenization.Extensions;
-using Webql.DocumentSyntax.Parsing.Components;
+using Webql.Parsing.Components;
 
-namespace Webql.DocumentSyntax.Parsing.Tools;
+namespace Webql.Parsing.Tools;
 
 /// <summary>
 /// Provides methods to translate a CstRoot node into a WebqlQuery object.

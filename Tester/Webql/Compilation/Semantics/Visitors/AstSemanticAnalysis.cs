@@ -11,11 +11,11 @@ namespace ModularSystem.Webql.Analysis.Semantics.Components;
 /// </summary>
 public class AstSemanticAnalysis : AstSemanticTraverser
 {
-    public AstSemanticAnalysis() : base(new SemanticContext())
+    public AstSemanticAnalysis() : base(new SemanticContextOld())
     {
     }
 
-    public SemanticContext Execute(AxiomSymbol symbol)
+    public SemanticContextOld Execute(AxiomSymbol symbol)
     {
         if (symbol.Lambda is null)
         {

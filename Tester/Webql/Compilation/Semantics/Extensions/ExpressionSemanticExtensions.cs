@@ -8,7 +8,7 @@ public static class ExpressionSemanticExtensions
     /// Determines if the type of the current context is a form of IEnumerable, indicating a queryable type.
     /// </summary>
     /// <returns>True if the type is queryable; otherwise, false.</returns>
-    public static bool IsQueryable(this ExpressionSemantic semantic, SemanticContext context)
+    public static bool IsQueryable(this ExpressionSemantic semantic, SemanticContextOld context)
     {
         var type = semantic.Type;
 
@@ -23,7 +23,7 @@ public static class ExpressionSemanticExtensions
     /// Determines if the type of the current context is NOT a form of IEnumerable, indicating a non queryable type.
     /// </summary>
     /// <returns>True if the type is queryable; otherwise, false.</returns>
-    public static bool IsNotQueryable(this ExpressionSemantic semantic, SemanticContext context)
+    public static bool IsNotQueryable(this ExpressionSemantic semantic, SemanticContextOld context)
     {
         return !IsQueryable(semantic, context);
     }
@@ -41,7 +41,7 @@ public static class ExpressionSemanticExtensions
     /// If the type is a generic IEnumerable, it returns the generic argument type. <br/>
     /// If the context's type is not queryable, it returns null.
     /// </remarks>
-    public static Type? TryGetElementType(this ExpressionSemantic semantic, SemanticContext context)
+    public static Type? TryGetElementType(this ExpressionSemantic semantic, SemanticContextOld context)
     {
         var type = semantic.Type;
 
@@ -81,7 +81,7 @@ public static class ExpressionSemanticExtensions
     /// </summary>
     /// <returns>The element type of the queryable.</returns>
     /// <exception cref="SemanticException">Thrown if the context is not queryable or the queryable type is undefined.</exception>
-    public static Type GetElementType(this ExpressionSemantic semantic, SemanticContext context)
+    public static Type GetElementType(this ExpressionSemantic semantic, SemanticContextOld context)
     {
         var type = TryGetElementType(semantic, context);
 
@@ -93,7 +93,7 @@ public static class ExpressionSemanticExtensions
         return type;
     }
 
-    public static Type GetQueryableGenericType(this ExpressionSemantic semantic, SemanticContext context)
+    public static Type GetQueryableGenericType(this ExpressionSemantic semantic, SemanticContextOld context)
     {
         var type = semantic.Type;
 

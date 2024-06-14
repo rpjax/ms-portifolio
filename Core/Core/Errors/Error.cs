@@ -3,17 +3,21 @@
 namespace ModularSystem.Core;
 
 /// <summary>
-/// Represents an operation error with optional text, source, code, and flags. <br/>
+/// Represents an operation error with optional message, source, code, and flags. <br/>
 /// This class is designed to encapsulate all relevant information about an error that occurs during an operation.
 /// </summary>
 public class Error
 {
+    /// <summary>
+    /// The key used to store the serialized exception data in the error's debug data. <br/>
+    /// </summary>
     public const string ExceptionDataKey = "exception";
 
     /// <summary>
-    /// Gets or sets the descriptive text of the error. This field can provide a human-readable explanation of the error.
+    /// Gets or sets the message description of the error. <br/>
+    /// This property is designed to provide a human-readable description of the error.
     /// </summary>
-    public string? Text { get; set; }
+    public string? Message { get; set; }
 
     /// <summary>
     /// Gets or sets the identifier used to bind this error to its source. <br/>
@@ -51,19 +55,19 @@ public class Error
     [JsonConstructor]
     public Error()
     {
-        Text = null;
+        Message = null;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Error"/> class with specified text, code, and target.
+    /// Initializes a new instance of the <see cref="Error"/> class with specified message, code, and target.
     /// </summary>
-    /// <param name="text">The text description of the error.</param>
+    /// <param name="message">The message description of the error.</param>
     /// <param name="code">The code associated with the error.</param>
     /// <param name="source">The source associated with the error.</param>
     /// <param name="flags">The flags associated with the error.</param>
-    public Error(string? text, string? source = null, string? code = null, params string[] flags)
+    public Error(string? message, string? source = null, string? code = null, params string[] flags)
     {
-        Text = text;
+        Message = message;
         Source = source;
         Code = code;
         Flags = flags.ToList();
@@ -80,7 +84,7 @@ public class Error
     /// </remarks>
     public Error(Exception exception)
     {
-        Text = exception.Message;
+        Message = exception.Message;
         Source = exception.StackTrace;
         Code = exception.HResult.ToString();
 
@@ -98,10 +102,10 @@ public class Error
     }
 
     /// <summary>
-    /// Creates a public error with the specified text, source, and code. This error is marked with the 'public' flag, <br/>
+    /// Creates a public error with the specified message, source, and code. This error is marked with the 'public' flag, <br/>
     /// indicating it is safe to display to end users. Additional flags can be added as needed.
     /// </summary>
-    /// <param name="text">The text description of the error. Optional.</param>
+    /// <param name="text">The message description of the error. Optional.</param>
     /// <param name="source">The source of the error. Optional.</param>
     /// <param name="code">The code associated with the error. Optional.</param>
     /// <param name="flags">Additional flags to be associated with the error. Optional.</param>
@@ -113,11 +117,11 @@ public class Error
     }
 
     /// <summary>
-    /// Creates a critical error with the specified text, source, and code. This error is marked with the 'critical' flag,
+    /// Creates a critical error with the specified message, source, and code. This error is marked with the 'critical' flag,
     /// <br/>
     /// indicating it represents a severe issue requiring immediate attention. Additional flags can be added as needed.
     /// </summary>
-    /// <param name="text">The text description of the error. Optional.</param>
+    /// <param name="text">The message description of the error. Optional.</param>
     /// <param name="source">The source of the error. Optional.</param>
     /// <param name="code">The code associated with the error. Optional.</param>
     /// <param name="flags">Additional flags to be associated with the error. Optional.</param>
@@ -129,7 +133,7 @@ public class Error
     }
 
     /// <summary>
-    /// Returns a string representation of the <see cref="Error"/>, combining target, code, and text.
+    /// Returns a string representation of the <see cref="Error"/>, combining target, code, and message.
     /// </summary>
     /// <returns>A string representation of the ValidationError.</returns>
     public override string ToString()
@@ -142,9 +146,9 @@ public class Error
             ? null 
             : $"({Code}) ";
 
-        var text = string.IsNullOrEmpty(Text)
+        var text = string.IsNullOrEmpty(Message)
             ? "No error message provided. "
-            : Text;
+            : Message;
 
         var details = Details.Any()
             ? "Details:\n" + string.Join(Environment.NewLine, Details.Select(d => $"-{d.Key}:\n{d.Value}"))

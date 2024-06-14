@@ -7,7 +7,7 @@ namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
 public static class CollectionManipulationOperatorExpressionAnalyser
 {
     public static OperatorExpressionSemantic AnalyseCollectionManipulationOperatorExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
         switch (OperatorHelper.GetCollectionManipulationOperatorType(symbol.Operator))
@@ -32,7 +32,7 @@ public static class CollectionManipulationOperatorExpressionAnalyser
     }
 
     public static OperatorExpressionSemantic AnalyseFilterOperatorExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         FilterOperatorExpressionSymbol symbol)
     {
         var source = symbol.Source;
@@ -48,7 +48,7 @@ public static class CollectionManipulationOperatorExpressionAnalyser
     }
 
     public static OperatorExpressionSemantic AnalyseSelectOperatorExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         SelectOperatorExpressionSymbol symbol)
     {
         var source = symbol.Source;
@@ -74,7 +74,7 @@ public static class CollectionManipulationOperatorExpressionAnalyser
     }
 
     public static OperatorExpressionSemantic AnalyseLimitOperatorExpression(
-       SemanticContext context,
+       SemanticContextOld context,
        LimitOperatorExpressionSymbol symbol)
     {
         var source = symbol.Source;
@@ -90,7 +90,7 @@ public static class CollectionManipulationOperatorExpressionAnalyser
     }
 
     public static OperatorExpressionSemantic AnalyseSkipOperatorExpression(
-       SemanticContext context,
+       SemanticContextOld context,
        SkipOperatorExpressionSymbol symbol)
     {
         var source = symbol.Source;

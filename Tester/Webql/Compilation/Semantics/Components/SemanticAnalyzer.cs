@@ -1,18 +1,18 @@
 ﻿using Webql.Components;
-using Webql.DocumentSyntax.Parsing.Components;
 using Webql.Parsing.Components;
+using Webql.Semantics.Components;
+using Webql.Semantics.Extensions;
+using Webql.Semantics.Tools;
 
-namespace Webql.Semantics.Components;
+namespace Webql.Semantics;
 
 public static class SemanticAnalyzer
 {
-    public static void ExecuteAnalysisPipeline(
-        WebqlCompilationSettings compilationSettings, 
-        WebqlSyntaxNode tree, 
-        Type entityType)
+    public static void ExecuteAnalysisPipeline(WebqlCompilationContext context, WebqlSyntaxNode tree)
     {
         AnnotateTree(tree);
-        DeclareSymbols(compilationSettings, tree, entityType);
+        DeclareSymbols(context, tree);
+        ValidateTypes(context, tree);
     }
 
     public static void AnnotateTree(WebqlSyntaxNode node)
@@ -21,12 +21,15 @@ public static class SemanticAnalyzer
             .Visit(node);
     }
 
-    public static void DeclareSymbols(
-        WebqlCompilationSettings compilationSettings,
-        WebqlSyntaxNode tree,
-        Type entityType)
+    public static void DeclareSymbols(WebqlCompilationContext context, WebqlSyntaxNode tree)
     {
-        new SymbolDeclaratorVisitor(entityType)
+        new SymbolDeclaratorVisitor(context)
+            .Visit(tree);
+    }
+
+    public static void ValidateTypes(WebqlCompilationContext context, WebqlSyntaxNode tree)
+    {
+        new TypeValidatorVisitor(context)
             .Visit(tree);
     }
 
@@ -55,7 +58,7 @@ public static class SemanticAnalyzer
 
     public static IQuerySemantics CreateQuerySemantics(WebqlQuery query)
     {
-        if(query.Expression is null)
+        if (query.Expression is null)
         {
             return new QuerySemantics(typeof(void));
         }
@@ -167,7 +170,7 @@ public static class SemanticAnalyzer
 
     public static IExpressionSemantics CreateReferenceExpressionSymbol(WebqlReferenceExpression expression)
     {
-        throw new NotImplementedException(); 
+        throw new NotImplementedException();
     }
 
 }

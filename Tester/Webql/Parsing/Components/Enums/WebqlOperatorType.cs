@@ -1,4 +1,4 @@
-﻿namespace Webql.DocumentSyntax.Parsing.Components;
+﻿namespace Webql.Parsing.Components;
 
 public enum WebqlOperatorType
 {
@@ -58,6 +58,9 @@ public enum WebqlOperatorType
     Average,
 }
 
+/// <summary>
+/// Represents the category of an operator.
+/// </summary>
 public enum WebqlOperatorCategory
 {
     Arithmetic,
@@ -67,4 +70,15 @@ public enum WebqlOperatorCategory
     Semantic,
     CollectionManipulation,
     CollectionAggregation,
+}
+
+/// <summary>
+/// Represents the number of arguments or operands taken by an operator.
+/// </summary>
+public enum WebqlOperatorArity
+{
+    Nullary,
+    Unary,
+    Binary,
+    Ternary
 }

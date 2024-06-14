@@ -2,11 +2,13 @@
 
 /*
  * Symbols
+ * 
+ * Dev Note: A symbol is a named piece of semantics.
  */
 
-public interface ISymbol
+public interface ISymbol : ISemantics
 {
- 
+    public string Identifier { get; }
 }
 
 /*
@@ -15,10 +17,12 @@ public interface ISymbol
 
 public class LhsSymbol : ISymbol
 {
-    Type Type { get; }
+    public string Identifier { get; }
+    public Type Type { get; }
 
-    public LhsSymbol(Type type)
+    public LhsSymbol(string identifier, Type type)
     {
+        Identifier = identifier;
         Type = type;
     }
 
@@ -26,10 +30,12 @@ public class LhsSymbol : ISymbol
 
 public class ScopePropertySymbol : ISymbol
 {
-    Type Type { get; }
+    public Type Type { get; }
+    public string Identifier { get; }
 
-    public ScopePropertySymbol(Type type)
+    public ScopePropertySymbol(string identifier, Type type)
     {
+        Identifier = identifier;
         Type = type;
     }
 

@@ -5,7 +5,7 @@ namespace ModularSystem.Webql.Analysis.DocumentSyntax.Visitors.Fixers;
 
 public class OperatorResultDeclarationFix : AstSemanticVisitorOld
 {
-    protected override ExpressionSymbol VisitExpression(SemanticContext context, ExpressionSymbol symbol)
+    protected override ExpressionSymbol VisitExpression(SemanticContextOld context, ExpressionSymbol symbol)
     {
         if(symbol is IResultProducerOperatorExpressionSymbol resultProducer)
         {

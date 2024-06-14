@@ -14,7 +14,7 @@ public static class ExpressionAnalyser
     /// <param name="symbol">The expression symbol to be analysed.</param>
     /// <returns>The semantic representation of the expression.</returns>
     /// <exception cref="Exception">Thrown when the symbol is not a recognized expression symbol.</exception>
-    public static ExpressionSemantic Analyse(SemanticContext context, ExpressionSymbol symbol)
+    public static ExpressionSemantic Analyse(SemanticContextOld context, ExpressionSymbol symbol)
     {
         switch (symbol.ExpressionType)
         {
@@ -41,7 +41,7 @@ public static class ExpressionAnalyser
     /// Analyses a literal expression and returns its semantic representation.
     /// </summary>
     public static LiteralExpressionSemantic AnalyseLiteralExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         LiteralExpressionSymbol symbol)
     {
         return LiteralExpressionAnalyser.AnalyseLiteralExpression(context, symbol);
@@ -51,7 +51,7 @@ public static class ExpressionAnalyser
     /// Analyses a reference expression and returns its semantic representation.
     /// </summary>
     public static ReferenceExpressionSemantic AnalyseReferenceExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         ReferenceExpressionSymbol symbol)
     {
         return ReferenceExpressionAnalyser.AnalyseReferenceExpression(context, symbol);
@@ -61,7 +61,7 @@ public static class ExpressionAnalyser
     /// Analyses an operator expression and returns its semantic representation.
     /// </summary>
     public static OperatorExpressionSemantic AnalyseOperatorExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
         return OperatorExpressionAnalyser.AnalyseOperatorExpression(context, symbol);
@@ -71,7 +71,7 @@ public static class ExpressionAnalyser
     /// Analyses a lambda expression and returns its semantic representation.
     /// </summary>
     public static LambdaExpressionSemantic AnalyseLambdaExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         LambdaExpressionSymbol symbol)
     {
         return LambdaExpressionAnalyser.AnalyseLambdaExpression(context, symbol);
@@ -81,7 +81,7 @@ public static class ExpressionAnalyser
     /// Analyses an anonymous type expression and returns its semantic representation.
     /// </summary>
     public static TypeProjectionExpressionSemantic AnalyseAnonymousTypeExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         AnonymousTypeExpressionSymbol symbol)
     {
         return AnonymousTypeExpressionAnalyser.AnalyseAnonymousTypeExpression(context, symbol);

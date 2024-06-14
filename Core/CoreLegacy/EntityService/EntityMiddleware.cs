@@ -242,24 +242,21 @@ public class EntityExpressionVisitor<T> where T : IEntity
     public virtual async Task<IUpdate<T>> VisitUpdateAsync(IUpdate<T> update)
     {
         var reader = new UpdateReader<T>(update);
+
         var filter = reader.GetFilterExpression();
 
-        if (filter != null)
+        var visitedFilter = filter is not null
+            ? await VisitExpressionAsync(filter)
+            : null;
+
+        var visitedModifications = new List<Expression>();
+
+        for (int i = 0; i < update.Modifications.Length; i++)
         {
-            update.Filter = await VisitExpressionAsync(filter);
+            visitedModifications.Add(await VisitExpressionAsync(update.Modifications[i]));
         }
 
-        if (update.Modifications == null)
-        {
-            return update;
-        }
-
-        for (int i = 0; i < update.Modifications.Count; i++)
-        {
-            update.Modifications[i] = await VisitExpressionAsync(update.Modifications[i]);
-        }
-
-        return update;
+        return new Update<T>(visitedFilter, visitedModifications.ToArray());
     }
 }
 

@@ -4,7 +4,7 @@ namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
 
 public static class DeclarationAnalyser
 {
-    public static DeclarationStatementSemantic AnalyseDeclaration(SemanticContext context, IDeclarationSymbol symbol)
+    public static DeclarationStatementSemantic AnalyseDeclaration(SemanticContextOld context, IDeclarationSymbol symbol)
     {
         if(symbol.Type is null)
         {
@@ -16,7 +16,7 @@ public static class DeclarationAnalyser
         );
     }
 
-    public static DeclarationStatementSemantic[] AnalyseDeclarations(SemanticContext context, IDeclarationSymbol[] symbols)
+    public static DeclarationStatementSemantic[] AnalyseDeclarations(SemanticContextOld context, IDeclarationSymbol[] symbols)
     {
         return symbols
             .Select(x => SemanticAnalyser.AnalyseDeclaration(context.GetSymbolContext(x), x))

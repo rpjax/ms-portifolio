@@ -16,7 +16,7 @@ public static class RelationalOperatorExpressionAnalyser
     /// <returns>The semantic representation of the operator expression.</returns>
     /// <exception cref="Exception">Thrown when the symbol is not a relational operator expression symbol.</exception>
     public static OperatorExpressionSemantic AnalyseRelationalOperatorExpression(
-      SemanticContext context,
+      SemanticContextOld context,
       OperatorExpressionSymbol symbol)
     {
         if (symbol is not RelationalOperatorExpressionSymbol relationalExpression)

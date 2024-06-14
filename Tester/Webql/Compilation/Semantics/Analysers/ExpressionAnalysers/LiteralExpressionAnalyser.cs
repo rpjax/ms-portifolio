@@ -5,7 +5,7 @@ namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
 public static class LiteralExpressionAnalyser
 {
     public static LiteralExpressionSemantic AnalyseLiteralExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         LiteralExpressionSymbol symbol)
     {
         switch (symbol.LiteralType)
@@ -26,7 +26,7 @@ public static class LiteralExpressionAnalyser
         throw new Exception();
     }
 
-    public static LiteralExpressionSemantic AnalyseNullLiteral(SemanticContext context, NullSymbol symbol)
+    public static LiteralExpressionSemantic AnalyseNullLiteral(SemanticContextOld context, NullSymbol symbol)
     {
         //*
         // 'void' because there's no value and no type information.
@@ -36,21 +36,21 @@ public static class LiteralExpressionAnalyser
         );
     }
 
-    public static LiteralExpressionSemantic AnalyseStringLiteral(SemanticContext context, StringSymbol symbol)
+    public static LiteralExpressionSemantic AnalyseStringLiteral(SemanticContextOld context, StringSymbol symbol)
     {
         return new LiteralExpressionSemantic(
             type: typeof(string)
         );
     }
 
-    public static LiteralExpressionSemantic AnalyseBoolLiteral(SemanticContext context, BoolSymbol symbol)
+    public static LiteralExpressionSemantic AnalyseBoolLiteral(SemanticContextOld context, BoolSymbol symbol)
     {
         return new LiteralExpressionSemantic(
             type: typeof(bool)
         );
     }
 
-    public static LiteralExpressionSemantic AnalyseNumberLiteral(SemanticContext context, NumberSymbol symbol)
+    public static LiteralExpressionSemantic AnalyseNumberLiteral(SemanticContextOld context, NumberSymbol symbol)
     {
         var type = typeof(int);
         var number = symbol.Value;

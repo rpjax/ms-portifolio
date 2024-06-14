@@ -1,7 +1,7 @@
 ﻿using ModularSystem.Core.TextAnalysis.Parsing.Components;
-using Webql.DocumentSyntax.Parsing.Components;
+using Webql.Parsing.Components;
 
-namespace Webql.DocumentSyntax.Parsing.Tools;
+namespace Webql.Parsing.Tools;
 
 public static class WebqlAstBuilderHelper
 {

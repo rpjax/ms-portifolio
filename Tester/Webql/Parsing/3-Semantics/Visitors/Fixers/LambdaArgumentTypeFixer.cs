@@ -18,7 +18,7 @@ namespace ModularSystem.Webql.Analysis.DocumentSyntax.Semantics.Components;
 
 public class LambdaArgumentTypeFixer : FirstSemanticPass
 {
-    public LambdaArgumentTypeFixer() : base(new SemanticContext())
+    public LambdaArgumentTypeFixer() : base(new SemanticContextOld())
     {
     }
 

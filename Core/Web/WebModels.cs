@@ -113,13 +113,12 @@ public class SerializableUpdate
     /// <returns>An <see cref="Update{T}"/> object that represents the deserialized update.</returns>
     public Update<T> ToUpdate<T>() where T : class
     {
-        return new Update<T>()
-        {
-            Filter = QueryProtocol.FromSerializable(Filter),
-            Modifications = Modifications == null
-                ? new()
-                : Modifications.Transform(x => QueryProtocol.FromSerializable(x)).ToList(),
-        };
+        var filter = QueryProtocol.FromSerializable(Filter);
+        var modifications = Modifications == null
+            ? new()
+            : Modifications.Select(x => QueryProtocol.FromSerializable(x)).ToList();
+
+        return new Update<T>(filter, modifications.ToArray());
     }
 
 }

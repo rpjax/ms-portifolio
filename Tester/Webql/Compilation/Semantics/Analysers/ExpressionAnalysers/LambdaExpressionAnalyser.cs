@@ -6,7 +6,7 @@ namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
 public static class LambdaExpressionAnalyser
 {
     public static LambdaExpressionSemantic AnalyseLambdaExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         LambdaExpressionSymbol symbol)
     {
         var paramsSemantics = SemanticAnalyser.AnalyseDeclarations(context, symbol.Parameters)

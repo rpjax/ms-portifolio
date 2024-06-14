@@ -100,7 +100,7 @@ public class ErrorEntry : IEFEntity
     {
         CreatedAt = TimeProvider.UtcNow();
         LastModifiedAt = TimeProvider.UtcNow();
-        Text = error.Text;
+        Text = error.Message;
         Source = error.Source;
         Code = error.Code;
 

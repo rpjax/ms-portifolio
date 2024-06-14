@@ -6,7 +6,7 @@ namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
 public static class AnonymousTypeExpressionAnalyser
 {
     public static TypeProjectionExpressionSemantic AnalyseAnonymousTypeExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         AnonymousTypeExpressionSymbol symbol)
     {
         var properties = new List<AnonymousPropertyDefinition>();
@@ -30,7 +30,7 @@ public static class AnonymousTypeExpressionAnalyser
         );
     }
 
-    private static AnonymousPropertyDefinition ResolveBinding(SemanticContext context, TypeBindingSymbol binding)
+    private static AnonymousPropertyDefinition ResolveBinding(SemanticContextOld context, TypeBindingSymbol binding)
     {
         var name = binding.Name;
         var value = binding.Value;

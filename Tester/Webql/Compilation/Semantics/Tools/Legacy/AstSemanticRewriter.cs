@@ -6,9 +6,9 @@ namespace ModularSystem.Webql.Analysis.Semantics.Components;
 
 public class AstSemanticRewriter : AstRewriter
 {
-    protected SemanticContext Context { get; set; }
+    protected SemanticContextOld Context { get; set; }
 
-    public AstSemanticRewriter(SemanticContext context)
+    public AstSemanticRewriter(SemanticContextOld context)
     {
         Context = context;
     }

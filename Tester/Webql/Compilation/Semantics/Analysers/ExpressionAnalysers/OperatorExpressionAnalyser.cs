@@ -16,7 +16,7 @@ public static class OperatorExpressionAnalyser
     /// <returns>The semantic representation of the operator expression.</returns>
     /// <exception cref="Exception">Thrown when the symbol is not a recognized operator expression symbol.</exception>
     public static OperatorExpressionSemantic AnalyseOperatorExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
         switch (OperatorHelper.GetOperatorSemanticType(symbol.Operator))
@@ -50,7 +50,7 @@ public static class OperatorExpressionAnalyser
     /// Analyses an arithmetic operator expression and returns its semantic representation.
     /// </summary>
     public static OperatorExpressionSemantic AnalyseArithmeticOperatorExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
         return ArithmeticOperatorExpressionAnalyser.AnalyseArithmeticOperatorExpression(context, symbol);
@@ -60,7 +60,7 @@ public static class OperatorExpressionAnalyser
     /// Analyses a relational operator expression and returns its semantic representation.
     /// </summary>
     public static OperatorExpressionSemantic AnalyseRelationalOperatorExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
         return RelationalOperatorExpressionAnalyser.AnalyseRelationalOperatorExpression(context, symbol);
@@ -70,7 +70,7 @@ public static class OperatorExpressionAnalyser
     /// Analyses a string relational operator expression and returns its semantic representation.
     /// </summary>
     public static OperatorExpressionSemantic AnalyseStringRelationalOperatorExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
         return StringRelationalOperatorExpressionAnalyser.AnalyseStringRelationalOperatorExpression(context, symbol);
@@ -80,7 +80,7 @@ public static class OperatorExpressionAnalyser
     /// Analyses a logical operator expression and returns its semantic representation.
     /// </summary>
     public static OperatorExpressionSemantic AnalyseLogicalOperatorExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
         return LogicalOperatorExpressionAnalyser.AnalyseLogicalOperatorExpression(context, symbol);
@@ -90,7 +90,7 @@ public static class OperatorExpressionAnalyser
     /// Analyses a semantic operator expression and returns its semantic representation.
     /// </summary>
     public static OperatorExpressionSemantic AnalyseSemanticOperatorExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
         return SemanticOperatorExpressionAnalyser.AnalyseSemanticOperatorExpression(context, symbol);
@@ -100,7 +100,7 @@ public static class OperatorExpressionAnalyser
     /// Analyses a collection manipulation operator expression and returns its semantic representation.
     /// </summary>
     public static OperatorExpressionSemantic AnalyseCollectionManipulationOperatorExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
         return CollectionManipulationOperatorExpressionAnalyser.AnalyseCollectionManipulationOperatorExpression(context, symbol);
@@ -110,7 +110,7 @@ public static class OperatorExpressionAnalyser
     /// Analyses a collection aggregation operator expression and returns its semantic representation.
     /// </summary>
     public static OperatorExpressionSemantic AnalyseCollectionAggregationOperatorExpression(
-        SemanticContext context,
+        SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
         return CollectionAggregationOperatorExpressionAnalyser.AnalyseCollectionAggregationOperatorExpression(context, symbol);

@@ -1,29 +1,18 @@
 ﻿using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp;
+using ModularSystem.Core.Linq;
 using ModularSystem.Core.TextAnalysis.Tokenization;
 using ModularSystem.Core.TextAnalysis.Grammars;
 using ModularSystem.Core.TextAnalysis.Parsing;
-using ModularSystem.Core.TextAnalysis.Parsing.Tools;
 using ModularSystem.Core.TextAnalysis.Parsing.Extensions;
-using ModularSystem.Core.TextAnalysis.Gdef;
-using Webql.DocumentSyntax.Parsing;
-using Microsoft.CodeAnalysis.CSharp;
 using ModularSystem.Core.TextAnalysis.Parsing.Components;
-using Webql.DocumentSyntax.Semantics.Components;
+using Webql.Components;
+using Webql.Parsing;
+using Webql.Semantics;
+using Webql.Semantics.Components;
+using Webql.Semantics.Extensions;
 
 namespace ModularSystem.Tester;
-
-public class TestUser
-{
-    public static List<TestUser> Source { get; } = new List<TestUser>()
-    {
-        new TestUser(){ Nickname = "Alice"},
-        new TestUser(){ Nickname = "Bob"},
-        new TestUser(){ Nickname = "Jacques"},
-    };
-
-    public string? Nickname { get; set; } = "";
-    public decimal? Balance { get; set; }
-}
 
 /*
  * Debate com o mano lá
@@ -74,6 +63,19 @@ public class TestUser
 //    return stack.Pop();
 //}
 
+public class TestUser
+{
+    public static List<TestUser> Source { get; } = new List<TestUser>()
+    {
+        new TestUser(){ Nickname = "Alice"},
+        new TestUser(){ Nickname = "Bob"},
+        new TestUser(){ Nickname = "Jacques"},
+    };
+
+    public string? Nickname { get; set; } = "";
+    public decimal? Balance { get; set; }
+}
+
 public static class Program
 {
     public static void Main()
@@ -87,8 +89,17 @@ public static class Program
             } 
         }";
 
-        var ast = DocumentSyntaxParser.ParseToAst("50");
-        SemanticAnalyzer.AnnotateTree(ast);
+        var ast = WebqlParser.ParseToAst("{ $filter: { nickname: { $equals: 50 } } }"); 
+
+        var context = new WebqlCompilationContext(
+            settings: new WebqlCompilationSettings(
+                queryableType: typeof(IQueryable<>),
+                entityType: typeof(TestUser)
+            )          
+        );
+
+        SemanticAnalyzer.ExecuteAnalysisPipeline(context, ast);
+
         var semantics = ast.GetSemantics();
 
         /*
@@ -347,7 +358,7 @@ semantic_value
         var stopwatch = new Stopwatch();
         var times = new List<long>();
 
-        var parser = DocumentSyntaxParser.GetParser();
+        var parser = WebqlParser.GetParser();
 
         for (int i = 0; i < 100_000; i++)
         {
@@ -412,7 +423,7 @@ semantic_value
 
 // public class MyRewriter : AstSemanticRewriter
 // {
-//     public MyRewriter(SemanticContext context) : base(context)
+//     public MyRewriter(SemanticContextOld context) : base(context)
 //     {
 //     }
 

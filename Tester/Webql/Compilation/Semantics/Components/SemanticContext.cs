@@ -1,143 +1,152 @@
-﻿using ModularSystem.Webql.Analysis.Extensions;
-using ModularSystem.Webql.Analysis.Symbols;
+﻿using Amazon.Runtime.Internal.Transform;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using Webql.Parsing.Components;
+using Webql.Semantics.Extensions;
 
-namespace ModularSystem.Webql.Analysis.Semantics;
+namespace Webql.Semantics.Components;
 
-/// <summary>
-/// acts as symbol table manager suring semantic analysis.
-/// </summary>
 public class SemanticContext
 {
-    private SymbolTable SymbolTable { get; set; } = new();
+    const string LeftHandSideId = "<lhs>";
 
-    public SemanticContext(SymbolTable? symbolTable = null)
+    /// <summary>
+    /// Provides a cache for all the information produced by the semantic analysis. <br/>
+    /// It's shared across all the contexts that are related to the same analysis process.
+    /// </summary>
+    private class CacheObject
     {
-        SymbolTable = symbolTable ?? new SymbolTable();
+        private Dictionary<string, object> Entries { get; } = new Dictionary<string, object>();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddEntry(string key, object value)
+        {
+            Entries.Add(key, value);
+        }
+
+        [return: NotNullIfNotNull("value")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetEntry<T>(string key, out T? value) where T : class
+        {
+            if (Entries.TryGetValue(key, out var obj))
+            {
+                value = (T)obj;
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
     }
 
-    public void DeclareSymbol(
-        string identifier,
-        Symbol symbol,
-        Type? type,
-        bool createScope)
+    private Guid Id { get; }
+    private Dictionary<string, ISymbol> SymbolTable { get; }
+    private SemanticContext? ParentContext { get; }
+    private CacheObject Cache { get; }
+
+    private SemanticContext(
+        Dictionary<string, ISymbol> symbols,
+        SemanticContext? parent,
+        CacheObject cache)
     {
-        SymbolTable.AddEntry(
-            identifier: identifier,
-            symbol: symbol,
-            type: type,
-            symbolTable: createScope ? new SymbolTable(SymbolTable) : null
+        Id = Guid.NewGuid();
+        SymbolTable = symbols.ToDictionary(x => x.Key, x => x.Value);
+        ParentContext = parent;
+        Cache = cache;
+    }
+
+    public static SemanticContext CreateRootContext()
+    {
+        return new SemanticContext(
+            symbols: new Dictionary<string, ISymbol>(),
+            parent: null,
+            cache: new CacheObject()
         );
     }
 
-    public void UpdateSymbolDeclaration(
-        string identifier,
-        Symbol symbol,
-        Type? type,
-        bool createScope)
+    public SemanticContext CreateSubContext()
     {
-        var entry = GetSymbolTableEntry(identifier);
-        var symbolTable = entry.SymbolTable;
-
-        if (symbolTable is null)
-        {
-            symbolTable = new SymbolTable(SymbolTable);
-        }
-
-        SymbolTable.UpdateEntry(
-            identifier: identifier,
-            symbol: symbol,
-            type: type,
-            symbolTable: createScope ? symbolTable : null
+        return new SemanticContext(
+            symbols: SymbolTable.ToDictionary(x => x.Key, x => x.Value),
+            parent: this,
+            cache: Cache
         );
     }
 
-    public SymbolTableEntry GetSymbolTableEntry(string identifier)
+    public bool ContainsSymbol(string identifier)
     {
-        var entry = SymbolTable.TryGetEntry(identifier);
-
-        if (entry is null)
-        {
-            throw new Exception();
-        }
-
-        return entry;
+        return SymbolTable.ContainsKey(identifier)
+            || ParentContext?.ContainsSymbol(identifier) == true;
     }
 
-    public void EnterScope(string identifier)
+    public ISymbol? TryGetSymbol(string identifier)
     {
-        var entry = SymbolTable.TryGetEntry(identifier);
-
-        if (entry is null)
+        if (SymbolTable.TryGetValue(identifier, out var symbol))
         {
-            throw new Exception();
+            return symbol;
         }
 
-        if (entry.SymbolTable is null)
-        {
-            throw new Exception();
-        }
-
-        SymbolTable = entry.SymbolTable;
+        return ParentContext?.TryGetSymbol(identifier);
     }
 
-    public void ExitScope()
+    public ISemantics GetSemantics(WebqlSyntaxNode node)
     {
-        if (SymbolTable.ParentTable is null)
+        return TryGetCachedSemantics(node)
+            ?? ParentContext?.TryGetCachedSemantics(node) 
+            ?? SemanticAnalyzer.CreateSemantics(node);
+    }
+
+    public TSemantics GetSemantics<TSemantics>(WebqlSyntaxNode node) where TSemantics : ISemantics
+    {
+        var semantics = GetSemantics(node);
+
+        if (semantics is TSemantics value)
         {
-            throw new Exception();
+            return value;
         }
 
-        SymbolTable = SymbolTable.ParentTable;
+        throw new InvalidOperationException();
+    }
+
+    public void AddSymbol(ISymbol symbol)
+    {
+        SymbolTable.Add(symbol.Identifier, symbol);
     }
 
     /*
-     * helpers.
+     * lhs helper methods
      */
 
-    public bool ContainsDeclaration(string identifier)
+    public LhsSymbol GetLeftHandSideSymbol()
     {
-        return SymbolTable.ContainsEntry(identifier);
+        return SymbolTable.ContainsKey(LeftHandSideId)
+            ? (LhsSymbol)SymbolTable[LeftHandSideId]
+            : ParentContext?.GetLeftHandSideSymbol() ?? throw new InvalidOperationException();
     }
 
-    public Type GetSymbolType(string identifier)
+    public void SetLeftHandSideSymbol(Type type)
     {
-        var entry = GetSymbolTableEntry(identifier);
-
-        if (entry.Type is null)
-        {
-            throw new Exception();
-        }
-
-        return entry.Type;
+        SymbolTable[LeftHandSideId] = new LhsSymbol(LeftHandSideId, type);
     }
 
-    public void CreateScopeForSymbol(string identifier)
+    // move to an extensions class
+    public Type GetLeftHandSideType()
     {
-        var entry = GetSymbolTableEntry(identifier);
-
-        if (entry.SymbolTable is not null)
-        {
-            throw new Exception();
-        }
-
-        SymbolTable.UpdateEntry(
-            identifier: identifier,
-            symbol: entry.Symbol,
-            type: entry.Type,
-            symbolTable: new SymbolTable(SymbolTable)
-        );
+        return GetLeftHandSideSymbol().Type;
     }
 
-    public SemanticContext GetSymbolContext(ISymbol symbol)
-    {
-        var entry = SymbolTable.TryGetEntry(symbol.GetIdentifier());
+    /*
+     * private helper methods
+     */
 
-        if (entry?.SymbolTable is null)
+    private ISemantics? TryGetCachedSemantics(WebqlSyntaxNode node)
+    {
+        if (Cache.TryGetEntry(node.GetSemanticIdentifier(), out ISemantics? semantics))
         {
-            return this;
+            return semantics;
         }
 
-        return new SemanticContext(entry.SymbolTable);
+        return null;
     }
 
 }

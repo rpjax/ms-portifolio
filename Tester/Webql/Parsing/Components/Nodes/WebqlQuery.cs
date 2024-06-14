@@ -1,6 +1,4 @@
-﻿using Webql.DocumentSyntax.Parsing.Components;
-using Webql.DocumentSyntax.Parsing.Tools;
-using Webql.Parsing.Tools;
+﻿using Webql.Parsing.Tools;
 
 namespace Webql.Parsing.Components;
 

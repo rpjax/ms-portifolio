@@ -1,6 +1,6 @@
-﻿namespace Webql.DocumentSyntax.Semantics.Components;
+﻿namespace Webql.Semantics.Components;
 
-public static class SemanticsHelper
+public static class SemanticContextAttributes
 {
     public const string ContextAttribute = "SemanticContext";
     public const string SemanticsAttribute = "Semantics";

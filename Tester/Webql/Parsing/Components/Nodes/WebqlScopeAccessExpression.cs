@@ -1,7 +1,7 @@
-﻿using Webql.DocumentSyntax.Parsing.Tools;
-using Webql.DocumentSyntax.Semantics.Components;
+﻿using Webql.Parsing.Tools;
+using Webql.Semantics.Components;
 
-namespace Webql.DocumentSyntax.Parsing.Components;
+namespace Webql.Parsing.Components;
 
 public class WebqlScopeAccessExpression : WebqlExpression
 {
@@ -24,7 +24,7 @@ public class WebqlScopeAccessExpression : WebqlExpression
         Expression = expression;
         Attributes = attributes ?? new Dictionary<string, object>();
 
-        Attributes.TryAdd(SemanticsHelper.ScopeSourceAttribute, new object());
+        Attributes.TryAdd(SemanticContextAttributes.ScopeSourceAttribute, new object());
     }
 
     public override WebqlSyntaxNode Accept(SyntaxNodeVisitor visitor)
