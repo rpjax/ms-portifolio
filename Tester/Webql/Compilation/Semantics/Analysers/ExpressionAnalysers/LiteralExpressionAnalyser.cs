@@ -1,32 +1,32 @@
 ﻿using ModularSystem.Webql.Analysis.Symbols;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
-public static class LiteralExpressionAnalyser
+public static class LiteralExpressionAnalyzer
 {
-    public static LiteralExpressionSemantic AnalyseLiteralExpression(
+    public static LiteralExpressionSemantic AnalyzeLiteralExpression(
         SemanticContextOld context,
         LiteralExpressionSymbol symbol)
     {
         switch (symbol.LiteralType)
         {
             case LiteralType.Null:
-                return AnalyseNullLiteral(context, (NullSymbol)symbol);
+                return AnalyzeNullLiteral(context, (NullSymbol)symbol);
 
             case LiteralType.String:
-                return AnalyseStringLiteral(context, (StringSymbol)symbol);
+                return AnalyzeStringLiteral(context, (StringSymbol)symbol);
 
             case LiteralType.Bool:
-                return AnalyseBoolLiteral(context, (BoolSymbol)symbol);
+                return AnalyzeBoolLiteral(context, (BoolSymbol)symbol);
 
             case LiteralType.Number:
-                return AnalyseNumberLiteral(context, (NumberSymbol)symbol);
+                return AnalyzeNumberLiteral(context, (NumberSymbol)symbol);
         }
 
         throw new Exception();
     }
 
-    public static LiteralExpressionSemantic AnalyseNullLiteral(SemanticContextOld context, NullSymbol symbol)
+    public static LiteralExpressionSemantic AnalyzeNullLiteral(SemanticContextOld context, NullSymbol symbol)
     {
         //*
         // 'void' because there's no value and no type information.
@@ -36,21 +36,21 @@ public static class LiteralExpressionAnalyser
         );
     }
 
-    public static LiteralExpressionSemantic AnalyseStringLiteral(SemanticContextOld context, StringSymbol symbol)
+    public static LiteralExpressionSemantic AnalyzeStringLiteral(SemanticContextOld context, StringSymbol symbol)
     {
         return new LiteralExpressionSemantic(
             type: typeof(string)
         );
     }
 
-    public static LiteralExpressionSemantic AnalyseBoolLiteral(SemanticContextOld context, BoolSymbol symbol)
+    public static LiteralExpressionSemantic AnalyzeBoolLiteral(SemanticContextOld context, BoolSymbol symbol)
     {
         return new LiteralExpressionSemantic(
             type: typeof(bool)
         );
     }
 
-    public static LiteralExpressionSemantic AnalyseNumberLiteral(SemanticContextOld context, NumberSymbol symbol)
+    public static LiteralExpressionSemantic AnalyzeNumberLiteral(SemanticContextOld context, NumberSymbol symbol)
     {
         var type = typeof(int);
         var number = symbol.Value;

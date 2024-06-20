@@ -89,13 +89,16 @@ public static class Program
             } 
         }";
 
-        var ast = WebqlParser.ParseToAst("{ $filter: { nickname: { $equals: 50 } } }"); 
+        var foo = WebqlParser.ParseToAst(query);
+        var ast = WebqlParser.ParseToAst("{ $filter: { nickname: { $filter: 'jacques' } } }");
+
+        var settings = new WebqlCompilationSettings(
+            queryableType: typeof(IQueryable<>),
+            entityType: typeof(TestUser)
+        );
 
         var context = new WebqlCompilationContext(
-            settings: new WebqlCompilationSettings(
-                queryableType: typeof(IQueryable<>),
-                entityType: typeof(TestUser)
-            )          
+            settings: settings
         );
 
         SemanticAnalyzer.ExecuteAnalysisPipeline(context, ast);
@@ -122,7 +125,7 @@ public static class Program
      */
     private static void BenchmarkTokenizer()
     {
-        var analyser = new Tokenizer();
+        var Analyzer = new Tokenizer();
 
         var input = "syntax         = { production } ;\r\nproduction     = identifier \"=\" expression \";\" ;\r\nexpression     = term { \"|\" term } ;\r\nterm           = factor { factor } ;\r\nfactor         = identifier\r\n               | literal\r\n               | \"[\" expression \"]\"     (* optional sequence *)\r\n               | \"{\" expression \"}\"     (* repetition *)\r\n               | \"(\" expression \")\"     (* grouping *) ;\r\nidentifier     = letter { letter | digit | \"_\" } ;\r\nliteral        = \"'\" character { character } \"'\" \r\n               | '\"' character { character } '\"' ;\r\nletter         = \"A\" | \"B\" | ... | \"Z\" | \"a\" | \"b\" | ... | \"z\" ;\r\ndigit          = \"0\" | \"1\" | ... | \"9\" ;\r\ncharacter      = letter | digit | symbol | escape ;\r\nsymbol         = \"[\" | \"]\" | \"{\" | \"}\" | \"(\" | \")\" | \"<\" | \">\" | \"'\" | '\"' | \"=\" | \"|\" | \".\" | \",\" | \";\" | \":\" ;\r\nescape         = \"\\\\\" ( [\"'\"] | [\"\\\"\"] | [\"n\"] | [\"t\"] | [\"\\\\\"] ) ;\r\n";
 
@@ -135,7 +138,7 @@ public static class Program
         {
             stopwatch.Start();
 
-            var _tokens = analyser.Tokenize(input)
+            var _tokens = Analyzer.Tokenize(input)
                 .ToArray();
 
             stopwatch.Stop();

@@ -2,36 +2,36 @@
 using ModularSystem.Webql.Analysis.Symbols;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
-public static class LogicalOperatorExpressionAnalyser
+public static class LogicalOperatorExpressionAnalyzer
 {
-    public static OperatorExpressionSemantic AnalyseLogicalOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeLogicalOperatorExpression(
       SemanticContextOld context,
       OperatorExpressionSymbol symbol)
     {
         switch (OperatorHelper.GetLogicalOperatorType(symbol.Operator))
         {
             case LogicalOperatorType.Or:
-                return AnalyseOrOperatorExpression(context, (OrOperatorExpressionSymbol)symbol);
+                return AnalyzeOrOperatorExpression(context, (OrOperatorExpressionSymbol)symbol);
 
             case LogicalOperatorType.And:
-                return AnalyseAndOperatorExpression(context, (AndOperatorExpressionSymbol)symbol);
+                return AnalyzeAndOperatorExpression(context, (AndOperatorExpressionSymbol)symbol);
 
             case LogicalOperatorType.Not:
-                return AnalyseNotOperatorExpression(context, (NotOperatorExpressionSymbol)symbol);
+                return AnalyzeNotOperatorExpression(context, (NotOperatorExpressionSymbol)symbol);
         }
 
         throw new InvalidOperationException();
     }
 
-    public static OperatorExpressionSemantic AnalyseOrOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeOrOperatorExpression(
         SemanticContextOld context,
         OrOperatorExpressionSymbol symbol)
     {
         foreach (var expression in symbol.Expressions)
         {
-            var semantic = SemanticAnalyser.AnalyseExpression(
+            var semantic = SemanticAnalyzer.AnalyzeExpression(
                 context: context.GetSymbolContext(expression), 
                 symbol: expression
             );
@@ -47,13 +47,13 @@ public static class LogicalOperatorExpressionAnalyser
         );
     }
 
-    public static OperatorExpressionSemantic AnalyseAndOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeAndOperatorExpression(
         SemanticContextOld context,
         AndOperatorExpressionSymbol symbol)
     {
         foreach (var expression in symbol.Expressions)
         {
-            var semantic = SemanticAnalyser.AnalyseExpression(
+            var semantic = SemanticAnalyzer.AnalyzeExpression(
                 context: context.GetSymbolContext(expression),
                 symbol: expression
             );
@@ -69,11 +69,11 @@ public static class LogicalOperatorExpressionAnalyser
         );
     }
 
-    public static OperatorExpressionSemantic AnalyseNotOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeNotOperatorExpression(
         SemanticContextOld context,
         NotOperatorExpressionSymbol symbol)
     {
-        var semantic = SemanticAnalyser.AnalyseExpression(
+        var semantic = SemanticAnalyzer.AnalyzeExpression(
             context: context.GetSymbolContext(symbol.Operand),
             symbol: symbol.Operand
         );

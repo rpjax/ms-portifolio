@@ -171,15 +171,15 @@ public class LR1Parser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Reduce(LR1Context context, LR1ReduceAction reduceAction)
     {
-        var production = ParsingTable.GetProduction(reduceAction.ProductionIndex);
+        ref var production = ref ParsingTable.GetProduction(reduceAction.ProductionIndex);
 
         if (production.IsEpsilonProduction)
         {
-            EpsilonReduce(context, production);
+            EpsilonReduce(context, ref production);
         }
         else
         {
-            NormalReduce(context, production);
+            NormalReduce(context, ref production);
         }
     }
 
@@ -189,7 +189,7 @@ public class LR1Parser
     /// <param name="context"></param>
     /// <param name="production"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void NormalReduce(LR1Context context, ProductionRule production)
+    private void NormalReduce(LR1Context context, ref ProductionRule production)
     {
         for (int i = 0; i < production.Body.Length * 2; i++)
         {
@@ -224,11 +224,11 @@ public class LR1Parser
 
         if (isAcceptState)
         {
-            context.CstBuilder.CreateRoot(production);
+            context.CstBuilder.CreateRoot(ref production);
         }
         else
         {
-            context.CstBuilder.CreateInternal(production);
+            context.CstBuilder.CreateInternal(ref production);
         }
     }
 
@@ -238,7 +238,7 @@ public class LR1Parser
     /// <param name="context"></param>
     /// <param name="production"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void EpsilonReduce(LR1Context context, ProductionRule production)
+    private void EpsilonReduce(LR1Context context, ref ProductionRule production)
     {
         var nonTerminal = production.Head;
         var currentState = context.Stack.PeekState();
@@ -258,7 +258,7 @@ public class LR1Parser
         }
 
         context.Stack.PushState(gotoAction.NextState);
-        context.CstBuilder.CreateEpsilonInternal(production);
+        context.CstBuilder.CreateEpsilonInternal(ref production);
     }
 
     /// <summary>

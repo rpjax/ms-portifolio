@@ -1,10 +1,10 @@
 ﻿using ModularSystem.Webql.Analysis.Symbols;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
-public static class ReferenceExpressionAnalyser
+public static class ReferenceExpressionAnalyzer
 {
-    public static ReferenceExpressionSemantic AnalyseReferenceExpression(
+    public static ReferenceExpressionSemantic AnalyzeReferenceExpression(
         SemanticContextOld context,
         ReferenceExpressionSymbol symbol)
     {

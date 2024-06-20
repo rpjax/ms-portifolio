@@ -161,14 +161,14 @@ public class LR1ParsingTable : IEnumerable<LR1ParsingTableEntry>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProductionRule GetProduction(int index)
+    public ref ProductionRule GetProduction(int index)
     {
         if(index < 0 || index >= Productions.Length)
         {
             throw new ArgumentOutOfRangeException(nameof(index));
         }
 
-        return Productions[index];
+        return ref Productions[index];
     }
 
     public IEnumerator<LR1ParsingTableEntry> GetEnumerator()

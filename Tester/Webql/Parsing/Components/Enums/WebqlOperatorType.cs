@@ -82,3 +82,28 @@ public enum WebqlOperatorArity
     Binary,
     Ternary
 }
+
+/*
+ * Helper Enumerations
+ */
+
+public enum WebqlCollectionManipulationOperator
+{
+    Filter,
+    Select,
+    SelectMany,
+    Limit,
+    Skip,
+}
+
+public enum WebqlCollectionAggregationOperator
+{
+    Count,
+    Index,
+    Any,
+    All,
+    Min,
+    Max,
+    Sum,
+    Average,
+}

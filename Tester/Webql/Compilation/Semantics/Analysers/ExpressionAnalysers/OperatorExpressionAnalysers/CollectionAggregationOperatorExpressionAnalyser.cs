@@ -2,94 +2,94 @@
 using ModularSystem.Webql.Analysis.Semantics.Helpers;
 using ModularSystem.Webql.Analysis.Symbols;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
-public static class CollectionAggregationOperatorExpressionAnalyser
+public static class CollectionAggregationOperatorExpressionAnalyzer
 {
-    public static OperatorExpressionSemantic AnalyseCollectionAggregationOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeCollectionAggregationOperatorExpression(
         SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
         //switch (OperatorHelper.GetCollectionAggregationOperatorType(symbol.Operator))
         //{
         //    case CollectionAggregationOperatorType.Count:
-        //        return AnalyseCountOperatorExpression(context, (CountOperatorExpressionSymbol)symbol);
+        //        return AnalyzeCountOperatorExpression(context, (CountOperatorExpressionSymbol)symbol);
 
         //    case CollectionAggregationOperatorType.Index:
-        //        return AnalyseIndexOperatorExpression(context, (IndexOperatorExpressionSymbol)symbol);
+        //        return AnalyzeIndexOperatorExpression(context, (IndexOperatorExpressionSymbol)symbol);
 
         //    case CollectionAggregationOperatorType.Any:
-        //        return AnalyseAnyOperatorExpression(context, (AnyOperatorExpressionSymbol)symbol);
+        //        return AnalyzeAnyOperatorExpression(context, (AnyOperatorExpressionSymbol)symbol);
 
         //    case CollectionAggregationOperatorType.All:
-        //        return AnalyseAllOperatorExpression(context, (AllOperatorExpressionSymbol)symbol);
+        //        return AnalyzeAllOperatorExpression(context, (AllOperatorExpressionSymbol)symbol);
 
         //    case CollectionAggregationOperatorType.Min:
-        //        return AnalyseMinOperatorExpression(context, (MinOperatorExpressionSymbol)symbol);
+        //        return AnalyzeMinOperatorExpression(context, (MinOperatorExpressionSymbol)symbol);
 
         //    case CollectionAggregationOperatorType.Max:
-        //        return AnalyseMaxOperatorExpression(context, (MaxOperatorExpressionSymbol)symbol);
+        //        return AnalyzeMaxOperatorExpression(context, (MaxOperatorExpressionSymbol)symbol);
 
         //    case CollectionAggregationOperatorType.Sum:
-        //        return AnalyseSumOperatorExpression(context, (SumOperatorExpressionSymbol)symbol);
+        //        return AnalyzeSumOperatorExpression(context, (SumOperatorExpressionSymbol)symbol);
 
         //    case CollectionAggregationOperatorType.Average:
-        //        return AnalyseAverageOperatorExpression(context, (AverageOperatorExpressionSymbol)symbol);
+        //        return AnalyzeAverageOperatorExpression(context, (AverageOperatorExpressionSymbol)symbol);
         //}
 
         throw new NotImplementedException();
     }
 
-    //public static OperatorExpressionSemantic AnalyseCountOperatorExpression(
+    //public static OperatorExpressionSemantic AnalyzeCountOperatorExpression(
     //    SemanticContextOld context,
     //    CountOperatorExpressionSymbol symbol)
     //{
     //    // ...
     //}
 
-    //public static OperatorExpressionSemantic AnalyseIndexOperatorExpression(
+    //public static OperatorExpressionSemantic AnalyzeIndexOperatorExpression(
     //    SemanticContextOld context,
     //    IndexOperatorExpressionSymbol symbol)
     //{
     //    // ...
     //}
 
-    //public static OperatorExpressionSemantic AnalyseAnyOperatorExpression(
+    //public static OperatorExpressionSemantic AnalyzeAnyOperatorExpression(
     //    SemanticContextOld context,
     //    AnyOperatorExpressionSymbol symbol)
     //{
     //    // ...
     //}
 
-    //public static OperatorExpressionSemantic AnalyseAllOperatorExpression(
+    //public static OperatorExpressionSemantic AnalyzeAllOperatorExpression(
     //    SemanticContextOld context,
     //    AllOperatorExpressionSymbol symbol)
     //{
     //    // ...
     //}
 
-    //public static OperatorExpressionSemantic AnalyseMinOperatorExpression(
+    //public static OperatorExpressionSemantic AnalyzeMinOperatorExpression(
     //    SemanticContextOld context,
     //    MinOperatorExpressionSymbol symbol)
     //{
     //    // ...
     //}
 
-    //public static OperatorExpressionSemantic AnalyseMaxOperatorExpression(
+    //public static OperatorExpressionSemantic AnalyzeMaxOperatorExpression(
     //    SemanticContextOld context,
     //    MaxOperatorExpressionSymbol symbol)
     //{
     //    // ...
     //}
 
-    //public static OperatorExpressionSemantic AnalyseSumOperatorExpression(
+    //public static OperatorExpressionSemantic AnalyzeSumOperatorExpression(
     //    SemanticContextOld context,
     //    SumOperatorExpressionSymbol symbol)
     //{
     //    // ...
     //}
 
-    //public static OperatorExpressionSemantic AnalyseAverageOperatorExpression(
+    //public static OperatorExpressionSemantic AnalyzeAverageOperatorExpression(
     //    SemanticContextOld context,
     //    AverageOperatorExpressionSymbol symbol)
     //{

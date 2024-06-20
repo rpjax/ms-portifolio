@@ -9,6 +9,7 @@
 public interface ISymbol : ISemantics
 {
     public string Identifier { get; }
+    Type Type { get; }
 }
 
 /*

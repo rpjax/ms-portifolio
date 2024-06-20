@@ -1,7 +1,7 @@
 ﻿namespace ModularSystem.Core.TextAnalysis.Tokenization;
 
 /// <summary>
-/// Represents a token produced by the lexical analyser, using a lexeme production rule.
+/// Represents a token produced by the lexical Analyzer, using a lexeme production rule.
 /// </summary>
 public interface IToken
 {
@@ -11,7 +11,7 @@ public interface IToken
 }
 
 /// <summary>
-/// Represents a token produced by the lexical analyser, using a lexeme production rule.
+/// Represents a token produced by the lexical Analyzer, using a lexeme production rule.
 /// </summary>
 public class Token : IToken
 {

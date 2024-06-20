@@ -1,118 +1,118 @@
 ﻿using ModularSystem.Webql.Analysis.Semantics.Helpers;
 using ModularSystem.Webql.Analysis.Symbols;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
 /// <summary>
-/// Provides functionality to analyse operator expressions.
+/// Provides functionality to Analyze operator expressions.
 /// </summary>
-public static class OperatorExpressionAnalyser
+public static class OperatorExpressionAnalyzer
 {
     /// <summary>
-    /// Analyses an operator expression and returns its semantic representation.
+    /// Analyzes an operator expression and returns its semantic representation.
     /// </summary>
     /// <param name="context">The semantic context in which the analysis is performed.</param>
-    /// <param name="symbol">The operator expression symbol to be analysed.</param>
+    /// <param name="symbol">The operator expression symbol to be Analyzed.</param>
     /// <returns>The semantic representation of the operator expression.</returns>
     /// <exception cref="Exception">Thrown when the symbol is not a recognized operator expression symbol.</exception>
-    public static OperatorExpressionSemantic AnalyseOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeOperatorExpression(
         SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
         switch (OperatorHelper.GetOperatorSemanticType(symbol.Operator))
         {
             case OperatorSemanticType.Arithmetic:
-                return AnalyseArithmeticOperatorExpression(context, symbol);
+                return AnalyzeArithmeticOperatorExpression(context, symbol);
 
             case OperatorSemanticType.Relational:
-                return AnalyseRelationalOperatorExpression(context, symbol);
+                return AnalyzeRelationalOperatorExpression(context, symbol);
 
             case OperatorSemanticType.StringRelational:
-                return AnalyseStringRelationalOperatorExpression(context, symbol);
+                return AnalyzeStringRelationalOperatorExpression(context, symbol);
 
             case OperatorSemanticType.Logical:
-                return AnalyseLogicalOperatorExpression(context, symbol);
+                return AnalyzeLogicalOperatorExpression(context, symbol);
 
             case OperatorSemanticType.Semantic:
-                return AnalyseSemanticOperatorExpression(context, symbol);
+                return AnalyzeSemanticOperatorExpression(context, symbol);
 
             case OperatorSemanticType.CollectionManipulation:
-                return AnalyseCollectionManipulationOperatorExpression(context, symbol);
+                return AnalyzeCollectionManipulationOperatorExpression(context, symbol);
 
             case OperatorSemanticType.CollectionAggregation:
-                return AnalyseCollectionAggregationOperatorExpression(context, symbol);
+                return AnalyzeCollectionAggregationOperatorExpression(context, symbol);
         }
 
         throw new Exception();
     }
 
     /// <summary>
-    /// Analyses an arithmetic operator expression and returns its semantic representation.
+    /// Analyzes an arithmetic operator expression and returns its semantic representation.
     /// </summary>
-    public static OperatorExpressionSemantic AnalyseArithmeticOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeArithmeticOperatorExpression(
         SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
-        return ArithmeticOperatorExpressionAnalyser.AnalyseArithmeticOperatorExpression(context, symbol);
+        return ArithmeticOperatorExpressionAnalyzer.AnalyzeArithmeticOperatorExpression(context, symbol);
     }
 
     /// <summary>
-    /// Analyses a relational operator expression and returns its semantic representation.
+    /// Analyzes a relational operator expression and returns its semantic representation.
     /// </summary>
-    public static OperatorExpressionSemantic AnalyseRelationalOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeRelationalOperatorExpression(
         SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
-        return RelationalOperatorExpressionAnalyser.AnalyseRelationalOperatorExpression(context, symbol);
+        return RelationalOperatorExpressionAnalyzer.AnalyzeRelationalOperatorExpression(context, symbol);
     }
 
     /// <summary>
-    /// Analyses a string relational operator expression and returns its semantic representation.
+    /// Analyzes a string relational operator expression and returns its semantic representation.
     /// </summary>
-    public static OperatorExpressionSemantic AnalyseStringRelationalOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeStringRelationalOperatorExpression(
         SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
-        return StringRelationalOperatorExpressionAnalyser.AnalyseStringRelationalOperatorExpression(context, symbol);
+        return StringRelationalOperatorExpressionAnalyzer.AnalyzeStringRelationalOperatorExpression(context, symbol);
     }
 
     /// <summary>
-    /// Analyses a logical operator expression and returns its semantic representation.
+    /// Analyzes a logical operator expression and returns its semantic representation.
     /// </summary>
-    public static OperatorExpressionSemantic AnalyseLogicalOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeLogicalOperatorExpression(
         SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
-        return LogicalOperatorExpressionAnalyser.AnalyseLogicalOperatorExpression(context, symbol);
+        return LogicalOperatorExpressionAnalyzer.AnalyzeLogicalOperatorExpression(context, symbol);
     }
 
     /// <summary>
-    /// Analyses a semantic operator expression and returns its semantic representation.
+    /// Analyzes a semantic operator expression and returns its semantic representation.
     /// </summary>
-    public static OperatorExpressionSemantic AnalyseSemanticOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeSemanticOperatorExpression(
         SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
-        return SemanticOperatorExpressionAnalyser.AnalyseSemanticOperatorExpression(context, symbol);
+        return SemanticOperatorExpressionAnalyzer.AnalyzeSemanticOperatorExpression(context, symbol);
     }
 
     /// <summary>
-    /// Analyses a collection manipulation operator expression and returns its semantic representation.
+    /// Analyzes a collection manipulation operator expression and returns its semantic representation.
     /// </summary>
-    public static OperatorExpressionSemantic AnalyseCollectionManipulationOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeCollectionManipulationOperatorExpression(
         SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
-        return CollectionManipulationOperatorExpressionAnalyser.AnalyseCollectionManipulationOperatorExpression(context, symbol);
+        return CollectionManipulationOperatorExpressionAnalyzer.AnalyzeCollectionManipulationOperatorExpression(context, symbol);
     }
 
     /// <summary>
-    /// Analyses a collection aggregation operator expression and returns its semantic representation.
+    /// Analyzes a collection aggregation operator expression and returns its semantic representation.
     /// </summary>
-    public static OperatorExpressionSemantic AnalyseCollectionAggregationOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeCollectionAggregationOperatorExpression(
         SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
-        return CollectionAggregationOperatorExpressionAnalyser.AnalyseCollectionAggregationOperatorExpression(context, symbol);
+        return CollectionAggregationOperatorExpressionAnalyzer.AnalyzeCollectionAggregationOperatorExpression(context, symbol);
     }
 }

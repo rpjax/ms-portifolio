@@ -36,7 +36,7 @@ public class WebqlOperationExpression : WebqlExpression
 
     }
 
-    public override WebqlSyntaxNode Accept(SyntaxNodeVisitor visitor)
+    public override WebqlSyntaxNode Accept(SyntaxTreeVisitor visitor)
     {
         return visitor.VisitOperationExpression(this);
     }

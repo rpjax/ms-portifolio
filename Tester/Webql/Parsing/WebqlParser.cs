@@ -168,7 +168,7 @@ collection_aggregation_operator
     /// <remarks>
     /// Note that the reduction process does not create an AST, but a CST with a reduced set of nodes. 
     /// <br/>
-    /// To create the AST use the <see cref="ParseToAst"/> class.
+    /// To create the AST use the <see cref="ParseToAst"/>.
     /// </remarks>
     /// <param name="text"></param>
     /// <returns></returns>

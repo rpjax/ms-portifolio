@@ -16,7 +16,7 @@ public class OperatorResultDeclarationFix : AstSemanticVisitorOld
                 return base.VisitExpression(context, symbol);
             } 
 
-            var semantic = SemanticAnalyser.AnalyseExpression(context, symbol);
+            var semantic = SemanticAnalyzer.AnalyzeExpression(context, symbol);
 
             if (stringSymbol.Value is null)
             {

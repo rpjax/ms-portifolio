@@ -1,21 +1,21 @@
 ﻿using ModularSystem.Webql.Analysis.Semantics.Helpers;
 using ModularSystem.Webql.Analysis.Symbols;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
 /// <summary>
-/// Provides functionality to analyse relational operator expressions.
+/// Provides functionality to Analyze relational operator expressions.
 /// </summary>
-public static class RelationalOperatorExpressionAnalyser
+public static class RelationalOperatorExpressionAnalyzer
 {
     /// <summary>
-    /// Analyses a relational operator expression and returns its semantic representation.
+    /// Analyzes a relational operator expression and returns its semantic representation.
     /// </summary>
     /// <param name="context">The semantic context in which the analysis is performed.</param>
-    /// <param name="symbol">The operator expression symbol to be analysed.</param>
+    /// <param name="symbol">The operator expression symbol to be Analyzed.</param>
     /// <returns>The semantic representation of the operator expression.</returns>
     /// <exception cref="Exception">Thrown when the symbol is not a relational operator expression symbol.</exception>
-    public static OperatorExpressionSemantic AnalyseRelationalOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeRelationalOperatorExpression(
       SemanticContextOld context,
       OperatorExpressionSymbol symbol)
     {
@@ -24,12 +24,12 @@ public static class RelationalOperatorExpressionAnalyser
             throw new Exception();
         }
 
-        var leftSemantic = SemanticAnalyser.AnalyseExpression(
+        var leftSemantic = SemanticAnalyzer.AnalyzeExpression(
             context: context.GetSymbolContext(relationalExpression.LeftOperand),
             symbol: relationalExpression.LeftOperand
         );
 
-        var rightSemantic = SemanticAnalyser.AnalyseExpression(
+        var rightSemantic = SemanticAnalyzer.AnalyzeExpression(
             context: context.GetSymbolContext(relationalExpression.RightOperand),
             symbol: relationalExpression.RightOperand
         );

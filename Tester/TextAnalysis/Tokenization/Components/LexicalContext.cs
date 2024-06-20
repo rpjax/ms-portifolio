@@ -24,7 +24,7 @@ public class LexicalContext : IDisposable
     {
         Position = -1;
         Line = 1;
-        Column = 1;
+        Column = 0;
 
         Source = source;
         AccumulatorLength = 0;

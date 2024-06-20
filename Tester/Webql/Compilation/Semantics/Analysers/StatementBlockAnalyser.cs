@@ -1,17 +1,17 @@
 ﻿using ModularSystem.Webql.Analysis.Symbols;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
-public static class StatementBlockAnalyser
+public static class StatementBlockAnalyzer
 {
-    public static StatementBlockSemantic AnalyseStatementBlock(SemanticContextOld context, StatementBlockSymbol symbol)
+    public static StatementBlockSemantic AnalyzeStatementBlock(SemanticContextOld context, StatementBlockSymbol symbol)
     {
         var lastStatement = symbol.LastOrDefault();
         var type = typeof(void);
 
         if (lastStatement is ExpressionSymbol expression)
         {
-            var semantic = SemanticAnalyser.AnalyseExpression(
+            var semantic = SemanticAnalyzer.AnalyzeExpression(
                 context: context.GetSymbolContext(expression),
                 symbol: expression
             );

@@ -1,8 +1,8 @@
 ﻿using ModularSystem.Webql.Analysis.Symbols;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
-public class AxiomAnalyser
+public class AxiomAnalyzer
 {
     // axiom = [ lambda ]
     //
@@ -11,7 +11,7 @@ public class AxiomAnalyser
     //
     // params = '(' [ arg { ',' , arg  } ] ')' ;
     // arg = type identifier ;
-    public AxiomSemantic AnalyseAxiom(SemanticContextOld context, AxiomSymbol symbol)
+    public AxiomSemantic AnalyzeAxiom(SemanticContextOld context, AxiomSymbol symbol)
     {
         return new AxiomSemantic();
     }

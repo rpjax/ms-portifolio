@@ -8,6 +8,16 @@ namespace Webql.Semantics.Extensions;
 /// </summary>
 public static class WebqlSyntaxNodeSemanticExtensions
 {
+    public static T As<T>(this WebqlSyntaxNode node) where T : WebqlSyntaxNode
+    {
+        if(node is T t)
+        {
+            return t;
+        }
+
+        throw new InvalidOperationException("Attempted to cast a node to an incompatible type during semantic analysis.");
+    }
+
     public static string GetSemanticIdentifier(this WebqlSyntaxNode node)
     {
         return "not implemented yet";

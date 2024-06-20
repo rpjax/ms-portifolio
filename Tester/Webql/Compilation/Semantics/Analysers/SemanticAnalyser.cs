@@ -1,11 +1,11 @@
-﻿using ModularSystem.Webql.Analysis.Semantics.Analysers;
+﻿using ModularSystem.Webql.Analysis.Semantics.Analyzers;
 using ModularSystem.Webql.Analysis.Semantics.Extensions;
 using ModularSystem.Webql.Analysis.Symbols;
 using System.Diagnostics.CodeAnalysis;
 
 namespace ModularSystem.Webql.Analysis.Semantics;
 
-public static class SemanticAnalyser
+public static class SemanticAnalyzer
 {
     public static Type GetType(SemanticContextOld context, string identifier)
     {
@@ -13,49 +13,49 @@ public static class SemanticAnalyser
            ?? throw new Exception();
     }
 
-    public static LambdaExpressionSemantic AnalyseLambda(SemanticContextOld context, LambdaExpressionSymbol symbol)
+    public static LambdaExpressionSemantic AnalyzeLambda(SemanticContextOld context, LambdaExpressionSymbol symbol)
     {
         if (GetCachedSemantics<LambdaExpressionSemantic>(context, symbol, out var cached))
         {
             return cached;
         }
 
-        return ExpressionAnalyser.AnalyseLambdaExpression(context, symbol);
+        return ExpressionAnalyzer.AnalyzeLambdaExpression(context, symbol);
     }
 
-    public static DeclarationStatementSemantic AnalyseDeclaration(SemanticContextOld context, IDeclarationSymbol symbol)
+    public static DeclarationStatementSemantic AnalyzeDeclaration(SemanticContextOld context, IDeclarationSymbol symbol)
     {
         if (GetCachedSemantics<DeclarationStatementSemantic>(context, symbol, out var cached))
         {
             return cached;
         }
 
-        return DeclarationAnalyser.AnalyseDeclaration(context, symbol);
+        return DeclarationAnalyzer.AnalyzeDeclaration(context, symbol);
     }
 
-    public static DeclarationStatementSemantic[] AnalyseDeclarations(SemanticContextOld context, IDeclarationSymbol[] symbol)
+    public static DeclarationStatementSemantic[] AnalyzeDeclarations(SemanticContextOld context, IDeclarationSymbol[] symbol)
     {
-        return DeclarationAnalyser.AnalyseDeclarations(context, symbol);
+        return DeclarationAnalyzer.AnalyzeDeclarations(context, symbol);
     }
 
-    public static StatementBlockSemantic AnalyseStatementBlock(SemanticContextOld context, StatementBlockSymbol symbol)
+    public static StatementBlockSemantic AnalyzeStatementBlock(SemanticContextOld context, StatementBlockSymbol symbol)
     {
         if (GetCachedSemantics<StatementBlockSemantic>(context, symbol, out var cached))
         {
             return cached;
         }
 
-        return StatementBlockAnalyser.AnalyseStatementBlock(context, symbol);
+        return StatementBlockAnalyzer.AnalyzeStatementBlock(context, symbol);
     }
 
-    public static ExpressionSemantic AnalyseExpression(SemanticContextOld context, ExpressionSymbol symbol)
+    public static ExpressionSemantic AnalyzeExpression(SemanticContextOld context, ExpressionSymbol symbol)
     {
         if (GetCachedSemantics<ExpressionSemantic>(context, symbol, out var cached))
         {
             return cached;
         }
 
-        return ExpressionAnalyser.Analyse(context, symbol);
+        return ExpressionAnalyzer.Analyze(context, symbol);
     }
 
     //*

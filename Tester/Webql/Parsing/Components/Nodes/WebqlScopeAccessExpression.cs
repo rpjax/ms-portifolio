@@ -27,7 +27,7 @@ public class WebqlScopeAccessExpression : WebqlExpression
         Attributes.TryAdd(SemanticContextAttributes.ScopeSourceAttribute, new object());
     }
 
-    public override WebqlSyntaxNode Accept(SyntaxNodeVisitor visitor)
+    public override WebqlSyntaxNode Accept(SyntaxTreeVisitor visitor)
     {
         return visitor.VisitScopeAccessExpression(this);
     }

@@ -20,8 +20,8 @@ public class FirstSemanticPass : AstSemanticTraverser
          */
         if (symbol is IDeclarationSymbol declarationSymbol)
         {
-            var semantic = SemanticAnalyser
-                .AnalyseDeclaration(Context, declarationSymbol);
+            var semantic = SemanticAnalyzer
+                .AnalyzeDeclaration(Context, declarationSymbol);
 
             var identifier = declarationSymbol.Identifier;
 

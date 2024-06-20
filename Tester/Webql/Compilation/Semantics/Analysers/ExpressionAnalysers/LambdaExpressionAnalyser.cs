@@ -1,15 +1,15 @@
 ﻿using ModularSystem.Webql.Analysis.Semantics.Extensions;
 using ModularSystem.Webql.Analysis.Symbols;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
-public static class LambdaExpressionAnalyser
+public static class LambdaExpressionAnalyzer
 {
-    public static LambdaExpressionSemantic AnalyseLambdaExpression(
+    public static LambdaExpressionSemantic AnalyzeLambdaExpression(
         SemanticContextOld context,
         LambdaExpressionSymbol symbol)
     {
-        var paramsSemantics = SemanticAnalyser.AnalyseDeclarations(context, symbol.Parameters)
+        var paramsSemantics = SemanticAnalyzer.AnalyzeDeclarations(context, symbol.Parameters)
             .ToArray();
 
         var paramsTypes = paramsSemantics
@@ -24,7 +24,7 @@ public static class LambdaExpressionAnalyser
         //    param.AddDeclaration(context, param.Identifier, semantic.ExpressionType);
         //}
 
-        var bodySemantic = SemanticAnalyser.AnalyseStatementBlock(
+        var bodySemantic = SemanticAnalyzer.AnalyzeStatementBlock(
             context: context.GetSymbolContext(symbol.Body),
             symbol: symbol.Body
         );

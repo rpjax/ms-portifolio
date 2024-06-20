@@ -7,8 +7,13 @@ public static class SemanticTypeExtensions
 {
     public static bool IsQueryable(this Type type)
     {
-        return
-            typeof(IEnumerable).IsAssignableFrom(type)
+        if(type == typeof(string))
+        {
+            return false;
+        }
+
+        return false
+            || typeof(IEnumerable).IsAssignableFrom(type)
             || type.GetInterfaces().Any(i =>
                i.IsGenericType &&
                i.GetGenericTypeDefinition() == typeof(IEnumerable<>));

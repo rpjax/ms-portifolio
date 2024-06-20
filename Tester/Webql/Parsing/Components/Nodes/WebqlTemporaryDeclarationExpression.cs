@@ -27,7 +27,7 @@ public class WebqlTemporaryDeclarationExpression : WebqlExpression
         Attributes = attributes ?? new Dictionary<string, object>();
     }
 
-    public override WebqlSyntaxNode Accept(SyntaxNodeVisitor visitor)
+    public override WebqlSyntaxNode Accept(SyntaxTreeVisitor visitor)
     {
         return visitor.VisitTemporaryDeclarationExpression(this);
     }

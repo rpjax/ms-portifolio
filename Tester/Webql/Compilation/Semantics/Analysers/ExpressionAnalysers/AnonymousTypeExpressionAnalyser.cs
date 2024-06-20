@@ -1,11 +1,11 @@
 ﻿using ModularSystem.Core.Reflection;
 using ModularSystem.Webql.Analysis.Symbols;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
-public static class AnonymousTypeExpressionAnalyser
+public static class AnonymousTypeExpressionAnalyzer
 {
-    public static TypeProjectionExpressionSemantic AnalyseAnonymousTypeExpression(
+    public static TypeProjectionExpressionSemantic AnalyzeAnonymousTypeExpression(
         SemanticContextOld context,
         AnonymousTypeExpressionSymbol symbol)
     {
@@ -35,7 +35,7 @@ public static class AnonymousTypeExpressionAnalyser
         var name = binding.Name;
         var value = binding.Value;
 
-        var semantic = SemanticAnalyser.AnalyseExpression(
+        var semantic = SemanticAnalyzer.AnalyzeExpression(
             context: context.GetSymbolContext(value), 
             symbol: value
         );

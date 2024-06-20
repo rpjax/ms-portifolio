@@ -65,7 +65,7 @@ public class CstBuilder
     public int AccumulatorCount => NodeAccumulator.Count;
 
     /// <summary>
-    /// Adds a terminal collection to the accumulator.
+    /// Creates a leaf node in the accumulator.
     /// </summary>
     /// <param name="terminal">The terminal collection to add.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -75,8 +75,12 @@ public class CstBuilder
         NodeAccumulator.Add(new CstLeaf(token: token, metadata: GetLeafMetadata(token)));
     }
 
+    /// <summary>
+    /// Creates an internal node in the accumulator.
+    /// </summary>
+    /// <param name="production"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void CreateInternal(ProductionRule production)
+    public void CreateInternal(ref ProductionRule production)
     {
         var length = production.Length;
 
@@ -102,11 +106,11 @@ public class CstBuilder
     }
 
     /// <summary>
-    /// Reduces an epsilon collection in the accumulator.
+    /// Creates an epsilon internal node in the accumulator.
     /// </summary>
     /// <param name="nonTerminal">The non-terminal associated with the epsilon collection.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void CreateEpsilonInternal(ProductionRule production)
+    public void CreateEpsilonInternal(ref ProductionRule production)
     {
         if (!production.IsEpsilonProduction)
         {
@@ -135,8 +139,12 @@ public class CstBuilder
         ));
     }
 
+    /// <summary>
+    /// Creates a root node in the accumulator.
+    /// </summary>
+    /// <param name="production"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void CreateRoot(ProductionRule production)
+    public void CreateRoot(ref ProductionRule production)
     {
         var length = production.Length;
 
@@ -233,14 +241,13 @@ public class CstBuilder
             startPosition: new SyntaxElementPosition(
                 index: token.Metadata.Position.StartIndex,
                 line: token.Metadata.Position.Line,
-                column: token.Metadata.Position.Column
+                column: token.Metadata.Position.Column - token.Value.Length + 1
             ),
             endPosition: new SyntaxElementPosition(
                 index: token.Metadata.Position.EndIndex,
                 line: token.Metadata.Position.Line,
-                column: token.Metadata.Position.Column
-            ),
-            tokens: new Token[] { token }
+                column: token.Metadata.Position.Column + 1
+            )
         );
     }
 
@@ -259,14 +266,13 @@ public class CstBuilder
             startPosition: new SyntaxElementPosition(
                 index: firstToken.Metadata.Position.StartIndex,
                 line: firstToken.Metadata.Position.Line,
-                column: firstToken.Metadata.Position.Column
+                column: firstToken.Metadata.Position.Column - firstToken.Value.Length + 1
             ),
             endPosition: new SyntaxElementPosition(
                 index: lastToken.Metadata.Position.EndIndex,
                 line: lastToken.Metadata.Position.Line,
-                column: lastToken.Metadata.Position.Column
-            ),
-            tokens: collection.Tokens
+                column: lastToken.Metadata.Position.Column + 1
+            )
         );
     }
 
@@ -279,14 +285,13 @@ public class CstBuilder
             startPosition: new SyntaxElementPosition(
                 index: lastToken?.Metadata.Position.EndIndex ?? 0,
                 line: lastToken?.Metadata.Position.Line ?? 0,
-                column: lastToken?.Metadata.Position.Column ?? 0
+                column: lastToken?.Metadata.Position.Column - lastToken?.Value.Length + 1 ?? 0
             ),
             endPosition: new SyntaxElementPosition(
                 index: lastToken?.Metadata.Position.EndIndex ?? 0,
                 line: lastToken?.Metadata.Position.Line ?? 0,
-                column: lastToken?.Metadata.Position.Column ?? 0
-            ),
-            tokens: Array.Empty<Token>()
+                column: lastToken?.Metadata.Position.Column + 1 ?? 0
+            )
         );
     }
 

@@ -146,4 +146,65 @@ public static class WebqlOperatorClassifier
         return GetOperatorArity(operatorType) == WebqlOperatorArity.Ternary;
     }
 
+    /*
+     * Type Based Classification
+     */
+
+    public static WebqlCollectionManipulationOperator GetCollectionManipulationOperator(WebqlOperatorType operatorType)
+    {
+        switch (operatorType)
+        {
+            case WebqlOperatorType.Filter:
+                return WebqlCollectionManipulationOperator.Filter;
+
+            case WebqlOperatorType.Select:
+                return WebqlCollectionManipulationOperator.Select;
+
+            case WebqlOperatorType.SelectMany:
+                return WebqlCollectionManipulationOperator.SelectMany;
+
+            case WebqlOperatorType.Limit:
+                return WebqlCollectionManipulationOperator.Limit;
+
+            case WebqlOperatorType.Skip:
+                return WebqlCollectionManipulationOperator.Skip;
+
+            default:
+                throw new InvalidOperationException();
+        }
+    }
+
+    public static WebqlCollectionAggregationOperator GetCollectionAggregationOperator(WebqlOperatorType operatorType)
+    {
+        switch (operatorType)
+        {
+            case WebqlOperatorType.Count:
+                return WebqlCollectionAggregationOperator.Count;
+
+            case WebqlOperatorType.Index:
+                return WebqlCollectionAggregationOperator.Index;
+
+            case WebqlOperatorType.Any:
+                return WebqlCollectionAggregationOperator.Any;
+
+            case WebqlOperatorType.All:
+                return WebqlCollectionAggregationOperator.All;
+
+            case WebqlOperatorType.Min:
+                return WebqlCollectionAggregationOperator.Min;
+
+            case WebqlOperatorType.Max:
+                return WebqlCollectionAggregationOperator.Max;
+
+            case WebqlOperatorType.Sum:
+                return WebqlCollectionAggregationOperator.Sum;
+
+            case WebqlOperatorType.Average:
+                return WebqlCollectionAggregationOperator.Average;
+
+            default:
+                throw new InvalidOperationException();
+        }
+    }
+
 }

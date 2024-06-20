@@ -1,10 +1,10 @@
 ﻿using ModularSystem.Webql.Analysis.Symbols;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
-public static class DeclarationAnalyser
+public static class DeclarationAnalyzer
 {
-    public static DeclarationStatementSemantic AnalyseDeclaration(SemanticContextOld context, IDeclarationSymbol symbol)
+    public static DeclarationStatementSemantic AnalyzeDeclaration(SemanticContextOld context, IDeclarationSymbol symbol)
     {
         if(symbol.Type is null)
         {
@@ -12,14 +12,14 @@ public static class DeclarationAnalyser
         }
 
         return new DeclarationStatementSemantic(
-            type: SemanticAnalyser.GetType(context, symbol.Type)
+            type: SemanticAnalyzer.GetType(context, symbol.Type)
         );
     }
 
-    public static DeclarationStatementSemantic[] AnalyseDeclarations(SemanticContextOld context, IDeclarationSymbol[] symbols)
+    public static DeclarationStatementSemantic[] AnalyzeDeclarations(SemanticContextOld context, IDeclarationSymbol[] symbols)
     {
         return symbols
-            .Select(x => SemanticAnalyser.AnalyseDeclaration(context.GetSymbolContext(x), x))
+            .Select(x => SemanticAnalyzer.AnalyzeDeclaration(context.GetSymbolContext(x), x))
             .ToArray();
     }
 }

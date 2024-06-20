@@ -60,10 +60,10 @@ public class CstNodeMetadata
     /// </summary>
     public SyntaxElementPosition EndPosition { get; }
 
-    /// <summary>
-    /// Gets the collection of tokens that represents the node in the source text.
-    /// </summary>
-    public Token[] Tokens { get; }
+    ///// <summary>
+    ///// Gets the collection of tokens that represents the node in the source text.
+    ///// </summary>
+    //public Token[] Tokens { get; }
 
     /// <summary>
     /// Creates a new instance of the <see cref="CstNodeMetadata"/> class.
@@ -71,11 +71,11 @@ public class CstNodeMetadata
     /// <param name="startIndex"></param>
     /// <param name="endIndex"></param>
     /// <param name="tokens"></param>
-    public CstNodeMetadata(SyntaxElementPosition startPosition, SyntaxElementPosition endPosition, Token[] tokens)
+    public CstNodeMetadata(SyntaxElementPosition startPosition, SyntaxElementPosition endPosition/*, Token[] tokens*/)
     {
         StartPosition = startPosition;
         EndPosition = endPosition;
-        Tokens = tokens;
+        //Tokens = tokens;
     }
 
     /// <summary>

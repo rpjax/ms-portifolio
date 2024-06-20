@@ -1,89 +1,89 @@
 ﻿using ModularSystem.Webql.Analysis.Symbols;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
 /// <summary>
-/// Provides functionality to analyse expressions.
+/// Provides functionality to Analyze expressions.
 /// </summary>
-public static class ExpressionAnalyser
+public static class ExpressionAnalyzer
 {
     /// <summary>
-    /// Analyses an expression and returns its semantic representation.
+    /// Analyzes an expression and returns its semantic representation.
     /// </summary>
     /// <param name="context">The semantic context in which the analysis is performed.</param>
-    /// <param name="symbol">The expression symbol to be analysed.</param>
+    /// <param name="symbol">The expression symbol to be Analyzed.</param>
     /// <returns>The semantic representation of the expression.</returns>
     /// <exception cref="Exception">Thrown when the symbol is not a recognized expression symbol.</exception>
-    public static ExpressionSemantic Analyse(SemanticContextOld context, ExpressionSymbol symbol)
+    public static ExpressionSemantic Analyze(SemanticContextOld context, ExpressionSymbol symbol)
     {
         switch (symbol.ExpressionType)
         {
             case ExpressionType.Literal:
-                return AnalyseLiteralExpression(context, (LiteralExpressionSymbol)symbol);
+                return AnalyzeLiteralExpression(context, (LiteralExpressionSymbol)symbol);
 
             case ExpressionType.Reference:
-                return AnalyseReferenceExpression(context, (ReferenceExpressionSymbol)symbol);
+                return AnalyzeReferenceExpression(context, (ReferenceExpressionSymbol)symbol);
 
             case ExpressionType.Operator:
-                return AnalyseOperatorExpression(context, (OperatorExpressionSymbol)symbol);
+                return AnalyzeOperatorExpression(context, (OperatorExpressionSymbol)symbol);
 
             case ExpressionType.Lambda:
-                return AnalyseLambdaExpression(context, (LambdaExpressionSymbol)symbol);
+                return AnalyzeLambdaExpression(context, (LambdaExpressionSymbol)symbol);
 
             case ExpressionType.AnonymousType:
-                return AnalyseAnonymousTypeExpression(context, (AnonymousTypeExpressionSymbol)symbol);
+                return AnalyzeAnonymousTypeExpression(context, (AnonymousTypeExpressionSymbol)symbol);
         }
 
         throw new Exception();
     }
 
     /// <summary>
-    /// Analyses a literal expression and returns its semantic representation.
+    /// Analyzes a literal expression and returns its semantic representation.
     /// </summary>
-    public static LiteralExpressionSemantic AnalyseLiteralExpression(
+    public static LiteralExpressionSemantic AnalyzeLiteralExpression(
         SemanticContextOld context,
         LiteralExpressionSymbol symbol)
     {
-        return LiteralExpressionAnalyser.AnalyseLiteralExpression(context, symbol);
+        return LiteralExpressionAnalyzer.AnalyzeLiteralExpression(context, symbol);
     }
 
     /// <summary>
-    /// Analyses a reference expression and returns its semantic representation.
+    /// Analyzes a reference expression and returns its semantic representation.
     /// </summary>
-    public static ReferenceExpressionSemantic AnalyseReferenceExpression(
+    public static ReferenceExpressionSemantic AnalyzeReferenceExpression(
         SemanticContextOld context,
         ReferenceExpressionSymbol symbol)
     {
-        return ReferenceExpressionAnalyser.AnalyseReferenceExpression(context, symbol);
+        return ReferenceExpressionAnalyzer.AnalyzeReferenceExpression(context, symbol);
     }
 
     /// <summary>
-    /// Analyses an operator expression and returns its semantic representation.
+    /// Analyzes an operator expression and returns its semantic representation.
     /// </summary>
-    public static OperatorExpressionSemantic AnalyseOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeOperatorExpression(
         SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
-        return OperatorExpressionAnalyser.AnalyseOperatorExpression(context, symbol);
+        return OperatorExpressionAnalyzer.AnalyzeOperatorExpression(context, symbol);
     }
 
     /// <summary>
-    /// Analyses a lambda expression and returns its semantic representation.
+    /// Analyzes a lambda expression and returns its semantic representation.
     /// </summary>
-    public static LambdaExpressionSemantic AnalyseLambdaExpression(
+    public static LambdaExpressionSemantic AnalyzeLambdaExpression(
         SemanticContextOld context,
         LambdaExpressionSymbol symbol)
     {
-        return LambdaExpressionAnalyser.AnalyseLambdaExpression(context, symbol);
+        return LambdaExpressionAnalyzer.AnalyzeLambdaExpression(context, symbol);
     }
 
     /// <summary>
-    /// Analyses an anonymous type expression and returns its semantic representation.
+    /// Analyzes an anonymous type expression and returns its semantic representation.
     /// </summary>
-    public static TypeProjectionExpressionSemantic AnalyseAnonymousTypeExpression(
+    public static TypeProjectionExpressionSemantic AnalyzeAnonymousTypeExpression(
         SemanticContextOld context,
         AnonymousTypeExpressionSymbol symbol)
     {
-        return AnonymousTypeExpressionAnalyser.AnalyseAnonymousTypeExpression(context, symbol);
+        return AnonymousTypeExpressionAnalyzer.AnalyzeAnonymousTypeExpression(context, symbol);
     }
 }

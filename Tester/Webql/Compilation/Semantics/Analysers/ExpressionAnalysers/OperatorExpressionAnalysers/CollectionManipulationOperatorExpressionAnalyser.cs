@@ -2,42 +2,42 @@
 using ModularSystem.Webql.Analysis.Semantics.Helpers;
 using ModularSystem.Webql.Analysis.Symbols;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
-public static class CollectionManipulationOperatorExpressionAnalyser
+public static class CollectionManipulationOperatorExpressionAnalyzer
 {
-    public static OperatorExpressionSemantic AnalyseCollectionManipulationOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeCollectionManipulationOperatorExpression(
         SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
         switch (OperatorHelper.GetCollectionManipulationOperatorType(symbol.Operator))
         {
             case CollectionManipulationOperatorType.Filter:
-                return AnalyseFilterOperatorExpression(context, (FilterOperatorExpressionSymbol)symbol);
+                return AnalyzeFilterOperatorExpression(context, (FilterOperatorExpressionSymbol)symbol);
 
             case CollectionManipulationOperatorType.Select:
-                return AnalyseSelectOperatorExpression(context, (SelectOperatorExpressionSymbol)symbol);
+                return AnalyzeSelectOperatorExpression(context, (SelectOperatorExpressionSymbol)symbol);
 
             case CollectionManipulationOperatorType.SelectMany:
                 throw new NotImplementedException();
 
             case CollectionManipulationOperatorType.Limit:
-                return AnalyseLimitOperatorExpression(context, (LimitOperatorExpressionSymbol)symbol);
+                return AnalyzeLimitOperatorExpression(context, (LimitOperatorExpressionSymbol)symbol);
 
             case CollectionManipulationOperatorType.Skip:
-                return AnalyseSkipOperatorExpression(context, (SkipOperatorExpressionSymbol)symbol);
+                return AnalyzeSkipOperatorExpression(context, (SkipOperatorExpressionSymbol)symbol);
         }
 
         throw new InvalidOperationException();
     }
 
-    public static OperatorExpressionSemantic AnalyseFilterOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeFilterOperatorExpression(
         SemanticContextOld context,
         FilterOperatorExpressionSymbol symbol)
     {
         var source = symbol.Source;
 
-        var sourceSemantic = SemanticAnalyser.AnalyseExpression(
+        var sourceSemantic = SemanticAnalyzer.AnalyzeExpression(
             context: context.GetSymbolContext(source),
             symbol: source
         );
@@ -47,19 +47,19 @@ public static class CollectionManipulationOperatorExpressionAnalyser
         );
     }
 
-    public static OperatorExpressionSemantic AnalyseSelectOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeSelectOperatorExpression(
         SemanticContextOld context,
         SelectOperatorExpressionSymbol symbol)
     {
         var source = symbol.Source;
         var lambda = symbol.Lambda;
 
-        var sourceSemantic = SemanticAnalyser.AnalyseExpression(
+        var sourceSemantic = SemanticAnalyzer.AnalyzeExpression(
             context: context.GetSymbolContext(source),
             symbol: source
         );
 
-        var lambdaSemantic = SemanticAnalyser.AnalyseLambda(
+        var lambdaSemantic = SemanticAnalyzer.AnalyzeLambda(
             context: context.GetSymbolContext(lambda),
             symbol: lambda
         );
@@ -73,13 +73,13 @@ public static class CollectionManipulationOperatorExpressionAnalyser
         );
     }
 
-    public static OperatorExpressionSemantic AnalyseLimitOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeLimitOperatorExpression(
        SemanticContextOld context,
        LimitOperatorExpressionSymbol symbol)
     {
         var source = symbol.Source;
 
-        var sourceSemantic = SemanticAnalyser.AnalyseExpression(
+        var sourceSemantic = SemanticAnalyzer.AnalyzeExpression(
             context: context.GetSymbolContext(source),
             symbol: source
         );
@@ -89,13 +89,13 @@ public static class CollectionManipulationOperatorExpressionAnalyser
         );
     }
 
-    public static OperatorExpressionSemantic AnalyseSkipOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeSkipOperatorExpression(
        SemanticContextOld context,
        SkipOperatorExpressionSymbol symbol)
     {
         var source = symbol.Source;
 
-        var sourceSemantic = SemanticAnalyser.AnalyseExpression(
+        var sourceSemantic = SemanticAnalyzer.AnalyzeExpression(
             context: context.GetSymbolContext(source),
             symbol: source
         );

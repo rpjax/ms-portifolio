@@ -31,7 +31,7 @@ public abstract class WebqlSyntaxNode
     /// Accepts a visitor to traverse the abstract syntax tree and perform modifications or analysis.
     /// </summary>
     /// <param name="visitor"></param>
-    public abstract WebqlSyntaxNode Accept(SyntaxNodeVisitor visitor);
+    public abstract WebqlSyntaxNode Accept(SyntaxTreeVisitor visitor);
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool HasAttribute(string key)

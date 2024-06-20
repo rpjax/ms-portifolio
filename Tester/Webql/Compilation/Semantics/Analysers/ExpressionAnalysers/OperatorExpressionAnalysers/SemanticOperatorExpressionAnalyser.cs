@@ -2,11 +2,11 @@
 using ModularSystem.Webql.Analysis.Symbols;
 using System.Reflection;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
-public static class SemanticOperatorExpressionAnalyser
+public static class SemanticOperatorExpressionAnalyzer
 {
-    public static OperatorExpressionSemantic AnalyseSemanticOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeSemanticOperatorExpression(
         SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
@@ -19,20 +19,20 @@ public static class SemanticOperatorExpressionAnalyser
             //    throw new NotImplementedException();
 
             case SemanticOperatorType.Type:
-                return AnalyseTypeOperatorExpression(context, (TypeOperatorExpressionSymbol)symbol);
+                return AnalyzeTypeOperatorExpression(context, (TypeOperatorExpressionSymbol)symbol);
 
             case SemanticOperatorType.MemberAccess:
-                return AnalyseMemberAccessOperatorExpression(context, (MemberAccessOperatorExpressionSymbol)symbol);
+                return AnalyzeMemberAccessOperatorExpression(context, (MemberAccessOperatorExpressionSymbol)symbol);
         }
 
         throw new InvalidOperationException();
     }
 
-    public static OperatorExpressionSemantic AnalyseTypeOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeTypeOperatorExpression(
         SemanticContextOld context,
         TypeOperatorExpressionSymbol symbol)
     {
-        var semantic = SemanticAnalyser.AnalyseExpression(
+        var semantic = SemanticAnalyzer.AnalyzeExpression(
             context: context.GetSymbolContext(symbol.TypeExpression),
             symbol: symbol.TypeExpression
         );
@@ -42,11 +42,11 @@ public static class SemanticOperatorExpressionAnalyser
         );
     }
 
-    public static OperatorExpressionSemantic AnalyseMemberAccessOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeMemberAccessOperatorExpression(
         SemanticContextOld context,
         MemberAccessOperatorExpressionSymbol symbol)
     {
-        var operandSemantic = SemanticAnalyser.AnalyseExpression(
+        var operandSemantic = SemanticAnalyzer.AnalyzeExpression(
             context: context.GetSymbolContext(symbol.Operand),
             symbol: symbol.Operand
         );

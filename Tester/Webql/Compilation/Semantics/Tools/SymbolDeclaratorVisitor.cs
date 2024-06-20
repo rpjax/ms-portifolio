@@ -11,14 +11,14 @@ namespace Webql.Semantics.Tools;
 /// <summary>
 /// Represents a visitor for declaring symbols in the Webql syntax tree.
 /// </summary>
-public class SymbolDeclaratorVisitor : SyntaxNodeVisitor
+public class SymbolDeclaratorVisitor : SyntaxTreeVisitor
 {
     private WebqlCompilationContext CompilationContext { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SymbolDeclaratorVisitor"/> class.
     /// </summary>
-    /// <param name="compilationContext">The compilation context.</param>
+    /// <param name="compilationContext">The compilation semanticContext.</param>
     public SymbolDeclaratorVisitor(WebqlCompilationContext compilationContext)
     {
         CompilationContext = compilationContext;
@@ -38,12 +38,12 @@ public class SymbolDeclaratorVisitor : SyntaxNodeVisitor
             DeclareRootSymbols(node);
         }
 
-        if (node is WebqlScopeAccessExpression scopeAccessExpression)
+        else if (node is WebqlScopeAccessExpression scopeAccessExpression)
         {
             DeclareScopeAccessSymbols(scopeAccessExpression);
         }
 
-        if (node is WebqlOperationExpression operationExpression)
+        else if (node is WebqlOperationExpression operationExpression)
         {
             DeclareOperationSymbols(operationExpression);
         }
@@ -68,10 +68,12 @@ public class SymbolDeclaratorVisitor : SyntaxNodeVisitor
     /// <param name="scopeAccessExpression">The scope access expression node.</param>
     private void DeclareScopeAccessSymbols(WebqlScopeAccessExpression scopeAccessExpression)
     {
+        var context = scopeAccessExpression.GetSemanticContext();
+        var subContext = scopeAccessExpression.Expression.GetSemanticContext();
         var accessedPropertyName = scopeAccessExpression.Identifier.ToLower();
-        var lhsType = CompilationContext.EntityType;
-        var lhsProperties = lhsType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
+        var lhsType = subContext.GetLeftHandSideType();
+        var lhsProperties = lhsType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
         var accessedProperty = lhsProperties
             .FirstOrDefault(x => x.Name.ToLower() == accessedPropertyName);
 
@@ -79,10 +81,8 @@ public class SymbolDeclaratorVisitor : SyntaxNodeVisitor
         {
             throw new InvalidOperationException("Property not found on type.");
         }
-
-        var context = scopeAccessExpression.Expression.GetSemanticContext();
-
-        context.SetLeftHandSideSymbol(accessedProperty.PropertyType);
+            
+        subContext.SetLeftHandSideSymbol(accessedProperty.PropertyType);
 
         foreach (var property in lhsProperties)
         {
@@ -91,7 +91,7 @@ public class SymbolDeclaratorVisitor : SyntaxNodeVisitor
                 type: property.PropertyType
             );
 
-            context.AddSymbol(symbol);
+            subContext.AddSymbol(symbol);
         }
     }
 
@@ -114,6 +114,12 @@ public class SymbolDeclaratorVisitor : SyntaxNodeVisitor
 
         var context = operationExpression.GetSemanticContext();
         var lhsType = context.GetLeftHandSideType();
+
+        if (lhsType.IsNotQueryable())
+        {
+            throw new SemanticException("Left-hand side type must be a queryable type.", operationExpression);
+        }
+
         var elementType = lhsType.TryGetQueryableElementType();
 
         if (elementType is null)
@@ -121,7 +127,10 @@ public class SymbolDeclaratorVisitor : SyntaxNodeVisitor
             throw new InvalidOperationException("Element type not found.");
         }
 
-        context.SetLeftHandSideSymbol(elementType);
+        foreach (var operand in operationExpression.Operands)
+        {
+            operand.GetSemanticContext().SetLeftHandSideSymbol(elementType);
+        }
     }
 }
 

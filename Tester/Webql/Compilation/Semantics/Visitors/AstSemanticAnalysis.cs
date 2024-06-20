@@ -34,8 +34,8 @@ public class AstSemanticAnalysis : AstSemanticTraverser
     {
         if (symbol is ExpressionSymbol expressionSymbol)
         {
-            var semantic = SemanticAnalyser
-                .AnalyseExpression(Context, expressionSymbol);
+            var semantic = SemanticAnalyzer
+                .AnalyzeExpression(Context, expressionSymbol);
 
             Context.DeclareSymbol(
                 identifier: expressionSymbol.Hash,

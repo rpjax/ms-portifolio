@@ -1,11 +1,11 @@
 ﻿using ModularSystem.Webql.Analysis.Semantics.Helpers;
 using ModularSystem.Webql.Analysis.Symbols;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
-public static class StringRelationalOperatorExpressionAnalyser
+public static class StringRelationalOperatorExpressionAnalyzer
 {
-    public static OperatorExpressionSemantic AnalyseStringRelationalOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeStringRelationalOperatorExpression(
       SemanticContextOld context,
       OperatorExpressionSymbol symbol)
     {
@@ -14,12 +14,12 @@ public static class StringRelationalOperatorExpressionAnalyser
             throw new Exception();
         }
 
-        var leftSemantic = SemanticAnalyser.AnalyseExpression(
+        var leftSemantic = SemanticAnalyzer.AnalyzeExpression(
             context: context.GetSymbolContext(strRelationalExpression.LeftOperand),
             symbol: strRelationalExpression.LeftOperand
         );
 
-        var rightSemantic = SemanticAnalyser.AnalyseExpression(
+        var rightSemantic = SemanticAnalyzer.AnalyzeExpression(
             context: context.GetSymbolContext(strRelationalExpression.RightOperand),
             symbol: strRelationalExpression.RightOperand
         );

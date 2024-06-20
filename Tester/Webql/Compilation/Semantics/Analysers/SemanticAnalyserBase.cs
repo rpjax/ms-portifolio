@@ -1,6 +1,6 @@
-﻿namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+﻿namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
-public abstract class SemanticAnalyserBase
+public abstract class SemanticAnalyzerBase
 {
     
 }

@@ -8,7 +8,7 @@ namespace ModularSystem.Webql.Analysis.DocumentSyntax.Semantics.Components;
 //*
 // The second semantic fix:
 //
-// The visitor job: Recursively analyses statement blocks looking for query or aggregation expressions,
+// The visitor job: Recursively Analyzes statement blocks looking for query or aggregation expressions,
 // where a lambda is accepted as argument.
 // EBNF Ex: filter_expr = destination, query_arg, lambda;
 // If the lambda passed as argument to the expression contains an argument (lambda_arg) with no ExpressionType value set,
@@ -53,7 +53,7 @@ public class LambdaArgumentTypeFixer : FirstSemanticPass
             throw new Exception();
         }
 
-        var sourceSemantic = SemanticAnalyser.AnalyseExpression(Context, source);
+        var sourceSemantic = SemanticAnalyzer.AnalyzeExpression(Context, source);
 
         if(sourceSemantic.IsNotQueryable(Context))
         {

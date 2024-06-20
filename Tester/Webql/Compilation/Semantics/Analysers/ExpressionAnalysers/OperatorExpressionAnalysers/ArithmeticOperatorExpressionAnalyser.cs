@@ -2,11 +2,11 @@
 using ModularSystem.Webql.Analysis.Symbols;
 using System.Numerics;
 
-namespace ModularSystem.Webql.Analysis.Semantics.Analysers;
+namespace ModularSystem.Webql.Analysis.Semantics.Analyzers;
 
-public static class ArithmeticOperatorExpressionAnalyser
+public static class ArithmeticOperatorExpressionAnalyzer
 {
-    public static OperatorExpressionSemantic AnalyseArithmeticOperatorExpression(
+    public static OperatorExpressionSemantic AnalyzeArithmeticOperatorExpression(
         SemanticContextOld context,
         OperatorExpressionSymbol symbol)
     {
@@ -15,12 +15,12 @@ public static class ArithmeticOperatorExpressionAnalyser
             throw new Exception();
         }
 
-        var leftSemantic = SemanticAnalyser.AnalyseExpression(
+        var leftSemantic = SemanticAnalyzer.AnalyzeExpression(
             context: context.GetSymbolContext(arithmeticExpression.LeftOperand), 
             symbol: arithmeticExpression.LeftOperand
         );
 
-        var rightSemantic = SemanticAnalyser.AnalyseExpression(
+        var rightSemantic = SemanticAnalyzer.AnalyzeExpression(
             context: context.GetSymbolContext(arithmeticExpression.RightOperand),
             symbol: arithmeticExpression.RightOperand
         );

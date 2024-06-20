@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Webql.Components;
 using Webql.Parsing.Components;
 using Webql.Parsing.Tools;
 using Webql.Semantics.Components;
@@ -6,40 +6,39 @@ using Webql.Semantics.Extensions;
 
 namespace Webql.Semantics.Tools;
 
-/// <summary>
-/// Represents a visitor for binding semantic context to syntax nodes.
-/// </summary>
-public class ContextBinderVisitor : SyntaxNodeVisitor
+public class ContextBinderAnalyzer : SyntaxTreeAnalyzer
 {
-    private Stack<SemanticContext> ContextStack { get; } = new Stack<SemanticContext>();
+    private WebqlCompilationContext CompilationContext { get; }
+    private Stack<SemanticContext> ContextStack { get; } 
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ContextBinderVisitor"/> class.
-    /// </summary>
-    public ContextBinderVisitor()
+    public ContextBinderAnalyzer(WebqlCompilationContext compilationContext)
     {
-        ContextStack.Push(SemanticContext.CreateRootContext());
+        CompilationContext = compilationContext;
+        ContextStack = new Stack<SemanticContext>();
+
+        //* Push the root context to the stack
+        ContextStack.Push(SemanticContext.CreateRootContext(compilationContext));
     }
 
-    /// <inheritdoc/>
-    [return: NotNullIfNotNull("node")]
-    public override WebqlSyntaxNode? Visit(WebqlSyntaxNode? node)
+    protected override void Analyze(WebqlSyntaxNode? node)
     {
         if (node is null)
         {
-            return null;
+            return;
         }
 
-        var context = node.IsScopeSource()
-            ? ContextStack.Peek().CreateSubContext()
-            : ContextStack.Peek();
+        var localContext = ContextStack.Peek();
+        var childContext = ContextStack.Peek();
 
-        node.AddSemanticContext(context);
+        if (node.IsScopeSource())
+        {
+            childContext = localContext.CreateSubContext();
+        }
 
-        ContextStack.Push(context);
-        node = base.Visit(node);
+        node.AddSemanticContext(localContext);
+
+        ContextStack.Push(childContext);
+        base.Analyze(node);
         ContextStack.Pop();
-
-        return node;
     }
 }

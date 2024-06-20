@@ -59,6 +59,6 @@ public struct TokenMetadata
     /// <returns></returns>
     public override string ToString()
     {
-        return $"line: {Position.Line + 1}, column: {Position.Column + 1} ({Position.StartIndex} - {Position.EndIndex})";
+        return $"line: {Position.Line}, column: {Position.Column} ({Position.StartIndex} - {Position.EndIndex})";
     }
 }

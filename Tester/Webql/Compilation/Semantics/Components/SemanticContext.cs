@@ -1,6 +1,7 @@
 ﻿using Amazon.Runtime.Internal.Transform;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using Webql.Components;
 using Webql.Parsing.Components;
 using Webql.Semantics.Extensions;
 
@@ -39,25 +40,27 @@ public class SemanticContext
         }
     }
 
-    private Guid Id { get; }
+    private WebqlCompilationContext CompilationContext { get; }
     private Dictionary<string, ISymbol> SymbolTable { get; }
     private SemanticContext? ParentContext { get; }
     private CacheObject Cache { get; }
 
     private SemanticContext(
+        WebqlCompilationContext compilationContext,
         Dictionary<string, ISymbol> symbols,
         SemanticContext? parent,
         CacheObject cache)
     {
-        Id = Guid.NewGuid();
+        CompilationContext = compilationContext;
         SymbolTable = symbols.ToDictionary(x => x.Key, x => x.Value);
         ParentContext = parent;
         Cache = cache;
     }
 
-    public static SemanticContext CreateRootContext()
+    public static SemanticContext CreateRootContext(WebqlCompilationContext compilationContext)
     {
         return new SemanticContext(
+            compilationContext: compilationContext,
             symbols: new Dictionary<string, ISymbol>(),
             parent: null,
             cache: new CacheObject()
@@ -67,6 +70,7 @@ public class SemanticContext
     public SemanticContext CreateSubContext()
     {
         return new SemanticContext(
+            compilationContext: CompilationContext,
             symbols: SymbolTable.ToDictionary(x => x.Key, x => x.Value),
             parent: this,
             cache: Cache
@@ -81,6 +85,8 @@ public class SemanticContext
 
     public ISymbol? TryGetSymbol(string identifier)
     {
+        identifier = identifier.ToLower();
+
         if (SymbolTable.TryGetValue(identifier, out var symbol))
         {
             return symbol;
@@ -89,11 +95,26 @@ public class SemanticContext
         return ParentContext?.TryGetSymbol(identifier);
     }
 
+    public ISymbol GetSymbol(string identifier)
+    {
+        return TryGetSymbol(identifier) ?? throw new InvalidOperationException("Symbol not found");
+    }
+
+    public Type? TryGetSymbolType(string identifier)
+    {
+        return TryGetSymbol(identifier)?.Type;
+    }
+
+    public Type GetSymbolType(string identifier)
+    {
+        return GetSymbol(identifier).Type;
+    }
+
     public ISemantics GetSemantics(WebqlSyntaxNode node)
     {
         return TryGetCachedSemantics(node)
             ?? ParentContext?.TryGetCachedSemantics(node) 
-            ?? SemanticAnalyzer.CreateSemantics(node);
+            ?? SemanticAnalyzer.CreateSemantics(CompilationContext, node);
     }
 
     public TSemantics GetSemantics<TSemantics>(WebqlSyntaxNode node) where TSemantics : ISemantics
@@ -105,12 +126,12 @@ public class SemanticContext
             return value;
         }
 
-        throw new InvalidOperationException();
+        throw new InvalidCastException($"Invalid semantics type: {semantics.GetType().Name}");
     }
 
     public void AddSymbol(ISymbol symbol)
     {
-        SymbolTable.Add(symbol.Identifier, symbol);
+        SymbolTable.Add(symbol.Identifier.ToLower(), symbol);
     }
 
     /*
@@ -139,6 +160,7 @@ public class SemanticContext
      * private helper methods
      */
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ISemantics? TryGetCachedSemantics(WebqlSyntaxNode node)
     {
         if (Cache.TryGetEntry(node.GetSemanticIdentifier(), out ISemantics? semantics))
