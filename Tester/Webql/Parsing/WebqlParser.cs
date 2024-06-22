@@ -3,8 +3,7 @@ using ModularSystem.Core.TextAnalysis.Gdef;
 using ModularSystem.Core.TextAnalysis.Parsing;
 using ModularSystem.Core.TextAnalysis.Parsing.Components;
 using ModularSystem.Core.TextAnalysis.Parsing.Tools;
-using Webql.Parsing.Components;
-using Webql.Parsing.Tools;
+using Webql.Parsing.Ast;
 
 namespace Webql.Parsing;
 

@@ -1,6 +1,4 @@
-﻿using ModularSystem.Core.TextAnalysis.Tokenization;
-
-namespace ModularSystem.Core.TextAnalysis.Parsing.Components;
+﻿namespace ModularSystem.Core.TextAnalysis.Parsing.Components;
 
 /// <summary>
 /// Represents the position of a syntatical element in the source code.

@@ -6,11 +6,11 @@ using ModularSystem.Core.TextAnalysis.Grammars;
 using ModularSystem.Core.TextAnalysis.Parsing;
 using ModularSystem.Core.TextAnalysis.Parsing.Extensions;
 using ModularSystem.Core.TextAnalysis.Parsing.Components;
-using Webql.Components;
 using Webql.Parsing;
 using Webql.Semantics;
-using Webql.Semantics.Components;
 using Webql.Semantics.Extensions;
+using Webql.Core;
+using Webql;
 
 namespace ModularSystem.Tester;
 
@@ -80,35 +80,24 @@ public static class Program
 {
     public static void Main()
     {
-        var query = @"
-        { 
-            $filter: { 
-                isActive: true,
-                nickname: { $like: 'jacques' },
-                balance: { $greater: 59 }
-            } 
-        }";
-
-        var foo = WebqlParser.ParseToAst(query);
-        var ast = WebqlParser.ParseToAst("{ $filter: { nickname: { $filter: 'jacques' } } }");
-
-        var settings = new WebqlCompilationSettings(
+        var settings = new WebqlCompilerSettings(
             queryableType: typeof(IQueryable<>),
             entityType: typeof(TestUser)
         );
 
-        var context = new WebqlCompilationContext(
-            settings: settings
-        );
+        var compiler = new WebqlCompiler(settings);
 
-        SemanticAnalyzer.ExecuteAnalysisPipeline(context, ast);
-
-        var semantics = ast.GetSemantics();
-
-        /*
-         * NOTES:
-         * The next step is to implement the semantic analysis for the AST. Good night!
-         */
+        var query = @"
+        { 
+            $filter: { 
+                //isActive: true,
+                nickname: { $like: 'jacques' },
+                balance: { $greater: 59 },
+                balance: { $equals: null }
+            } 
+        }";
+        
+        var expression = compiler.Translate(query);
 
         return;
     }
