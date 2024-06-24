@@ -2,7 +2,6 @@
 using ModularSystem.Core.TextAnalysis.Parsing.Extensions;
 using ModularSystem.Core.TextAnalysis.Tokenization;
 using ModularSystem.Core.TextAnalysis.Tokenization.Extensions;
-using Webql.Parsing.Components;
 
 namespace Webql.Parsing.Ast;
 

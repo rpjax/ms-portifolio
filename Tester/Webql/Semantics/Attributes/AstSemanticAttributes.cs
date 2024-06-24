@@ -1,8 +1,8 @@
 ﻿namespace Webql.Semantics.Attributes;
 
-public static class SemanticContextAttributes
+public static class AstSemanticAttributes
 {
     public const string ContextAttribute = "semantic_context";
     public const string SemanticsAttribute = "semantics";
-    public const string ScopeSourceAttribute = "scope_cource";
+    public const string ScopeSourceAttribute = "scope_source";
 }

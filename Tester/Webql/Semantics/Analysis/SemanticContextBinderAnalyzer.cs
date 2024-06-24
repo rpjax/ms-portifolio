@@ -6,11 +6,11 @@ using Webql.Semantics.Extensions;
 
 namespace Webql.Semantics.Analysis;
 
-public class ContextBinderAnalyzer : SyntaxTreeAnalyzer
+public class SemanticContextBinderAnalyzer : SyntaxTreeAnalyzer
 {
     private Stack<SemanticContext> ContextStack { get; } 
 
-    public ContextBinderAnalyzer(SemanticContext context)
+    public SemanticContextBinderAnalyzer(SemanticContext context)
     {
         ContextStack = new Stack<SemanticContext>();
 

@@ -1,5 +1,4 @@
-﻿using Webql.Parsing.Components;
-using Webql.Semantics.Extensions;
+﻿using Webql.Semantics.Extensions;
 using Webql.Parsing.Ast;
 using Webql.Semantics.Definitions;
 using Webql.Core;
@@ -18,7 +17,7 @@ public static class SemanticAnalyzer
 
     public static void AnnotateTree(SemanticContext context, WebqlSyntaxNode node)
     {
-        new ContextBinderAnalyzer(context)
+        new SemanticContextBinderAnalyzer(context)
             .ExecuteAnalysis(node);
     }
 

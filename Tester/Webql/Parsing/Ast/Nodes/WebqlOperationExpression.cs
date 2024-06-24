@@ -24,7 +24,7 @@ public class WebqlOperationExpression : WebqlExpression
         Metadata = metadata;
         Attributes = attributes ?? new Dictionary<string, object>();
 
-        Attributes.TryAdd(SemanticContextAttributes.ScopeSourceAttribute, new object());
+        Attributes.TryAdd(AstSemanticAttributes.ScopeSourceAttribute, new object());
     }
 
     public override WebqlSyntaxNode Accept(SyntaxTreeVisitor visitor)

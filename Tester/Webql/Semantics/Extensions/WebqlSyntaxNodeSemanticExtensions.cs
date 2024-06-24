@@ -10,16 +10,6 @@ namespace Webql.Semantics.Extensions;
 /// </summary>
 public static class WebqlSyntaxNodeSemanticExtensions
 {
-    public static T As<T>(this WebqlSyntaxNode node) where T : WebqlSyntaxNode
-    {
-        if(node is T t)
-        {
-            return t;
-        }
-
-        throw new InvalidOperationException("Attempted to cast a node to an incompatible type during semantic analysis.");
-    }
-
     public static string GetSemanticIdentifier(this WebqlSyntaxNode node)
     {
         return "not implemented yet";
@@ -27,17 +17,17 @@ public static class WebqlSyntaxNodeSemanticExtensions
 
     public static bool HasSemanticContext(this WebqlSyntaxNode node)
     {
-        return node.HasAttribute(SemanticContextAttributes.ContextAttribute);
+        return node.HasAttribute(AstSemanticAttributes.ContextAttribute);
     }
 
     public static bool HasSemantics(this WebqlSyntaxNode node)
     {
-        return node.HasAttribute(SemanticContextAttributes.SemanticsAttribute);
+        return node.HasAttribute(AstSemanticAttributes.SemanticsAttribute);
     }
 
     public static bool IsScopeSource(this WebqlSyntaxNode node)
     {
-        return node.HasAttribute(SemanticContextAttributes.ScopeSourceAttribute);
+        return node.HasAttribute(AstSemanticAttributes.ScopeSourceAttribute);
     }
 
     public static bool IsRoot(this WebqlSyntaxNode node)
@@ -47,7 +37,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
 
     public static SemanticContext GetSemanticContext(this WebqlSyntaxNode node)
     {
-        var attribute = node.TryGetAttribute<SemanticContext>(SemanticContextAttributes.ContextAttribute);
+        var attribute = node.TryGetAttribute<SemanticContext>(AstSemanticAttributes.ContextAttribute);
 
         if (attribute is null)
         {
@@ -64,7 +54,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
             return node.GetSemanticContext().GetSemantics(node);
         }
 
-        var attribute = node.TryGetAttribute<ISemantics>(SemanticContextAttributes.SemanticsAttribute);
+        var attribute = node.TryGetAttribute<ISemantics>(AstSemanticAttributes.SemanticsAttribute);
 
         if (attribute is null)
         {
@@ -81,7 +71,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
             return node.GetSemanticContext().GetSemantics<TSemantics>(node);
         }
 
-        var attribute = node.TryGetAttribute<TSemantics>(SemanticContextAttributes.SemanticsAttribute);
+        var attribute = node.TryGetAttribute<TSemantics>(AstSemanticAttributes.SemanticsAttribute);
 
         if (attribute is null)
         {
@@ -93,11 +83,11 @@ public static class WebqlSyntaxNodeSemanticExtensions
 
     public static void AddSemanticContext(this WebqlSyntaxNode node, SemanticContext context)
     {
-        node.AddAttribute(SemanticContextAttributes.ContextAttribute, context);
+        node.AddAttribute(AstSemanticAttributes.ContextAttribute, context);
     }
 
     public static void AddSemantics(this WebqlSyntaxNode node, ISemantics semantics)
     {
-        node.AddAttribute(SemanticContextAttributes.SemanticsAttribute, semantics);
+        node.AddAttribute(AstSemanticAttributes.SemanticsAttribute, semantics);
     }
 }

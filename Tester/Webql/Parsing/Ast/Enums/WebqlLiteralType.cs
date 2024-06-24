@@ -1,4 +1,4 @@
-﻿namespace Webql.Parsing.Components;
+﻿namespace Webql.Parsing.Ast;
 
 public enum WebqlLiteralType
 {

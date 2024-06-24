@@ -1,7 +1,6 @@
 ﻿using Webql.Parsing.Analysis;
-using Webql.Parsing.Ast;
 
-namespace Webql.Parsing.Components;
+namespace Webql.Parsing.Ast;
 
 public class WebqlLiteralExpression : WebqlExpression
 {

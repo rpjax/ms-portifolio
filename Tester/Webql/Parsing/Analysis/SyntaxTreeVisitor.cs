@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Webql.Parsing.Ast;
-using Webql.Parsing.Components;
 
 namespace Webql.Parsing.Analysis;
 

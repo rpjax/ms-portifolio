@@ -11,7 +11,7 @@ namespace Webql.Semantics.Analysis;
 
 public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
 {
-    private SemanticContext SemanticContext { get; }
+    private SemanticContext SemanticContext { get; }    
 
     public TypeValidatorAnalyzer(SemanticContext context)
     {
