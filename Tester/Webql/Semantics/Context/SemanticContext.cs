@@ -88,7 +88,7 @@ public class SemanticContext
 
     public ISymbol? TryGetSymbol(string identifier)
     {
-        identifier = identifier.ToLower();
+        identifier = IdentifierHelper.NormalizeIdentifier(identifier);
 
         if (SymbolTable.TryGetValue(identifier, out var symbol))
         {
@@ -134,7 +134,7 @@ public class SemanticContext
 
     public void AddSymbol(ISymbol symbol)
     {
-        SymbolTable.Add(symbol.Identifier.ToLower(), symbol);
+        SymbolTable.Add(IdentifierHelper.NormalizeIdentifier(symbol.Identifier), symbol);
     }
 
     /*

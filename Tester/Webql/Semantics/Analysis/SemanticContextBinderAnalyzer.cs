@@ -1,15 +1,21 @@
-﻿using Webql.Core;
-using Webql.Parsing.Analysis;
+﻿using Webql.Parsing.Analysis;
 using Webql.Parsing.Ast;
 using Webql.Semantics.Context;
 using Webql.Semantics.Extensions;
 
 namespace Webql.Semantics.Analysis;
 
+/// <summary>
+/// Represents a semantic context binder analyzer.
+/// </summary>
 public class SemanticContextBinderAnalyzer : SyntaxTreeAnalyzer
 {
-    private Stack<SemanticContext> ContextStack { get; } 
+    private Stack<SemanticContext> ContextStack { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SemanticContextBinderAnalyzer"/> class.
+    /// </summary>
+    /// <param name="context">The semantic context.</param>
     public SemanticContextBinderAnalyzer(SemanticContext context)
     {
         ContextStack = new Stack<SemanticContext>();
@@ -18,6 +24,10 @@ public class SemanticContextBinderAnalyzer : SyntaxTreeAnalyzer
         ContextStack.Push(context);
     }
 
+    /// <summary>
+    /// Analyzes the given syntax tree node.
+    /// </summary>
+    /// <param name="node">The syntax tree node to analyze.</param>
     protected override void Analyze(WebqlSyntaxNode? node)
     {
         if (node is null)

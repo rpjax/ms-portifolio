@@ -75,7 +75,7 @@ public static class SemanticTypeExtensions
             throw new InvalidOperationException("The type does not have an element type.");
         }
 
-        return type;
+        return elementType;
     }
 }
 

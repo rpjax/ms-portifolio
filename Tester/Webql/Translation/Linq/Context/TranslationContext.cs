@@ -78,6 +78,16 @@ public class TranslationContext
         throw new InvalidOperationException($"Symbol '{identifier}' is not of type '{typeof(T).Name}'.");
     }
 
+    public void AddExpression(string identifier, Expression expression)
+    {
+        if (SymbolTable.ContainsKey(identifier))
+        {
+            throw new InvalidOperationException($"Symbol '{identifier}' already exists.");
+        }
+
+        SymbolTable[IdentifierHelper.NormalizeIdentifier(identifier)] = expression;
+    }
+
     /*
      * LHS expression
      */

@@ -23,8 +23,8 @@ public static class SemanticAnalyzer
 
     public static void DeclareSymbols(SemanticContext context, WebqlSyntaxNode node)
     {
-        new SymbolDeclaratorVisitor(context)    
-            .Visit(node);
+        new SymbolDeclaratorAnalyzer(context)    
+            .ExecuteAnalysis(node);
     }
 
     public static void ValidateTypes(SemanticContext context, WebqlSyntaxNode node)

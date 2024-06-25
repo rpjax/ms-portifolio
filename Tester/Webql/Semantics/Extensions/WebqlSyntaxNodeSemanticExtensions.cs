@@ -2,6 +2,7 @@
 using Webql.Semantics.Attributes;
 using Webql.Semantics.Context;
 using Webql.Semantics.Definitions;
+using Webql.Semantics.Exceptions;
 
 namespace Webql.Semantics.Extensions;
 
@@ -90,4 +91,38 @@ public static class WebqlSyntaxNodeSemanticExtensions
     {
         node.AddAttribute(AstSemanticAttributes.SemanticsAttribute, semantics);
     }
+
+    /*
+     * Exceptions extensions
+     */
+
+    public static SemanticException CreateOperatorIncompatibleTypeException(
+    this WebqlSyntaxNode node,
+    Type leftType,
+    Type rightType)
+    {
+        return new SemanticException($@"
+Error: Operator Incompatible Type Exception
+
+Description:
+The operation you are attempting to perform involves incompatible types.
+This error occurs when the types of the operands do not match the expected types
+for the operation being executed. Specifically, the operator cannot be applied to 
+operands of the given types.
+
+For example, attempting to add a string to an integer or comparing a boolean 
+with a string will result in this exception.
+
+Details:
+- Left Operand Type: {leftType.FullName}
+- Right Operand Type: {rightType.FullName}
+
+Resolution:
+Ensure that the operands used in the operation are of compatible types. 
+Refer to the documentation or type specifications for the expected operand types 
+for the operator being used.
+", node);
+    }
+
+
 }

@@ -18,6 +18,15 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
         SemanticContext = context;    
     }
 
+    /*
+     * TODO: Implement specific analysis for each operator category. For example:
+     * - Arithmetic operands must be some numeric type.
+     * - Relational operands must be of the same type.
+     * - String relational operands must be of type string. (regex and a string, `[a-z]+` and "hello")
+     * - Logical operands must be of type bool.
+     * - etc...
+     */
+
     protected override void AnalyzeOperationExpression(WebqlOperationExpression expression)
     {
         /*
@@ -28,19 +37,10 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
         switch (expression.GetOperatorCategory())
         {
             case WebqlOperatorCategory.Arithmetic:
-                AnalyzeArithmeticExpression(expression);
-                return;
-
             case WebqlOperatorCategory.Relational:
-                AnalyzeRelationalExpression(expression);
-                return;
-
             case WebqlOperatorCategory.StringRelational:
-                AnalyzeStringRelationalExpression(expression);
-                return;
-
             case WebqlOperatorCategory.Logical:
-                AnalyzeLogicalExpression(expression);
+                AnalyzeBinaryExpression(expression);
                 return;
 
             case WebqlOperatorCategory.Semantic:
@@ -60,6 +60,23 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
         }
     }
 
+    private void AnalyzeBinaryExpression(WebqlOperationExpression expression)
+    {
+        if (expression.Operands.Length != 1)
+        {
+            throw new SemanticException("Invalid number of operands.", expression);
+        }
+
+        var context = expression.GetSemanticContext();
+        var lhsSemantics = context.GetLeftHandSideSymbol();
+        var rhsSemantics = expression.Operands[1].GetSemantics<IExpressionSemantics>();
+
+        if (!SemanticsTypeHelper.TypesAreCompatible(lhsSemantics.Type, rhsSemantics.Type))
+        {
+            throw expression.CreateOperatorIncompatibleTypeException(lhsSemantics.Type, rhsSemantics.Type);
+        }
+    }
+
     private void AnalyzeArithmeticExpression(WebqlOperationExpression expression)
     {
         if (expression.Operands.Length != 1)
@@ -71,9 +88,9 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
         var lhsSemantics = context.GetLeftHandSideSymbol();
         var rhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
 
-        if (lhsSemantics.Type != rhsSemantics.Type)
-        {
-            throw new SemanticException($"Type mismatch: {lhsSemantics.Type} != {rhsSemantics.Type}.", expression);
+        if (!SemanticsTypeHelper.TypesAreCompatible(lhsSemantics.Type, rhsSemantics.Type))
+        {          
+            throw expression.CreateOperatorIncompatibleTypeException(lhsSemantics.Type, rhsSemantics.Type);
         }
     }
 
