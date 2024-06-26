@@ -1,28 +1,21 @@
-﻿using Webql.Parsing.Analysis;
-
-namespace Webql.Parsing.Ast;
+﻿namespace Webql.Parsing.Ast;
 
 public class WebqlBlockExpression : WebqlExpression
 {
     public override WebqlSyntaxNodeMetadata Metadata { get; }
+    public override Dictionary<string, object> Attributes { get; }
     public override WebqlExpressionType ExpressionType { get; }
     public WebqlExpression[] Expressions { get; }
 
-    protected override Dictionary<string, object> Attributes { get; }
-
     public WebqlBlockExpression(
-        IEnumerable<WebqlExpression> expressions, 
         WebqlSyntaxNodeMetadata metadata,
-        Dictionary<string, object>? attributes = null)
+        Dictionary<string, object>? attributes,
+        IEnumerable<WebqlExpression> expressions) 
     {
-        ExpressionType = WebqlExpressionType.Block;
-        Expressions = expressions.ToArray();
         Metadata = metadata;
         Attributes = attributes ?? new Dictionary<string, object>();
+        ExpressionType = WebqlExpressionType.Block;
+        Expressions = expressions.ToArray();
     }
 
-    public override WebqlSyntaxNode Accept(SyntaxTreeVisitor visitor)
-    {
-        return visitor.VisitBlockExpression(this);
-    }
 }

@@ -1,34 +1,28 @@
-﻿using Webql.Parsing.Analysis;
-using Webql.Semantics.Attributes;
+﻿using Webql.Semantics.Attributes;
 
 namespace Webql.Parsing.Ast;
 
 public class WebqlOperationExpression : WebqlExpression
 {
     public override WebqlSyntaxNodeMetadata Metadata { get; }
+    public override Dictionary<string, object> Attributes { get; }
     public override WebqlExpressionType ExpressionType { get; }
     public WebqlOperatorType Operator { get; }
     public WebqlExpression[] Operands { get; }
 
-    protected override Dictionary<string, object> Attributes { get; }
-
     public WebqlOperationExpression(
-        WebqlOperatorType @operator, 
-        WebqlExpression[] operands, 
         WebqlSyntaxNodeMetadata metadata,
-        Dictionary<string, object>? attributes = null)
+        Dictionary<string, object>? attributes,
+        WebqlOperatorType @operator, 
+        IEnumerable<WebqlExpression> operands)
     {
-        ExpressionType = WebqlExpressionType.Operation; 
-        Operator = @operator;
-        Operands = operands;
         Metadata = metadata;
         Attributes = attributes ?? new Dictionary<string, object>();
+        ExpressionType = WebqlExpressionType.Operation; 
+        Operator = @operator;
+        Operands = operands.ToArray();
 
         Attributes.TryAdd(AstSemanticAttributes.ScopeSourceAttribute, new object());
     }
 
-    public override WebqlSyntaxNode Accept(SyntaxTreeVisitor visitor)
-    {
-        return visitor.VisitOperationExpression(this);
-    }
 }

@@ -1,4 +1,6 @@
-﻿namespace Webql.Parsing.Ast;
+﻿using Webql.Parsing.Analysis;
+
+namespace Webql.Parsing.Ast;
 
 public abstract class WebqlExpression : WebqlSyntaxNode
 {
@@ -8,6 +10,11 @@ public abstract class WebqlExpression : WebqlSyntaxNode
     public WebqlExpression()
     {
         NodeType = WebqlNodeType.Expression;
+    }
+
+    public override WebqlSyntaxNode Accept(SyntaxTreeVisitor visitor)
+    {
+        return visitor.VisitExpression(this);
     }
 }
 

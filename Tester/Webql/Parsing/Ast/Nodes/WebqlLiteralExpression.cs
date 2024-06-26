@@ -1,32 +1,25 @@
-﻿using Webql.Parsing.Analysis;
-
-namespace Webql.Parsing.Ast;
+﻿namespace Webql.Parsing.Ast;
 
 public class WebqlLiteralExpression : WebqlExpression
 {
     public override WebqlSyntaxNodeMetadata Metadata { get; }
+    public override Dictionary<string, object> Attributes { get; }
     public override WebqlExpressionType ExpressionType { get; }
     public WebqlLiteralType LiteralType { get; }
     public string Value { get; }
 
-    protected override Dictionary<string, object> Attributes { get; }
-
     public WebqlLiteralExpression(
-        WebqlLiteralType literalType, 
-        string value, 
         WebqlSyntaxNodeMetadata metadata, 
-        Dictionary<string, object>? attributes = null)
+        Dictionary<string, object>? attributes,
+        WebqlLiteralType literalType, 
+        string value) 
     {
+        Metadata = metadata;
+        Attributes = attributes ?? new Dictionary<string, object>();
         ExpressionType = WebqlExpressionType.Literal;
         LiteralType = literalType;
         Value = value;
-        Metadata = metadata;
-        Attributes = attributes ?? new Dictionary<string, object>();
     }
 
-    public override WebqlSyntaxNode Accept(SyntaxTreeVisitor visitor)
-    {
-        return visitor.VisitLiteralExpression(this);
-    }
 }
 

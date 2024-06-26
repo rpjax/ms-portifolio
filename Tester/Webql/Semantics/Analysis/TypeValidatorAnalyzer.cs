@@ -62,15 +62,17 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
 
     private void AnalyzeBinaryExpression(WebqlOperationExpression expression)
     {
-        if (expression.Operands.Length != 1)
+        if (expression.Operands.Length != 2)
         {
             throw new SemanticException("Invalid number of operands.", expression);
         }
 
         var context = expression.GetSemanticContext();
-        var lhsSemantics = context.GetLeftHandSideSymbol();
+        //var lhsSemantics = context.GetLeftHandSideSymbol();
+        //var rhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
+        var lhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
         var rhsSemantics = expression.Operands[1].GetSemantics<IExpressionSemantics>();
-
+            
         if (!SemanticsTypeHelper.TypesAreCompatible(lhsSemantics.Type, rhsSemantics.Type))
         {
             throw expression.CreateOperatorIncompatibleTypeException(lhsSemantics.Type, rhsSemantics.Type);

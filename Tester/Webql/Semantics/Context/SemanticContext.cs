@@ -11,7 +11,7 @@ namespace Webql.Semantics.Context;
 
 public class SemanticContext
 {
-    const string LeftHandSideId = "<lhs>";
+    public const string LeftHandSideId = "<lhs>";
 
     public WebqlCompilationContext CompilationContext { get; }
 

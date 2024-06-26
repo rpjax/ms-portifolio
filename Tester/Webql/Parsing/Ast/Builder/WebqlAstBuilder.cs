@@ -24,14 +24,16 @@ public static class WebqlAstBuilder
         if (node.Children.Length == 0)
         {
             return new WebqlQuery(
-                expression: null, 
-                metadata: TranslateNodeMetadata(node)
+                metadata: TranslateNodeMetadata(node),
+                attributes: null,
+                expression: null
             );
         }
 
         return new WebqlQuery(
-            expression: TranslateExpression(node.Children[0].AsInternal()), 
-            metadata: TranslateNodeMetadata(node)
+            metadata: TranslateNodeMetadata(node),
+            attributes: null,
+            expression: TranslateExpression(node.Children[0].AsInternal())
         );
     }
 
@@ -91,27 +93,61 @@ public static class WebqlAstBuilder
                 switch (identifier)
                 {
                     case "null":
-                        return new WebqlLiteralExpression(WebqlLiteralType.Null, identifier, metadata);
+                        return new WebqlLiteralExpression(
+                            metadata: metadata,
+                            attributes: null,
+                            literalType: WebqlLiteralType.Null,
+                            value: identifier
+                        );
 
                     case "true":
                     case "false":
-                        return new WebqlLiteralExpression(WebqlLiteralType.Bool, identifier, metadata);
+                        return new WebqlLiteralExpression(
+                            metadata: metadata,
+                            attributes: null,
+                            literalType: WebqlLiteralType.Bool,
+                            value: identifier
+                        );
 
                     default:
-                        return new WebqlReferenceExpression(identifier, metadata);
+                        return new WebqlReferenceExpression(
+                            metadata: metadata,
+                            attributes: null,
+                            identifier: identifier
+                        );
                 }
 
             case TokenType.String:
-                return new WebqlLiteralExpression(WebqlLiteralType.String, leaf.Token.GetNormalizedStringValue(), metadata);
+                return new WebqlLiteralExpression(
+                    metadata: metadata,
+                    attributes: null,
+                    literalType: WebqlLiteralType.String,
+                    value: leaf.Token.GetNormalizedStringValue()
+                );
 
             case TokenType.Integer:
-                return new WebqlLiteralExpression(WebqlLiteralType.Int, leaf.Token.Value.ToString(), metadata);
+                return new WebqlLiteralExpression(
+                    metadata: metadata,
+                    attributes: null,
+                    literalType: WebqlLiteralType.Int,
+                    value: leaf.Token.Value.ToString()
+                );
 
             case TokenType.Float:
-                return new WebqlLiteralExpression(WebqlLiteralType.Float, leaf.Token.Value.ToString(), metadata);
+                return new WebqlLiteralExpression(
+                    metadata: metadata,
+                    attributes: null,
+                    literalType: WebqlLiteralType.Float,
+                    value: leaf.Token.Value.ToString()
+                );
 
             case TokenType.Hexadecimal:
-                return new WebqlLiteralExpression(WebqlLiteralType.Hex, leaf.Token.Value.ToString(), metadata);
+                return new WebqlLiteralExpression(
+                    metadata: metadata,
+                    attributes: null,
+                    literalType: WebqlLiteralType.Hex,
+                    value: leaf.Token.Value.ToString()
+                );
 
             default:
                 throw new InvalidOperationException();
@@ -150,7 +186,11 @@ public static class WebqlAstBuilder
             throw new Exception("Invalid scope access expression");
         }
 
-        return new WebqlReferenceExpression(identifier, TranslateNodeMetadata(leaf));
+        return new WebqlReferenceExpression(
+            metadata: TranslateNodeMetadata(leaf),
+            attributes: null,
+            identifier: identifier
+        );
     }
 
     /// <summary>
@@ -168,7 +208,12 @@ public static class WebqlAstBuilder
         var reference = TranslateReferenceExpression(node.Children[0].AsInternal());
         var expression = TranslateExpression(node.Children[2].AsInternal());
 
-        return new WebqlScopeAccessExpression(reference.Identifier, expression, TranslateNodeMetadata(node));
+        return new WebqlScopeAccessExpression(
+            metadata: TranslateNodeMetadata(node),
+            attributes: null,
+            identifier: reference.Identifier,
+            expression: expression
+        );
     }
 
     /// <summary>
@@ -191,7 +236,11 @@ public static class WebqlAstBuilder
             expressions.Add(TranslateExpression(child.AsInternal()));
         }
 
-        return new WebqlBlockExpression(expressions, TranslateNodeMetadata(node));
+        return new WebqlBlockExpression(
+            metadata: TranslateNodeMetadata(node),
+            attributes: null,
+            expressions: expressions
+        );
     }
 
     /// <summary>
@@ -210,7 +259,12 @@ public static class WebqlAstBuilder
         var expression = TranslateExpression(node.Children[2].AsInternal());
         var expressionArray = new WebqlExpression[] { expression };
 
-        return new WebqlOperationExpression(@operator, expressionArray, TranslateNodeMetadata(node));
+        return new WebqlOperationExpression(
+            metadata: TranslateNodeMetadata(node),
+            attributes: null,
+            @operator: @operator,
+            operands: expressionArray
+        );
     }
 
     /// <summary>
@@ -240,7 +294,7 @@ public static class WebqlAstBuilder
     private static WebqlSyntaxNodeMetadata TranslateNodeMetadata(CstNode node)
     {
         return new WebqlSyntaxNodeMetadata(
-            startPosition: node.Metadata.StartPosition,   
+            startPosition: node.Metadata.StartPosition,
             endPosition: node.Metadata.EndPosition
         );
     }

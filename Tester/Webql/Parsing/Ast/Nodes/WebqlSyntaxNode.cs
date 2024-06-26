@@ -16,12 +16,12 @@ public abstract class WebqlSyntaxNode
     /// <summary>
     /// Gets the syntax metadata associated with the node.
     /// </summary>
-    public abstract WebqlSyntaxNodeMetadata Metadata { get; }   
+    public abstract WebqlSyntaxNodeMetadata Metadata { get; }
 
     /// <summary>
     /// Gets the attributes associated with the node.
     /// </summary>
-    protected abstract Dictionary<string, object> Attributes { get; }
+    public abstract Dictionary<string, object> Attributes { get; }
 
     public WebqlSyntaxNode()
     {

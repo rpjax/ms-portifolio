@@ -1,7 +1,5 @@
 ﻿using System.Linq.Expressions;
 using Webql.Parsing.Ast;
-using Webql.Semantics.Extensions;
-using Webql.Translation.Linq.Context;
 using Webql.Translation.Linq.Exceptions;
 using Webql.Translation.Linq.Extensions;
 
@@ -9,29 +7,24 @@ namespace Webql.Translation.Linq.Translators;
 
 public static class QueryTranslator
 {
-    public static Expression TranslateQuery(TranslationContext context, WebqlQuery node)
+    public static Expression TranslateQuery(WebqlQuery node)
     {
         /*
          * Outputs a lambda expression that executes the query.
          */
-        var semanticContext = node.GetSemanticContext();
-        var lhsSemantics = semanticContext.GetLeftHandSideSymbol();
-
         var translationContext = node.GetTranslationContext();
 
-        var parameterType = lhsSemantics.Type;
-        var parameterName = lhsSemantics.Identifier;
-        var parameter = Expression.Parameter(parameterType, parameterName);
-        parameter = translationContext.GetLeftHandSideExpression<ParameterExpression>(); 
-
-        if (node.Expression is null)
+        if(node.Expression == null)
         {
-            throw new TranslationException("Query expression is null.", context);
+            throw new TranslationException("Query must have an expression", node);
         }
 
-        var body = ExpressionTranslator.TranslateExpression(context, node.Expression);
+        var parameterExpression = translationContext.GetLeftHandSideExpression<ParameterExpression>();
+        var bodyExpression = SyntaxNodeTranslator.TranslateNode(node.Expression);
 
-        throw new NotImplementedException();
+        var lambdaExpression = Expression.Lambda(bodyExpression, parameterExpression);
+
+        return lambdaExpression;
     }
 }
 

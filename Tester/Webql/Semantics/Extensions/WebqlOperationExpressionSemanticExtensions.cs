@@ -70,4 +70,13 @@ public static class WebqlOperationExpressionSemanticExtensions
         return expression.GetWebqlOperatorArity() == WebqlOperatorArity.Ternary;
     }
 
+    public static bool IsLinqQueryableMethodCallOperator(this WebqlOperationExpression expression)
+    {
+        var operatorCategory = expression.GetOperatorCategory();
+
+        return false
+            || operatorCategory == WebqlOperatorCategory.CollectionManipulation
+            || operatorCategory == WebqlOperatorCategory.CollectionAggregation;
+    }
+
 }

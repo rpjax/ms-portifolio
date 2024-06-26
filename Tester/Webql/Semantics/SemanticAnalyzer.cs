@@ -10,9 +10,17 @@ public static class SemanticAnalyzer
 {
     public static void ExecuteAnalysisPipeline(SemanticContext context, WebqlSyntaxNode node)
     {
+        node = RewriteTree(context, node);
+
         AnnotateTree(context, node);
         DeclareSymbols(context, node);
         ValidateTypes(context, node);
+    }
+
+    public static WebqlSyntaxNode RewriteTree(SemanticContext context, WebqlSyntaxNode node)
+    {
+        return new DocumentSyntaxTreeRewriter()
+            .ExecuteRewrite(node);
     }
 
     public static void AnnotateTree(SemanticContext context, WebqlSyntaxNode node)

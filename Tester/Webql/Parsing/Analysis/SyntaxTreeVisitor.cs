@@ -22,86 +22,118 @@ public class SyntaxTreeVisitor
     }
 
     /// <summary>
-    /// Visits the specified query.
+    /// Visits the specified node.
     /// </summary>
-    /// <param name="query">The query to visit.</param>
-    /// <returns>The visited query.</returns>
-    public virtual WebqlQuery VisitQuery(WebqlQuery query)
+    /// <param name="node">The node to visit.</param>
+    /// <returns>The visited node.</returns>
+    public virtual WebqlQuery VisitQuery(WebqlQuery node)
     {
-        Visit(query.Expression);
-        return query;
+        Visit(node.Expression);
+        return node;
+    }
+
+    /// <summary>
+    /// Visits the specified node.
+    /// </summary>
+    /// <param name="node"></param>
+    /// <returns></returns>
+    public virtual WebqlExpression VisitExpression(WebqlExpression node)
+    {
+        switch (node.ExpressionType)
+        {
+            case WebqlExpressionType.Literal:
+                return VisitLiteralExpression((WebqlLiteralExpression)node);
+
+            case WebqlExpressionType.Reference:
+                return VisitReferenceExpression((WebqlReferenceExpression)node);
+
+            case WebqlExpressionType.ScopeAccess:
+                return VisitScopeAccessExpression((WebqlScopeAccessExpression)node);
+
+            case WebqlExpressionType.TemporaryDeclaration:
+                return VisitTemporaryDeclarationExpression((WebqlTemporaryDeclarationExpression)node);
+
+            case WebqlExpressionType.Block:
+                return VisitBlockExpression((WebqlBlockExpression)node);
+
+            case WebqlExpressionType.Operation:
+                return VisitOperationExpression((WebqlOperationExpression)node);
+
+            default:
+                throw new InvalidOperationException("Invalid node type.");
+        }
     }
 
     /// <summary>
     /// Visits the specified literal operand.
     /// </summary>
-    /// <param name="literalExpression">The literal operand to visit.</param>
+    /// <param name="node">The literal operand to visit.</param>
     /// <returns>The visited literal operand.</returns>
-    public virtual WebqlExpression VisitLiteralExpression(WebqlLiteralExpression literalExpression)
+    public virtual WebqlExpression VisitLiteralExpression(WebqlLiteralExpression node)
     {
-        return literalExpression;
+        return node;
     }
 
     /// <summary>
     /// Visits the specified reference operand.
     /// </summary>
-    /// <param name="referenceExpression">The reference operand to visit.</param>
+    /// <param name="node">The reference operand to visit.</param>
     /// <returns>The visited reference operand.</returns>
-    public virtual WebqlExpression VisitReferenceExpression(WebqlReferenceExpression referenceExpression)
+    public virtual WebqlExpression VisitReferenceExpression(WebqlReferenceExpression node)
     {
-        return referenceExpression;
+        return node;
     }
 
     /// <summary>
     /// Visits the specified scope access operand.
     /// </summary>
-    /// <param name="scopeAccessExpression">The scope access operand to visit.</param>
+    /// <param name="node">The scope access operand to visit.</param>
     /// <returns>The visited scope access operand.</returns>
-    public virtual WebqlExpression VisitScopeAccessExpression(WebqlScopeAccessExpression scopeAccessExpression)
+    public virtual WebqlExpression VisitScopeAccessExpression(WebqlScopeAccessExpression node)
     {
-        Visit(scopeAccessExpression.Expression);
-        return scopeAccessExpression;
+        Visit(node.Expression);
+        return node;
     }
 
     /// <summary>
     /// Visits the specified temporary declaration operand.
     /// </summary>
-    /// <param name="temporaryDeclarationExpression">The temporary declaration operand to visit.</param>
+    /// <param name="node">The temporary declaration operand to visit.</param>
     /// <returns>The visited temporary declaration operand.</returns>
-    public virtual WebqlExpression VisitTemporaryDeclarationExpression(WebqlTemporaryDeclarationExpression temporaryDeclarationExpression)
+    public virtual WebqlExpression VisitTemporaryDeclarationExpression(WebqlTemporaryDeclarationExpression node)
     {
-        Visit(temporaryDeclarationExpression.Value);
-        return temporaryDeclarationExpression;
+        Visit(node.Value);
+        return node;
     }
 
     /// <summary>
     /// Visits the specified block operand.
     /// </summary>
-    /// <param name="blockExpression">The block operand to visit.</param>
+    /// <param name="node">The block operand to visit.</param>
     /// <returns>The visited block operand.</returns>
-    public virtual WebqlExpression VisitBlockExpression(WebqlBlockExpression blockExpression)
+    public virtual WebqlExpression VisitBlockExpression(WebqlBlockExpression node)
     {
-        foreach (var expression in blockExpression.Expressions)
+        foreach (var expression in node.Expressions)
         {
             Visit(expression);
         }
 
-        return blockExpression;
+        return node;
     }
 
     /// <summary>
     /// Visits the specified operation operand.
     /// </summary>
-    /// <param name="operationExpression">The operation operand to visit.</param>
+    /// <param name="node">The operation operand to visit.</param>
     /// <returns>The visited operation operand.</returns>
-    public virtual WebqlExpression VisitOperationExpression(WebqlOperationExpression operationExpression)
+    public virtual WebqlExpression VisitOperationExpression(WebqlOperationExpression node)
     {
-        foreach (var operand in operationExpression.Operands)
+        foreach (var operand in node.Operands)
         {
             Visit(operand);
         }
 
-        return operationExpression;
+        return node;
     }
 
 }

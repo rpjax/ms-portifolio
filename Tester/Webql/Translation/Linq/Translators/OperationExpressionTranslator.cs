@@ -7,12 +7,14 @@ namespace Webql.Translation.Linq.Translators;
 
 public static class OperationExpressionTranslator
 {
-    public static Expression TranslateOperationExpression(TranslationContext context, WebqlOperationExpression node)
+    public static Expression TranslateOperationExpression(WebqlOperationExpression node)
     {
+        var context = null as TranslationContext;
+
         switch (node.GetOperatorCategory())
-        {
+        {   
             case WebqlOperatorCategory.Arithmetic:
-                return ArithmeticOperationExpressionTranslator.TranslateArithmeticOperationExpression(context, node);
+                return ArithmeticOperationExpressionTranslator.TranslateArithmeticOperationExpression(node);
 
             case WebqlOperatorCategory.Relational:
                 return RelationalOperationExpressionTranslator.TranslateRelationalOperationExpression(context, node);
