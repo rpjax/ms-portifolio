@@ -31,12 +31,25 @@ public class LhsSymbol : ISymbol
 
 }
 
-public class ScopePropertySymbol : ISymbol
+public class DeclarationSymbol : ISymbol
 {
     public Type Type { get; }
     public string Identifier { get; }
 
-    public ScopePropertySymbol(string identifier, Type type)
+    public DeclarationSymbol(string identifier, Type type)
+    {
+        Identifier = identifier;
+        Type = type;
+    }
+
+}
+
+public class AccumulatorSymbol : ISymbol
+{
+    public Type Type { get; }
+    public string Identifier { get; }
+
+    public AccumulatorSymbol(string identifier, Type type)
     {
         Identifier = identifier;
         Type = type;

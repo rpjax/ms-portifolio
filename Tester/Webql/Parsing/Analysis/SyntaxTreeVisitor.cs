@@ -47,8 +47,8 @@ public class SyntaxTreeVisitor
             case WebqlExpressionType.Reference:
                 return VisitReferenceExpression((WebqlReferenceExpression)node);
 
-            case WebqlExpressionType.ScopeAccess:
-                return VisitScopeAccessExpression((WebqlScopeAccessExpression)node);
+            case WebqlExpressionType.MemberAccess:
+                return VisitMemberAccessExpression((WebqlMemberAccessExpression)node);
 
             case WebqlExpressionType.TemporaryDeclaration:
                 return VisitTemporaryDeclarationExpression((WebqlTemporaryDeclarationExpression)node);
@@ -85,11 +85,11 @@ public class SyntaxTreeVisitor
     }
 
     /// <summary>
-    /// Visits the specified scope access operand.
+    /// Visits the specified member access operand.
     /// </summary>
-    /// <param name="node">The scope access operand to visit.</param>
-    /// <returns>The visited scope access operand.</returns>
-    public virtual WebqlExpression VisitScopeAccessExpression(WebqlScopeAccessExpression node)
+    /// <param name="node">The member access operand to visit.</param>
+    /// <returns>The visited member access operand.</returns>
+    public virtual WebqlExpression VisitMemberAccessExpression(WebqlMemberAccessExpression node)
     {
         Visit(node.Expression);
         return node;

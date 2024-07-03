@@ -3,10 +3,9 @@
 public enum WebqlExpressionType
 {
     Literal,
-    Reference,
-    ScopeAccess,
     TemporaryDeclaration,
+    Reference,
+    MemberAccess,
     Block,
     Operation
 }
-

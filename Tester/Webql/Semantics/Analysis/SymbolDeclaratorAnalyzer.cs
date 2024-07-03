@@ -38,11 +38,6 @@ public class SymbolDeclaratorAnalyzer : SyntaxTreeAnalyzer
             DeclareRootSymbols(node);
         }
 
-        else if (node is WebqlScopeAccessExpression scopeAccessExpression)
-        {
-            DeclareScopeAccessSymbols(scopeAccessExpression);
-        }
-
         else if (node is WebqlOperationExpression operationExpression)
         {
             DeclareOperationSymbols(operationExpression);
@@ -58,34 +53,33 @@ public class SymbolDeclaratorAnalyzer : SyntaxTreeAnalyzer
     private void DeclareRootSymbols(WebqlSyntaxNode node)
     {
         var localContext = node.GetSemanticContext();
-        var lhsType = SemanticContext.CompilationContext.EntityQueryableType;
+        var accumulatorType = SemanticContext.CompilationContext.EntityQueryableType;
 
-        localContext.SetLeftHandSideSymbol(lhsType);
+        localContext.SetLeftHandSideSymbol(accumulatorType);
+        localContext.SetAccumulatorSymbol(accumulatorType);
     }
 
     /// <summary>
     /// Declares the symbolDeclarations for the operation expression node.
     /// </summary>
-    /// <param name="operationExpression">The operation expression node.</param>
-    private void DeclareOperationSymbols(WebqlOperationExpression operationExpression)
+    /// <param name="node">The operation expression node.</param>
+    private void DeclareOperationSymbols(WebqlOperationExpression node)
     {
-        var operatorCategory = operationExpression.GetOperatorCategory();
+        var operatorCategory = node.GetOperatorCategory();
 
-        var operatorChangesLhs = false
-            || operatorCategory == WebqlOperatorCategory.CollectionManipulation
-            || operatorCategory == WebqlOperatorCategory.CollectionAggregation;
+        var isLinqQueryableMethodCall = node.IsLinqQueryableMethodCallOperator();
 
-        if (!operatorChangesLhs)
+        if (!isLinqQueryableMethodCall)
         {
             return;
         }
 
-        var localContext = operationExpression.GetSemanticContext();
+        var localContext = node.GetSemanticContext();
         var lhsType = localContext.GetLeftHandSideType();
 
         if (lhsType.IsNotQueryable())
         {
-            throw new SemanticException("Left-hand side lhsType must be a queryable lhsType.", operationExpression);
+            throw new SemanticException("Left-hand side lhsType must be a queryable lhsType.", node);
         }
 
         var lhsElementType = lhsType.GetQueryableElementType();
@@ -95,15 +89,16 @@ public class SymbolDeclaratorAnalyzer : SyntaxTreeAnalyzer
             ;
 
         var symbolDeclarations = elementProperties
-            .Select(x => new ScopePropertySymbol(x.Name, x.PropertyType))
+            .Select(x => new DeclarationSymbol(x.Name, x.PropertyType))
             .ToArray()
             ;
 
-        foreach (var operand in operationExpression.Operands)
+        foreach (var operand in node.Operands)
         {
             var childContext = operand.GetSemanticContext();
 
             childContext.SetLeftHandSideSymbol(lhsElementType);
+            childContext.SetAccumulatorSymbol(lhsElementType);
             
             foreach (var symbol in symbolDeclarations)
             {
@@ -112,43 +107,44 @@ public class SymbolDeclaratorAnalyzer : SyntaxTreeAnalyzer
         }
     }
 
-    /// <summary>
-    /// Declares the symbolDeclarations for the scope access expression node.
-    /// </summary>
-    /// <param name="scopeAccessExpression">The scope access expression node.</param>
-    private void DeclareScopeAccessSymbols(WebqlScopeAccessExpression scopeAccessExpression)
-    {
-        var localContext = scopeAccessExpression.GetSemanticContext();
-        var childContext = scopeAccessExpression.Expression.GetSemanticContext();
+    ///// <summary>
+    ///// Declares the symbolDeclarations for the scope access expression node.
+    ///// </summary>
+    ///// <param name="node">The scope access expression node.</param>
+    //private void DeclareScopeAccessSymbols(WebqlScopeAccessExpression node)
+    //{
+    //    var localContext = node.GetSemanticContext();
+    //    var childContext = node.Expression.GetSemanticContext();
 
-        var symbolId = scopeAccessExpression.Identifier;
-        var normalizedSymbolId = IdentifierHelper.NormalizeIdentifier(symbolId);
+    //    var symbolId = node.Identifier;
+    //    var normalizedSymbolId = IdentifierHelper.NormalizeIdentifier(symbolId);
 
-        var referencedSymbol = localContext.TryGetSymbol(symbolId);
+    //    var referencedSymbol = localContext.TryGetSymbol(symbolId);
 
-        if(referencedSymbol is null)
-        {
-            throw new SemanticException($"The referenced symbol '{symbolId}' was not found in the current context.", scopeAccessExpression);
-        }
+    //    if(referencedSymbol is null)
+    //    {
+    //        throw new SemanticException($"The referenced symbol '{symbolId}' was not found in the current context.", node);
+    //    }
 
-        var symbolType = referencedSymbol.Type;
-        var symbolProperties = symbolType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.Name == "Length" || !p.DeclaringType?.Namespace?.StartsWith("System") == true)
-            .ToArray()
-            ;
+    //    var symbolType = referencedSymbol.Type;
+    //    var symbolProperties = symbolType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+    //        .Where(p => p.Name == "Length" || !p.DeclaringType?.Namespace?.StartsWith("System") == true)
+    //        .ToArray()
+    //        ;
 
-        var symbolDeclarations = symbolProperties
-            .Select(x => new ScopePropertySymbol(x.Name, x.PropertyType))
-            .ToArray()
-            ;
+    //    var symbolDeclarations = symbolProperties
+    //        .Select(x => new DeclarationSymbol(x.Name, x.PropertyType))
+    //        .ToArray()
+    //        ;
 
-        childContext.SetLeftHandSideSymbol(symbolType);
+    //    childContext.SetLeftHandSideSymbol(symbolType);
+    //    childContext.SetAccumulatorSymbol(symbolType);
 
-        foreach (var symbol in symbolDeclarations)
-        {
-            childContext.AddSymbol(symbol);
-        }
-    }
+    //    foreach (var symbol in symbolDeclarations)
+    //    {
+    //        childContext.AddSymbol(symbol);
+    //    }
+    //}
 
 }
 

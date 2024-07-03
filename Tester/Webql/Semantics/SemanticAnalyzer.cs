@@ -3,6 +3,8 @@ using Webql.Parsing.Ast;
 using Webql.Semantics.Definitions;
 using Webql.Core;
 using Webql.Semantics.Context;
+using Webql.Semantics.Exceptions;
+using Webql.Core.Analysis;
 
 namespace Webql.Semantics.Analysis;
 
@@ -19,6 +21,7 @@ public static class SemanticAnalyzer
 
     public static WebqlSyntaxNode RewriteTree(SemanticContext context, WebqlSyntaxNode node)
     {
+        return node;
         return new DocumentSyntaxTreeRewriter()
             .ExecuteRewrite(node);
     }
@@ -95,8 +98,8 @@ public static class SemanticAnalyzer
             case WebqlExpressionType.Reference:
                 return CreateReferenceExpressionSemantics(context, (WebqlReferenceExpression)expression);
 
-            case WebqlExpressionType.ScopeAccess:
-                return CreateScopeAccessExpressionSemantics(context, (WebqlScopeAccessExpression)expression);
+            case WebqlExpressionType.MemberAccess:
+                return CreateMemberAccessExpressionSemantics(context, (WebqlMemberAccessExpression)expression);
 
             case WebqlExpressionType.TemporaryDeclaration:
                 return CreateTemporaryDeclarationExpressionSemantics(context, (WebqlTemporaryDeclarationExpression)expression);
@@ -158,8 +161,22 @@ public static class SemanticAnalyzer
         WebqlCompilationContext context,
         WebqlLiteralExpression expression)
     {
+        if(expression.Parent is not WebqlOperationExpression operationNode)
+        {
+            throw new SemanticException("Null literal can only be used as an operand to an operator.", expression);
+        }
+            
+        if(operationNode.Operands.Length != 2)
+        {
+            throw new SemanticException("Null literal can only be used as an operand to a binary operator.", expression);
+        }
+
+        var otherOperand = operationNode.Operands.First(x => x != expression);
+        var otherSemantics = otherOperand.GetSemantics<IExpressionSemantics>();
+
         var semanticContext = expression.GetSemanticContext();
-        var lhsSemantics = semanticContext.GetLeftHandSideSymbol();
+        var lhsSemantics = semanticContext.GetLeftHandSideSymbol() as IExpressionSemantics;
+        lhsSemantics = otherSemantics;
         var lhsType = SemanticsTypeHelper.NormalizeNullableType(lhsSemantics.Type);
         var nullableType = typeof(Nullable<>).MakeGenericType(lhsType);
 
@@ -221,9 +238,9 @@ public static class SemanticAnalyzer
      * SCOPE ACCESS EXPRESSION SEMANTICS
      */
 
-    public static IExpressionSemantics CreateScopeAccessExpressionSemantics(
+    public static IExpressionSemantics CreateMemberAccessExpressionSemantics(
         WebqlCompilationContext context,
-        WebqlScopeAccessExpression scopeAccessExpression)
+        WebqlMemberAccessExpression scopeAccessExpression)
     {
         return scopeAccessExpression.Expression.GetSemantics<IExpressionSemantics>();
     }
@@ -247,6 +264,25 @@ public static class SemanticAnalyzer
         WebqlCompilationContext context,
         WebqlBlockExpression blockExpression)
     {
+        switch (blockExpression.ScopeType)
+        {
+            case WebqlScopeType.Aggregation:
+                return blockExpression.Expressions
+                    .Last()
+                    .GetSemantics<IExpressionSemantics>();
+
+            case WebqlScopeType.LogicalFiltering:
+                return new ExpressionSemantics(
+                    type: typeof(bool)
+                );
+
+            case WebqlScopeType.Projection:
+                throw new NotImplementedException();
+
+            default:
+                throw new InvalidOperationException($"Invalid block scope type: {blockExpression.ScopeType}");
+        }
+
         return blockExpression.Expressions
             .Last()
             .GetSemantics<IExpressionSemantics>();
@@ -359,7 +395,7 @@ public static class SemanticAnalyzer
         }
 
         var semanticContext = operationExpression.GetSemanticContext();
-        var operatorType = WebqlOperatorClassifier.GetCollectionAggregationOperator(operationExpression.Operator);
+        var operatorType = WebqlOperatorAnalyzer.GetCollectionAggregationOperator(operationExpression.Operator);
 
         var rhsNode = operationExpression.Operands[0];
         var rhsSemantics = rhsNode.GetSemantics<IExpressionSemantics>();

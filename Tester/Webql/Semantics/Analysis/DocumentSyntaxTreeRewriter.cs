@@ -14,20 +14,20 @@ public class DocumentSyntaxTreeRewriter : SyntaxTreeRewriter
 
     }
 
-    public override WebqlExpression VisitScopeAccessExpression(WebqlScopeAccessExpression node)
-    {
-        var generatedLhs = new WebqlReferenceExpression(
-            metadata: node.Metadata,
-            attributes: null,
-            identifier: SemanticContext.LeftHandSideId
-        );
+    //public override WebqlExpression VisitScopeAccessExpression(WebqlScopeAccessExpression node)
+    //{
+    //    var generatedLhs = new WebqlReferenceExpression(
+    //        metadata: node.Metadata,
+    //        attributes: null,
+    //        identifier: SemanticContext.LeftHandSideId
+    //    );
 
-        LhsStack.Push(generatedLhs);
-        var visitedNode = base.VisitScopeAccessExpression(node);
-        LhsStack.Pop();
+    //    LhsStack.Push(generatedLhs);
+    //    var visitedNode = base.VisitScopeAccessExpression(node);
+    //    LhsStack.Pop();
 
-        return visitedNode;
-    }
+    //    return visitedNode;
+    //}
 
     public override WebqlExpression VisitOperationExpression(WebqlOperationExpression node)
     {
@@ -51,7 +51,7 @@ public class DocumentSyntaxTreeRewriter : SyntaxTreeRewriter
         var lhs = VisitExpression(LhsStack.Peek());
         var rhs = VisitExpression(node.Operands[0]);
         var operands = new WebqlExpression[] { lhs, rhs };
-
+            
         return new WebqlOperationExpression(
             metadata: node.Metadata,
             attributes: node.Attributes,

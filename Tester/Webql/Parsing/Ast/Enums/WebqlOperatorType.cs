@@ -27,6 +27,7 @@ public enum WebqlOperatorType
     Not, // ok
 
     // Semantic Operators
+    Aggregate,
     //Expr, // ok
     //Parse, // ok
     //Type,
@@ -49,6 +50,7 @@ public enum WebqlOperatorType
 
     // Collection Aggregation Operators
     Count, // ok
+    Contains,
     Index,
     Any, // ok
     All, // ok
@@ -99,6 +101,7 @@ public enum WebqlCollectionManipulationOperator
 public enum WebqlCollectionAggregationOperator
 {
     Count,
+    Contains,
     Index,
     Any,
     All,

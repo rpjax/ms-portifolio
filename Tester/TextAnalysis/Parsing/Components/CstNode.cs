@@ -12,57 +12,10 @@ public enum CstNodeType
     Leaf,
 }
 
-///// <summary>
-///// Represents a node in the concrete syntax tree (CST).
-///// </summary>
-//public interface ICstNode
-//{
-//    /// <summary>
-//    /// Gets the type of the node.
-//    /// </summary>
-//    CstNodeType ExpressionType { get; }
-
-//    /// <summary>
-//    /// Gets or sets a property by key.
-//    /// </summary>
-//    /// <param name="key"></param>
-//    /// <returns></returns>
-//    object this[string key] { get; set; }
-//}
-
-///// <summary>
-///// Represents a root node in the concrete syntax tree (CST).
-///// </summary>
-//public interface ICstRoot : ICstInternal
-//{
-
-//}
-
-///// <summary>
-///// Represents an internal node in the concrete syntax tree (CST).
-///// </summary>
-//public interface ICstInternal : ICstNode
-//{
-//    string Identifier { get; }
-//    ICstNode[] Children { get; }
-//    bool IsEpsilon { get; }
-//}
-
-///// <summary>
-///// Represents a leaf node in the concrete syntax tree (CST).
-///// </summary>
-//public interface ICstLeaf : ICstNode
-//{
-//    /// <summary>
-//    /// Gets the token associated with the leaf node.
-//    /// </summary>
-//    Token Token { get; }
-//}
-
 /// <summary>
 /// Represents a node in the concrete syntax tree (CST).
 /// </summary>
-public abstract class CstNode 
+public abstract class CstNode
 {
     /// <summary>
     /// Gets the type of the node.
@@ -72,20 +25,48 @@ public abstract class CstNode
     /// <summary>
     /// Gets the name associated with the node.
     /// </summary>
-    public abstract string Name { get; } 
+    public abstract string Name { get; }
 
     /// <summary>
     /// Gets the metadata associated with the node.
     /// </summary>
     public abstract CstNodeMetadata Metadata { get; }
 
-    private Dictionary<string, object> Properties { get; } = new();
+    /// <summary>
+    /// Gets the properties of the node. It can be used to extend the node with additional information.
+    /// </summary>
+    public Dictionary<string, object> Properties { get; }
+
+    /// <summary>
+    /// Gets the parent node of the current node.
+    /// </summary>
+    public CstNode? Parent { get; internal set; }
+
+    /// <summary>
+    /// Gets the children of the node.
+    /// </summary>
+    protected CstNode[] InternalChildren { get; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CstNode"/> class.
+    /// </summary>
+    /// <param name="children">The children nodes of the current node.</param>
+    public CstNode(CstNode[]? children)
+    {
+        Properties = new();
+        InternalChildren = children ?? Array.Empty<CstNode>();
+
+        foreach (var child in InternalChildren)
+        {
+            child.Parent = this;
+        }
+    }
 
     /// <summary>
     /// Gets or sets a property by key.
     /// </summary>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <param name="key">The key of the property.</param>
+    /// <returns>The value of the property.</returns>
     public object this[string key]
     {
         get => Properties[key];
@@ -95,44 +76,53 @@ public abstract class CstNode
     /// <summary>
     /// Accepts a visitor.
     /// </summary>
-    /// <param name="visitor"></param>
-    /// <returns></returns>
+    /// <param name="visitor">The visitor to accept.</param>
+    /// <returns>The result of the visitor's visit operation.</returns>
     public abstract CstNode Accept(CstNodeVisitor visitor);
+
+    /// <summary>
+    /// Gets the children of the node.
+    /// </summary>
+    /// <returns>An enumerable collection of child nodes.</returns>
+    public IEnumerable<CstNode> GetChildren()
+    {
+        return InternalChildren;
+    }
 
     /// <summary>
     /// Gets the properties of the node.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>An enumerable collection of key-value pairs representing the properties of the node.</returns>
     public IEnumerable<KeyValuePair<string, object>> GetProperties()
     {
         return Properties;
     }
 
     /// <summary>
-    /// Gets a property by key.
+    /// Gets the value of a property by key.
     /// </summary>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <param name="key">The key of the property.</param>
+    /// <returns>The value of the property.</returns>
     public object GetProperty(string key)
     {
         return Properties[key];
     }
 
     /// <summary>
-    /// Tries to get a property by key.
+    /// Tries to get the value of a property by key.
     /// </summary>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <param name="key">The key of the property.</param>
+    /// <returns>The value of the property, or null if the property does not exist.</returns>
     public object? TryGetProperty(string key)
     {
         return Properties.TryGetValue(key, out var value) ? value : null;
     }
 
     /// <summary>
-    /// Sets a property by key.
+    /// Sets the value of a property by key.
     /// </summary>
-    /// <param name="key"></param>
-    /// <param name="value"></param>
+    /// <param name="key">The key of the property.</param>
+    /// <param name="value">The value to set.</param>
     public void SetProperty(string key, object value)
     {
         Properties[key] = value;
@@ -144,9 +134,7 @@ public abstract class CstNode
 /// </summary>
 public class CstRoot : CstNode
 {
-    /// <summary>
-    /// Gets the type of the node.
-    /// </summary>
+    /// <inheritdoc/>
     public override CstNodeType Type => CstNodeType.Root;
 
     /// <inheritdoc/>
@@ -166,18 +154,17 @@ public class CstRoot : CstNode
     /// <param name="name"></param>
     /// <param name="children"></param>
     /// <param name="metadata"></param>
-    public CstRoot(string name, CstNode[] children, CstNodeMetadata metadata) 
+    public CstRoot(
+        string name, 
+        CstNode[] children, 
+        CstNodeMetadata metadata) : base(children)
     {
         Name = name;
         Children = children;
         Metadata = metadata;
     }
 
-    /// <summary>
-    /// Accepts a visitor.
-    /// </summary>
-    /// <param name="visitor"></param>
-    /// <returns></returns>
+    /// <inheritdoc/>
     public override CstNode Accept(CstNodeVisitor visitor)
     {
         return visitor.VisitRoot(this);
@@ -189,9 +176,7 @@ public class CstRoot : CstNode
 /// </summary>
 public class CstInternal : CstNode
 {
-    /// <summary>
-    /// Gets the type of the node.
-    /// </summary>
+    /// <inheritdoc/>
     public override CstNodeType Type => CstNodeType.Internal;
 
     /// <inheritdoc/>
@@ -217,7 +202,11 @@ public class CstInternal : CstNode
     /// <param name="children"></param>
     /// <param name="metadata"></param>
     /// <param name="isEpsilon"></param>
-    public CstInternal(string name, CstNode[] children, CstNodeMetadata metadata, bool isEpsilon = false) 
+    public CstInternal(
+        string name, 
+        CstNode[] children, 
+        CstNodeMetadata metadata, 
+        bool isEpsilon = false) : base(children)
     {
         Name = name;
         Children = children;
@@ -225,11 +214,7 @@ public class CstInternal : CstNode
         IsEpsilon = isEpsilon;
     }
 
-    /// <summary>
-    /// Accepts a visitor.
-    /// </summary>
-    /// <param name="visitor"></param>
-    /// <returns></returns>
+    /// <inheritdoc/>
     public override CstNode Accept(CstNodeVisitor visitor)
     {
         return visitor.VisitNonTerminal(this);
@@ -247,9 +232,7 @@ public class CstInternal : CstNode
 /// </summary>
 public class CstLeaf : CstNode
 {
-    /// <summary>
-    /// Gets the type of the node.
-    /// </summary>
+    /// <inheritdoc/>
     public override CstNodeType Type => CstNodeType.Leaf;
 
     /// <inheritdoc/>
@@ -268,7 +251,7 @@ public class CstLeaf : CstNode
     /// </summary>
     /// <param name="token"></param>
     /// <param name="metadata"></param>
-    public CstLeaf(Token token, CstNodeMetadata metadata)
+    public CstLeaf(Token token, CstNodeMetadata metadata) : base(null)
     {
         Token = token;
         Metadata = metadata;

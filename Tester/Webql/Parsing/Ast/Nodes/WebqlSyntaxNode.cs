@@ -9,6 +9,11 @@ namespace Webql.Parsing.Ast;
 public abstract class WebqlSyntaxNode
 {
     /// <summary>
+    /// Gets the parent node of the current node in the abstract syntax tree.
+    /// </summary>
+    public WebqlSyntaxNode? Parent { get; internal set; }
+
+    /// <summary>
     /// Gets the type of the node. It is used to determine the kind of node before casting.
     /// </summary>
     public abstract WebqlNodeType NodeType { get; }
@@ -32,7 +37,13 @@ public abstract class WebqlSyntaxNode
     /// </summary>
     /// <param name="visitor"></param>
     public abstract WebqlSyntaxNode Accept(SyntaxTreeVisitor visitor);
-    
+
+    /// <summary>
+    /// Returns a string representation of the node.
+    /// </summary>
+    /// <returns></returns>
+    public abstract override string ToString();
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool HasAttribute(string key)
     {

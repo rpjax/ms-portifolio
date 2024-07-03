@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using Webql.Core;
+﻿using Webql.Core.Analysis;
 using Webql.Parsing.Analysis;
 using Webql.Parsing.Ast;
 using Webql.Semantics.Context;
@@ -12,7 +11,7 @@ namespace Webql.Semantics.Analysis;
 public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
 {
     private SemanticContext SemanticContext { get; }    
-
+        
     public TypeValidatorAnalyzer(SemanticContext context)
     {
         SemanticContext = context;    
@@ -171,7 +170,7 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
             throw new SemanticException($"Type mismatch: {lhsSemantics.Type} is not a queryable type.", expression);
         }
 
-        var operatorType = WebqlOperatorClassifier.GetCollectionManipulationOperator(expression.Operator);
+        var operatorType = WebqlOperatorAnalyzer.GetCollectionManipulationOperator(expression.Operator);
 
         switch (operatorType)
         {

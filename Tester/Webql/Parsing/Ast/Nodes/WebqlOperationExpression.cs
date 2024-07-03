@@ -1,4 +1,5 @@
-﻿using Webql.Semantics.Attributes;
+﻿using Webql.Core;
+using Webql.Semantics.Attributes;
 
 namespace Webql.Parsing.Ast;
 
@@ -23,6 +24,18 @@ public class WebqlOperationExpression : WebqlExpression
         Operands = operands.ToArray();
 
         Attributes.TryAdd(AstSemanticAttributes.ScopeSourceAttribute, new object());
+
+        foreach (var operand in Operands)
+        {
+            operand.Parent = this;
+        }
     }
 
+    public override string ToString()
+    {
+        var operatorStr = OperatorHelper.ToCamelCase(Operator);
+        var operandsStr = string.Join(", ", Operands.Select(x => x.ToString()));
+
+        return $"${operatorStr}: [{operandsStr}]";
+    }
 }

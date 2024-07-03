@@ -63,17 +63,25 @@ namespace ModularSystem.Tester;
 //    return stack.Pop();
 //}
 
+public class TestWallet
+{
+    public decimal UsdBalance { get; set; }
+    public decimal UsdtBalance { get; set; }
+}
+
 public class TestUser
 {
     public static List<TestUser> Source { get; } = new List<TestUser>()
     {
-        new TestUser(){ Nickname = "Alice"},
-        new TestUser(){ Nickname = "Bob"},
-        new TestUser(){ Nickname = "Jacques"},
+        new(){ Nickname = "Alice", IsActive = true },
+        new(){ Nickname = "Bob", IsActive = true },
+        new(){ Nickname = "Jacques", IsActive = true, Wallet = new(){ UsdBalance = 100 } },
     };
 
-    public string? Nickname { get; set; } = "";
-    public decimal? Balance { get; set; }
+    public string? Nickname { get; set; } = string.Empty;
+    public string? Email { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+    public TestWallet Wallet { get; set; } = new TestWallet();
 }
 
 public static class Program
@@ -90,13 +98,26 @@ public static class Program
         var query = @"
         { 
             $filter: { 
-                //isActive: true,
+                isActive: true,
                 nickname: { $like: 'jacques' },
-                balance: { $greater: 59 },
-                balance: { $equals: null }
+                email: { $not: null },
+                wallet: { 
+                    usdBalance: { 
+                        $greater: 59 
+                    } 
+                },
+                identity: {
+                    roles: {
+                        $aggregate: {
+                            $filter: { $equals: 'admin' },
+                            $count: { },
+                            $greater: 0
+                        }
+                    }
+                }
             } 
         }";
-        
+
         var expression = compiler.Translate(query);
 
         return;

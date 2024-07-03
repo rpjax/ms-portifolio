@@ -27,6 +27,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Webql\Parsing\Legacy\Components\" />
+    <Folder Include="Webql\Parsing\Extensions\" />
   </ItemGroup>
 
 </Project>

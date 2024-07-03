@@ -1,4 +1,5 @@
-﻿using Webql.Parsing.Ast;
+﻿using Webql.Core.Analysis;
+using Webql.Parsing.Ast;
 using Webql.Semantics.Analysis;
 
 namespace Webql.Semantics.Extensions;
@@ -7,7 +8,7 @@ public static class WebqlOperationExpressionSemanticExtensions
 {
     public static WebqlOperatorCategory GetOperatorCategory(this WebqlOperationExpression expression)
     {
-        return WebqlOperatorClassifier.GetOperatorCategory(expression.Operator);
+        return WebqlOperatorAnalyzer.GetOperatorCategory(expression.Operator);
     }
 
     public static bool IsArithmetic(this WebqlOperationExpression expression)
@@ -47,7 +48,7 @@ public static class WebqlOperationExpressionSemanticExtensions
 
     public static WebqlOperatorArity GetWebqlOperatorArity(this WebqlOperationExpression expression)
     {
-        return WebqlOperatorClassifier.GetOperatorArity(expression.Operator);
+        return WebqlOperatorAnalyzer.GetOperatorArity(expression.Operator);
     }
 
     public static bool IsNullary(this WebqlOperationExpression expression)

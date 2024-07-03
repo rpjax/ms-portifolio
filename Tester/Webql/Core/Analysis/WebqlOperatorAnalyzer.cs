@@ -1,8 +1,8 @@
 ﻿using Webql.Parsing.Ast;
 
-namespace Webql.Semantics.Analysis;
+namespace Webql.Core.Analysis;
 
-public static class WebqlOperatorClassifier
+public static class WebqlOperatorAnalyzer
 {
     public static WebqlOperatorCategory GetOperatorCategory(WebqlOperatorType operatorType)
     {
@@ -32,6 +32,9 @@ public static class WebqlOperatorClassifier
             case WebqlOperatorType.Not:
                 return WebqlOperatorCategory.Logical;
 
+            case WebqlOperatorType.Aggregate:
+                return WebqlOperatorCategory.Semantic;
+
             case WebqlOperatorType.Filter:
             case WebqlOperatorType.Select:
             case WebqlOperatorType.SelectMany:
@@ -40,6 +43,7 @@ public static class WebqlOperatorClassifier
                 return WebqlOperatorCategory.CollectionManipulation;
 
             case WebqlOperatorType.Count:
+            case WebqlOperatorType.Contains:
             case WebqlOperatorType.Index:
             case WebqlOperatorType.Any:
             case WebqlOperatorType.All:
@@ -74,27 +78,26 @@ public static class WebqlOperatorClassifier
         return GetOperatorCategory(operatorType) == WebqlOperatorCategory.Logical;
     }
 
-    public static bool IsCollectionManipulation(WebqlOperatorType operatorType)
+    public static bool IsCollectionManipulationOperator(WebqlOperatorType operatorType)
     {
         return GetOperatorCategory(operatorType) == WebqlOperatorCategory.CollectionManipulation;
     }
 
-    public static bool IsCollectionAggregation(WebqlOperatorType operatorType)
+    public static bool IsCollectionAggregationOperator(WebqlOperatorType operatorType)
     {
         return GetOperatorCategory(operatorType) == WebqlOperatorCategory.CollectionAggregation;
     }
 
     public static WebqlOperatorArity GetOperatorArity(WebqlOperatorType operatorType)
     {
+        /*
+         * Currently, all operators are binary.
+         */
+
+        return WebqlOperatorArity.Binary;
+
         switch (operatorType)
         {
-            case WebqlOperatorType.Not:
-            case WebqlOperatorType.Min:
-            case WebqlOperatorType.Max:
-            case WebqlOperatorType.Sum:
-            case WebqlOperatorType.Average:
-                return WebqlOperatorArity.Unary;
-
             case WebqlOperatorType.Add:
             case WebqlOperatorType.Subtract:
             case WebqlOperatorType.Divide:
@@ -116,9 +119,16 @@ public static class WebqlOperatorClassifier
             case WebqlOperatorType.Limit:
             case WebqlOperatorType.Skip:
             case WebqlOperatorType.Count:
+            case WebqlOperatorType.Contains:
             case WebqlOperatorType.Index:
             case WebqlOperatorType.Any:
             case WebqlOperatorType.All:
+            case WebqlOperatorType.Not:
+            case WebqlOperatorType.Aggregate:
+            case WebqlOperatorType.Min:
+            case WebqlOperatorType.Max:
+            case WebqlOperatorType.Sum:
+            case WebqlOperatorType.Average:
                 return WebqlOperatorArity.Binary;
 
             default:
@@ -205,6 +215,15 @@ public static class WebqlOperatorClassifier
             default:
                 throw new InvalidOperationException();
         }
+    }
+
+    public static bool IsCollectionOperator(this WebqlOperatorType @operator)
+    {
+        var operatorCategory = GetOperatorCategory(@operator);
+
+        return false
+            || operatorCategory == WebqlOperatorCategory.CollectionManipulation
+            || operatorCategory == WebqlOperatorCategory.CollectionAggregation;
     }
 
 }

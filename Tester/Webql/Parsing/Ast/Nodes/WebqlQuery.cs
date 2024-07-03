@@ -18,6 +18,16 @@ public class WebqlQuery : WebqlSyntaxNode
         Metadata = metadata;
         Attributes = attributes ?? new Dictionary<string, object>();
         Expression = expression;
+
+        if (Expression != null)
+        {
+            Expression.Parent = this;
+        }
+    }
+
+    public override string ToString()
+    {
+        return Expression?.ToString() ?? string.Empty;
     }
 
     public override WebqlSyntaxNode Accept(SyntaxTreeVisitor visitor)
@@ -25,4 +35,3 @@ public class WebqlQuery : WebqlSyntaxNode
         return visitor.VisitQuery(this);
     }
 }
-

@@ -4,6 +4,7 @@ using ModularSystem.Core.TextAnalysis.Parsing;
 using ModularSystem.Core.TextAnalysis.Parsing.Components;
 using ModularSystem.Core.TextAnalysis.Parsing.Tools;
 using Webql.Parsing.Ast;
+using Webql.Parsing.Ast.Builder;
 
 namespace Webql.Parsing;
 
@@ -73,6 +74,7 @@ operator
 	| relational_operator
 	| string_relational_operator
 	| logical_operator
+	| semantic_operator
 	| collection_manipulation_operator
 	| collection_aggregation_operator
 	;
@@ -103,6 +105,10 @@ logical_operator
 	| '$not'
 	;
 
+semantic_operator
+    : ('$aggregate' | '$agg')
+    ;
+
 collection_manipulation_operator
 	: '$filter'
 	| '$select'
@@ -114,6 +120,7 @@ collection_manipulation_operator
 
 collection_aggregation_operator
 	: '$count'
+	| '$contains'
 	| '$any'
 	| '$all'
 	| '$sum'

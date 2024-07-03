@@ -22,7 +22,7 @@ public class WebqlCompiler
         var syntaxTree = WebqlParser.ParseToAst(query);
         var semanticContext = SemanticContext.CreateRootContext(CompilationContext);
         var translationContext = TranslationContext.CreateRootContext(CompilationContext);
-
+            
         SemanticAnalyzer.ExecuteAnalysisPipeline(
             context: semanticContext, 
             node: syntaxTree

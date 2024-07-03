@@ -42,12 +42,12 @@ public class SyntaxTreeRewriter : SyntaxTreeVisitor
         );
     }
 
-    public override WebqlExpression VisitScopeAccessExpression(WebqlScopeAccessExpression node)
+    public override WebqlExpression VisitMemberAccessExpression(WebqlMemberAccessExpression node)
     {
-        return new WebqlScopeAccessExpression(
+        return new WebqlMemberAccessExpression(
             metadata: node.Metadata,
             attributes: node.Attributes,
-            identifier: node.Identifier,
+            memberName: node.MemberName,
             expression: VisitExpression(node.Expression)
         );
     }
@@ -68,6 +68,7 @@ public class SyntaxTreeRewriter : SyntaxTreeVisitor
         return new WebqlBlockExpression(
             metadata: node.Metadata,
             attributes: node.Attributes,
+            scopeType: node.ScopeType,
             expressions: node.Expressions.Select(VisitExpression)
         );
     }

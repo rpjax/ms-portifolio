@@ -17,7 +17,7 @@ public static class QueryTranslator
         if(node.Expression == null)
         {
             throw new TranslationException("Query must have an expression", node);
-        }
+        }   
 
         var parameterExpression = translationContext.GetLeftHandSideExpression<ParameterExpression>();
         var bodyExpression = SyntaxNodeTranslator.TranslateNode(node.Expression);

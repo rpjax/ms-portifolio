@@ -1,27 +1,27 @@
 ﻿using ModularSystem.Core.TextAnalysis.Parsing.Components;
 
-namespace Webql.Parsing.Ast;
+namespace Webql.Parsing.Ast.Builder;
 
 public static class WebqlAstBuilderHelper
 {
-    public static WebqlExpressionType GetCstExpressionType(CstInternal node)
+    public static CstExpressionType GetCstExpressionType(CstInternal node)
     {
         switch (node.Name)
         {
             case "literal_expression":
-                return WebqlExpressionType.Literal;
+                return CstExpressionType.Literal;
 
             case "reference_expression":
-                return WebqlExpressionType.Reference;
+                return CstExpressionType.Reference;
 
             case "scope_access_expression":
-                return WebqlExpressionType.ScopeAccess;
+                return CstExpressionType.ScopeAccess;
 
             case "block_expression":
-                return WebqlExpressionType.Block;
+                return CstExpressionType.Block;
 
             case "operation_expression":
-                return WebqlExpressionType.Operation;
+                return CstExpressionType.Operation;
 
             default:
                 throw new InvalidOperationException();
@@ -90,6 +90,13 @@ public static class WebqlAstBuilderHelper
                 return WebqlOperatorType.Not;
 
             /*
+             * semantic operators
+             */
+            case "aggregate":
+            case "agg":
+                return WebqlOperatorType.Aggregate;
+
+            /*
              * collection manipulation operators
              */
             case "filter":
@@ -112,6 +119,9 @@ public static class WebqlAstBuilderHelper
              */
             case "count":
                 return WebqlOperatorType.Count;
+
+            case "contains":
+                return WebqlOperatorType.Contains;
 
             case "index":
                 return WebqlOperatorType.Index;
@@ -136,6 +146,25 @@ public static class WebqlAstBuilderHelper
 
             default:
                 throw new InvalidOperationException("Invalid operator type");
+        }
+    }
+
+    public static WebqlScopeType GetOperatorScopeType(WebqlOperatorType operatorType, WebqlScopeType defaultValue)
+    {
+        switch (operatorType)
+        {
+            case WebqlOperatorType.Filter:
+                return WebqlScopeType.LogicalFiltering;
+
+            case WebqlOperatorType.Select:
+            case WebqlOperatorType.SelectMany:
+                return WebqlScopeType.Projection;
+
+            case WebqlOperatorType.Aggregate:
+                return WebqlScopeType.Aggregation;
+
+            default:
+                return defaultValue;
         }
     }
 

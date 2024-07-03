@@ -4,13 +4,13 @@ using Webql.Semantics.Extensions;
 using Webql.Translation.Linq.Context;
 using Webql.Translation.Linq.Extensions;
 
-namespace Webql.Translation.Linq.Translators;
+namespace Webql.Translation.Linq.Analysis;
 
-public class TranslatorContextBinderVisitor : SyntaxTreeAnalyzer
+public class TranslatorContextBinderAnalyzer : SyntaxTreeAnalyzer
 {
     private Stack<TranslationContext> ContextStack { get; }
 
-    public TranslatorContextBinderVisitor(TranslationContext context)
+    public TranslatorContextBinderAnalyzer(TranslationContext context)
     {
         ContextStack = new Stack<TranslationContext>();
         ContextStack.Push(context);

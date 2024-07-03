@@ -22,6 +22,13 @@ public class WebqlTemporaryDeclarationExpression : WebqlExpression
         Identifier = identifier;
         Type = type;
         Value = value;
+
+        Value.Parent = this;
+    }
+
+    public override string ToString()
+    {
+        return $"{Type} {Identifier} = {Value}";
     }
 
 }

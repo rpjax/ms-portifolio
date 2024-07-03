@@ -7,7 +7,6 @@ public class WebqlReferenceExpression : WebqlExpression
     public override WebqlExpressionType ExpressionType { get; }
     public string Identifier { get; }
 
-
     public WebqlReferenceExpression(
         WebqlSyntaxNodeMetadata metadata,
         Dictionary<string, object>? attributes,
@@ -17,6 +16,11 @@ public class WebqlReferenceExpression : WebqlExpression
         Attributes = attributes ?? new Dictionary<string, object>();
         ExpressionType = WebqlExpressionType.Reference;
         Identifier = identifier;
+    }
+
+    public override string ToString()
+    {
+        return Identifier;
     }
 
 }

@@ -67,8 +67,8 @@ public class SyntaxTreeAnalyzer : SyntaxTreeVisitor
                 AnalyzeReferenceExpression((WebqlReferenceExpression)expression);
                 return;
 
-            case WebqlExpressionType.ScopeAccess:
-                AnalyzeScopeAccessExpression((WebqlScopeAccessExpression)expression);
+            case WebqlExpressionType.MemberAccess:
+                AnalyzeMemberAccessExpression((WebqlMemberAccessExpression)expression);
                 return;
 
             case WebqlExpressionType.TemporaryDeclaration:
@@ -91,8 +91,8 @@ public class SyntaxTreeAnalyzer : SyntaxTreeVisitor
     /// <summary>
     /// Analyzes the given literal expression.
     /// </summary>
-    /// <param name="literalExpression">The literal expression to analyze.</param>
-    protected virtual void AnalyzeLiteralExpression(WebqlLiteralExpression literalExpression)
+    /// <param name="expression">The literal expression to analyze.</param>
+    protected virtual void AnalyzeLiteralExpression(WebqlLiteralExpression expression)
     {
         return;
     }
@@ -100,8 +100,8 @@ public class SyntaxTreeAnalyzer : SyntaxTreeVisitor
     /// <summary>
     /// Analyzes the given reference expression.
     /// </summary>
-    /// <param name="referenceExpression">The reference expression to analyze.</param>
-    protected virtual void AnalyzeReferenceExpression(WebqlReferenceExpression referenceExpression)
+    /// <param name="expression">The reference expression to analyze.</param>
+    protected virtual void AnalyzeReferenceExpression(WebqlReferenceExpression expression)
     {
         return;
     }
@@ -109,40 +109,40 @@ public class SyntaxTreeAnalyzer : SyntaxTreeVisitor
     /// <summary>
     /// Analyzes the given scope access expression.
     /// </summary>
-    /// <param name="scopeAccessExpression">The scope access expression to analyze.</param>
-    protected virtual void AnalyzeScopeAccessExpression(WebqlScopeAccessExpression scopeAccessExpression)
+    /// <param name="expression">The scope access expression to analyze.</param>
+    protected virtual void AnalyzeMemberAccessExpression(WebqlMemberAccessExpression expression)
     {
-        Analyze(scopeAccessExpression.Expression);
+        Analyze(expression.Expression);
     }
 
     /// <summary>
     /// Analyzes the given temporary declaration expression.
     /// </summary>
-    /// <param name="temporaryDeclarationExpression">The temporary declaration expression to analyze.</param>
-    protected virtual void AnalyzeTemporaryDeclarationExpression(WebqlTemporaryDeclarationExpression temporaryDeclarationExpression)
+    /// <param name="expression">The temporary declaration expression to analyze.</param>
+    protected virtual void AnalyzeTemporaryDeclarationExpression(WebqlTemporaryDeclarationExpression expression)
     {
-        Analyze(temporaryDeclarationExpression.Value);
+        Analyze(expression.Value);
     }
 
     /// <summary>
     /// Analyzes the given block expression.
     /// </summary>
-    /// <param name="blockExpression">The block expression to analyze.</param>
-    protected virtual void AnalyzeBlockExpression(WebqlBlockExpression blockExpression)
+    /// <param name="expression">The block expression to analyze.</param>
+    protected virtual void AnalyzeBlockExpression(WebqlBlockExpression expression)
     {
-        foreach (var expression in blockExpression.Expressions)
+        foreach (var subExpression in expression.Expressions)
         {
-            Analyze(expression);
+            Analyze(subExpression);
         }
     }
 
     /// <summary>
     /// Analyzes the given operation expression.
     /// </summary>
-    /// <param name="operationExpression">The operation expression to analyze.</param>
-    protected virtual void AnalyzeOperationExpression(WebqlOperationExpression operationExpression)
+    /// <param name="expression">The operation expression to analyze.</param>
+    protected virtual void AnalyzeOperationExpression(WebqlOperationExpression expression)
     {
-        foreach (var operand in operationExpression.Operands)
+        foreach (var operand in expression.Operands)
         {
             Analyze(operand);
         }

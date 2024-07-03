@@ -12,7 +12,7 @@ namespace Webql.Semantics.Context;
 public class SemanticContext
 {
     public const string LeftHandSideId = "<lhs>";
-
+        
     public WebqlCompilationContext CompilationContext { get; }
 
     private Dictionary<string, ISymbol> SymbolTable { get; }
@@ -79,6 +79,10 @@ public class SemanticContext
             cache: Cache
         );
     }
+
+    /*
+     * Symbol table helper methods
+     */
 
     public bool ContainsSymbol(string identifier)
     {
@@ -148,15 +152,38 @@ public class SemanticContext
             : ParentContext?.GetLeftHandSideSymbol() ?? throw new InvalidOperationException();
     }
 
+    public Type GetLeftHandSideType()
+    {
+        return GetLeftHandSideSymbol().Type;
+    }
+
     public void SetLeftHandSideSymbol(Type type)
     {
         SymbolTable[LeftHandSideId] = new LhsSymbol(LeftHandSideId, type);
     }
 
-    // move to an extensions class
-    public Type GetLeftHandSideType()
-    {
-        return GetLeftHandSideSymbol().Type;
+    /*
+     * Accumulator Symbol helper methods.
+     */
+
+    public AccumulatorSymbol GetAccumulatorSymbol()
+    {   
+        return SymbolTable.ContainsKey(AstHelper.AccumulatorIdentifier)
+            ? (AccumulatorSymbol)SymbolTable[AstHelper.AccumulatorIdentifier]
+            : ParentContext?.GetAccumulatorSymbol() ?? throw new InvalidOperationException();
+    }
+
+    public Type GetAccumulatorType()
+    {   
+        return GetAccumulatorSymbol().Type;
+    }
+
+    public void SetAccumulatorSymbol(Type type)
+    {   
+        SymbolTable[AstHelper.AccumulatorIdentifier] = new AccumulatorSymbol(
+            identifier: AstHelper.AccumulatorIdentifier, 
+            type: type
+        );
     }
 
     /*
