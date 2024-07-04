@@ -67,8 +67,7 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
         }
 
         var context = expression.GetSemanticContext();
-        //var lhsSemantics = context.GetLeftHandSideSymbol();
-        //var rhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
+
         var lhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
         var rhsSemantics = expression.Operands[1].GetSemantics<IExpressionSemantics>();
             

@@ -80,4 +80,9 @@ public static class WebqlOperationExpressionSemanticExtensions
             || operatorCategory == WebqlOperatorCategory.CollectionAggregation;
     }
 
+    public static bool IsCollectionOperator(this WebqlOperationExpression expression)
+    {
+        return WebqlOperatorAnalyzer.IsCollectionOperator(expression.Operator);
+    }
+
 }

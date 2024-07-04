@@ -1,11 +1,8 @@
-﻿using System.Reflection;
-using Webql.Core;
-using Webql.Parsing.Analysis;
+﻿using Webql.Parsing.Analysis;
 using Webql.Parsing.Ast;
 using Webql.Semantics.Context;
 using Webql.Semantics.Exceptions;
 using Webql.Semantics.Extensions;
-using Webql.Semantics.Symbols;
 
 namespace Webql.Semantics.Analysis;
 
@@ -55,8 +52,7 @@ public class SymbolDeclaratorAnalyzer : SyntaxTreeAnalyzer
         var localContext = node.GetSemanticContext();
         var accumulatorType = SemanticContext.CompilationContext.EntityQueryableType;
 
-        localContext.SetLeftHandSideSymbol(accumulatorType);
-        localContext.SetAccumulatorSymbol(accumulatorType);
+        DeclareAccumulatorSymbol(node, accumulatorType);
     }
 
     /// <summary>
@@ -65,46 +61,32 @@ public class SymbolDeclaratorAnalyzer : SyntaxTreeAnalyzer
     /// <param name="node">The operation expression node.</param>
     private void DeclareOperationSymbols(WebqlOperationExpression node)
     {
-        var operatorCategory = node.GetOperatorCategory();
+        var isCollectionOperator = node.IsCollectionOperator();
 
-        var isLinqQueryableMethodCall = node.IsLinqQueryableMethodCallOperator();
-
-        if (!isLinqQueryableMethodCall)
+        if (!isCollectionOperator)
         {
             return;
         }
 
         var localContext = node.GetSemanticContext();
-        var lhsType = localContext.GetLeftHandSideType();
+        var accumulatorType = localContext.GetAccumulatorType();
 
-        if (lhsType.IsNotQueryable())
+        if (accumulatorType.IsNotQueryable())
         {
             throw new SemanticException("Left-hand side lhsType must be a queryable lhsType.", node);
         }
 
-        var lhsElementType = lhsType.GetQueryableElementType();
-        var elementProperties = lhsElementType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.Name == "Length" || !p.DeclaringType?.Namespace?.StartsWith("System") == true)
-            .ToArray()
-            ;
+        var elementType = accumulatorType.GetQueryableElementType();
 
-        var symbolDeclarations = elementProperties
-            .Select(x => new DeclarationSymbol(x.Name, x.PropertyType))
-            .ToArray()
-            ;
-
-        foreach (var operand in node.Operands)
+        foreach (var operand in node.Operands.Skip(1))
         {
-            var childContext = operand.GetSemanticContext();
-
-            childContext.SetLeftHandSideSymbol(lhsElementType);
-            childContext.SetAccumulatorSymbol(lhsElementType);
-            
-            foreach (var symbol in symbolDeclarations)
-            {
-                childContext.AddSymbol(symbol);
-            }
+            DeclareAccumulatorSymbol(operand, elementType);
         }
+    }
+
+    private void DeclareAccumulatorSymbol(WebqlSyntaxNode node, Type type)
+    {
+        node.GetSemanticContext().SetAccumulatorSymbol(type);
     }
 
     ///// <summary>

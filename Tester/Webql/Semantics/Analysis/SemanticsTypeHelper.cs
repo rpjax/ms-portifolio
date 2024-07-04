@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Webql.Core;
 
 namespace Webql.Semantics.Analysis;
 
@@ -55,6 +56,15 @@ public static class SemanticsTypeHelper
             return true;
 
         return false;
+    }
+
+    public static PropertyInfo? TryGetPropertyFromType(Type type, string propertyName)
+    {
+        var normalizedName = IdentifierHelper.NormalizeIdentifier(propertyName);
+
+        return type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(x => x.Name == "Length" || !x.DeclaringType?.Namespace?.StartsWith("System") == true)
+            .FirstOrDefault(p => IdentifierHelper.NormalizeIdentifier(p.Name) == normalizedName);
     }
 
 }

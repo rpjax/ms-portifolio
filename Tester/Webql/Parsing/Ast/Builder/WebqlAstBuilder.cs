@@ -22,7 +22,7 @@ public static class WebqlAstBuilder
         if (node.Children.Length > 1)
         {
             throw new Exception("Invalid query");
-        }
+        }   
         if (node.Children.Length == 0)
         {
             return new WebqlQuery(
@@ -293,10 +293,21 @@ public static class WebqlAstBuilder
             .Where(x => x.Index % 2 == 0)
             .Select(x => x.Node);
 
-        var isAggregation = node.GetScopeType() == WebqlScopeType.Aggregation;
+        var isAggregationScope = node.GetScopeType() == WebqlScopeType.Aggregation;
         
-        if(isAggregation)
+        if(isAggregationScope)
         {
+            /*
+             * This code causes the AST to be built in a way that expressions are chained together, using the accumulator reference as the left-hand side of the operation. With the exception of the first expression, which could be a reference to any other symbol, including the accumulator itself.
+             * Example:
+             { 
+                $filter: [<accumulator>.identity.roles, $equals: [<accumulator>, 'admin']], 
+                $count: [<accumulator>, {}], 
+                $greater: [<accumulator>, 0] 
+             }  
+
+             */
+
             var accumulatorReference = new WebqlReferenceExpression(
                 metadata: TranslateNodeMetadata(node),
                 attributes: null,

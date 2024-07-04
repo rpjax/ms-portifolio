@@ -1,4 +1,5 @@
-﻿using Webql.Parsing.Ast;
+﻿using Webql.Core.Analysis;
+using Webql.Parsing.Ast;
 using Webql.Semantics.Attributes;
 using Webql.Semantics.Context;
 using Webql.Semantics.Definitions;
@@ -28,6 +29,14 @@ public static class WebqlSyntaxNodeSemanticExtensions
 
     public static bool IsScopeSource(this WebqlSyntaxNode node)
     {
+        if(node is not WebqlOperationExpression operationExpression)
+        {
+            return false;
+        }
+
+        var @operator = operationExpression.Operator;
+
+        return WebqlOperatorAnalyzer.IsCollectionOperator(@operator);
         return node.HasAttribute(AstSemanticAttributes.ScopeSourceAttribute);
     }
 

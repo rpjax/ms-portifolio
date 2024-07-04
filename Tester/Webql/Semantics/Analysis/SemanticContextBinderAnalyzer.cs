@@ -43,7 +43,10 @@ public class SemanticContextBinderAnalyzer : SyntaxTreeAnalyzer
             childContext = localContext.CreateSubContext();
         }
 
-        node.AddSemanticContext(localContext);
+        if(!node.HasSemanticContext())
+        {
+            node.AddSemanticContext(localContext);
+        }
 
         ContextStack.Push(childContext);
         base.Analyze(node);

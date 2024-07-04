@@ -240,9 +240,23 @@ public static class SemanticAnalyzer
 
     public static IExpressionSemantics CreateMemberAccessExpressionSemantics(
         WebqlCompilationContext context,
-        WebqlMemberAccessExpression scopeAccessExpression)
+        WebqlMemberAccessExpression memberAccessExpression)
     {
-        return scopeAccessExpression.Expression.GetSemantics<IExpressionSemantics>();
+        var localContext = memberAccessExpression.GetSemanticContext();
+        var childSemantics = memberAccessExpression.Expression.GetSemantics<IExpressionSemantics>();
+        var childType = childSemantics.Type;
+        var memberName = memberAccessExpression.MemberName;
+
+        var propertyInfo = SemanticsTypeHelper.TryGetPropertyFromType(childType, memberName);
+
+        if (propertyInfo is null)
+        {
+            throw new SemanticException($"Property {memberName} not found in type {childType}.", memberAccessExpression);
+        }
+
+        return new ExpressionSemantics(
+            type: propertyInfo.PropertyType
+        );
     }
 
     /*
