@@ -1,4 +1,6 @@
-﻿namespace Webql.Parsing.Ast;
+﻿using System.Linq.Expressions;
+
+namespace Webql.Parsing.Ast;
 
 public class WebqlLiteralExpression : WebqlExpression
 {
@@ -19,6 +21,11 @@ public class WebqlLiteralExpression : WebqlExpression
         ExpressionType = WebqlExpressionType.Literal;
         LiteralType = literalType;
         Value = value;
+    }
+
+    public override IEnumerable<WebqlSyntaxNode> GetChildren()
+    {
+        return Enumerable.Empty<WebqlSyntaxNode>();
     }
 
     public override string ToString()

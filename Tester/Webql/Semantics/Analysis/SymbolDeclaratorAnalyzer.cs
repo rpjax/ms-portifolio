@@ -1,6 +1,7 @@
 ﻿using Webql.Parsing.Analysis;
 using Webql.Parsing.Ast;
 using Webql.Semantics.Context;
+using Webql.Semantics.Definitions;
 using Webql.Semantics.Exceptions;
 using Webql.Semantics.Extensions;
 
@@ -40,6 +41,11 @@ public class SymbolDeclaratorAnalyzer : SyntaxTreeAnalyzer
             DeclareOperationSymbols(operationExpression);
         }
 
+        else if(node is WebqlBlockExpression blockExpression)
+        {
+            DeclareBlockExpressionSymbols(blockExpression);
+        }
+
         base.Analyze(node);
     }
 
@@ -50,9 +56,11 @@ public class SymbolDeclaratorAnalyzer : SyntaxTreeAnalyzer
     private void DeclareRootSymbols(WebqlSyntaxNode node)
     {
         var localContext = node.GetSemanticContext();
-        var accumulatorType = SemanticContext.CompilationContext.EntityQueryableType;
+        var queryableType = SemanticContext.CompilationContext.RootQueryableType;
+        var elementType = SemanticContext.CompilationContext.RootElementType;
+        var accumulatorType = queryableType.MakeGenericType(elementType);
 
-        DeclareAccumulatorSymbol(node, accumulatorType);
+        SetAccumulatorSymbol(node, accumulatorType);
     }
 
     /// <summary>
@@ -68,8 +76,14 @@ public class SymbolDeclaratorAnalyzer : SyntaxTreeAnalyzer
             return;
         }
 
-        var localContext = node.GetSemanticContext();
-        var accumulatorType = localContext.GetAccumulatorType();
+        if(node.Operands.Length < 1)
+        {
+            throw new SemanticException("Invalid number of operands.", node);
+        }
+
+        var lhsExpression = node.Operands[0];
+        var lhsSemantics = lhsExpression.GetSemantics<IExpressionSemantics>();
+        var accumulatorType = lhsSemantics.Type;
 
         if (accumulatorType.IsNotQueryable())
         {
@@ -80,53 +94,34 @@ public class SymbolDeclaratorAnalyzer : SyntaxTreeAnalyzer
 
         foreach (var operand in node.Operands.Skip(1))
         {
-            DeclareAccumulatorSymbol(operand, elementType);
+            SetAccumulatorSymbol(operand, elementType);
         }
     }
 
-    private void DeclareAccumulatorSymbol(WebqlSyntaxNode node, Type type)
+    private void DeclareBlockExpressionSymbols(WebqlBlockExpression node)
+    {
+        if(node.GetScopeType() is not WebqlScopeType.Aggregation)
+        {
+            return;
+        }
+
+        var blockContext = node.GetSemanticContext();
+        var accumulatorType = blockContext.GetAccumulatorType();
+
+        foreach (var expression in node.Expressions)
+        {
+            SetAccumulatorSymbol(expression, accumulatorType);
+
+            var expressionSemantics = expression.GetSemantics<IExpressionSemantics>();
+            accumulatorType = expressionSemantics.Type;
+        }
+
+        blockContext.SetAccumulatorSymbol(accumulatorType);
+    }
+
+    private void SetAccumulatorSymbol(WebqlSyntaxNode node, Type type)
     {
         node.GetSemanticContext().SetAccumulatorSymbol(type);
     }
 
-    ///// <summary>
-    ///// Declares the symbolDeclarations for the scope access expression node.
-    ///// </summary>
-    ///// <param name="node">The scope access expression node.</param>
-    //private void DeclareScopeAccessSymbols(WebqlScopeAccessExpression node)
-    //{
-    //    var localContext = node.GetSemanticContext();
-    //    var childContext = node.Expression.GetSemanticContext();
-
-    //    var symbolId = node.Identifier;
-    //    var normalizedSymbolId = IdentifierHelper.NormalizeIdentifier(symbolId);
-
-    //    var referencedSymbol = localContext.TryGetSymbol(symbolId);
-
-    //    if(referencedSymbol is null)
-    //    {
-    //        throw new SemanticException($"The referenced symbol '{symbolId}' was not found in the current context.", node);
-    //    }
-
-    //    var symbolType = referencedSymbol.Type;
-    //    var symbolProperties = symbolType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-    //        .Where(p => p.Name == "Length" || !p.DeclaringType?.Namespace?.StartsWith("System") == true)
-    //        .ToArray()
-    //        ;
-
-    //    var symbolDeclarations = symbolProperties
-    //        .Select(x => new DeclarationSymbol(x.Name, x.PropertyType))
-    //        .ToArray()
-    //        ;
-
-    //    childContext.SetLeftHandSideSymbol(symbolType);
-    //    childContext.SetAccumulatorSymbol(symbolType);
-
-    //    foreach (var symbol in symbolDeclarations)
-    //    {
-    //        childContext.AddSymbol(symbol);
-    //    }
-    //}
-
 }
-

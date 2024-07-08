@@ -1,4 +1,5 @@
-﻿using Webql.Core.Analysis;
+﻿using System.Runtime.CompilerServices;
+using Webql.Core.Analysis;
 using Webql.Parsing.Ast;
 using Webql.Semantics.Attributes;
 using Webql.Semantics.Context;
@@ -12,39 +13,23 @@ namespace Webql.Semantics.Extensions;
 /// </summary>
 public static class WebqlSyntaxNodeSemanticExtensions
 {
-    public static string GetSemanticIdentifier(this WebqlSyntaxNode node)
-    {
-        return "not implemented yet";
-    }
+    /*
+     * Semantic context extensions
+     */
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool HasSemanticContext(this WebqlSyntaxNode node)
     {
         return node.HasAttribute(AstSemanticAttributes.ContextAttribute);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool HasSemantics(this WebqlSyntaxNode node)
     {
         return node.HasAttribute(AstSemanticAttributes.SemanticsAttribute);
     }
 
-    public static bool IsScopeSource(this WebqlSyntaxNode node)
-    {
-        if(node is not WebqlOperationExpression operationExpression)
-        {
-            return false;
-        }
-
-        var @operator = operationExpression.Operator;
-
-        return WebqlOperatorAnalyzer.IsCollectionOperator(@operator);
-        return node.HasAttribute(AstSemanticAttributes.ScopeSourceAttribute);
-    }
-
-    public static bool IsRoot(this WebqlSyntaxNode node)
-    {
-        return node.NodeType == WebqlNodeType.Query;
-    }
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SemanticContext GetSemanticContext(this WebqlSyntaxNode node)
     {
         var attribute = node.TryGetAttribute<SemanticContext>(AstSemanticAttributes.ContextAttribute);
@@ -57,6 +42,40 @@ public static class WebqlSyntaxNodeSemanticExtensions
         return attribute;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static SemanticContext? TryGetClosestSemanticContext(this WebqlSyntaxNode node)
+    {
+        var current = node;
+
+        while (current is not null)
+        {
+            if (current.HasSemanticContext())
+            {
+                return current.GetSemanticContext();
+            }
+
+            current = current.Parent;
+        }
+
+        return null;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void BindSemanticContext(this WebqlSyntaxNode node, SemanticContext context, bool enableOverride = false)
+    {
+        if (enableOverride && node.HasAttribute(AstSemanticAttributes.ContextAttribute))
+        {
+            node.RemoveAttribute(AstSemanticAttributes.ContextAttribute);
+        }
+
+        node.AddAttribute(AstSemanticAttributes.ContextAttribute, context);
+    }
+
+    /*
+     * Semantics extensions
+     */
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ISemantics GetSemantics(this WebqlSyntaxNode node)
     {
         if (!node.HasSemantics())
@@ -74,6 +93,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
         return attribute;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TSemantics GetSemantics<TSemantics>(this WebqlSyntaxNode node) where TSemantics : ISemantics
     {
         if (!node.HasSemantics())
@@ -91,14 +111,85 @@ public static class WebqlSyntaxNodeSemanticExtensions
         return attribute;
     }
 
-    public static void AddSemanticContext(this WebqlSyntaxNode node, SemanticContext context)
-    {
-        node.AddAttribute(AstSemanticAttributes.ContextAttribute, context);
-    }
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void AddSemantics(this WebqlSyntaxNode node, ISemantics semantics)
     {
         node.AddAttribute(AstSemanticAttributes.SemanticsAttribute, semantics);
+    }
+
+    /*
+     * Generic helpers
+     */
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string GetSemanticIdentifier(this WebqlSyntaxNode node)
+    {
+        return "not implemented yet";
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [Obsolete("This has no semantical meaning anymore. Use the ScopeType instead.")]
+    public static bool IsScopeSource(this WebqlSyntaxNode node)
+    {
+        if (node is not WebqlOperationExpression operationExpression)
+        {
+            return false;
+        }
+
+        var @operator = operationExpression.Operator;
+
+        return WebqlOperatorAnalyzer.IsCollectionOperator(@operator);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsRoot(this WebqlSyntaxNode node)
+    {
+        return node.Parent is null;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsCollectionOperator(this WebqlSyntaxNode node)
+    {
+        if (node is not WebqlOperationExpression operationExpression)
+        {
+            return false;
+        }
+
+        var @operator = operationExpression.Operator;
+
+        return WebqlOperatorAnalyzer.IsCollectionOperator(@operator);
+    }
+
+    /*
+     * Scope helpers
+     */
+
+    public static WebqlScopeType GetScopeType(this WebqlSyntaxNode node)
+    {       
+        return node.GetScopeType();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsInRootAggregationScope(this WebqlSyntaxNode node)
+    {
+        var current = node;
+
+        while (current is not null)
+        {
+            if (current.IsRoot())
+            {
+                return true;
+            }
+
+            if (current.IsCollectionOperator())
+            {
+                return false;
+            }
+
+            current = current.Parent;
+        }
+
+        throw new InvalidOperationException();
     }
 
     /*

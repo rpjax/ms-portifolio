@@ -23,12 +23,15 @@ public class WebqlOperationExpression : WebqlExpression
         Operator = @operator;
         Operands = operands.ToArray();
 
-        Attributes.TryAdd(AstSemanticAttributes.ScopeSourceAttribute, new object());
-
         foreach (var operand in Operands)
         {
             operand.Parent = this;
         }
+    }
+
+    public override IEnumerable<WebqlSyntaxNode> GetChildren()
+    {
+        return Operands;
     }
 
     public override string ToString()

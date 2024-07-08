@@ -26,6 +26,21 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
      * - etc...
      */
 
+    protected override void AnalyzeBlockExpression(WebqlBlockExpression expression)
+    {
+        switch (expression.GetScopeType())
+        {
+            case WebqlScopeType.Aggregation:
+                break;
+            case WebqlScopeType.LogicalFiltering:
+                break;
+            case WebqlScopeType.Projection:
+                break;
+            default:
+                break;
+        }
+    }
+
     protected override void AnalyzeOperationExpression(WebqlOperationExpression expression)
     {
         /*
@@ -147,7 +162,18 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
 
     private void AnalyzeSemanticExpression(WebqlOperationExpression operationExpression)
     {
+        if(operationExpression.Operands.Length == 0)
+        {
+            throw new SemanticException("Semantic expression must have at least one operand.", operationExpression);
+        }
 
+        switch (WebqlOperatorAnalyzer.GetSemanticOperator(operationExpression.Operator))
+        {
+            case WebqlSemanticOperator.Aggregate:
+                break;
+            default:
+                break;
+        }
     }
 
     /*
@@ -156,13 +182,16 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
 
     private void AnalyzeCollectionManipulationExpression(WebqlOperationExpression expression)
     {
-        if (expression.Operands.Length != 1)
+        if (expression.Operands.Length != 2)
         {
-            throw new SemanticException("Collection manipulation expression must have exactly one operand.", expression);
+            throw new SemanticException("Collection manipulation expression must have exactly two operand.", expression);
         }
 
-        var context = expression.GetSemanticContext();
-        var lhsSemantics = context.GetLeftHandSideSymbol();
+        var lhs = expression.Operands[0];
+        var rhs = expression.Operands[1];
+
+        var lhsSemantics = lhs.GetSemantics<IExpressionSemantics>();
+        var rhsSemantics = rhs.GetSemantics<IExpressionSemantics>();
         
         if (lhsSemantics.Type.IsNotQueryable())
         {
@@ -197,9 +226,9 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
 
     private void AnalyzeLimitExpression(WebqlOperationExpression expression)
     {
-        if(expression.Operands.Length != 1)
+        if(expression.Operands.Length != 2)
         {
-            throw new SemanticException("Limit expression must have exactly one operand.", expression);
+            throw new SemanticException("Limit expression must have exactly two operands.", expression);
         }
 
         var rhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
@@ -214,7 +243,7 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
     {
         if(expression.Operands.Length != 1)
         {
-            throw new SemanticException("Skip expression must have exactly one operand.", expression);
+            throw new SemanticException("Skip expression must have exactly two operands.", expression);
         }
 
         var rhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();

@@ -39,21 +39,30 @@ public abstract class WebqlSyntaxNode
     public abstract WebqlSyntaxNode Accept(SyntaxTreeVisitor visitor);
 
     /// <summary>
+    /// Gets the children of the node.
+    /// </summary>
+    /// <returns></returns>
+    public abstract IEnumerable<WebqlSyntaxNode> GetChildren();
+
+    /// <summary>
     /// Returns a string representation of the node.
     /// </summary>
     /// <returns></returns>
     public abstract override string ToString();
+}
 
+public static class WebqlSyntaxNodeExtensions
+{
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool HasAttribute(string key)
+    public static bool HasAttribute(this WebqlSyntaxNode node, string key)
     {
-        return Attributes.ContainsKey(key);
+        return node.Attributes.ContainsKey(key);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public object? TryGetAttribute(string key)
+    public static object? TryGetAttribute(this WebqlSyntaxNode node, string key)
     {
-        if (Attributes.TryGetValue(key, out var value))
+        if (node.Attributes.TryGetValue(key, out var value))
         {
             return value;
         }
@@ -62,20 +71,17 @@ public abstract class WebqlSyntaxNode
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void SetAttribute(string key, object value)
+    public static void SetAttribute(this WebqlSyntaxNode node, string key, object value)
     {
-        Attributes[key] = value;
+        node.Attributes[key] = value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void RemoveAttribute(string key)
+    public static void RemoveAttribute(this WebqlSyntaxNode node, string key)
     {
-        Attributes.Remove(key);
+        node.Attributes.Remove(key);
     }
-}
 
-public static class WebqlSyntaxNodeExtensions
-{
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T? TryGetAttribute<T>(this WebqlSyntaxNode node, string key)
     {

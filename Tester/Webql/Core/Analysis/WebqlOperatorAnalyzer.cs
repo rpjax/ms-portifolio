@@ -4,6 +4,10 @@ namespace Webql.Core.Analysis;
 
 public static class WebqlOperatorAnalyzer
 {
+    /*
+     * Operator Classification
+     */
+
     public static WebqlOperatorCategory GetOperatorCategory(WebqlOperatorType operatorType)
     {
         switch (operatorType)
@@ -58,36 +62,6 @@ public static class WebqlOperatorAnalyzer
         }
     }
 
-    public static bool IsArithmetic(WebqlOperatorType operatorType)
-    {
-        return GetOperatorCategory(operatorType) == WebqlOperatorCategory.Arithmetic;
-    }
-
-    public static bool IsRelational(WebqlOperatorType operatorType)
-    {
-        return GetOperatorCategory(operatorType) == WebqlOperatorCategory.Relational;
-    }
-
-    public static bool IsStringRelational(WebqlOperatorType operatorType)
-    {
-        return GetOperatorCategory(operatorType) == WebqlOperatorCategory.StringRelational;
-    }
-
-    public static bool IsLogical(WebqlOperatorType operatorType)
-    {
-        return GetOperatorCategory(operatorType) == WebqlOperatorCategory.Logical;
-    }
-
-    public static bool IsCollectionManipulationOperator(WebqlOperatorType operatorType)
-    {
-        return GetOperatorCategory(operatorType) == WebqlOperatorCategory.CollectionManipulation;
-    }
-
-    public static bool IsCollectionAggregationOperator(WebqlOperatorType operatorType)
-    {
-        return GetOperatorCategory(operatorType) == WebqlOperatorCategory.CollectionAggregation;
-    }
-
     public static WebqlOperatorArity GetOperatorArity(WebqlOperatorType operatorType)
     {
         /*
@@ -136,29 +110,21 @@ public static class WebqlOperatorAnalyzer
         }
     }
 
-    public static bool IsNullary(WebqlOperatorType operatorType)
-    {
-        return GetOperatorArity(operatorType) == WebqlOperatorArity.Nullary;
-    }
-
-    public static bool IsUnary(WebqlOperatorType operatorType)
-    {
-        return GetOperatorArity(operatorType) == WebqlOperatorArity.Unary;
-    }
-
-    public static bool IsBinary(WebqlOperatorType operatorType)
-    {
-        return GetOperatorArity(operatorType) == WebqlOperatorArity.Binary;
-    }
-
-    public static bool IsTernary(WebqlOperatorType operatorType)
-    {
-        return GetOperatorArity(operatorType) == WebqlOperatorArity.Ternary;
-    }
-
     /*
-     * Type Based Classification
+     * Operator Subtype Classification
      */
+
+    public static WebqlSemanticOperator GetSemanticOperator(WebqlOperatorType operatorType)
+    {
+        switch (operatorType)
+        {
+            case WebqlOperatorType.Aggregate:
+                return WebqlSemanticOperator.Aggregate;
+
+            default:
+                throw new InvalidOperationException();
+        }
+    }
 
     public static WebqlCollectionManipulationOperator GetCollectionManipulationOperator(WebqlOperatorType operatorType)
     {
@@ -216,6 +182,64 @@ public static class WebqlOperatorAnalyzer
                 throw new InvalidOperationException();
         }
     }
+
+    /*
+     * Helper Methods
+     */
+
+    public static bool IsArithmetic(WebqlOperatorType operatorType)
+    {
+        return GetOperatorCategory(operatorType) == WebqlOperatorCategory.Arithmetic;
+    }
+
+    public static bool IsRelational(WebqlOperatorType operatorType)
+    {
+        return GetOperatorCategory(operatorType) == WebqlOperatorCategory.Relational;
+    }
+
+    public static bool IsStringRelational(WebqlOperatorType operatorType)
+    {
+        return GetOperatorCategory(operatorType) == WebqlOperatorCategory.StringRelational;
+    }
+
+    public static bool IsLogical(WebqlOperatorType operatorType)
+    {
+        return GetOperatorCategory(operatorType) == WebqlOperatorCategory.Logical;
+    }
+
+    public static bool IsCollectionManipulationOperator(WebqlOperatorType operatorType)
+    {
+        return GetOperatorCategory(operatorType) == WebqlOperatorCategory.CollectionManipulation;
+    }
+
+    public static bool IsCollectionAggregationOperator(WebqlOperatorType operatorType)
+    {
+        return GetOperatorCategory(operatorType) == WebqlOperatorCategory.CollectionAggregation;
+    }
+
+    public static bool IsNullary(WebqlOperatorType operatorType)
+    {
+        return GetOperatorArity(operatorType) == WebqlOperatorArity.Nullary;
+    }
+
+    public static bool IsUnary(WebqlOperatorType operatorType)
+    {
+        return GetOperatorArity(operatorType) == WebqlOperatorArity.Unary;
+    }
+
+    public static bool IsBinary(WebqlOperatorType operatorType)
+    {
+        return GetOperatorArity(operatorType) == WebqlOperatorArity.Binary;
+    }
+
+    public static bool IsTernary(WebqlOperatorType operatorType)
+    {
+        return GetOperatorArity(operatorType) == WebqlOperatorArity.Ternary;
+    }
+
+    /*
+     * Type Based Classification
+     */
 
     public static bool IsCollectionOperator(this WebqlOperatorType @operator)
     {

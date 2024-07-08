@@ -1,36 +1,33 @@
-﻿namespace Webql.Parsing.Ast;
+﻿using Webql.Parsing.Ast.Extensions;
 
-public enum WebqlScopeType
-{
-    Aggregation,
-    LogicalFiltering,
-    Projection,
-}
+namespace Webql.Parsing.Ast;
 
 public class WebqlBlockExpression : WebqlExpression
 {
     public override WebqlSyntaxNodeMetadata Metadata { get; }
     public override Dictionary<string, object> Attributes { get; }
     public override WebqlExpressionType ExpressionType { get; }
-    public WebqlScopeType ScopeType { get; set; }
     public WebqlExpression[] Expressions { get; }
 
     public WebqlBlockExpression(
         WebqlSyntaxNodeMetadata metadata,
         Dictionary<string, object>? attributes,
-        WebqlScopeType scopeType,
-        IEnumerable<WebqlExpression> expressions) 
+        IEnumerable<WebqlExpression> expressions)
     {
         Metadata = metadata;
         Attributes = attributes ?? new Dictionary<string, object>();
         ExpressionType = WebqlExpressionType.Block;
-        ScopeType = scopeType;
         Expressions = expressions.ToArray();
 
         foreach (var expression in Expressions)
         {
             expression.Parent = this;
         }
+    }
+
+    public override IEnumerable<WebqlSyntaxNode> GetChildren()
+    {
+        return Expressions;
     }
 
     public override string ToString()

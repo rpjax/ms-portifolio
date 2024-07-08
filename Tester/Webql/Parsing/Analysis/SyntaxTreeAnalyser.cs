@@ -130,9 +130,9 @@ public class SyntaxTreeAnalyzer : SyntaxTreeVisitor
     /// <param name="expression">The block expression to analyze.</param>
     protected virtual void AnalyzeBlockExpression(WebqlBlockExpression expression)
     {
-        foreach (var subExpression in expression.Expressions)
+        foreach (var childExpression in expression.Expressions)
         {
-            Analyze(subExpression);
+            Analyze(childExpression);
         }
     }
 

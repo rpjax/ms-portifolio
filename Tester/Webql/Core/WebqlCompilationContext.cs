@@ -15,7 +15,7 @@ public class WebqlCompilationContext
     }
 
     public Type QueryableType => Settings.QueryableType;
-    public Type EntityType => Settings.EntityType;
-    public Type EntityQueryableType => QueryableType.MakeGenericType(EntityType);
+    public Type RootQueryableType => typeof(IQueryable<>);
+    public Type RootElementType => Settings.ElementType;
 
 }

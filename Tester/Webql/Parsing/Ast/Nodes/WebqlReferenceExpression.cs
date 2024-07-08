@@ -18,6 +18,11 @@ public class WebqlReferenceExpression : WebqlExpression
         Identifier = identifier;
     }
 
+    public override IEnumerable<WebqlSyntaxNode> GetChildren()
+    {
+        return Enumerable.Empty<WebqlSyntaxNode>();
+    }
+
     public override string ToString()
     {
         return Identifier;

@@ -26,6 +26,14 @@ public class WebqlTemporaryDeclarationExpression : WebqlExpression
         Value.Parent = this;
     }
 
+    public override IEnumerable<WebqlSyntaxNode> GetChildren()
+    {
+        if(Value is not null)
+        {
+            yield return Value;
+        }
+    }
+
     public override string ToString()
     {
         return $"{Type} {Identifier} = {Value}";

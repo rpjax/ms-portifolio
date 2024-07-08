@@ -8,11 +8,11 @@ public class WebqlCompilerSettings
     public static Type DefaultAsyncQueryableType { get; } = typeof(IAsyncQueryable<>);
 
     public Type QueryableType { get; } 
-    public Type EntityType { get; }
+    public Type ElementType { get; }
 
     public WebqlCompilerSettings(Type queryableType, Type entityType)
     {
         QueryableType = queryableType;
-        EntityType = entityType;
+        ElementType = entityType;
     }
 }

@@ -10,12 +10,18 @@ using Webql.Semantics.Symbols;
 namespace Webql.Semantics.Context;
 
 public class SemanticContext
-{
-    public const string LeftHandSideId = "<lhs>";
-        
+{        
     public WebqlCompilationContext CompilationContext { get; }
 
+    /*
+     * Scope related properties
+     */
     private Dictionary<string, ISymbol> SymbolTable { get; }
+    private WebqlScopeType? ScopeType { get; set; }
+
+    /*
+     * Technical properties
+     */
     private SemanticContext? ParentContext { get; }
     private CacheObject Cache { get; }
 
@@ -70,7 +76,7 @@ public class SemanticContext
         );
     }
 
-    public SemanticContext CreateSubContext()
+    public SemanticContext CreateChildContext()
     {
         return new SemanticContext(
             compilationContext: CompilationContext,
@@ -142,30 +148,10 @@ public class SemanticContext
     }
 
     /*
-     * lhs helper methods
-     */
-
-    public LhsSymbol GetLeftHandSideSymbol()
-    {
-        return SymbolTable.ContainsKey(LeftHandSideId)
-            ? (LhsSymbol)SymbolTable[LeftHandSideId]
-            : ParentContext?.GetLeftHandSideSymbol() ?? throw new InvalidOperationException();
-    }
-
-    public Type GetLeftHandSideType()
-    {
-        return GetLeftHandSideSymbol().Type;
-    }
-
-    public void SetLeftHandSideSymbol(Type type)
-    {
-        SymbolTable[LeftHandSideId] = new LhsSymbol(LeftHandSideId, type);
-    }
-
-    /*
      * Accumulator Symbol helper methods.
      */
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public AccumulatorSymbol GetAccumulatorSymbol()
     {   
         return SymbolTable.ContainsKey(AstHelper.AccumulatorIdentifier)
@@ -173,17 +159,33 @@ public class SemanticContext
             : ParentContext?.GetAccumulatorSymbol() ?? throw new InvalidOperationException();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Type GetAccumulatorType()
     {   
         return GetAccumulatorSymbol().Type;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetAccumulatorSymbol(Type type)
     {   
         SymbolTable[AstHelper.AccumulatorIdentifier] = new AccumulatorSymbol(
             identifier: AstHelper.AccumulatorIdentifier, 
             type: type
         );
+    }
+
+    /*
+     * Reflection helper methods
+     */
+
+    public Type GetQueryableType(WebqlSyntaxNode node)
+    {
+        if(node.IsInRootAggregationScope())
+        {
+            return CompilationContext.RootQueryableType;
+        }
+
+        return CompilationContext.QueryableType;
     }
 
     /*

@@ -3,6 +3,7 @@ using Webql.Core;
 using Webql.Parsing;
 using Webql.Semantics.Analysis;
 using Webql.Semantics.Context;
+using Webql.Semantics.Extensions;
 using Webql.Translation.Linq.Context;
 using Webql.Translation.Linq.Translators;
 

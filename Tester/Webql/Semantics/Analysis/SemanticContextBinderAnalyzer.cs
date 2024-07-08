@@ -11,6 +11,7 @@ namespace Webql.Semantics.Analysis;
 public class SemanticContextBinderAnalyzer : SyntaxTreeAnalyzer
 {
     private Stack<SemanticContext> ContextStack { get; }
+    private SemanticContext RootContext { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SemanticContextBinderAnalyzer"/> class.
@@ -19,15 +20,12 @@ public class SemanticContextBinderAnalyzer : SyntaxTreeAnalyzer
     public SemanticContextBinderAnalyzer(SemanticContext context)
     {
         ContextStack = new Stack<SemanticContext>();
+        RootContext = context;
 
         //* Push the root context to the stack
         ContextStack.Push(context);
     }
 
-    /// <summary>
-    /// Analyzes the given syntax tree node.
-    /// </summary>
-    /// <param name="node">The syntax tree node to analyze.</param>
     protected override void Analyze(WebqlSyntaxNode? node)
     {
         if (node is null)
@@ -35,21 +33,44 @@ public class SemanticContextBinderAnalyzer : SyntaxTreeAnalyzer
             return;
         }
 
-        var localContext = ContextStack.Peek();
-        var childContext = ContextStack.Peek();
-
-        if (node.IsScopeSource())
+        if (node.IsRoot())
         {
-            childContext = localContext.CreateSubContext();
+            BindRootContext(node);
+        }
+        else
+        {
+            BindLocalContext(node);
         }
 
-        if(!node.HasSemanticContext())
-        {
-            node.AddSemanticContext(localContext);
-        }
-
-        ContextStack.Push(childContext);
         base.Analyze(node);
-        ContextStack.Pop();
     }
+
+    private void BindRootContext(WebqlSyntaxNode node)
+    {
+        node.BindSemanticContext(RootContext);
+    }
+
+    private void BindLocalContext(WebqlSyntaxNode node)
+    {
+        if (node.HasSemanticContext())
+        {
+            return;
+        }
+        if (node.Parent is null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        var parentContext = node.Parent.TryGetClosestSemanticContext();
+
+        if(parentContext is null)
+        {
+            throw new InvalidOperationException();
+        }
+            
+        var localContext = parentContext.CreateChildContext();
+
+        node.BindSemanticContext(localContext);        
+    }
+
 }

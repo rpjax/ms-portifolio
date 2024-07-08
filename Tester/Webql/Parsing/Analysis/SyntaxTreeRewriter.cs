@@ -68,7 +68,6 @@ public class SyntaxTreeRewriter : SyntaxTreeVisitor
         return new WebqlBlockExpression(
             metadata: node.Metadata,
             attributes: node.Attributes,
-            scopeType: node.ScopeType,
             expressions: node.Expressions.Select(VisitExpression)
         );
     }

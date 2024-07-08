@@ -25,6 +25,14 @@ public class WebqlQuery : WebqlSyntaxNode
         }
     }
 
+    public override IEnumerable<WebqlSyntaxNode> GetChildren()
+    {
+        if(Expression is not null)
+        {
+            yield return Expression;
+        }
+    }
+
     public override string ToString()
     {
         return Expression?.ToString() ?? string.Empty;

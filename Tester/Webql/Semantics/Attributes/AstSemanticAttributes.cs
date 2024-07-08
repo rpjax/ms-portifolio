@@ -4,5 +4,4 @@ public static class AstSemanticAttributes
 {
     public const string ContextAttribute = "semantic_context";
     public const string SemanticsAttribute = "semantics";
-    public const string ScopeSourceAttribute = "scope_source";
 }

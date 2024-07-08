@@ -4,6 +4,7 @@ using ModularSystem.Core.TextAnalysis.Tokenization;
 using ModularSystem.Core.TextAnalysis.Tokenization.Extensions;
 using Webql.Core.Analysis;
 using Webql.Parsing.Ast.Builder.Extensions;
+using Webql.Parsing.Ast.Extensions;
 
 namespace Webql.Parsing.Ast.Builder;
 
@@ -23,29 +24,34 @@ public static class WebqlAstBuilder
         {
             throw new Exception("Invalid query");
         }   
-        if (node.Children.Length == 0)
+
+        var query = null as WebqlQuery;
+        var rootScopeType = WebqlScopeType.Aggregation;
+        var metadata = TranslateNodeMetadata(node);
+        var isEmptyQuery = node.Children.Length == 0;
+
+        node.SetScopeType(WebqlScopeType.Aggregation);
+
+        if (isEmptyQuery)
         {
-            return new WebqlQuery(
-                metadata: TranslateNodeMetadata(node),
+            query = new WebqlQuery(
+                metadata: metadata,
                 attributes: null,
                 expression: null
             );
         }
+        else
+        {
+            query = new WebqlQuery(
+                metadata: metadata,
+                attributes: null,
+                expression: TranslateExpression(node.Children[0].AsInternal())
+            );
+        }
 
-        var accumulatorReference = new WebqlReferenceExpression(
-            metadata: TranslateNodeMetadata(node),
-            attributes: null,
-            identifier: AstHelper.AccumulatorIdentifier
-        );
+        query.SetScopeType(rootScopeType);
 
-        node.SetAccumulatorExpression(accumulatorReference);
-        node.SetScopeType(WebqlScopeType.Aggregation);
-
-        return new WebqlQuery(
-            metadata: TranslateNodeMetadata(node),
-            attributes: null,
-            expression: TranslateExpression(node.Children[0].AsInternal())
-        );
+        return query;
     }
 
     /// <summary>
@@ -251,27 +257,22 @@ public static class WebqlAstBuilder
 
         var referenceIdentifier = TranslateReferenceExpressionToIdentifier(referenceNode);
         var referenceNodeMetadata = TranslateNodeMetadata(referenceNode);
-
-        var accumulatorExpression = node.GetAccumulatorExpression();
         
-        var memberAccess = new WebqlMemberAccessExpression(
-            metadata: referenceNodeMetadata,
-            attributes: null,
-            expression: accumulatorExpression,
-            memberName: referenceIdentifier
-        );
-
-        expressionNode.SetAccumulatorExpression(memberAccess);
+        expressionNode.AddMemberAccessToLhsExpression(referenceIdentifier);
 
         var expression = TranslateExpression(expressionNode);
+        var expressionIsLiteral = expression.ExpressionType is WebqlExpressionType.Literal;
 
-        if (expression.ExpressionType is WebqlExpressionType.Literal)
+        if (expressionIsLiteral)
         {
+            var lhs = node.GetLhsExpression();
+            var rhs = expression;
+
             return new WebqlOperationExpression(
                 metadata: expression.Metadata,
                 attributes: null,
                 @operator: WebqlOperatorType.Equals,
-                operands: new WebqlExpression[] { memberAccess, expression }
+                operands: new WebqlExpression[] { lhs, rhs }
             );
         }
 
@@ -293,7 +294,8 @@ public static class WebqlAstBuilder
             .Where(x => x.Index % 2 == 0)
             .Select(x => x.Node);
 
-        var isAggregationScope = node.GetScopeType() == WebqlScopeType.Aggregation;
+        var scopeType = node.GetScopeType();
+        var isAggregationScope = scopeType is WebqlScopeType.Aggregation;
         
         if(isAggregationScope)
         {
@@ -317,7 +319,7 @@ public static class WebqlAstBuilder
             expressionNodes
                 .Skip(1)
                 .ToList()
-                .ForEach(x => x.SetAccumulatorExpression(accumulatorReference));
+                .ForEach(x => x.ResetLhsExpression());
         }
 
         foreach (var child in expressionNodes)
@@ -330,12 +332,15 @@ public static class WebqlAstBuilder
             return expressions[0];
         }
 
-        return new WebqlBlockExpression(
+        var block = new WebqlBlockExpression(
             metadata: TranslateNodeMetadata(node),
             attributes: null,
-            scopeType: node.GetScopeType(),
             expressions: expressions
         );
+
+        block.SetScopeType(scopeType);
+
+        return block;
     }
         
     /// <summary>
@@ -361,21 +366,17 @@ public static class WebqlAstBuilder
 
         if (isCollectionOperator)
         {
-            var accumulatorReference = new WebqlReferenceExpression(
-                metadata: TranslateNodeMetadata(node),
-                attributes: null,
-                identifier: AstHelper.AccumulatorIdentifier
-            );
-
-            rhsNode.SetAccumulatorExpression(accumulatorReference);
+            rhsNode.ResetLhsExpression();
         }
 
-        var lhsExpression = node.GetAccumulatorExpression();
+        var lhsExpression = node.GetLhsExpression();
         var rhsExpression = TranslateExpression(rhsNode);
 
         var operands = @operator is WebqlOperatorType.Aggregate 
             ? new WebqlExpression[] { rhsExpression }
             : new WebqlExpression[] { lhsExpression, rhsExpression };
+
+        rhsExpression.SetScopeType(operatorScopeType);
 
         return new WebqlOperationExpression(
             metadata: TranslateNodeMetadata(node),
@@ -406,10 +407,15 @@ public static class WebqlAstBuilder
     }
 
     /*
-     * private helper methods.
+     * helper methods.
      */
 
-    private static WebqlSyntaxNodeMetadata TranslateNodeMetadata(CstNode node)
+    /// <summary>
+    /// Translates a CstNode into a WebqlSyntaxNodeMetadata object.
+    /// </summary>
+    /// <param name="node"></param>
+    /// <returns></returns>
+    public static WebqlSyntaxNodeMetadata TranslateNodeMetadata(CstNode node)
     {
         return new WebqlSyntaxNodeMetadata(
             startPosition: node.Metadata.StartPosition,

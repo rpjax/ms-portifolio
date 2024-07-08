@@ -89,6 +89,11 @@ public enum WebqlOperatorArity
  * Helper Enumerations
  */
 
+public enum WebqlSemanticOperator
+{
+    Aggregate
+}
+
 public enum WebqlCollectionManipulationOperator
 {
     Filter,

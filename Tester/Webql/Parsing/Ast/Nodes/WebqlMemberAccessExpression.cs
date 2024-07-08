@@ -23,6 +23,11 @@ public class WebqlMemberAccessExpression : WebqlExpression
         Expression.Parent = this;
     }
 
+    public override IEnumerable<WebqlSyntaxNode> GetChildren()
+    {
+        yield return Expression;
+    }
+
     public override string ToString()
     {
         return $"{Expression}.{MemberName}";

@@ -11,6 +11,7 @@ using Webql.Semantics;
 using Webql.Semantics.Extensions;
 using Webql.Core;
 using Webql;
+using ModularSystem.Core.AccessManagement;
 
 namespace ModularSystem.Tester;
 
@@ -82,6 +83,11 @@ public class TestUser
     public string? Email { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public TestWallet Wallet { get; set; } = new TestWallet();
+    public Identity Identity { get; set; } = new Identity(
+        uniqueIdentifier: "jacques",
+        permissions: Enumerable.Empty<IdentityPermission>(),
+        roles: new[] { "admin" }
+    );
 }
 
 public static class Program
@@ -98,14 +104,14 @@ public static class Program
         var query = @"
         { 
             $filter: { 
-                isActive: true,
-                nickname: { $like: 'jacques' },
-                email: { $not: null },
-                wallet: { 
-                    usdBalance: { 
-                        $greater: 59 
-                    } 
-                },
+                //isActive: true,
+                //nickname: { $like: 'jacques' },
+                //email: { $not: null },
+                //wallet: { 
+                //    usdBalance: { 
+                //        $greater: 59 
+                //    } 
+                //},
                 identity: {
                     roles: {
                         $aggregate: {
