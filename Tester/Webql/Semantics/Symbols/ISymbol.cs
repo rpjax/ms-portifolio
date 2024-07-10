@@ -11,30 +11,21 @@ namespace Webql.Semantics.Symbols;
 public interface ISymbol : ISemantics
 {
     public string Identifier { get; }
-    Type Type { get; }
+}
+
+public interface ITypedSymbol : ISymbol, ITypedSemantics
+{
+    
 }
 
 /*
  * Concrete implementations
  */
 
-public class LhsSymbol : ISymbol
+public class DeclarationSymbol : ITypedSymbol
 {
     public string Identifier { get; }
     public Type Type { get; }
-
-    public LhsSymbol(string identifier, Type type)
-    {
-        Identifier = identifier;
-        Type = type;
-    }
-
-}
-
-public class DeclarationSymbol : ISymbol
-{
-    public Type Type { get; }
-    public string Identifier { get; }
 
     public DeclarationSymbol(string identifier, Type type)
     {
@@ -44,10 +35,10 @@ public class DeclarationSymbol : ISymbol
 
 }
 
-public class AccumulatorSymbol : ISymbol
+public class AccumulatorSymbol : ITypedSymbol
 {
-    public Type Type { get; }
     public string Identifier { get; }
+    public Type Type { get; }
 
     public AccumulatorSymbol(string identifier, Type type)
     {

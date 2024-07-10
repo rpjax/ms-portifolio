@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Webql.Parsing.Analysis;
 
 namespace Webql.Parsing.Ast;
@@ -60,14 +61,36 @@ public static class WebqlSyntaxNodeExtensions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static object? TryGetAttribute(this WebqlSyntaxNode node, string key)
+    public static bool TryGetAttribute(this WebqlSyntaxNode node, string key, [MaybeNullWhen(false)] out object value)
     {
-        if (node.Attributes.TryGetValue(key, out var value))
+        return node.Attributes.TryGetValue(key, out value);
+    }
+
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryGetAttribute<T>(this WebqlSyntaxNode node, string key, [MaybeNullWhen(false)] out T value)
+    {
+        if (node.Attributes.TryGetValue(key, out var obj))
         {
-            return value;
+            if(obj is T t)
+            {
+                value = t;
+                return true;
+            }
         }
 
-        return null;
+        value = default;
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T? TryGetAttribute<T>(this WebqlSyntaxNode node, string key)
+    {
+        if (node.Attributes.TryGetValue(key, out var obj) && obj is T t)
+        {
+            return t;
+        }
+
+        return default;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -83,22 +106,9 @@ public static class WebqlSyntaxNodeExtensions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T? TryGetAttribute<T>(this WebqlSyntaxNode node, string key)
-    {
-        var attribute = node.TryGetAttribute(key);
-
-        if (attribute is T value)
-        {
-            return value;
-        }
-
-        return default;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void AddAttribute(this WebqlSyntaxNode node, string key, object value)
     {
-        if(node.HasAttribute(key))
+        if (node.HasAttribute(key))
         {
             throw new InvalidOperationException($"The attribute '{key}' already exists on the node.");
         }

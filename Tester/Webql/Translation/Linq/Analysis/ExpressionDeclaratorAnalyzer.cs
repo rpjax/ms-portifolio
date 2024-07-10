@@ -29,12 +29,6 @@ public class ExpressionDeclaratorAnalyzer : SyntaxTreeAnalyzer
         {
             DeclareRootExpressions(node);
         }
-
-        //else if (node is WebqlScopeAccessExpression scopeAccessExpression)
-        //{
-        //    DeclareScopeAccessExpressions(scopeAccessExpression);
-        //}
-
         else if (node is WebqlOperationExpression operationExpression)
         {
             DeclareOperationExpressions(operationExpression);
@@ -45,82 +39,53 @@ public class ExpressionDeclaratorAnalyzer : SyntaxTreeAnalyzer
 
     private void DeclareRootExpressions(WebqlSyntaxNode node)
     {
-        var context = node.GetTranslationContext();
-        var type = TranslationContext.CompilationContext.EntityQueryableType;
-        var name = "<root>";
-        var expression = Expression.Parameter(type, name);
+        //var context = node.GetTranslationContext();
+        //var type = TranslationContext.CompilationContext.EntityQueryableType;
+        //var name = "<root>";
+        //var expression = Expression.Parameter(type, name);
 
-        context.SetLeftHandSideExpression(expression);
+        //context.SetLeftHandSideExpression(expression);
     }
 
     private void DeclareOperationExpressions(WebqlOperationExpression node)
     {
-        var operatorCategory = node.GetOperatorCategory();
+        //var operatorCategory = node.GetOperatorCategory();
 
-        var isLinqQueryableMethodCall = node.IsLinqQueryableMethodCallOperator();
+        //var isLinqQueryableMethodCall = node.IsLinqQueryableMethodCallOperator();
 
-        if (!isLinqQueryableMethodCall)
-        {
-            return;
-        }
+        //if (!isLinqQueryableMethodCall)
+        //{
+        //    return;
+        //}
 
-        var semanticContext = node.GetSemanticContext();
+        //var semanticContext = node.GetSemanticContext();
 
-        var queryableType = semanticContext.GetLeftHandSideType();
-        var elementType = queryableType.GetQueryableElementType();
-        var elementProperties = elementType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.Name == "Length" || !p.DeclaringType?.Namespace?.StartsWith("System") == true)
-            .ToArray()
-            ;
+        //var queryableType = semanticContext.GetLeftHandSideType();
+        //var elementType = queryableType.GetQueryableElementType();
+        //var elementProperties = elementType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+        //    .Where(p => p.Name == "Length" || !p.DeclaringType?.Namespace?.StartsWith("System") == true)
+        //    .ToArray()
+        //    ;
 
-        var elementExpression = Expression.Parameter(elementType, "<element>");
+        //var elementExpression = Expression.Parameter(elementType, "<element>");
 
-        var expressionDeclarations = elementProperties
-           .Select(x => Expression.Property(elementExpression, x))
-           .ToArray()
-           ;
+        //var expressionDeclarations = elementProperties
+        //   .Select(x => Expression.Property(elementExpression, x))
+        //   .ToArray()
+        //   ;
 
-        foreach (var operand in node.Operands)
-        {
-            var translationContext = operand.GetTranslationContext();
+        //foreach (var operand in node.Operands)
+        //{
+        //    var translationContext = operand.GetTranslationContext();
 
-            translationContext.SetLeftHandSideExpression(elementExpression);
+        //    translationContext.SetLeftHandSideExpression(elementExpression);
 
-            foreach (var expression in expressionDeclarations)
-            {
-                translationContext.AddExpression(expression.Member.Name, expression);
-            }
-        }
+        //    foreach (var expression in expressionDeclarations)
+        //    {
+        //        translationContext.AddExpression(expression.Member.Name, expression);
+        //    }
+        //}
     }
 
-    //private void DeclareScopeAccessExpressions(WebqlScopeAccessExpression node)
-    //{
-    //    var localTranslationContext = node.GetTranslationContext();
-    //    var childTranslationContext = node.Expression.GetTranslationContext();
-
-    //    var expressionId = node.Identifier;
-    //    var normalizedExpressionId = IdentifierHelper.NormalizeIdentifier(expressionId);
-
-    //    var referencedExpression = localTranslationContext.GetExpression(expressionId);
-
-    //    var expressionType = referencedExpression.Type;
-    //    var expressionProperties = expressionType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-    //        .Where(p => p.Name == "Length" || !p.DeclaringType?.Namespace?.StartsWith("System") == true)
-    //        .ToArray()
-    //        ;
-
-    //    var expressionDeclarations = expressionProperties
-    //        .Select(x => Expression.Property(referencedExpression, x))
-    //        .ToArray()
-    //        ;
-
-    //    childTranslationContext.SetLeftHandSideExpression(referencedExpression);
-
-    //    foreach (var expression in expressionDeclarations)
-    //    {
-    //        childTranslationContext.AddExpression(expression.Member.Name, expression);
-    //    }
-    //}
-  
 }
 

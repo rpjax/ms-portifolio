@@ -31,6 +31,20 @@ public class SymbolDeclaratorAnalyzer : SyntaxTreeAnalyzer
             return;
         }
 
+        switch (node.NodeType)
+        {
+            case WebqlNodeType.Query:
+                DeclareQuerySymbols((WebqlQuery)node);
+                break;
+
+            case WebqlNodeType.Expression:
+                DeclareExpressionSymbols((WebqlExpression)node);
+                break;
+        }
+
+        base.Analyze(node);
+        return;
+
         if (node.IsRoot())
         {
             DeclareRootSymbols(node);
@@ -38,10 +52,10 @@ public class SymbolDeclaratorAnalyzer : SyntaxTreeAnalyzer
 
         else if (node is WebqlOperationExpression operationExpression)
         {
-            DeclareOperationSymbols(operationExpression);
+            DeclareOperationExpressionSymbols(operationExpression);
         }
 
-        else if(node is WebqlBlockExpression blockExpression)
+        else if (node is WebqlBlockExpression blockExpression)
         {
             DeclareBlockExpressionSymbols(blockExpression);
         }
@@ -55,73 +69,90 @@ public class SymbolDeclaratorAnalyzer : SyntaxTreeAnalyzer
     /// <param name="node">The root node.</param>
     private void DeclareRootSymbols(WebqlSyntaxNode node)
     {
-        var localContext = node.GetSemanticContext();
         var queryableType = SemanticContext.CompilationContext.RootQueryableType;
         var elementType = SemanticContext.CompilationContext.RootElementType;
         var accumulatorType = queryableType.MakeGenericType(elementType);
 
-        SetAccumulatorSymbol(node, accumulatorType);
+        node.DeclareAccumulatorSymbol(accumulatorType);
+    }
+
+    private void DeclareQuerySymbols(WebqlQuery node)
+    {
+        if (node.IsNotRoot())
+        {
+            throw new InvalidOperationException("Query node must be the root node.");
+        }
+
+        var queryableType = SemanticContext.CompilationContext.RootQueryableType;
+        var elementType = SemanticContext.CompilationContext.RootElementType;
+        var accumulatorType = queryableType.MakeGenericType(elementType);
+
+        node.DeclareAccumulatorSymbol(accumulatorType);
+    }
+
+    private void DeclareExpressionSymbols(WebqlExpression node)
+    {
+        switch (node.ExpressionType)
+        {
+            case WebqlExpressionType.Block:
+                DeclareBlockExpressionSymbols((WebqlBlockExpression)node);
+                break;
+
+            case WebqlExpressionType.Operation:
+                DeclareOperationExpressionSymbols((WebqlOperationExpression)node);
+                break;
+        }
+    }
+
+    private void DeclareBlockExpressionSymbols(WebqlBlockExpression node)
+    {
+        switch (node.GetScopeType())
+        {
+            case WebqlScopeType.Aggregation:
+                DeclareAggregationBlockSymbols(node);
+                break;
+        }
+    }
+
+    private void DeclareAggregationBlockSymbols(WebqlBlockExpression node)
+    {
+        var accumulatorType = node.GetAccumulatorType();
+
+        foreach (var expression in node.Expressions)
+        {
+            expression.DeclareAccumulatorSymbol(accumulatorType);
+
+            var expressionSemantics = expression.GetSemantics<IExpressionSemantics>();
+
+            accumulatorType = expressionSemantics.Type;
+        }
     }
 
     /// <summary>
     /// Declares the symbolDeclarations for the operation expression node.
     /// </summary>
     /// <param name="node">The operation expression node.</param>
-    private void DeclareOperationSymbols(WebqlOperationExpression node)
+    private void DeclareOperationExpressionSymbols(WebqlOperationExpression node)
     {
-        var isCollectionOperator = node.IsCollectionOperator();
-
-        if (!isCollectionOperator)
+        if (!node.IsCollectionOperator())
         {
             return;
         }
 
-        if(node.Operands.Length < 1)
-        {
-            throw new SemanticException("Invalid number of operands.", node);
-        }
+        node.EnsureAtLeastOneOperand();
 
         var lhsExpression = node.Operands[0];
         var lhsSemantics = lhsExpression.GetSemantics<IExpressionSemantics>();
-        var accumulatorType = lhsSemantics.Type;
+        var lhsType = lhsSemantics.Type;
 
-        if (accumulatorType.IsNotQueryable())
-        {
-            throw new SemanticException("Left-hand side lhsType must be a queryable lhsType.", node);
-        }
+        lhsExpression.EnsureIsQueryable();
 
-        var elementType = accumulatorType.GetQueryableElementType();
+        var elementType = lhsType.GetQueryableElementType();
 
         foreach (var operand in node.Operands.Skip(1))
         {
-            SetAccumulatorSymbol(operand, elementType);
+            operand.DeclareAccumulatorSymbol(elementType);
         }
-    }
-
-    private void DeclareBlockExpressionSymbols(WebqlBlockExpression node)
-    {
-        if(node.GetScopeType() is not WebqlScopeType.Aggregation)
-        {
-            return;
-        }
-
-        var blockContext = node.GetSemanticContext();
-        var accumulatorType = blockContext.GetAccumulatorType();
-
-        foreach (var expression in node.Expressions)
-        {
-            SetAccumulatorSymbol(expression, accumulatorType);
-
-            var expressionSemantics = expression.GetSemantics<IExpressionSemantics>();
-            accumulatorType = expressionSemantics.Type;
-        }
-
-        blockContext.SetAccumulatorSymbol(accumulatorType);
-    }
-
-    private void SetAccumulatorSymbol(WebqlSyntaxNode node, Type type)
-    {
-        node.GetSemanticContext().SetAccumulatorSymbol(type);
     }
 
 }

@@ -9,14 +9,19 @@ public interface ISemantics
 
 }
 
-public interface IQuerySemantics : ISemantics
-{
-    Type Type { get; }  
-}
-
-public interface IExpressionSemantics : ISemantics
+public interface ITypedSemantics : ISemantics
 {
     Type Type { get; }
+}
+
+public interface IQuerySemantics : ITypedSemantics
+{
+    
+}
+
+public interface IExpressionSemantics : ITypedSemantics
+{
+    
 }
 
 /*
@@ -28,16 +33,6 @@ public class QuerySemantics : IQuerySemantics
     public Type Type { get; }
 
     public QuerySemantics(Type type)
-    {
-        Type = type;
-    }
-}
-
-public class LhsSemantics : IExpressionSemantics
-{
-    public Type Type { get; }
-
-    public LhsSemantics(Type type)
     {
         Type = type;
     }

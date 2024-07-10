@@ -10,21 +10,9 @@ public static class WebqSyntaxNodeExtensions
 
     public static WebqlScopeType GetScopeType(this WebqlSyntaxNode node)
     {
-        var value = node.TryGetAttribute(ScopeTypeKey);
-
-        if (value is null)
+        if (!node.TryGetAttribute<WebqlScopeType>(ScopeTypeKey, out var scopeType))
         {
-            value = node?.Parent?.GetScopeType();
-        }
-
-        if (value is null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        if (value is not WebqlScopeType scopeType)
-        {
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("Scope type not found");
         }
 
         return scopeType;

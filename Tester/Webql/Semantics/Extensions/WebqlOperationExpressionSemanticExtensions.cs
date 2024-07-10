@@ -11,6 +11,26 @@ public static class WebqlOperationExpressionSemanticExtensions
         return WebqlOperatorAnalyzer.GetOperatorCategory(expression.Operator);
     }
 
+    public static WebqlSemanticOperator GetSemanticOperator(this WebqlOperationExpression expression)
+    {
+        return WebqlOperatorAnalyzer.GetSemanticOperator(expression.Operator);
+    }
+
+    public static WebqlCollectionOperator GetCollectionOperator(this WebqlOperationExpression expression)
+    {
+        return WebqlOperatorAnalyzer.GetCollectionOperator(expression.Operator);
+    }
+
+    public static WebqlCollectionManipulationOperator GetCollectionManipulationOperator(this WebqlOperationExpression expression)
+    {
+        return WebqlOperatorAnalyzer.GetCollectionManipulationOperator(expression.Operator);
+    }
+
+    public static WebqlCollectionAggregationOperator GetCollectionAggregationOperator(this WebqlOperationExpression expression)
+    {
+        return WebqlOperatorAnalyzer.GetCollectionAggregationOperator(expression.Operator);
+    }
+
     public static bool IsArithmetic(this WebqlOperationExpression expression)
     {
         return expression.GetOperatorCategory() == WebqlOperatorCategory.Arithmetic;

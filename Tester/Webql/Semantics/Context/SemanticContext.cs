@@ -10,7 +10,7 @@ using Webql.Semantics.Symbols;
 namespace Webql.Semantics.Context;
 
 public class SemanticContext
-{        
+{
     public WebqlCompilationContext CompilationContext { get; }
 
     /*
@@ -87,46 +87,13 @@ public class SemanticContext
     }
 
     /*
-     * Symbol table helper methods
+     * Symbol semantic helper methods
      */
-
-    public bool ContainsSymbol(string identifier)
-    {
-        return SymbolTable.ContainsKey(identifier)
-            || ParentContext?.ContainsSymbol(identifier) == true;
-    }
-
-    public ISymbol? TryGetSymbol(string identifier)
-    {
-        identifier = IdentifierHelper.NormalizeIdentifier(identifier);
-
-        if (SymbolTable.TryGetValue(identifier, out var symbol))
-        {
-            return symbol;
-        }
-
-        return ParentContext?.TryGetSymbol(identifier);
-    }
-
-    public ISymbol GetSymbol(string identifier)
-    {
-        return TryGetSymbol(identifier) ?? throw new InvalidOperationException("Symbol not found");
-    }
-
-    public Type? TryGetSymbolType(string identifier)
-    {
-        return TryGetSymbol(identifier)?.Type;
-    }
-
-    public Type GetSymbolType(string identifier)
-    {
-        return GetSymbol(identifier).Type;
-    }
 
     public ISemantics GetSemantics(WebqlSyntaxNode node)
     {
         return TryGetCachedSemantics(node)
-            ?? ParentContext?.TryGetCachedSemantics(node) 
+            ?? ParentContext?.TryGetCachedSemantics(node)
             ?? SemanticAnalyzer.CreateSemantics(CompilationContext, node);
     }
 
@@ -153,7 +120,7 @@ public class SemanticContext
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public AccumulatorSymbol GetAccumulatorSymbol()
-    {   
+    {
         return SymbolTable.ContainsKey(AstHelper.AccumulatorIdentifier)
             ? (AccumulatorSymbol)SymbolTable[AstHelper.AccumulatorIdentifier]
             : ParentContext?.GetAccumulatorSymbol() ?? throw new InvalidOperationException();
@@ -161,15 +128,15 @@ public class SemanticContext
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Type GetAccumulatorType()
-    {   
+    {
         return GetAccumulatorSymbol().Type;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetAccumulatorSymbol(Type type)
-    {   
+    {
         SymbolTable[AstHelper.AccumulatorIdentifier] = new AccumulatorSymbol(
-            identifier: AstHelper.AccumulatorIdentifier, 
+            identifier: AstHelper.AccumulatorIdentifier,
             type: type
         );
     }
@@ -180,7 +147,7 @@ public class SemanticContext
 
     public Type GetQueryableType(WebqlSyntaxNode node)
     {
-        if(node.IsInRootAggregationScope())
+        if (node.IsInRootAggregationScope())
         {
             return CompilationContext.RootQueryableType;
         }

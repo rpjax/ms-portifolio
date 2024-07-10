@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Webql.Core;
+using Webql.Core.Extensions;
 using Webql.Parsing;
 using Webql.Semantics.Analysis;
 using Webql.Semantics.Context;
@@ -23,6 +24,8 @@ public class WebqlCompiler
         var syntaxTree = WebqlParser.ParseToAst(query);
         var semanticContext = SemanticContext.CreateRootContext(CompilationContext);
         var translationContext = TranslationContext.CreateRootContext(CompilationContext);
+
+        syntaxTree.SetCompilationContext(CompilationContext);
             
         SemanticAnalyzer.ExecuteAnalysisPipeline(
             context: semanticContext, 

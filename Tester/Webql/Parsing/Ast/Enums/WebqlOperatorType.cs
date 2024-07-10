@@ -94,6 +94,24 @@ public enum WebqlSemanticOperator
     Aggregate
 }
 
+public enum WebqlCollectionOperator
+{
+    Filter,
+    Select,
+    SelectMany,
+    Limit,
+    Skip,
+    Count,
+    Contains,
+    Index,
+    Any,
+    All,
+    Min,
+    Max,
+    Sum,
+    Average,
+}
+
 public enum WebqlCollectionManipulationOperator
 {
     Filter,

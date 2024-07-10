@@ -26,10 +26,10 @@ $filter: {
             $greater: 0
         }
     },
-    $equals: [element.nickname, "John"]
+    $equals: [element.nickname, "John"],
     {
         accumulator: element.surnames,
-        $contains: [accumulator, "Doe"] 
+        $contains: [accumulator, "Doe"], 
         $filter: [accumulator, { $equals: [element, "Doe"] }],
         $count: [accumulator, { $greater: [element, 0] }]
     }

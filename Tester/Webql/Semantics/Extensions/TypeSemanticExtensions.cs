@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace Webql.Semantics.Extensions;
 
-public static class SemanticTypeExtensions
+public static class TypeSemanticExtensions
 {
     public static bool IsQueryable(this Type type)
     {

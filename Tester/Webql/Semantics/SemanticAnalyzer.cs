@@ -5,6 +5,7 @@ using Webql.Core;
 using Webql.Semantics.Context;
 using Webql.Semantics.Exceptions;
 using Webql.Core.Analysis;
+using Webql.Semantics.Symbols;
 
 namespace Webql.Semantics.Analysis;
 
@@ -22,13 +23,11 @@ public static class SemanticAnalyzer
     public static WebqlSyntaxNode RewriteTree(SemanticContext context, WebqlSyntaxNode node)
     {
         return node;
-        return new DocumentSyntaxTreeRewriter()
-            .ExecuteRewrite(node);
     }
 
     public static void AnnotateTree(SemanticContext context, WebqlSyntaxNode node)
     {
-        new SemanticContextBinderAnalyzer(context)
+        new ScopeBinderAnalyzer(context)
             .ExecuteAnalysis(node);
     }
 
@@ -173,8 +172,6 @@ public static class SemanticAnalyzer
             throw new SemanticException("Null literal can only be used as an operand to a binary operator.", expression);
         }
 
-        var semanticContext = expression.GetSemanticContext();
-
         var otherOperand = operationNode.Operands.First(x => x != expression);
         var otherSemantics = otherOperand.GetSemantics<IExpressionSemantics>();
 
@@ -228,15 +225,10 @@ public static class SemanticAnalyzer
         WebqlCompilationContext context,
         WebqlReferenceExpression referenceExpression)
     {
-        var semanticContext = referenceExpression.GetSemanticContext();
-
-        if(!semanticContext.ContainsSymbol(referenceExpression.Identifier))
-        {
-            throw new SemanticException($"Symbol {referenceExpression.Identifier} not found.", referenceExpression);
-        }
+        var symbol = referenceExpression.ResolveSymbol<ITypedSymbol>(referenceExpression.Identifier);
 
         return new ExpressionSemantics(
-            type: semanticContext.GetSymbolType(referenceExpression.Identifier)
+            type: symbol.Type
         );
     }
 
@@ -248,7 +240,6 @@ public static class SemanticAnalyzer
         WebqlCompilationContext context,
         WebqlMemberAccessExpression memberAccessExpression)
     {
-        var localContext = memberAccessExpression.GetSemanticContext();
         var childSemantics = memberAccessExpression.Expression.GetSemantics<IExpressionSemantics>();
         var childType = childSemantics.Type;
         var memberName = memberAccessExpression.MemberName;
@@ -257,7 +248,7 @@ public static class SemanticAnalyzer
 
         if (propertyInfo is null)
         {
-            throw new SemanticException($"Property {memberName} not found in type {childType}.", memberAccessExpression);
+            throw memberAccessExpression.CreatePropertyNotFoundException(childType, memberName);
         }
 
         return new ExpressionSemantics(
@@ -284,6 +275,16 @@ public static class SemanticAnalyzer
         WebqlCompilationContext context,
         WebqlBlockExpression blockExpression)
     {
+        /*
+         * Temporary fix for empty block expressions.
+         */
+        if(blockExpression.Expressions.Length == 0)
+        {
+            return new ExpressionSemantics(
+                type: typeof(void)
+            );
+        }
+
         switch (blockExpression.GetScopeType())
         {
             case WebqlScopeType.Aggregation:
@@ -344,12 +345,8 @@ public static class SemanticAnalyzer
         WebqlCompilationContext context,
         WebqlOperationExpression operationExpression)
     {
-        if (operationExpression.Operands.Length != 2)
-        {
-            throw new SemanticException("Invalid number of operands.", operationExpression);
-        }
+        operationExpression.EnsureOperandCount(2);
 
-        var semanticContext = operationExpression.GetSemanticContext();
         var lhs = operationExpression.Operands[0];
         var lhsSemantics = lhs.GetSemantics<IExpressionSemantics>();
 
@@ -412,10 +409,7 @@ public static class SemanticAnalyzer
         WebqlCompilationContext context,
         WebqlOperationExpression operationExpression)
     {
-        if(operationExpression.Operands.Length < 1)
-        {
-            throw new SemanticException("Invalid number of operands.", operationExpression);
-        }
+        operationExpression.EnsureAtLeastOneOperand();
 
         var lastOperand = operationExpression.Operands.Last();
         var lastOperandSemantics = lastOperand.GetSemantics<IExpressionSemantics>();
@@ -434,24 +428,18 @@ public static class SemanticAnalyzer
         WebqlCompilationContext context,
         WebqlOperationExpression operationExpression)
     {
-        if(operationExpression.Operands.Length != 2)
-        {
-            throw new SemanticException("Invalid number of operands.", operationExpression);
-        }
+        operationExpression.EnsureOperandCount(2);
 
-        var semanticContext = operationExpression.GetSemanticContext();
         var lhs = operationExpression.Operands[0];
         var lhsSemantics = lhs.GetSemantics<IExpressionSemantics>();
         var lhsType = lhsSemantics.Type;
 
-        if(lhsType.IsNotQueryable())
-        {
-            throw new SemanticException($"Type mismatch: {lhsType} is not a queryable type.", operationExpression);
-        }
+        lhs.EnsureIsQueryable();
 
         var elementType = lhsType.GetQueryableElementType();
 
-        var type = context.QueryableType.MakeGenericType(elementType);
+        var type = operationExpression.GetQueryableType(context)
+            .MakeGenericType(elementType);
 
         return new ExpressionSemantics(
             type: type
@@ -466,16 +454,20 @@ public static class SemanticAnalyzer
         WebqlCompilationContext context,
         WebqlOperationExpression operationExpression)
     {
-        if (operationExpression.Operands.Length != 2)
-        {
-            throw new SemanticException("Invalid number of operands.", operationExpression);
-        }
+        operationExpression.EnsureOperandCount(2);
 
-        var semanticContext = operationExpression.GetSemanticContext();
-        var operatorType = WebqlOperatorAnalyzer.GetCollectionAggregationOperator(operationExpression.Operator);
+        var operatorType = operationExpression.GetCollectionAggregationOperator();
 
-        var rhsNode = operationExpression.Operands[0];
-        var rhsSemantics = rhsNode.GetSemantics<IExpressionSemantics>();
+        var lhs = operationExpression.Operands[0];
+        var rhs = operationExpression.Operands[1];
+
+        var lhsSemantics = lhs.GetSemantics<IExpressionSemantics>();
+        var rhsSemantics = rhs.GetSemantics<IExpressionSemantics>();
+
+        lhs.EnsureIsQueryable();
+
+        var lhsType = lhsSemantics.Type;
+        var elementType = lhsType.GetQueryableElementType();
 
         switch (operatorType)
         {
@@ -486,7 +478,7 @@ public static class SemanticAnalyzer
 
             case WebqlCollectionAggregationOperator.Index:
                 return new ExpressionSemantics(
-                    type: semanticContext.GetLeftHandSideType()
+                    type: elementType
                 );
 
             case WebqlCollectionAggregationOperator.Any:

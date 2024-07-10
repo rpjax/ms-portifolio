@@ -81,8 +81,6 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
             throw new SemanticException("Invalid number of operands.", expression);
         }
 
-        var context = expression.GetSemanticContext();
-
         var lhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
         var rhsSemantics = expression.Operands[1].GetSemantics<IExpressionSemantics>();
             
@@ -92,80 +90,9 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
         }
     }
 
-    private void AnalyzeArithmeticExpression(WebqlOperationExpression expression)
-    {
-        if (expression.Operands.Length != 1)
-        {
-            throw new SemanticException("Arithmetic expression must have exactly one operand.", expression);
-        }
-   
-        var context = expression.GetSemanticContext();
-        var lhsSemantics = context.GetLeftHandSideSymbol();
-        var rhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
-
-        if (!SemanticsTypeHelper.TypesAreCompatible(lhsSemantics.Type, rhsSemantics.Type))
-        {          
-            throw expression.CreateOperatorIncompatibleTypeException(lhsSemantics.Type, rhsSemantics.Type);
-        }
-    }
-
-    private void AnalyzeRelationalExpression(WebqlOperationExpression expression)
-    {
-        if (expression.Operands.Length != 1)
-        {
-            throw new SemanticException("Relational expression must have exactly one operand.", expression);
-        }
-
-        var context = expression.GetSemanticContext();
-        var lhsSemantics = context.GetLeftHandSideSymbol();
-        var rhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
-            
-        if (!SemanticsTypeHelper.TypesAreCompatible(lhsSemantics.Type, rhsSemantics.Type))
-        {
-            throw new SemanticException($"Type mismatch: {lhsSemantics.Type} != {rhsSemantics.Type}.", expression);
-        }
-    }
-
-    private void AnalyzeStringRelationalExpression(WebqlOperationExpression expression)
-    {
-        if (expression.Operands.Length != 1)
-        {
-            throw new SemanticException("String relational expression must have exactly one operand.", expression);
-        }
-
-        var context = expression.GetSemanticContext();
-        var lhsSemantics = context.GetLeftHandSideSymbol();
-        var rhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
-
-        if (lhsSemantics.Type != typeof(string) || rhsSemantics.Type != typeof(string))
-        {
-            throw new SemanticException($"Type mismatch: {lhsSemantics.Type} != {rhsSemantics.Type}.", expression);
-        }
-    }
-
-    private void AnalyzeLogicalExpression(WebqlOperationExpression expression)
-    {
-        if (expression.Operands.Length != 1)
-        {
-            throw new SemanticException("Logical expression must have exactly one operand.", expression);
-        }
-
-        var context = expression.GetSemanticContext();
-        var lhsSemantics = context.GetLeftHandSideSymbol();
-        var rhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
-
-        if (lhsSemantics.Type != rhsSemantics.Type)
-        {
-            throw new SemanticException($"Type mismatch: {lhsSemantics.Type} != {rhsSemantics.Type}.", expression);
-        }
-    }
-
     private void AnalyzeSemanticExpression(WebqlOperationExpression operationExpression)
     {
-        if(operationExpression.Operands.Length == 0)
-        {
-            throw new SemanticException("Semantic expression must have at least one operand.", operationExpression);
-        }
+        operationExpression.EnsureAtLeastOneOperand();
 
         switch (WebqlOperatorAnalyzer.GetSemanticOperator(operationExpression.Operator))
         {
@@ -182,10 +109,7 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
 
     private void AnalyzeCollectionManipulationExpression(WebqlOperationExpression expression)
     {
-        if (expression.Operands.Length != 2)
-        {
-            throw new SemanticException("Collection manipulation expression must have exactly two operand.", expression);
-        }
+        expression.EnsureOperandCount(2);
 
         var lhs = expression.Operands[0];
         var rhs = expression.Operands[1];
@@ -226,10 +150,7 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
 
     private void AnalyzeLimitExpression(WebqlOperationExpression expression)
     {
-        if(expression.Operands.Length != 2)
-        {
-            throw new SemanticException("Limit expression must have exactly two operands.", expression);
-        }
+        expression.EnsureOperandCount(2);
 
         var rhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
 
@@ -241,10 +162,7 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
 
     private void AnalyzeSkipExpression(WebqlOperationExpression expression)
     {
-        if(expression.Operands.Length != 1)
-        {
-            throw new SemanticException("Skip expression must have exactly two operands.", expression);
-        }
+        expression.EnsureOperandCount(2);
 
         var rhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
 
@@ -260,12 +178,38 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
 
     private void AnalyzeCollectionAggregationExpression(WebqlOperationExpression operationExpression)
     {
-        var context = operationExpression.GetSemanticContext();
-        var lhsSemantics = context.GetLeftHandSideSymbol();
+        operationExpression.EnsureOperandCount(2);
 
-        if (lhsSemantics.Type.IsNotQueryable())
+        var lhs = operationExpression.Operands[0];
+        var rhs = operationExpression.Operands[1];
+
+        var lhsSemantics = lhs.GetSemantics<IExpressionSemantics>();
+
+        lhs.EnsureIsQueryable();
+
+        switch (operationExpression.GetCollectionAggregationOperator())
         {
-            throw new SemanticException($"Type mismatch: {lhsSemantics.Type} is not a queryable type.", operationExpression);
+            case WebqlCollectionAggregationOperator.Count:
+                break;
+            case WebqlCollectionAggregationOperator.Contains:
+                break;
+            case WebqlCollectionAggregationOperator.Index:
+                break;
+            case WebqlCollectionAggregationOperator.Any:
+                break;
+            case WebqlCollectionAggregationOperator.All:
+                break;
+            case WebqlCollectionAggregationOperator.Min:
+                break;
+            case WebqlCollectionAggregationOperator.Max:
+                break;
+            case WebqlCollectionAggregationOperator.Sum:
+                break;
+            case WebqlCollectionAggregationOperator.Average:
+                break;
+
+            default:
+                throw new InvalidOperationException("Invalid collection aggregation operator.");
         }
     }
 

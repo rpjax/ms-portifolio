@@ -126,6 +126,44 @@ public static class WebqlOperatorAnalyzer
         }
     }
 
+    public static WebqlCollectionOperator GetCollectionOperator(WebqlOperatorType operatorType)
+    {
+        switch (operatorType)
+        {
+            case WebqlOperatorType.Filter:
+                return WebqlCollectionOperator.Filter;
+            case WebqlOperatorType.Select:
+                return WebqlCollectionOperator.Select;
+            case WebqlOperatorType.SelectMany:
+                return WebqlCollectionOperator.SelectMany;
+            case WebqlOperatorType.Limit:
+                return WebqlCollectionOperator.Limit;
+            case WebqlOperatorType.Skip:
+                return WebqlCollectionOperator.Skip;
+            case WebqlOperatorType.Count:
+                return WebqlCollectionOperator.Count;
+            case WebqlOperatorType.Contains:
+                return WebqlCollectionOperator.Contains;
+            case WebqlOperatorType.Index:
+                return WebqlCollectionOperator.Index;
+            case WebqlOperatorType.Any:
+                return WebqlCollectionOperator.Any;
+            case WebqlOperatorType.All:
+                return WebqlCollectionOperator.All;
+            case WebqlOperatorType.Min:
+                return WebqlCollectionOperator.Min;
+            case WebqlOperatorType.Max:
+                return WebqlCollectionOperator.Max;
+            case WebqlOperatorType.Sum:
+                return WebqlCollectionOperator.Sum;
+            case WebqlOperatorType.Average:
+                return WebqlCollectionOperator.Average;
+
+            default:
+                throw new InvalidOperationException();
+        }
+    }
+
     public static WebqlCollectionManipulationOperator GetCollectionManipulationOperator(WebqlOperatorType operatorType)
     {
         switch (operatorType)

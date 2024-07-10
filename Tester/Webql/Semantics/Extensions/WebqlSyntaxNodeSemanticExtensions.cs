@@ -1,12 +1,21 @@
 ﻿using System.Runtime.CompilerServices;
+using Webql.Core;
 using Webql.Core.Analysis;
+using Webql.Core.Extensions;
 using Webql.Parsing.Ast;
+using Webql.Semantics.Analysis;
 using Webql.Semantics.Attributes;
 using Webql.Semantics.Context;
 using Webql.Semantics.Definitions;
 using Webql.Semantics.Exceptions;
+using Webql.Semantics.Scope;
+using Webql.Semantics.Symbols;
 
 namespace Webql.Semantics.Extensions;
+
+/*
+ * This extension class provides the main API for semantic related operations on the syntax tree.
+ */
 
 /// <summary>
 /// Provides semantic related extensions for the <see cref="WebqlSyntaxNode"/> class.
@@ -14,108 +23,212 @@ namespace Webql.Semantics.Extensions;
 public static class WebqlSyntaxNodeSemanticExtensions
 {
     /*
-     * Semantic context extensions
+     * Scope related extensions
      */
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool HasSemanticContext(this WebqlSyntaxNode node)
+    public static bool HasScopeAttribute(this WebqlSyntaxNode node)
     {
-        return node.HasAttribute(AstSemanticAttributes.ContextAttribute);
+        return node.HasAttribute(AstSemanticAttributes.ScopeAttribute);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool HasSemantics(this WebqlSyntaxNode node)
-    {
-        return node.HasAttribute(AstSemanticAttributes.SemanticsAttribute);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SemanticContext GetSemanticContext(this WebqlSyntaxNode node)
-    {
-        var attribute = node.TryGetAttribute<SemanticContext>(AstSemanticAttributes.ContextAttribute);
-
-        if (attribute is null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        return attribute;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SemanticContext? TryGetClosestSemanticContext(this WebqlSyntaxNode node)
+    public static WebqlScope GetScope(this WebqlSyntaxNode node)
     {
         var current = node;
 
         while (current is not null)
         {
-            if (current.HasSemanticContext())
+            if (!current.HasScopeAttribute())
             {
-                return current.GetSemanticContext();
+                current = current.Parent;
+                continue;
             }
 
-            current = current.Parent;
+            if (!current.TryGetAttribute<WebqlScope>(AstSemanticAttributes.ScopeAttribute, out var scope))
+            {
+                throw new InvalidOperationException();
+            }
+
+            return scope;
         }
 
-        return null;
+        throw new InvalidOperationException("Scope not found");
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void BindSemanticContext(this WebqlSyntaxNode node, SemanticContext context, bool enableOverride = false)
+    public static void BindScope(this WebqlSyntaxNode node, WebqlScope scope, bool enableOverride = false)
     {
-        if (enableOverride && node.HasAttribute(AstSemanticAttributes.ContextAttribute))
+        if (enableOverride && node.HasAttribute(AstSemanticAttributes.ScopeAttribute))
         {
-            node.RemoveAttribute(AstSemanticAttributes.ContextAttribute);
+            node.RemoveAttribute(AstSemanticAttributes.ScopeAttribute);
         }
 
-        node.AddAttribute(AstSemanticAttributes.ContextAttribute, context);
+        node.AddAttribute(AstSemanticAttributes.ScopeAttribute, scope);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WebqlScopeType GetScopeType(this WebqlSyntaxNode node)
+    {
+        return node.GetScope().Type;
     }
 
     /*
-     * Semantics extensions
+     * Semantics related extensions
      */
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ISemantics GetSemantics(this WebqlSyntaxNode node)
     {
-        if (!node.HasSemantics())
-        {
-            return node.GetSemanticContext().GetSemantics(node);
-        }
-
-        var attribute = node.TryGetAttribute<ISemantics>(AstSemanticAttributes.SemanticsAttribute);
-
-        if (attribute is null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        return attribute;
+        return SemanticAnalyzer.CreateSemantics(node.GetCompilationContext(), node);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TSemantics GetSemantics<TSemantics>(this WebqlSyntaxNode node) where TSemantics : ISemantics
     {
-        if (!node.HasSemantics())
-        {
-            return node.GetSemanticContext().GetSemantics<TSemantics>(node);
-        }
+        var semantics = SemanticAnalyzer.CreateSemantics(node.GetCompilationContext(), node);
 
-        var attribute = node.TryGetAttribute<TSemantics>(AstSemanticAttributes.SemanticsAttribute);
-
-        if (attribute is null)
+        if(semantics is not TSemantics cast)
         {
             throw new InvalidOperationException();
         }
 
-        return attribute;
+        return cast;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void AddSemantics(this WebqlSyntaxNode node, ISemantics semantics)
+    public static void BindSemantics(this WebqlSyntaxNode node, ISemantics semantics)
     {
         node.AddAttribute(AstSemanticAttributes.SemanticsAttribute, semantics);
     }
+
+    /*
+     * Symbols related extensions
+     */
+
+    public static ISymbol? TryResolveSymbol(this WebqlSyntaxNode node, string identifier)
+    {
+        var scope = node.GetScope();
+        var symbol = scope.ResolveSymbol(identifier);
+
+        return symbol;
+    }
+
+    public static TSymbol? TryResolveSymbol<TSymbol>(this WebqlSyntaxNode node, string identifier) where TSymbol : class, ISymbol
+    {
+        var symbol = node.TryResolveSymbol(identifier);
+
+        if (symbol is null)
+        {
+            return null;
+        }
+
+        if (symbol is not TSymbol typedSymbol)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return typedSymbol;
+    }
+
+    public static ISymbol ResolveSymbol(this WebqlSyntaxNode node, string identifier)
+    {
+        var symbol = node.TryResolveSymbol(identifier);
+
+        if (symbol is null)
+        {
+            throw node.CreateSymbolNotFoundException(identifier);
+        }
+
+        return symbol;
+    }
+
+    public static TSymbol ResolveSymbol<TSymbol>(this WebqlSyntaxNode node, string identifier) where TSymbol : class, ISymbol
+    {
+        var symbol = node.ResolveSymbol(identifier);
+
+        if (symbol is not TSymbol typedSymbol)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return typedSymbol;
+    }
+
+    /*
+     * Accumulator symbol related extensions
+     */
+
+    public static AccumulatorSymbol GetAccumulatorSymbol(this WebqlSyntaxNode node)
+    {
+        return node.ResolveSymbol<AccumulatorSymbol>(AstHelper.AccumulatorIdentifier);
+    }
+
+    public static Type GetAccumulatorType(this WebqlSyntaxNode node)
+    {
+        return node.GetAccumulatorSymbol().Type;
+    }
+
+    public static void DeclareAccumulatorSymbol(this WebqlSyntaxNode node, Type type)
+    {
+        var scope = node.GetScope();
+
+        var symbol = new AccumulatorSymbol(
+            identifier: AstHelper.AccumulatorIdentifier,
+            type: type
+        );
+
+        if(scope.ContainsSymbol(symbol.Identifier, useParentScope: false))
+        {
+            node.CreateSymbolAlreadyDeclaredException(symbol.Identifier);
+        }
+
+        scope.DeclareSymbol(symbol);
+    }
+
+    /*
+     * Expression related extensions
+     */
+
+    public static void EnsureOperandCount(this WebqlOperationExpression node, int expectedCount)
+    {
+        var actualCount = node.Operands.Length;
+
+        if (actualCount != expectedCount)
+        {
+            throw node.CreateInvalidOperandCountException(expectedCount, actualCount);
+        }
+    }
+
+    public static void EnsureAtLeastOneOperand(this WebqlOperationExpression node)
+    {
+        var actualCount = node.Operands.Length;
+
+        if (actualCount == 0)
+        {
+            throw new SemanticException($"Operator '{node.Operator}' expects at least one operand, but none were provided", node);
+        }
+    }
+
+    public static void EnsureIsQueryable(this WebqlExpression node)
+    {
+        var semantics = node.GetSemantics<IExpressionSemantics>();
+        var type = semantics.Type;
+
+        if (type.IsNotQueryable())
+        {
+            throw node.CreateExpressionIsNotQuryableException(type);
+        }
+    }
+
+    public static Type GetExpressionType(this WebqlExpression node)
+    {
+        return node.GetSemantics<IExpressionSemantics>().Type;
+    }
+
+    /*
+     * 
+     */
 
     /*
      * Generic helpers
@@ -125,6 +238,16 @@ public static class WebqlSyntaxNodeSemanticExtensions
     public static string GetSemanticIdentifier(this WebqlSyntaxNode node)
     {
         return "not implemented yet";
+    }
+
+    public static Type GetQueryableType(this WebqlSyntaxNode node, WebqlCompilationContext context)
+    {
+        if (node.IsInRootAggregationScope())
+        {
+            return context.RootQueryableType;
+        }
+
+        return context.QueryableType;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -148,6 +271,12 @@ public static class WebqlSyntaxNodeSemanticExtensions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsNotRoot(this WebqlSyntaxNode node)
+    {
+        return !node.IsRoot();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsCollectionOperator(this WebqlSyntaxNode node)
     {
         if (node is not WebqlOperationExpression operationExpression)
@@ -155,18 +284,13 @@ public static class WebqlSyntaxNodeSemanticExtensions
             return false;
         }
 
-        var @operator = operationExpression.Operator;
-
-        return WebqlOperatorAnalyzer.IsCollectionOperator(@operator);
+        return WebqlOperatorAnalyzer.IsCollectionOperator(operationExpression.Operator);
     }
 
-    /*
-     * Scope helpers
-     */
-
-    public static WebqlScopeType GetScopeType(this WebqlSyntaxNode node)
-    {       
-        return node.GetScopeType();
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsAggregationScope(this WebqlSyntaxNode node)
+    {
+        return node.GetScopeType() is WebqlScopeType.Aggregation;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -194,12 +318,28 @@ public static class WebqlSyntaxNodeSemanticExtensions
 
     /*
      * Exceptions extensions
+     * NOTE: The semantic errors are informed to the user by throwing exceptions. In the future this may change.
      */
 
+    public static SemanticException CreateSymbolNotFoundException(
+        this WebqlSyntaxNode node,
+        string identifier)
+    {
+        return new SemanticException($"Symbol '{identifier}' not found", node);
+    }
+
+    public static SemanticException CreatePropertyNotFoundException(
+        this WebqlSyntaxNode node,
+        Type type,
+        string propertyName)
+    {
+        return new SemanticException($"Property '{propertyName}' not found in type '{type.FullName}'", node);
+    }
+
     public static SemanticException CreateOperatorIncompatibleTypeException(
-    this WebqlSyntaxNode node,
-    Type leftType,
-    Type rightType)
+        this WebqlSyntaxNode node,
+        Type leftType,
+        Type rightType)
     {
         return new SemanticException($@"
 Error: Operator Incompatible Type Exception
@@ -224,5 +364,26 @@ for the operator being used.
 ", node);
     }
 
+    public static SemanticException CreateInvalidOperandCountException(
+        this WebqlOperationExpression node,
+        int expectedCount,
+        int actualCount)
+    {
+        return new SemanticException($"Operator '{node.Operator}' expects {expectedCount} operands, but {actualCount} were provided", node);
+    }
+
+    public static SemanticException CreateExpressionIsNotQuryableException(
+        this WebqlExpression node,
+        Type type)
+    {
+        return new SemanticException($"Expression is not a queryable type. Type: {type.FullName}", node);
+    }
+
+    public static SemanticException CreateSymbolAlreadyDeclaredException(
+        this WebqlSyntaxNode node,
+        string identifier)
+    {
+        return new SemanticException($"Symbol '{identifier}' already declared in the current scope", node);
+    }
 
 }
