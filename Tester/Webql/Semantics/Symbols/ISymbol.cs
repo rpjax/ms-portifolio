@@ -18,6 +18,11 @@ public interface ITypedSymbol : ISymbol, ITypedSemantics
     
 }
 
+public interface IParameterSymbol : ITypedSymbol
+{
+    
+}
+
 /*
  * Concrete implementations
  */
@@ -28,6 +33,30 @@ public class DeclarationSymbol : ITypedSymbol
     public Type Type { get; }
 
     public DeclarationSymbol(string identifier, Type type)
+    {
+        Identifier = identifier;
+        Type = type;
+    }
+}
+
+public class SourceSymbol : IParameterSymbol
+{
+    public string Identifier { get; }
+    public Type Type { get; }
+
+    public SourceSymbol(string identifier, Type type)
+    {
+        Identifier = identifier;
+        Type = type;
+    }
+}
+
+public class ParameterSymbol : IParameterSymbol
+{
+    public string Identifier { get; }
+    public Type Type { get; }
+
+    public ParameterSymbol(string identifier, Type type)
     {
         Identifier = identifier;
         Type = type;

@@ -1,5 +1,7 @@
 ﻿using System.Linq.Expressions;
+using Webql.Core;
 using Webql.Parsing.Ast;
+using Webql.Semantics.Extensions;
 using Webql.Translation.Linq.Context;
 using Webql.Translation.Linq.Exceptions;
 using Webql.Translation.Linq.Extensions;
@@ -30,28 +32,57 @@ public static class ExpressionTranslator
             case WebqlExpressionType.Operation:
                 return OperationExpressionTranslator.TranslateOperationExpression((WebqlOperationExpression)node);
 
+            case WebqlExpressionType.TypeConversion:
+                return TranslateTypeConversionExpression((WebqlTypeConversionExpression)node);
+
             default:
                 throw new TranslationException("Unknown expression type", node);
         }
     }
 
-    public static Expression TranslateReferenceExpression(WebqlReferenceExpression node)
+    private static Expression TranslateReferenceExpression(WebqlReferenceExpression node)
     {
         return node.GetTranslationContext().GetExpression(node.Identifier);
     }
 
-    public static Expression TranslateMemberAccessExpression(WebqlMemberAccessExpression node)
+    private static Expression TranslateMemberAccessExpression(WebqlMemberAccessExpression node)
     {
-        throw new NotImplementedException();
-        return SyntaxNodeTranslator.TranslateNode(node.Expression);
+        var normalizedIdentifier = IdentifierHelper.NormalizeIdentifier(node.MemberName);
+        var expressionSemantics = node.Expression.GetExpressionSemantics();
+        var propertyInfo = expressionSemantics.Type.GetProperties()
+            .Where(x => IdentifierHelper.NormalizeIdentifier(x.Name) == normalizedIdentifier)
+            .First();
+
+        var expression = TranslateExpression(node.Expression);
+
+        return Expression.Property(expression, propertyInfo);
     }
 
-    public static Expression TranslateTemporaryDeclarationExpression(WebqlTemporaryDeclarationExpression node)
+    private static Expression TranslateTemporaryDeclarationExpression(WebqlTemporaryDeclarationExpression node)
     {
         throw new NotImplementedException();
     }
 
-    public static Expression TranslateBlockExpression(WebqlBlockExpression node)
+    private static Expression TranslateBlockExpression(WebqlBlockExpression node)
+    {
+        throw new NotImplementedException();
+        switch (node.GetScopeType())
+        {
+            case WebqlScopeType.Aggregation:
+                return TranslateAggregateBlockExpression(node);
+
+            case WebqlScopeType.LogicalFiltering:
+                return TranslateLogicalFilteringBlockExpression(node);
+
+            case WebqlScopeType.Projection:
+                throw new NotImplementedException();
+
+            default:
+                throw new InvalidOperationException("Invalid block scope type.");
+        }
+    }
+
+    private static Expression TranslateAggregateBlockExpression(WebqlBlockExpression node)
     {
         var expression = null as Expression;
 
@@ -60,12 +91,37 @@ public static class ExpressionTranslator
             expression = SyntaxNodeTranslator.TranslateNode(expressionNode);
         }
 
-        if(expression == null)
+        if (expression == null)
         {
             throw new TranslationException("Block expression must have at least one expression", node);
         }
 
         return expression;
+    }
+
+    private static Expression TranslateLogicalFilteringBlockExpression(WebqlBlockExpression node)
+    {
+        var expressions = new List<Expression>();
+
+        foreach (var expressionNode in node.Expressions)
+        {
+            expressions.Add(SyntaxNodeTranslator.TranslateNode(expressionNode));
+        }
+
+        if (expressions.Count == 0)
+        {
+            throw new TranslationException("Block expression must have at least one expression", node);
+        }
+
+        return expressions.Aggregate((x, y) => Expression.AndAlso(x, y));
+    }
+
+    private static Expression TranslateTypeConversionExpression(WebqlTypeConversionExpression node)
+    {
+        return Expression.Convert(
+            expression: TranslateExpression(node.Expression),
+            type: node.TargetType
+        );
     }
 
 }

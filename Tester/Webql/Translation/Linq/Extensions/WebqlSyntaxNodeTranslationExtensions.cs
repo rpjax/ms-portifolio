@@ -1,4 +1,5 @@
-﻿using Webql.Parsing.Ast;
+﻿using System.Linq.Expressions;
+using Webql.Parsing.Ast;
 using Webql.Translation.Linq.Attributes;
 using Webql.Translation.Linq.Context;
 
@@ -9,26 +10,45 @@ namespace Webql.Translation.Linq.Extensions;
 /// </summary>
 public static class WebqlSyntaxNodeTranslationExtensions
 {
-    public static bool HasTranslationContext(this WebqlSyntaxNode node)
+    public static bool HasTranslationContextAttribute(this WebqlSyntaxNode node)
     {
-        return node.HasAttribute(AstTranslationAttributes.ContextAttribute);
+        return node.HasAttribute(TranslationAstAttributes.ContextAttribute);
     }
 
     public static TranslationContext GetTranslationContext(this WebqlSyntaxNode node)
     {
-        var attribute = node.TryGetAttribute<TranslationContext>(AstTranslationAttributes.ContextAttribute);
+        var current = node;
 
-        if (attribute is null)
+        while (current is not null)
         {
-            throw new InvalidOperationException();
-        }
+            if(current.HasTranslationContextAttribute())
+            {
+                return current.GetAttribute<TranslationContext>(TranslationAstAttributes.ContextAttribute);
+            }
 
-        return attribute;
+            current = current.Parent;
+        }
+        
+        throw new InvalidOperationException();
     }
 
-    public static void AddTranslationContext(this WebqlSyntaxNode node, TranslationContext context)
+    public static void BindTranslationContext(this WebqlSyntaxNode node, TranslationContext context)
     {
-        node.AddAttribute(AstTranslationAttributes.ContextAttribute, context);
+        node.AddAttribute(TranslationAstAttributes.ContextAttribute, context);
+    }
+
+    /*
+     * Symbol resolution extensions.
+     */
+
+    public static ParameterExpression GetSourceParameterExpression(this WebqlSyntaxNode node)
+    {
+        return node.GetTranslationContext().GetSourceParameterExpression();
+    }
+
+    public static ParameterExpression GetElementParameterExpression(this WebqlSyntaxNode node)
+    {
+        return node.GetTranslationContext().GetElementParameterExpression();
     }
 
 }

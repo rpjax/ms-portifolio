@@ -1,7 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Webql.Parsing.Ast;
 using Webql.Translation.Linq.Analysis;
-using Webql.Translation.Linq.Context;
 
 namespace Webql.Translation.Linq.Translators;
 
@@ -11,11 +10,15 @@ namespace Webql.Translation.Linq.Translators;
 
 public static class WebqlLinqTranslator
 {
-    public static Expression Translate(TranslationContext context, WebqlQuery node)
+    public static Expression Translate(WebqlQuery node)
     {    
-        var contextBinder = new TranslatorContextBinderAnalyzer(context);   
-        var expressionDeclarator = new ExpressionDeclaratorAnalyzer(context);
+        var contextBinder = new TranslationContextBinderAnalyzer();   
+        var expressionDeclarator = new ExpressionDeclaratorAnalyzer();
 
+        /*
+         * The translation analysis injects the necessary context into the AST nodes.
+         * It also declares the necessary expressions in their respective contexts.
+         */
         contextBinder.ExecuteAnalysis(node);
         expressionDeclarator.ExecuteAnalysis(node);
             

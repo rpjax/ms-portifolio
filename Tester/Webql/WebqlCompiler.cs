@@ -1,41 +1,42 @@
 ﻿using System.Linq.Expressions;
 using Webql.Core;
-using Webql.Core.Extensions;
 using Webql.Parsing;
 using Webql.Semantics.Analysis;
-using Webql.Semantics.Context;
-using Webql.Semantics.Extensions;
-using Webql.Translation.Linq.Context;
 using Webql.Translation.Linq.Translators;
 
 namespace Webql;
 
 public class WebqlCompiler
 {
-    private WebqlCompilationContext CompilationContext { get; }
+    private WebqlCompilerSettings Settings { get; }
         
     public WebqlCompiler(WebqlCompilerSettings settings)
     {
-        CompilationContext = new WebqlCompilationContext(settings);
+        Settings = settings;   
     }
 
     public Expression Translate(string query)
     {
+        var context = new WebqlCompilationContext(Settings);
+
+        //* ANALYSIS *//
+
+        /*
+         * Represents the parse phase of the compiler.
+         */
         var syntaxTree = WebqlParser.ParseToAst(query);
-        var semanticContext = SemanticContext.CreateRootContext(CompilationContext);
-        var translationContext = TranslationContext.CreateRootContext(CompilationContext);
 
-        syntaxTree.SetCompilationContext(CompilationContext);
-            
-        SemanticAnalyzer.ExecuteAnalysisPipeline(
-            context: semanticContext, 
-            node: syntaxTree
-        );
+        /*
+         * Represents the semantic analysis phase of the compiler.
+         */
+        syntaxTree = SemanticAnalyzer.ExecuteAnalysisPipeline(context, syntaxTree);
 
-        var translatedExpression = WebqlLinqTranslator.Translate(
-            context: translationContext,
-            node: syntaxTree
-        );
+        //* SYNTEHESIS *//
+
+        /*
+         * Represents the translation phase of the compiler. 
+         */
+        var translatedExpression = WebqlLinqTranslator.Translate(node: syntaxTree);
 
         return translatedExpression;
     }

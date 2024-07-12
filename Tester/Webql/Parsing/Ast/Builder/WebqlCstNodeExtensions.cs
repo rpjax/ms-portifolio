@@ -4,9 +4,50 @@ namespace Webql.Parsing.Ast.Builder.Extensions;
 
 public static class WebqlCstNodeExtensions
 {
-    const string MemberAccessStackKey = "member_access_stack";
-    const string DisableBlockSimplificationKey = "disable_block_simplification";
-    const string ScopeTypeKey = "scope_type";
+    const string BuildContextKey = WebqlCstPropertyKeys.BuildContextKey;
+
+    /*
+     * build context methods.
+     */
+
+    public static bool HasBuildContextAttached(this CstNode node)
+    {
+        return node.HasProperty(BuildContextKey);
+    }
+
+    public static WebqlAstBuildContext GetBuildContext(this CstNode node)
+    {
+        var current = node;
+
+        while (current is not null)
+        {
+            if (current.HasBuildContextAttached())
+            {
+                var context = current.TryGetProperty<WebqlAstBuildContext>(BuildContextKey);
+
+                if (context is null)
+                {
+                    throw new InvalidOperationException("The build context attached to the node is of an invalid type.");
+                }
+
+                return context;
+            }
+
+            current = current.Parent;
+        }
+
+        throw new Exception("BuildContext not found.");
+    }
+
+    public static void BindBuildContext(this CstNode node, WebqlAstBuildContext buildContext)
+    {
+        if(node.HasBuildContextAttached())
+        {
+            throw new InvalidOperationException("BuildContext already attached to the node.");
+        }
+
+        node.Properties[BuildContextKey] = buildContext;
+    }
 
     /*
      * scope type methods.
@@ -14,103 +55,83 @@ public static class WebqlCstNodeExtensions
 
     public static WebqlScopeType GetScopeType(this CstNode node)
     {
-        var value = node.TryGetProperty(ScopeTypeKey);
-
-        if (value is null)
-        {
-            value = node?.Parent?.GetScopeType();
-        }
-
-        if (value is null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        if (value is not WebqlScopeType scopeType)
-        {
-            throw new InvalidOperationException();
-        }
-
-        return scopeType;
+        return node.GetBuildContext().ScopeType;
     }
 
     public static void SetScopeType(this CstNode node, WebqlScopeType scopeType)
     {
-        node.Properties[ScopeTypeKey] = scopeType;
+        EnsureContextAttached(node);
+        node.GetBuildContext().SetScopeType(scopeType);
+    }
+
+    /*
+     * LHS expression methods.
+     */
+
+    public static WebqlExpression GetLhsExpression(this CstNode node)
+    {
+        return node.GetBuildContext().GetLhsExpression(node);
+    }
+
+    public static void SetLhsExpression(this CstNode node, WebqlExpression lhsExpression)
+    {
+        EnsureContextAttached(node);
+        node.GetBuildContext().SetLhsExpression(lhsExpression);
     }
 
     /*
      * member access stack methods.
      */
 
-    public static IEnumerable<string> GetLhsExpressionMemberAccessList(this CstNode node)
+    public static void SetLhsExpressionToMemberAccess(this CstNode node, string memberName)
     {
-        var value = null as IEnumerable<string>;
-        var current = node;
+        node.EnsureContextAttached();
 
-        while (current is not null)
-        {
-            value = current.TryGetProperty(MemberAccessStackKey) as IEnumerable<string>;
+        var buildContext = node.GetBuildContext();
+        var lhsExpression = node.GetLhsExpression();
 
-            if (value is not null)
-            {
-                break;
-            }
-
-            current = current.Parent;
-        }
-
-        if (value is null)
-        {
-            return Array.Empty<string>();
-        }
-
-        if (value is not IEnumerable<string> strs)
-        {
-            throw new InvalidOperationException();
-        }
-
-        return strs;
-    }
-
-    public static void AddMemberAccessToLhsExpression(this CstNode node, string memberName)
-    {
-        var strs = node.GetLhsExpressionMemberAccessList().ToList();
-
-        strs.Add(memberName);
-        
-        node.Properties[MemberAccessStackKey] = strs;
-    }
-
-    public static void ResetLhsExpression(this CstNode node)
-    {
-        node.Properties[MemberAccessStackKey] = new List<string>();
-    }
-
-    public static WebqlExpression GetLhsExpression(this CstNode node)
-    {
-        var accumulatorReference = new WebqlReferenceExpression(
-            metadata: WebqlAstBuilder.TranslateNodeMetadata(node),
+        var memberAccessExpression = new WebqlMemberAccessExpression(
+            metadata: WebqlAstBuilder.CreateNodeMetadata(node),
             attributes: null,
-            identifier: AstHelper.AccumulatorIdentifier
+            expression: lhsExpression,
+            memberName: memberName
         );
-        var expression = accumulatorReference as WebqlExpression;
 
-        var members = node.GetLhsExpressionMemberAccessList();
-
-        foreach (var member in members)
-        {
-            expression = new WebqlMemberAccessExpression(
-                metadata: WebqlAstBuilder.TranslateNodeMetadata(node),
-                attributes: null,
-                expression: expression,
-                memberName: member
-            );
-        }
-
-        return expression;
+        buildContext.SetLhsExpression(memberAccessExpression);
     }
 
+    public static void SetLhsExpressionToSourceReference(this CstNode node)
+    {
+        node.EnsureContextAttached();
+
+        var buildContext = node.GetBuildContext();
+        var sourceReferenceExpression = WebqlAstBuilder.CreateSourceReferenceExpression(node);
+
+        buildContext.SetLhsExpression(sourceReferenceExpression);
+    }
+
+    public static void SetLhsExpressionToElementReference(this CstNode node)
+    {
+        node.EnsureContextAttached();
+
+        var buildContext = node.GetBuildContext();
+        var elementReferenceExpression = WebqlAstBuilder.CreateElementReferenceExpression(node);
+
+        buildContext.SetLhsExpression(elementReferenceExpression);
+    }
+
+    private static void EnsureContextAttached(this CstNode node)
+    {
+        if (node.HasBuildContextAttached())
+        {
+            return;
+        }
+
+        var parentContext = node.GetBuildContext();
+        var localContext = parentContext.CreateChildContext();
+
+        node.BindBuildContext(localContext);
+    }
 
     /*
      * block simplification methods.

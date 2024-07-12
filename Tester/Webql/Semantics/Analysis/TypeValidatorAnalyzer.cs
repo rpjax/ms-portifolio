@@ -1,4 +1,5 @@
 ﻿using Webql.Core.Analysis;
+using Webql.Core.Extensions;
 using Webql.Parsing.Analysis;
 using Webql.Parsing.Ast;
 using Webql.Semantics.Context;
@@ -10,11 +11,9 @@ namespace Webql.Semantics.Analysis;
 
 public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
 {
-    private SemanticContext SemanticContext { get; }    
-        
-    public TypeValidatorAnalyzer(SemanticContext context)
+    public TypeValidatorAnalyzer()
     {
-        SemanticContext = context;    
+
     }
 
     /*
@@ -26,21 +25,6 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
      * - etc...
      */
 
-    protected override void AnalyzeBlockExpression(WebqlBlockExpression expression)
-    {
-        switch (expression.GetScopeType())
-        {
-            case WebqlScopeType.Aggregation:
-                break;
-            case WebqlScopeType.LogicalFiltering:
-                break;
-            case WebqlScopeType.Projection:
-                break;
-            default:
-                break;
-        }
-    }
-
     protected override void AnalyzeOperationExpression(WebqlOperationExpression expression)
     {
         /*
@@ -48,13 +32,62 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
          */
         base.AnalyzeOperationExpression(expression);
 
+        switch (expression.GetOperatorArity())
+        {
+            case WebqlOperatorArity.Unary:
+                AnalyzeUnaryExpression(expression);
+                break;
+
+            case WebqlOperatorArity.Binary:
+                AnalyzeBinaryExpression(expression);
+                break;
+
+            default:
+                throw new InvalidOperationException("Invalid operator arity.");
+        }
+    }
+
+    private void AnalyzeUnaryExpression(WebqlOperationExpression expression)
+    {
+        expression.EnsureOperandCount(1);
+
+        var operandSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
+
+        switch (WebqlOperatorAnalyzer.GetUnaryOperator(expression.Operator))
+        {
+            case WebqlUnaryOperator.Not:
+                if (operandSemantics.Type != typeof(bool))
+                {
+                    throw new SemanticException($"Type mismatch: {operandSemantics.Type} is not a boolean type.", expression);
+                }
+                break;
+
+            case WebqlUnaryOperator.Count:
+                if (operandSemantics.Type.IsNotQueryable())
+                {
+                    throw new SemanticException($"Type mismatch: {operandSemantics.Type} is not a queryable type.", expression);
+                }
+                break;
+
+            case WebqlUnaryOperator.Aggregate:
+                break;
+
+            default:
+                throw new InvalidOperationException("Invalid unary operator.");
+        }
+    }
+
+    private void AnalyzeBinaryExpression(WebqlOperationExpression expression)
+    {
+        expression.EnsureOperandCount(2);
+
         switch (expression.GetOperatorCategory())
         {
             case WebqlOperatorCategory.Arithmetic:
             case WebqlOperatorCategory.Relational:
             case WebqlOperatorCategory.StringRelational:
             case WebqlOperatorCategory.Logical:
-                AnalyzeBinaryExpression(expression);
+                AnalyzeBinaryTypeCompatibleExpression(expression);
                 return;
 
             case WebqlOperatorCategory.Semantic:
@@ -74,16 +107,11 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
         }
     }
 
-    private void AnalyzeBinaryExpression(WebqlOperationExpression expression)
+    private void AnalyzeBinaryTypeCompatibleExpression(WebqlOperationExpression expression)
     {
-        if (expression.Operands.Length != 2)
-        {
-            throw new SemanticException("Invalid number of operands.", expression);
-        }
-
         var lhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
         var rhsSemantics = expression.Operands[1].GetSemantics<IExpressionSemantics>();
-            
+
         if (!SemanticsTypeHelper.TypesAreCompatible(lhsSemantics.Type, rhsSemantics.Type))
         {
             throw expression.CreateOperatorIncompatibleTypeException(lhsSemantics.Type, rhsSemantics.Type);
@@ -92,15 +120,7 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
 
     private void AnalyzeSemanticExpression(WebqlOperationExpression operationExpression)
     {
-        operationExpression.EnsureAtLeastOneOperand();
 
-        switch (WebqlOperatorAnalyzer.GetSemanticOperator(operationExpression.Operator))
-        {
-            case WebqlSemanticOperator.Aggregate:
-                break;
-            default:
-                break;
-        }
     }
 
     /*
@@ -116,7 +136,7 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
 
         var lhsSemantics = lhs.GetSemantics<IExpressionSemantics>();
         var rhsSemantics = rhs.GetSemantics<IExpressionSemantics>();
-        
+
         if (lhsSemantics.Type.IsNotQueryable())
         {
             throw new SemanticException($"Type mismatch: {lhsSemantics.Type} is not a queryable type.", expression);
@@ -127,6 +147,10 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
         switch (operatorType)
         {
             case WebqlCollectionManipulationOperator.Filter:
+                if (rhsSemantics.Type != typeof(bool))
+                {
+                    throw new SemanticException($"Type mismatch: {rhsSemantics.Type} is not a boolean type.", expression);
+                }
                 break;
 
             case WebqlCollectionManipulationOperator.Select:
@@ -154,7 +178,7 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
 
         var rhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
 
-        if(rhsSemantics.Type != typeof(int))
+        if (rhsSemantics.Type != typeof(int))
         {
             throw new SemanticException($"Type mismatch: {rhsSemantics.Type} is not an integer type.", expression);
         }
@@ -166,7 +190,7 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
 
         var rhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
 
-        if(rhsSemantics.Type != typeof(int))
+        if (rhsSemantics.Type != typeof(int))
         {
             throw new SemanticException($"Type mismatch: {rhsSemantics.Type} is not an integer type.", expression);
         }

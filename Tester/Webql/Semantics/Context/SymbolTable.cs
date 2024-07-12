@@ -24,6 +24,11 @@ public class SymbolTable
         return copy;
     }
 
+    public IEnumerable<ISymbol> AsEnumerable()
+    {
+        return Entries.Values;
+    }
+
     public bool ContainsSymbol(string identifier)
     {
         return Entries.ContainsKey(identifier);

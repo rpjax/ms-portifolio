@@ -50,6 +50,18 @@ public abstract class WebqlSyntaxNode
     /// </summary>
     /// <returns></returns>
     public abstract override string ToString();
+
+    /// <summary>
+    /// Binds the parent node to the children nodes.
+    /// </summary>
+    public void BindChildren()
+    {
+        foreach (var child in GetChildren())
+        {
+            child.Parent = this;
+            child.BindChildren();
+        }
+    }
 }
 
 public static class WebqlSyntaxNodeExtensions
@@ -91,6 +103,22 @@ public static class WebqlSyntaxNodeExtensions
         }
 
         return default;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T GetAttribute<T>(this WebqlSyntaxNode node, string key)
+    {
+        if (node.Attributes.TryGetValue(key, out var obj))
+        {
+            if(obj is not T t)
+            {
+                throw new InvalidOperationException($"The attribute '{key}' is not of type '{typeof(T).Name}'.");
+            }
+
+            return t;
+        }
+
+        throw new InvalidOperationException($"The attribute '{key}' does not exist on the node.");
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

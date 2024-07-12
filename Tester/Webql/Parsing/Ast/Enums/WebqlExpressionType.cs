@@ -1,4 +1,5 @@
-﻿namespace Webql.Parsing.Ast;
+﻿
+namespace Webql.Parsing.Ast;
 
 public enum WebqlExpressionType
 {
@@ -7,5 +8,6 @@ public enum WebqlExpressionType
     Reference,
     MemberAccess,
     Block,
-    Operation
+    Operation,
+    TypeConversion,
 }

@@ -1,9 +1,9 @@
 ﻿using ModularSystem.Core.Linq;
 using System.Collections;
 
-namespace Webql.Semantics.Extensions;
+namespace Webql.Core.Extensions;
 
-public static class TypeSemanticExtensions
+public static class TypeExtensions
 {
     public static bool IsQueryable(this Type type)
     {
@@ -19,9 +19,23 @@ public static class TypeSemanticExtensions
                i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
     }
 
+    public static bool IsAsyncQueryable(this Type type)
+    {
+        return false
+            || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IAsyncQueryable<>)
+            || type.GetInterfaces().Any(i =>
+               i.IsGenericType &&
+               i.GetGenericTypeDefinition() == typeof(IAsyncQueryable<>));
+    }
+
     public static bool IsNotQueryable(this Type type)
     {
         return !IsQueryable(type);
+    }
+
+    public static bool IsNotAsyncQueryable(this Type type)
+    {
+        return !IsAsyncQueryable(type);
     }
 
     public static Type? TryGetQueryableElementType(this Type type)

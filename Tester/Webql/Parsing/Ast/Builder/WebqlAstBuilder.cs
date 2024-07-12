@@ -27,38 +27,27 @@ public static class WebqlAstBuilder
 
         var query = null as WebqlQuery;
         var rootScopeType = WebqlScopeType.Aggregation;
-        var metadata = TranslateNodeMetadata(node);
+        var metadata = CreateNodeMetadata(node);
         var isEmptyQuery = node.Children.Length == 0;
 
-        node.SetScopeType(WebqlScopeType.Aggregation);
+        var rootContext = new WebqlAstBuildContext(
+            scopeType: rootScopeType,
+            lhsExpression: CreateSourceReferenceExpression(node)
+        );
 
-        if (isEmptyQuery)
-        {
-            query = new WebqlQuery(
-                metadata: metadata,
-                attributes: null,
-                expression: null
-            );
-        }
-        else
-        {
-            query = new WebqlQuery(
-                metadata: metadata,
-                attributes: null,
-                expression: TranslateExpression(node.Children[0].AsInternal())
-            );
-        }
+        node.BindBuildContext(rootContext);
 
-        query.SetScopeType(rootScopeType);
+        var expression = isEmptyQuery
+            ? null
+            : TranslateExpression(node.Children[0].AsInternal());
 
-        return query;
+        return new WebqlQuery(
+            metadata: metadata,
+            attributes: null,
+            expression: expression
+        );
     }
 
-    /// <summary>
-    /// Translates a CstInternal node into a WebqlExpression object.
-    /// </summary>
-    /// <param name="node">The CstInternal node to translate.</param>
-    /// <returns>The translated WebqlExpression object.</returns>
     public static WebqlExpression TranslateExpression(CstInternal node)
     {
         switch (WebqlAstBuilderHelper.GetCstExpressionType(node))
@@ -83,11 +72,6 @@ public static class WebqlAstBuilder
         }
     }
 
-    /// <summary>
-    /// Translates a CstInternal node representing a literal expression into a WebqlLiteralExpression object.
-    /// </summary>
-    /// <param name="node">The CstInternal node to translate.</param>
-    /// <returns>The translated WebqlLiteralExpression object.</returns>
     public static WebqlExpression TranslateLiteralExpression(CstInternal node)
     {
         if (node.Children.Length != 1)
@@ -100,7 +84,7 @@ public static class WebqlAstBuilder
             throw new Exception("Invalid literal expression");
         }
 
-        var metadata = TranslateNodeMetadata(leaf);
+        var metadata = CreateNodeMetadata(leaf);
 
         switch (leaf.Token.Type)
         {
@@ -171,11 +155,6 @@ public static class WebqlAstBuilder
         }
     }
 
-    /// <summary>
-    /// Translates a CstInternal node representing a reference expression into a WebqlReferenceExpression object.
-    /// </summary>
-    /// <param name="node">The CstInternal node to translate.</param>
-    /// <returns>The translated WebqlReferenceExpression object.</returns>
     public static WebqlReferenceExpression TranslateReferenceExpression(CstInternal node)
     {
         if (node.Children.Length != 1)
@@ -204,10 +183,44 @@ public static class WebqlAstBuilder
         }
 
         return new WebqlReferenceExpression(
-            metadata: TranslateNodeMetadata(leaf),
+            metadata: CreateNodeMetadata(leaf),
             attributes: null,
             identifier: identifier
         );
+    }
+
+    public static WebqlExpression TranslateScopeAccessExpression(CstInternal node)
+    {
+        if (node.Children.Length != 3)
+        {
+            throw new Exception("Invalid scope access expression");
+        }
+
+        var referenceNode = node.Children[0].AsInternal();
+        var expressionNode = node.Children[2].AsInternal();
+
+        var referenceIdentifier = TranslateReferenceExpressionToIdentifier(referenceNode);
+        var referenceNodeMetadata = CreateNodeMetadata(referenceNode);
+        
+        expressionNode.SetLhsExpressionToMemberAccess(referenceIdentifier);
+
+        var expression = TranslateExpression(expressionNode);
+        var expressionIsLiteral = expression.ExpressionType is WebqlExpressionType.Literal;
+
+        if (expressionIsLiteral)
+        {
+            var lhs = expressionNode.GetLhsExpression();
+            var rhs = expression;
+
+            return new WebqlOperationExpression(
+                metadata: expression.Metadata,
+                attributes: null,
+                @operator: WebqlOperatorType.Equals,
+                operands: new WebqlExpression[] { lhs, rhs }
+            );
+        }
+
+        return expression;
     }
 
     public static string TranslateReferenceExpressionToIdentifier(CstInternal node)
@@ -240,51 +253,25 @@ public static class WebqlAstBuilder
         return identifier;
     }
 
-    /// <summary>
-    /// Translates a CstInternal node representing a scope access expression into a WebqlScopeAccessExpression object.
-    /// </summary>
-    /// <param name="node">The CstInternal node to translate.</param>
-    /// <returns>The translated WebqlScopeAccessExpression object.</returns>
-    public static WebqlExpression TranslateScopeAccessExpression(CstInternal node)
-    {
-        if (node.Children.Length != 3)
-        {
-            throw new Exception("Invalid scope access expression");
-        }
-
-        var referenceNode = node.Children[0].AsInternal();
-        var expressionNode = node.Children[2].AsInternal();
-
-        var referenceIdentifier = TranslateReferenceExpressionToIdentifier(referenceNode);
-        var referenceNodeMetadata = TranslateNodeMetadata(referenceNode);
-        
-        expressionNode.AddMemberAccessToLhsExpression(referenceIdentifier);
-
-        var expression = TranslateExpression(expressionNode);
-        var expressionIsLiteral = expression.ExpressionType is WebqlExpressionType.Literal;
-
-        if (expressionIsLiteral)
-        {
-            var lhs = node.GetLhsExpression();
-            var rhs = expression;
-
-            return new WebqlOperationExpression(
-                metadata: expression.Metadata,
-                attributes: null,
-                @operator: WebqlOperatorType.Equals,
-                operands: new WebqlExpression[] { lhs, rhs }
-            );
-        }
-
-        return expression;
-    }
-
-    /// <summary>
-    /// Translates a CstInternal node representing a block expression into a WebqlBlockExpression object.
-    /// </summary>
-    /// <param name="node">The CstInternal node to translate.</param>
-    /// <returns>The translated WebqlBlockExpression object.</returns>
     public static WebqlExpression TranslateBlockExpression(CstInternal node)
+    {
+        switch (node.GetScopeType())
+        {
+            case WebqlScopeType.Aggregation:
+                return TranslateAggregationBlockExpression(node);
+
+            case WebqlScopeType.LogicalFiltering:
+                return TranslateLogicalBlockExpression(node);
+
+            case WebqlScopeType.Projection:
+                return TranslateProjectionBlockExpression(node);
+                
+            default:
+                throw new InvalidOperationException("Invalid block scope type.");
+        }
+    }
+        
+    public static WebqlExpression TranslateAggregationBlockExpression(CstInternal node)
     {
         var expressions = new List<WebqlExpression>(node.Children.Length);
         var expressionNodes = node.Children
@@ -292,62 +279,83 @@ public static class WebqlAstBuilder
             .Take(node.Children.Length - 2)
             .Select((x, index) => new { Index = index, Node = x })
             .Where(x => x.Index % 2 == 0)
-            .Select(x => x.Node);
+            .Select(x => x.Node)
+            .ToArray()
+            ;
 
-        var scopeType = node.GetScopeType();
-        var isAggregationScope = scopeType is WebqlScopeType.Aggregation;
-        
-        if(isAggregationScope)
+        if(expressionNodes.Length == 0)
         {
-            /*
-             * This code causes the AST to be built in a way that expressions are chained together, using the accumulator reference as the left-hand side of the operation. With the exception of the first expression, which could be a reference to any other symbol, including the accumulator itself.
-             * Example:
-             { 
-                $filter: [<accumulator>.identity.roles, $equals: [<accumulator>, 'admin']], 
-                $count: [<accumulator>, {}], 
-                $greater: [<accumulator>, 0] 
-             }  
-
-             */
-
-            var accumulatorReference = new WebqlReferenceExpression(
-                metadata: TranslateNodeMetadata(node),
+            return new WebqlLiteralExpression(
+                metadata: CreateNodeMetadata(node),
                 attributes: null,
-                identifier: AstHelper.AccumulatorIdentifier
+                literalType: WebqlLiteralType.Int,
+                value: "0"
             );
-
-            expressionNodes
-                .Skip(1)
-                .ToList()
-                .ForEach(x => x.ResetLhsExpression());
+            //return new WebqlBlockExpression(
+            //    metadata: CreateNodeMetadata(node),
+            //    attributes: null,
+            //    expressions: Enumerable.Empty<WebqlExpression>()
+            //);
         }
 
-        foreach (var child in expressionNodes)
+        var lhsExpression = node.GetLhsExpression();
+
+        foreach (var expressionNode in expressionNodes)
         {
-            expressions.Add(TranslateExpression(child.AsInternal()));
+            expressionNode.SetLhsExpression(lhsExpression);
+            lhsExpression = TranslateExpression(expressionNode.AsInternal());
         }
 
-        if(expressions.Count == 1 && !node.IsBlockSimplificationDisabled())
+        return lhsExpression;
+    }
+
+    public static WebqlExpression TranslateLogicalBlockExpression(CstInternal node)
+    {
+        var expressions = new List<WebqlExpression>(node.Children.Length);
+        var expressionNodes = node.Children
+            .Skip(1)
+            .Take(node.Children.Length - 2)
+            .Select((x, index) => new { Index = index, Node = x })
+            .Where(x => x.Index % 2 == 0)
+            .Select(x => x.Node)
+            .ToArray()
+            ;
+
+        if(expressionNodes.Length == 0)
+        {
+            return new WebqlLiteralExpression(
+                metadata: CreateNodeMetadata(node),
+                attributes: null,
+                literalType: WebqlLiteralType.Bool,
+                value: "true"
+            );
+        }
+
+        foreach (var expressionNode in expressionNodes)
+        {
+            expressions.Add(TranslateExpression(expressionNode.AsInternal()));
+        }
+
+        if (expressions.Count == 1)
         {
             return expressions[0];
         }
 
-        var block = new WebqlBlockExpression(
-            metadata: TranslateNodeMetadata(node),
+        var andExpression = expressions.Aggregate((x, y) => new WebqlOperationExpression(
+            metadata: CreateNodeMetadata(node),
             attributes: null,
-            expressions: expressions
-        );
+            @operator: WebqlOperatorType.And,
+            operands: new WebqlExpression[] { x, y }
+        ));
 
-        block.SetScopeType(scopeType);
-
-        return block;
+        return andExpression;
     }
-        
-    /// <summary>
-    /// Translates a CstInternal node representing an operation expression into a WebqlOperationExpression object.
-    /// </summary>
-    /// <param name="node">The CstInternal node to translate.</param>
-    /// <returns>The translated WebqlOperationExpression object.</returns>
+
+    public static WebqlExpression TranslateProjectionBlockExpression(CstInternal node)
+    {
+        throw new NotImplementedException();
+    }
+
     public static WebqlOperationExpression TranslateOperationExpression(CstInternal node)
     {
         if (node.Children.Length != 3)
@@ -366,31 +374,51 @@ public static class WebqlAstBuilder
 
         if (isCollectionOperator)
         {
-            rhsNode.ResetLhsExpression();
+            rhsNode.SetLhsExpressionToElementReference();
         }
 
-        var lhsExpression = node.GetLhsExpression();
-        var rhsExpression = TranslateExpression(rhsNode);
-
-        var operands = @operator is WebqlOperatorType.Aggregate 
-            ? new WebqlExpression[] { rhsExpression }
-            : new WebqlExpression[] { lhsExpression, rhsExpression };
-
-        rhsExpression.SetScopeType(operatorScopeType);
+        var operands = TranslateOperationOperands(node);
 
         return new WebqlOperationExpression(
-            metadata: TranslateNodeMetadata(node),
+            metadata: CreateNodeMetadata(node),
             attributes: null,
             @operator: @operator,
             operands: operands
         );
     }
 
-    /// <summary>
-    /// Translates a CstInternal node representing an operator into a WebqlOperatorType object.
-    /// </summary>
-    /// <param name="node">The CstInternal node to translate.</param>
-    /// <returns>The translated WebqlOperatorType object.</returns>
+    public static WebqlExpression[] TranslateOperationOperands(CstInternal node)
+    {
+        if (node.Children.Length != 3)
+        {
+            throw new Exception("Invalid operation expression");
+        }
+
+        var operatorNode = node.Children[0].AsInternal();
+        var rhsNode = node.Children[2].AsInternal();
+
+        var @operator = TranslateOperator(operatorNode);    
+
+        if(@operator == WebqlOperatorType.Aggregate)
+        {
+            return new WebqlExpression[] { TranslateExpression(rhsNode) };
+        }
+
+        var arity = WebqlOperatorAnalyzer.GetOperatorArity(@operator);
+
+        var lhsExpression = node.GetLhsExpression();
+        var rhsExpression = TranslateExpression(rhsNode);
+
+        var operands = arity switch
+        {
+            WebqlOperatorArity.Unary => new WebqlExpression[] { lhsExpression },
+            WebqlOperatorArity.Binary => new WebqlExpression[] { lhsExpression, rhsExpression },
+            _ => throw new Exception("Unsupported operator arity. Impossible to build the AST with this operator.")
+        };
+
+        return operands;
+    }
+
     public static WebqlOperatorType TranslateOperator(CstInternal node)
     {
         if (node.Children.Length != 2)
@@ -410,12 +438,30 @@ public static class WebqlAstBuilder
      * helper methods.
      */
 
+    public static WebqlExpression CreateSourceReferenceExpression(CstNode node)
+    {
+        return new WebqlReferenceExpression(
+            metadata: CreateNodeMetadata(node),
+            attributes: null,
+            identifier: WebqlAstSymbols.SourceIdentifier
+        );
+    }
+
+    public static WebqlExpression CreateElementReferenceExpression(CstNode node)
+    {
+        return new WebqlReferenceExpression(
+            metadata: CreateNodeMetadata(node),
+            attributes: null,
+            identifier: WebqlAstSymbols.ElementIdentifier
+        );
+    }
+
     /// <summary>
     /// Translates a CstNode into a WebqlSyntaxNodeMetadata object.
     /// </summary>
     /// <param name="node"></param>
     /// <returns></returns>
-    public static WebqlSyntaxNodeMetadata TranslateNodeMetadata(CstNode node)
+    public static WebqlSyntaxNodeMetadata CreateNodeMetadata(CstNode node)
     {
         return new WebqlSyntaxNodeMetadata(
             startPosition: node.Metadata.StartPosition,

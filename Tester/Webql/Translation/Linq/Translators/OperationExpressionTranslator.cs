@@ -17,13 +17,13 @@ public static class OperationExpressionTranslator
                 return ArithmeticOperationExpressionTranslator.TranslateArithmeticOperationExpression(node);
 
             case WebqlOperatorCategory.Relational:
-                return RelationalOperationExpressionTranslator.TranslateRelationalOperationExpression(context, node);
+                return RelationalOperationExpressionTranslator.TranslateRelationalOperationExpression(node);
 
             case WebqlOperatorCategory.StringRelational:
-                return StringRelationalOperationExpressionTranslator.TranslateStringRelationalOperationExpression(context, node);
+                return StringRelationalOperationExpressionTranslator.TranslateStringRelationalOperationExpression(node);
 
             case WebqlOperatorCategory.Logical:
-                return LogicalOperationExpressionTranslator.TranslateLogicalOperationExpression(context, node);
+                return LogicalOperationExpressionTranslator.TranslateLogicalOperationExpression(node);
 
             case WebqlOperatorCategory.Semantic:
                 return SemanticOperationExpressionTranslator.TranslateSemanticOperationExpression(context, node);

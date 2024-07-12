@@ -1,7 +1,6 @@
 ﻿using Webql.Parsing.Analysis;
 using Webql.Parsing.Ast;
 using Webql.Semantics.Context;
-using Webql.Semantics.Exceptions;
 using Webql.Semantics.Extensions;
 using Webql.Semantics.Scope;
 
@@ -12,20 +11,9 @@ namespace Webql.Semantics.Analysis;
 /// </summary>
 public class ScopeBinderAnalyzer : SyntaxTreeAnalyzer
 {
-    private Stack<SemanticContext> ContextStack { get; }
-    private SemanticContext RootContext { get; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ScopeBinderAnalyzer"/> class.
-    /// </summary>
-    /// <param name="context">The semantic context.</param>
-    public ScopeBinderAnalyzer(SemanticContext context)
+    public ScopeBinderAnalyzer()
     {
-        ContextStack = new Stack<SemanticContext>();
-        RootContext = context;
-
-        //* Push the root context to the stack
-        ContextStack.Push(context);
+      
     }
 
     protected override void Analyze(WebqlSyntaxNode? node)
@@ -38,7 +26,7 @@ public class ScopeBinderAnalyzer : SyntaxTreeAnalyzer
         switch (node.NodeType)
         {
             case WebqlNodeType.Query:
-                BindQueryScope((WebqlQuery)node);
+                BindRootScope((WebqlQuery)node);
                 break;
 
             case WebqlNodeType.Expression:
@@ -49,7 +37,7 @@ public class ScopeBinderAnalyzer : SyntaxTreeAnalyzer
         base.Analyze(node);
     }
 
-    private void BindQueryScope(WebqlQuery node)
+    private void BindRootScope(WebqlQuery node)
     {
         if (!node.IsRoot())
         {
@@ -91,37 +79,20 @@ public class ScopeBinderAnalyzer : SyntaxTreeAnalyzer
 
     private void BindOperationScope(WebqlOperationExpression node)
     {
-        var parentScope = node.GetScope();
+        var localScope = node.GetScope();
+
+        var scopeType = node.Operator is WebqlOperatorType.Aggregate
+            ? WebqlScopeType.Aggregation
+            : localScope.Type;
 
         if (!node.HasScopeAttribute())
         {
-            switch (node.Operator)
-            {
-                case WebqlOperatorType.Aggregate:
-                    node.BindScope(parentScope.CreateChildScope(WebqlScopeType.Aggregation));
-                    break;
-
-                default:
-                    node.BindScope(parentScope.CreateChildScope(parentScope.Type));
-                    break;
-            }
+            node.BindScope(localScope.CreateChildScope(localScope.Type));
         }
 
-        var localScope = node.GetScope();
-
-        if (!node.IsCollectionOperator())
+        foreach (var operand in node.Operands)
         {
-            return;
-        }
-
-        foreach (var operand in node.Operands.Skip(1))
-        {
-            if (operand.HasScopeAttribute())
-            {
-                continue;
-            }
-
-            operand.BindScope(localScope.CreateChildScope(localScope.Type));
+            operand.BindScope(localScope.CreateChildScope(scopeType));
         }
     }
 

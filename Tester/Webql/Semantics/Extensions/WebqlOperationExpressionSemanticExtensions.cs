@@ -66,29 +66,24 @@ public static class WebqlOperationExpressionSemanticExtensions
         return expression.GetOperatorCategory() == WebqlOperatorCategory.CollectionAggregation;
     }
 
-    public static WebqlOperatorArity GetWebqlOperatorArity(this WebqlOperationExpression expression)
+    public static WebqlOperatorArity GetOperatorArity(this WebqlOperationExpression expression)
     {
         return WebqlOperatorAnalyzer.GetOperatorArity(expression.Operator);
     }
 
-    public static bool IsNullary(this WebqlOperationExpression expression)
-    {
-        return expression.GetWebqlOperatorArity() == WebqlOperatorArity.Nullary;
-    }
-
     public static bool IsUnary(this WebqlOperationExpression expression)
     {
-        return expression.GetWebqlOperatorArity() == WebqlOperatorArity.Unary;
+        return expression.GetOperatorArity() == WebqlOperatorArity.Unary;
     }
 
     public static bool IsBinary(this WebqlOperationExpression expression)
     {
-        return expression.GetWebqlOperatorArity() == WebqlOperatorArity.Binary;
+        return expression.GetOperatorArity() == WebqlOperatorArity.Binary;
     }
 
-    public static bool IsTernary(this WebqlOperationExpression expression)
+    public static bool IsBinaryTypeCompatibleOperator(this WebqlOperationExpression expression)
     {
-        return expression.GetWebqlOperatorArity() == WebqlOperatorArity.Ternary;
+        return WebqlOperatorAnalyzer.IsBinaryTypeCompatibleOperator(expression.Operator);
     }
 
     public static bool IsLinqQueryableMethodCallOperator(this WebqlOperationExpression expression)

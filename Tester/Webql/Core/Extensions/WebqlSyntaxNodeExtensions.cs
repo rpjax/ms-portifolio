@@ -35,7 +35,9 @@ public static class WebqlSyntaxNodeExtensions
         {
             if(current.HasAttribute(CompilationContextKey))
             {
-                if(!(current.TryGetAttribute<WebqlCompilationContext>(CompilationContextKey) is WebqlCompilationContext context))
+                var context = current.GetAttribute<WebqlCompilationContext>(CompilationContextKey);
+
+                if(context is null)
                 {
                     throw new InvalidOperationException("The compilation context attribute is not of the expected type.");
                 }
@@ -50,7 +52,7 @@ public static class WebqlSyntaxNodeExtensions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void SetCompilationContext(this WebqlSyntaxNode node, WebqlCompilationContext context)
+    public static void BindCompilationContext(this WebqlSyntaxNode node, WebqlCompilationContext context)
     {
         if (!node.IsRoot())
         {

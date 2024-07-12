@@ -29,6 +29,11 @@ public class WebqlScope
         return SymbolTable.ContainsSymbol(identifier) || (useParentScope && ParentScope?.ContainsSymbol(identifier) == true);
     }
 
+    public IEnumerable<ISymbol> GetSymbols()
+    {
+        return SymbolTable.AsEnumerable();
+    }
+
     public void DeclareSymbol(ISymbol symbol)
     {
         if(SymbolTable.TryGetSymbol(symbol.Identifier, out _))

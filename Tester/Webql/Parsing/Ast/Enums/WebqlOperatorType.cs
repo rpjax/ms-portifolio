@@ -79,19 +79,58 @@ public enum WebqlOperatorCategory
 /// </summary>
 public enum WebqlOperatorArity
 {
-    Nullary,
+    //Nullary,
     Unary,
     Binary,
-    Ternary
+    //Ternary
 }
 
 /*
  * Helper Enumerations
  */
 
+public enum WebqlUnaryOperator
+{
+    Not,
+    Count,
+    Aggregate
+}
+
+public enum WebqlBinaryOperator
+{
+    Add, 
+    Subtract, 
+    Divide, 
+    Multiply,
+    Modulo, 
+    Equals, 
+    NotEquals,
+    Less, 
+    LessEquals, 
+    Greater, 
+    GreaterEquals, 
+    Like, 
+    RegexMatch,
+    Or, 
+    And, 
+    Filter, 
+    Select, 
+    SelectMany,
+    Limit, 
+    Skip, 
+    Contains,
+    Index,
+    Any, 
+    All, 
+    Min, 
+    Max, 
+    Sum,
+    Average,
+}
+
 public enum WebqlSemanticOperator
 {
-    Aggregate
+    Aggregate,
 }
 
 public enum WebqlCollectionOperator

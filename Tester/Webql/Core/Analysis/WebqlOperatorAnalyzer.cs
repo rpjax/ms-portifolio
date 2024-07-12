@@ -64,14 +64,13 @@ public static class WebqlOperatorAnalyzer
 
     public static WebqlOperatorArity GetOperatorArity(WebqlOperatorType operatorType)
     {
-        /*
-         * Currently, all operators are binary.
-         */
-
-        return WebqlOperatorArity.Binary;
-
         switch (operatorType)
         {
+            case WebqlOperatorType.Not:
+            case WebqlOperatorType.Count:
+            case WebqlOperatorType.Aggregate:
+                return WebqlOperatorArity.Unary;
+
             case WebqlOperatorType.Add:
             case WebqlOperatorType.Subtract:
             case WebqlOperatorType.Divide:
@@ -92,13 +91,11 @@ public static class WebqlOperatorAnalyzer
             case WebqlOperatorType.SelectMany:
             case WebqlOperatorType.Limit:
             case WebqlOperatorType.Skip:
-            case WebqlOperatorType.Count:
+            // the $count operator is unary, but i still need to figure out how to handle it
             case WebqlOperatorType.Contains:
             case WebqlOperatorType.Index:
             case WebqlOperatorType.Any:
             case WebqlOperatorType.All:
-            case WebqlOperatorType.Not:
-            case WebqlOperatorType.Aggregate:
             case WebqlOperatorType.Min:
             case WebqlOperatorType.Max:
             case WebqlOperatorType.Sum:
@@ -113,6 +110,117 @@ public static class WebqlOperatorAnalyzer
     /*
      * Operator Subtype Classification
      */
+
+    public static WebqlUnaryOperator GetUnaryOperator(WebqlOperatorType operatorType)
+    {
+        switch (operatorType)
+        {
+            case WebqlOperatorType.Not:
+                return WebqlUnaryOperator.Not;
+
+            case WebqlOperatorType.Count:
+                return WebqlUnaryOperator.Count;
+
+            case WebqlOperatorType.Aggregate:
+                return WebqlUnaryOperator.Aggregate;
+            
+            default:
+                throw new InvalidOperationException();
+        }
+    }
+
+    public static WebqlBinaryOperator GetBinaryOperator(WebqlOperatorType operatorType)
+    {
+        switch (operatorType)
+        {
+            case WebqlOperatorType.Add:
+                return WebqlBinaryOperator.Add;
+
+            case WebqlOperatorType.Subtract:
+                return WebqlBinaryOperator.Subtract;
+
+            case WebqlOperatorType.Divide:
+                return WebqlBinaryOperator.Divide;
+
+            case WebqlOperatorType.Multiply:
+                return WebqlBinaryOperator.Multiply;
+
+            case WebqlOperatorType.Modulo:
+                return WebqlBinaryOperator.Modulo;
+
+            case WebqlOperatorType.Equals:
+                return WebqlBinaryOperator.Equals;
+
+            case WebqlOperatorType.NotEquals:
+                return WebqlBinaryOperator.NotEquals;
+
+            case WebqlOperatorType.Less:
+                return WebqlBinaryOperator.Less;
+
+            case WebqlOperatorType.LessEquals:
+                return WebqlBinaryOperator.LessEquals;
+
+            case WebqlOperatorType.Greater:
+                return WebqlBinaryOperator.Greater;
+
+            case WebqlOperatorType.GreaterEquals:
+                return WebqlBinaryOperator.GreaterEquals;
+
+            case WebqlOperatorType.Like:
+                return WebqlBinaryOperator.Like;
+
+            case WebqlOperatorType.RegexMatch:
+                return WebqlBinaryOperator.RegexMatch;
+
+            case WebqlOperatorType.Or:
+                return WebqlBinaryOperator.Or;
+
+            case WebqlOperatorType.And:
+                return WebqlBinaryOperator.And;
+
+            case WebqlOperatorType.Filter:
+                return WebqlBinaryOperator.Filter;
+
+            case WebqlOperatorType.Select:
+                return WebqlBinaryOperator.Select;
+
+            case WebqlOperatorType.SelectMany:
+                return WebqlBinaryOperator.SelectMany;
+
+            case WebqlOperatorType.Limit:
+                return WebqlBinaryOperator.Limit;
+
+            case WebqlOperatorType.Skip:
+                return WebqlBinaryOperator.Skip;
+
+            case WebqlOperatorType.Contains:
+                return WebqlBinaryOperator.Contains;
+
+            case WebqlOperatorType.Index:
+                return WebqlBinaryOperator.Index;
+
+            case WebqlOperatorType.Any:
+                return WebqlBinaryOperator.Any;
+
+            case WebqlOperatorType.All:
+                return WebqlBinaryOperator.All;
+
+            case WebqlOperatorType.Min:
+                return WebqlBinaryOperator.Min;
+
+            case WebqlOperatorType.Max:
+                return WebqlBinaryOperator.Max;
+
+            case WebqlOperatorType.Sum:
+                return WebqlBinaryOperator.Sum;
+
+            case WebqlOperatorType.Average:
+                return WebqlBinaryOperator.Average;
+
+            default:
+                throw new InvalidOperationException();
+        }
+    }
 
     public static WebqlSemanticOperator GetSemanticOperator(WebqlOperatorType operatorType)
     {
@@ -255,10 +363,10 @@ public static class WebqlOperatorAnalyzer
         return GetOperatorCategory(operatorType) == WebqlOperatorCategory.CollectionAggregation;
     }
 
-    public static bool IsNullary(WebqlOperatorType operatorType)
-    {
-        return GetOperatorArity(operatorType) == WebqlOperatorArity.Nullary;
-    }
+    //public static bool IsNullary(WebqlOperatorType operatorType)
+    //{
+    //    return GetOperatorArity(operatorType) == WebqlOperatorArity.Nullary;
+    //}
 
     public static bool IsUnary(WebqlOperatorType operatorType)
     {
@@ -270,16 +378,31 @@ public static class WebqlOperatorAnalyzer
         return GetOperatorArity(operatorType) == WebqlOperatorArity.Binary;
     }
 
-    public static bool IsTernary(WebqlOperatorType operatorType)
+    //public static bool IsTernary(WebqlOperatorType operatorType)
+    //{
+    //    return GetOperatorArity(operatorType) == WebqlOperatorArity.Ternary;
+    //}
+
+    public static bool IsBinaryTypeCompatibleOperator(WebqlOperatorType operatorType)
     {
-        return GetOperatorArity(operatorType) == WebqlOperatorArity.Ternary;
+        switch (GetOperatorCategory(operatorType))
+        {
+            case WebqlOperatorCategory.Arithmetic:
+            case WebqlOperatorCategory.Relational:
+            case WebqlOperatorCategory.StringRelational:
+            case WebqlOperatorCategory.Logical:
+                return true;
+
+            default:
+                return false;
+        }
     }
 
-    /*
-     * Type Based Classification
-     */
+        /*
+         * Type Based Classification
+         */
 
-    public static bool IsCollectionOperator(this WebqlOperatorType @operator)
+        public static bool IsCollectionOperator(this WebqlOperatorType @operator)
     {
         var operatorCategory = GetOperatorCategory(@operator);
 

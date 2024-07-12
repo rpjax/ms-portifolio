@@ -4,6 +4,7 @@ using Webql.Core;
 using Webql.Parsing.Analysis;
 using Webql.Parsing.Ast;
 using Webql.Semantics.Extensions;
+using Webql.Semantics.Symbols;
 using Webql.Translation.Linq.Context;
 using Webql.Translation.Linq.Extensions;
 
@@ -11,11 +12,11 @@ namespace Webql.Translation.Linq.Analysis;
 
 public class ExpressionDeclaratorAnalyzer : SyntaxTreeAnalyzer
 {
-    private TranslationContext TranslationContext { get; }
+    private TranslationContext? LastAnalyzedContext { get; set; }
 
-    public ExpressionDeclaratorAnalyzer(TranslationContext context)
+    public ExpressionDeclaratorAnalyzer()
     {
-        TranslationContext = context;
+        
     }
 
     protected override void Analyze(WebqlSyntaxNode? node)
@@ -25,67 +26,40 @@ public class ExpressionDeclaratorAnalyzer : SyntaxTreeAnalyzer
             return;
         }
 
-        if (node.IsRoot())
+        var translationContext = node.GetTranslationContext();
+
+        if(translationContext == LastAnalyzedContext)
         {
-            DeclareRootExpressions(node);
-        }
-        else if (node is WebqlOperationExpression operationExpression)
-        {
-            DeclareOperationExpressions(operationExpression);
+            base.Analyze(node);
+            return;
         }
 
+        var scope = node.GetScope();
+
+        foreach (var symbol in scope.GetSymbols())
+        {
+            if (translationContext.ContainsExpression(symbol.Identifier))
+            {
+                continue;
+            }
+
+            /*
+             * Currently, all symbols are parameters. This will change in the future with the introduction of temporary variables.
+             */
+            if (symbol is IParameterSymbol parameterSymbol)
+            {
+                var expression = Expression.Parameter(
+                    type: parameterSymbol.Type, 
+                    name: parameterSymbol.Identifier
+                );
+
+                translationContext.DeclareExpression(symbol.Identifier, expression);
+            }
+            // other symbols...
+        }
+
+        LastAnalyzedContext = translationContext;
         base.Analyze(node);
     }
 
-    private void DeclareRootExpressions(WebqlSyntaxNode node)
-    {
-        //var context = node.GetTranslationContext();
-        //var type = TranslationContext.CompilationContext.EntityQueryableType;
-        //var name = "<root>";
-        //var expression = Expression.Parameter(type, name);
-
-        //context.SetLeftHandSideExpression(expression);
-    }
-
-    private void DeclareOperationExpressions(WebqlOperationExpression node)
-    {
-        //var operatorCategory = node.GetOperatorCategory();
-
-        //var isLinqQueryableMethodCall = node.IsLinqQueryableMethodCallOperator();
-
-        //if (!isLinqQueryableMethodCall)
-        //{
-        //    return;
-        //}
-
-        //var semanticContext = node.GetSemanticContext();
-
-        //var queryableType = semanticContext.GetLeftHandSideType();
-        //var elementType = queryableType.GetQueryableElementType();
-        //var elementProperties = elementType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-        //    .Where(p => p.Name == "Length" || !p.DeclaringType?.Namespace?.StartsWith("System") == true)
-        //    .ToArray()
-        //    ;
-
-        //var elementExpression = Expression.Parameter(elementType, "<element>");
-
-        //var expressionDeclarations = elementProperties
-        //   .Select(x => Expression.Property(elementExpression, x))
-        //   .ToArray()
-        //   ;
-
-        //foreach (var operand in node.Operands)
-        //{
-        //    var translationContext = operand.GetTranslationContext();
-
-        //    translationContext.SetLeftHandSideExpression(elementExpression);
-
-        //    foreach (var expression in expressionDeclarations)
-        //    {
-        //        translationContext.AddExpression(expression.Member.Name, expression);
-        //    }
-        //}
-    }
-
 }
-

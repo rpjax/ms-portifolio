@@ -2,45 +2,66 @@
 using Webql.Parsing.Ast;
 using Webql.Semantics.Definitions;
 using Webql.Core;
-using Webql.Semantics.Context;
 using Webql.Semantics.Exceptions;
 using Webql.Core.Analysis;
 using Webql.Semantics.Symbols;
+using Webql.Core.Extensions;
+using Microsoft.CodeAnalysis;
 
 namespace Webql.Semantics.Analysis;
 
 public static class SemanticAnalyzer
 {
-    public static void ExecuteAnalysisPipeline(SemanticContext context, WebqlSyntaxNode node)
+    public static WebqlQuery ExecuteAnalysisPipeline(WebqlCompilationContext context, WebqlQuery node)
     {
-        node = RewriteTree(context, node);
+        DecorateTree(context, node);
+        ValidateSemantics(node);
 
-        AnnotateTree(context, node);
-        DeclareSymbols(context, node);
-        ValidateTypes(context, node);
+        return ExecuteSemanticalRewrites(node);
     }
 
-    public static WebqlSyntaxNode RewriteTree(SemanticContext context, WebqlSyntaxNode node)
+    public static void DecorateTree(WebqlCompilationContext context, WebqlSyntaxNode node)
     {
+        node.BindCompilationContext(context);
+        BindScopes(node);
+        DeclareSymbols(node);
+    }
+
+    public static void BindScopes(WebqlSyntaxNode node)
+    {
+        new ScopeBinderAnalyzer()
+            .ExecuteAnalysis(node);
+    }
+
+    public static void DeclareSymbols(WebqlSyntaxNode node)
+    {
+        new SymbolDeclaratorAnalyzer()
+            .ExecuteAnalysis(node);
+    }
+
+    public static void ValidateSemantics(WebqlSyntaxNode node)
+    {
+        ValidateOperatorArity(node);
+        ValidateOperatorTypes(node);
+    }
+
+    public static void ValidateOperatorArity(WebqlSyntaxNode node)
+    {
+        //new OperandArityValidatorAnalyzer()
+        //    .ExecuteAnalysis(node);
+    }
+
+    public static void ValidateOperatorTypes(WebqlSyntaxNode node)
+    {
+        new TypeValidatorAnalyzer()
+            .ExecuteAnalysis(node);
+    }
+
+    public static WebqlQuery ExecuteSemanticalRewrites(WebqlQuery node)
+    {
+        node = new TypeConversionRewriter().VisitQuery(node);
+
         return node;
-    }
-
-    public static void AnnotateTree(SemanticContext context, WebqlSyntaxNode node)
-    {
-        new ScopeBinderAnalyzer(context)
-            .ExecuteAnalysis(node);
-    }
-
-    public static void DeclareSymbols(SemanticContext context, WebqlSyntaxNode node)
-    {
-        new SymbolDeclaratorAnalyzer(context)
-            .ExecuteAnalysis(node);
-    }
-
-    public static void ValidateTypes(SemanticContext context, WebqlSyntaxNode node)
-    {
-        new TypeValidatorAnalyzer(context)
-            .ExecuteAnalysis(node);
     }
 
     /*
@@ -87,6 +108,7 @@ public static class SemanticAnalyzer
     /*
      * EXPRESSION SEMANTICS
      */
+
     public static IExpressionSemantics CreateExpressionSemantics(
         WebqlCompilationContext context,
         WebqlExpression expression)
@@ -110,6 +132,9 @@ public static class SemanticAnalyzer
 
             case WebqlExpressionType.Operation:
                 return CreateOperationExpressionSemantics(context, (WebqlOperationExpression)expression);
+
+            case WebqlExpressionType.TypeConversion:
+                return CreateTypeConversionExpressionSemantics(context, (WebqlTypeConversionExpression)expression);
 
             default:
                 throw new InvalidOperationException();
@@ -175,11 +200,20 @@ public static class SemanticAnalyzer
         var otherOperand = operationNode.Operands.First(x => x != expression);
         var otherSemantics = otherOperand.GetSemantics<IExpressionSemantics>();
 
-        var type = SemanticsTypeHelper.NormalizeNullableType(otherSemantics.Type);
-        var nullableType = typeof(Nullable<>).MakeGenericType(type);
+        //var type = SemanticsTypeHelper.NormalizeNullableType(otherSemantics.Type);
+        //var nullableType = null as Type;
+
+        //if (otherSemantics.Type.IsValueType)
+        //{
+        //    nullableType = typeof(Nullable<>).MakeGenericType(type);
+        //}
+        //else
+        //{
+        //    nullableType = type; // If it's not a value type, don't attempt to make it nullable
+        //}
 
         return new ExpressionSemantics(
-            type: nullableType
+            type: otherSemantics.Type
         );
     }
 
@@ -275,6 +309,7 @@ public static class SemanticAnalyzer
         WebqlCompilationContext context,
         WebqlBlockExpression blockExpression)
     {
+        throw new NotImplementedException();
         /*
          * Temporary fix for empty block expressions.
          */
@@ -285,24 +320,9 @@ public static class SemanticAnalyzer
             );
         }
 
-        switch (blockExpression.GetScopeType())
-        {
-            case WebqlScopeType.Aggregation:
-                return blockExpression.Expressions
-                    .Last()
-                    .GetSemantics<IExpressionSemantics>();
-
-            case WebqlScopeType.LogicalFiltering:
-                return new ExpressionSemantics(
-                    type: typeof(bool)
-                );
-
-            case WebqlScopeType.Projection:
-                throw new NotImplementedException();
-
-            default:
-                throw new InvalidOperationException($"Invalid block scope type: {blockExpression.GetScopeType()}");
-        }
+        return blockExpression.Expressions
+            .Last()
+            .GetSemantics<IExpressionSemantics>();
     }
 
     /*
@@ -419,7 +439,6 @@ public static class SemanticAnalyzer
         );
     }
 
-
     /*
      * COLLECTION MANIPULATION OPERATION EXPRESSION SEMANTICS
      */
@@ -452,35 +471,19 @@ public static class SemanticAnalyzer
 
     public static IExpressionSemantics CreateCollectionAggregationOperationExpressionSemantics(
         WebqlCompilationContext context,
-        WebqlOperationExpression operationExpression)
+        WebqlOperationExpression node)
     {
-        operationExpression.EnsureOperandCount(2);
-
-        var operatorType = operationExpression.GetCollectionAggregationOperator();
-
-        var lhs = operationExpression.Operands[0];
-        var rhs = operationExpression.Operands[1];
-
-        var lhsSemantics = lhs.GetSemantics<IExpressionSemantics>();
-        var rhsSemantics = rhs.GetSemantics<IExpressionSemantics>();
-
-        lhs.EnsureIsQueryable();
-
-        var lhsType = lhsSemantics.Type;
-        var elementType = lhsType.GetQueryableElementType();
+        var operatorType = node.GetCollectionAggregationOperator();
 
         switch (operatorType)
         {
             case WebqlCollectionAggregationOperator.Count:
-                return new ExpressionSemantics(
-                    type: typeof(int)
-                );
+                return CreateCountExpressionSemantics(node);
 
             case WebqlCollectionAggregationOperator.Index:
-                return new ExpressionSemantics(
-                    type: elementType
-                );
+                return CreateIndexExpressionSemantics(node);
 
+            case WebqlCollectionAggregationOperator.Contains:
             case WebqlCollectionAggregationOperator.Any:
             case WebqlCollectionAggregationOperator.All:
                 return new ExpressionSemantics(
@@ -494,6 +497,15 @@ public static class SemanticAnalyzer
             case WebqlCollectionAggregationOperator.Max:
             case WebqlCollectionAggregationOperator.Sum:
             case WebqlCollectionAggregationOperator.Average:
+
+                node.EnsureOperandCount(2);
+
+                var lhs = node.Operands[0];
+                var rhs = node.Operands[1];
+
+                var lhsSemantics = lhs.GetSemantics<IExpressionSemantics>();
+                var rhsSemantics = rhs.GetSemantics<IExpressionSemantics>();
+
                 return new ExpressionSemantics(
                     type: rhsSemantics.Type
                 );
@@ -501,6 +513,43 @@ public static class SemanticAnalyzer
             default:
                 throw new InvalidOperationException("Invalid collection aggregation operator.");
         }
+    }
+
+    private static IExpressionSemantics CreateCountExpressionSemantics(
+        WebqlOperationExpression node)
+    {
+        return new ExpressionSemantics(
+            type: typeof(int)
+        );
+    }
+
+    private static IExpressionSemantics CreateIndexExpressionSemantics(
+        WebqlOperationExpression node)
+    {
+        node.EnsureOperandCount(2);
+
+        var expression = node.Operands[0];
+        expression.EnsureIsQueryable();
+
+        var expressionSemantics = node.GetSemantics<IExpressionSemantics>();
+        var elementType = expressionSemantics.Type.GetQueryableElementType();
+
+        return new ExpressionSemantics(
+            type: elementType
+        );
+    }
+
+    /*
+     * TYPE CONVERSION EXPRESSION SEMANTICS
+     */
+
+    private static IExpressionSemantics CreateTypeConversionExpressionSemantics(
+        WebqlCompilationContext context,
+        WebqlTypeConversionExpression expression)
+    {
+        return new ExpressionSemantics(
+            type: expression.TargetType
+        );
     }
 
 }

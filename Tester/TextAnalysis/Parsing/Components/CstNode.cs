@@ -99,6 +99,16 @@ public abstract class CstNode
     }
 
     /// <summary>
+    /// Gets a value indicating whether the node has a property by key.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns> A value indicating whether the node has a property by key.</returns>
+    public bool HasProperty(string key)
+    {
+        return Properties.ContainsKey(key);
+    }
+
+    /// <summary>
     /// Gets the value of a property by key.
     /// </summary>
     /// <param name="key">The key of the property.</param>
@@ -116,6 +126,24 @@ public abstract class CstNode
     public object? TryGetProperty(string key)
     {
         return Properties.TryGetValue(key, out var value) ? value : null;
+    }
+
+    /// <summary>
+    /// Tries to get the value of a property by key.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    public T? TryGetProperty<T>(string key)
+    {
+        var value = TryGetProperty(key);
+
+        if(value is T result)
+        {
+            return result;
+        }
+
+        return default;
     }
 
     /// <summary>
@@ -168,6 +196,12 @@ public class CstRoot : CstNode
     public override CstNode Accept(CstNodeVisitor visitor)
     {
         return visitor.VisitRoot(this);
+    }
+
+    ///<inheritdoc/>
+    public override string ToString()
+    {
+        return $"{Name} -> `{string.Join(" ", Children.Select(x => x.ToString()))}`";
     }
 }
 
@@ -223,7 +257,7 @@ public class CstInternal : CstNode
     ///<inheritdoc/>
     public override string ToString()
     {
-        return Name;
+        return $"{Name} -> `{string.Join(" ", Children.Select(x => x.ToString()))}`";
     }
 }
 

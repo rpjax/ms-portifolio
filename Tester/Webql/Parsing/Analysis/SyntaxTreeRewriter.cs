@@ -81,4 +81,15 @@ public class SyntaxTreeRewriter : SyntaxTreeVisitor
             operands: node.Operands.Select(VisitExpression)
         );
     }
+
+    public override WebqlExpression VisitTypeConversionExpression(WebqlTypeConversionExpression node)
+    {
+        return new WebqlTypeConversionExpression(
+            metadata: node.Metadata,
+            attributes: node.Attributes,
+            targetType: node.TargetType,
+            expression: VisitExpression(node.Expression)
+        );
+    }
+
 }

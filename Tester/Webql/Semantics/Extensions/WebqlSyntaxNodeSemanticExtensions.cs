@@ -86,7 +86,8 @@ public static class WebqlSyntaxNodeSemanticExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TSemantics GetSemantics<TSemantics>(this WebqlSyntaxNode node) where TSemantics : ISemantics
     {
-        var semantics = SemanticAnalyzer.CreateSemantics(node.GetCompilationContext(), node);
+        var compilationContext = node.GetCompilationContext();
+        var semantics = SemanticAnalyzer.CreateSemantics(compilationContext, node);
 
         if(semantics is not TSemantics cast)
         {
@@ -156,25 +157,62 @@ public static class WebqlSyntaxNodeSemanticExtensions
     }
 
     /*
-     * Accumulator symbol related extensions
+     * Source symbol related extensions
      */
 
-    public static AccumulatorSymbol GetAccumulatorSymbol(this WebqlSyntaxNode node)
+    public static SourceSymbol GetSourceSymbol(this WebqlSyntaxNode node)
     {
-        return node.ResolveSymbol<AccumulatorSymbol>(AstHelper.AccumulatorIdentifier);
+        var scope = node.GetScope();    
+        var symbol = scope.ResolveSymbol<SourceSymbol>(WebqlAstSymbols.SourceIdentifier);
+
+        if(symbol is null)
+        {
+            throw node.CreateSymbolNotFoundException(WebqlAstSymbols.SourceIdentifier);
+        }
+
+        return symbol;
     }
 
-    public static Type GetAccumulatorType(this WebqlSyntaxNode node)
-    {
-        return node.GetAccumulatorSymbol().Type;
-    }
-
-    public static void DeclareAccumulatorSymbol(this WebqlSyntaxNode node, Type type)
+    public static void DeclareSourceSymbol(this WebqlSyntaxNode node, Type type)
     {
         var scope = node.GetScope();
 
-        var symbol = new AccumulatorSymbol(
-            identifier: AstHelper.AccumulatorIdentifier,
+        var symbol = new SourceSymbol(
+            identifier: WebqlAstSymbols.SourceIdentifier,
+            type: type
+        );
+
+        if(scope.ContainsSymbol(symbol.Identifier, useParentScope: false))
+        {
+            node.CreateSymbolAlreadyDeclaredException(symbol.Identifier);
+        }
+
+        scope.DeclareSymbol(symbol);
+    }
+
+    /*
+     * Element symbol related extensions
+     */
+
+    public static ParameterSymbol GetElementSymbol(this WebqlSyntaxNode node)
+    {
+        var scope = node.GetScope();
+        var symbol = scope.ResolveSymbol<ParameterSymbol>(WebqlAstSymbols.ElementIdentifier);
+
+        if (symbol is null)
+        {
+            throw node.CreateSymbolNotFoundException(WebqlAstSymbols.ElementIdentifier);
+        }
+
+        return symbol;
+    }
+
+    public static void DeclareElementSymbol(this WebqlSyntaxNode node, Type type)
+    {
+        var scope = node.GetScope();
+
+        var symbol = new ParameterSymbol(
+            identifier: WebqlAstSymbols.ElementIdentifier,
             type: type
         );
 
@@ -224,6 +262,11 @@ public static class WebqlSyntaxNodeSemanticExtensions
     public static Type GetExpressionType(this WebqlExpression node)
     {
         return node.GetSemantics<IExpressionSemantics>().Type;
+    }
+
+    public static IExpressionSemantics GetExpressionSemantics(this WebqlExpression node)
+    {
+        return node.GetSemantics<IExpressionSemantics>();
     }
 
     /*

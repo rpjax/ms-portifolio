@@ -6,22 +6,19 @@ namespace Webql.Translation.Linq.Context;
 
 public class TranslationContext
 {
-    const string LeftHandSideId = "<lhs>";
-
     public WebqlCompilationContext CompilationContext { get; }
 
     private Dictionary<string, Expression> SymbolTable { get; }
     private TranslationContext? ParentContext { get; }
     private CacheObject Cache { get; }
 
-    private TranslationContext(
+    internal TranslationContext(
         WebqlCompilationContext compilationContext,
-        Dictionary<string, Expression> symbols,
         TranslationContext? parent,
         CacheObject cache)
     {
         CompilationContext = compilationContext;
-        SymbolTable = symbols.ToDictionary(x => x.Key, x => x.Value);
+        SymbolTable = new Dictionary<string, Expression>();
         ParentContext = parent;
         Cache = cache;
     }
@@ -35,20 +32,33 @@ public class TranslationContext
     {
         return new TranslationContext(
             compilationContext: compilationContext,
-            symbols: new Dictionary<string, Expression>(),
             parent: null,
-            cache: new CacheObject()
+            cache: new()
         );
     }
 
-    public TranslationContext CreateSubContext()
+    public TranslationContext CreateChildContext()
     {
         return new TranslationContext(
             compilationContext: CompilationContext,
-            symbols: SymbolTable.ToDictionary(x => x.Key, x => x.Value),
             parent: this,
             cache: Cache
         );
+    }
+
+    public bool ContainsExpression(string identifier)
+    {
+        if (SymbolTable.ContainsKey(identifier))
+        {
+            return true;
+        }
+
+        if (ParentContext is not null)
+        {
+            return ParentContext.ContainsExpression(identifier);
+        }
+
+        return false;
     }
 
     public Expression GetExpression(string identifier)
@@ -78,7 +88,7 @@ public class TranslationContext
         throw new InvalidOperationException($"Symbol '{identifier}' is not of type '{typeof(T).Name}'.");
     }
 
-    public void AddExpression(string identifier, Expression expression)
+    public void DeclareExpression(string identifier, Expression expression)
     {
         if (SymbolTable.ContainsKey(identifier))
         {
@@ -89,32 +99,41 @@ public class TranslationContext
     }
 
     /*
-     * LHS expression
+     * Source parameter-expression related methods
      */
 
-    public void SetLeftHandSideExpression(Expression expression)
+    public void DeclareSourceParameterExpression(Type type)
     {
-        SymbolTable[LeftHandSideId] = expression;
+        var parameterExpression = Expression.Parameter(
+            type: type, 
+            name: WebqlAstSymbols.SourceIdentifier
+        );
+
+        DeclareExpression(WebqlAstSymbols.SourceIdentifier, parameterExpression);
     }
 
-    public void SetLeftHandSideParameterExpression(Type type)
+    public ParameterExpression GetSourceParameterExpression()
     {
-        SymbolTable[LeftHandSideId] = Expression.Parameter(type, "lhs");
+        return GetExpression<ParameterExpression>(WebqlAstSymbols.SourceIdentifier);
     }
 
-    public Expression GetLeftHandSideExpression()
+    /*
+     * Element parameter-expression related methods
+     */
+
+    public void DeclareElementParameterExpression(Type type)
     {
-        return GetExpression(LeftHandSideId);
+        var parameterExpression = Expression.Parameter(
+            type: type, 
+            name: WebqlAstSymbols.ElementIdentifier
+        );
+
+        DeclareExpression(WebqlAstSymbols.ElementIdentifier, parameterExpression);
     }
 
-    public T GetLeftHandSideExpression<T>() where T : Expression
+    public ParameterExpression GetElementParameterExpression()
     {
-        return GetExpression<T>(LeftHandSideId);
-    }
-
-    public Type GetLeftHandSideExpressionType()
-    {
-        return GetLeftHandSideExpression().Type;
+        return GetExpression<ParameterExpression>(WebqlAstSymbols.ElementIdentifier);
     }
 
 }

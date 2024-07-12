@@ -1,68 +1,102 @@
 ﻿using System.Linq.Expressions;
 using Webql.Parsing.Ast;
 using Webql.Translation.Linq.Context;
+using Webql.Translation.Linq.Translators;
 
 namespace Webql.Translation.Linq;
 
 public static class RelationalOperationExpressionTranslator
 {
-    public static Expression TranslateRelationalOperationExpression(TranslationContext context, WebqlOperationExpression node)
+    public static Expression TranslateRelationalOperationExpression(WebqlOperationExpression node)
     {
         switch (node.Operator)
         {
             case WebqlOperatorType.Equals:
-                return TranslateEqualsExpression(context, node);
+                return TranslateEqualsExpression(node);
 
             case WebqlOperatorType.NotEquals:
-                return TranslateNotEqualsExpression(context, node);
+                return TranslateNotEqualsExpression(node);
 
             case WebqlOperatorType.Less:
-                return TranslateLessExpression(context, node);
+                return TranslateLessExpression(node);
 
             case WebqlOperatorType.LessEquals:
-                return TranslateLessEqualsExpression(context, node);
+                return TranslateLessEqualsExpression(node);
 
             case WebqlOperatorType.Greater:
-                return TranslateGreaterExpression(context, node);
+                return TranslateGreaterExpression(node);
 
             case WebqlOperatorType.GreaterEquals:
-                return TranslateGreaterEqualsExpression(context, node);
+                return TranslateGreaterEqualsExpression(node);
 
             default:
                 throw new InvalidOperationException("Invalid operator type.");
         }
     }
 
-    public static Expression TranslateEqualsExpression(TranslationContext context, WebqlOperationExpression node)
+    public static Expression TranslateEqualsExpression(WebqlOperationExpression node)
     {
-        throw new NotImplementedException();
+        var lhs = node.Operands[0];
+        var rhs = node.Operands[1];
+
+        var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
+        var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
+
+        return Expression.Equal(lhsExpression, rhsExpression);
     }
 
-    public static Expression TranslateNotEqualsExpression(TranslationContext context, WebqlOperationExpression node)
+    public static Expression TranslateNotEqualsExpression(WebqlOperationExpression node)
     {
-        throw new NotImplementedException();
+        var lhs = node.Operands[0];
+        var rhs = node.Operands[1];
+
+        var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
+        var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
+
+        return Expression.NotEqual(lhsExpression, rhsExpression);
     }
 
-    public static Expression TranslateLessExpression(TranslationContext context, WebqlOperationExpression node)
+    public static Expression TranslateLessExpression(WebqlOperationExpression node)
     {
-        throw new NotImplementedException();
+        var lhs = node.Operands[0];
+        var rhs = node.Operands[1];
+
+        var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
+        var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
+
+        return Expression.LessThan(lhsExpression, rhsExpression);
     }
 
-    public static Expression TranslateLessEqualsExpression(TranslationContext context, WebqlOperationExpression node)
+    public static Expression TranslateLessEqualsExpression(WebqlOperationExpression node)
     {
-        throw new NotImplementedException();
+        var lhs = node.Operands[0];
+        var rhs = node.Operands[1];
+
+        var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
+        var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
+
+        return Expression.LessThanOrEqual(lhsExpression, rhsExpression);
     }
 
-    public static Expression TranslateGreaterExpression(TranslationContext context, WebqlOperationExpression node)
+    public static Expression TranslateGreaterExpression(WebqlOperationExpression node)
     {
-        throw new NotImplementedException();
+        var lhs = node.Operands[0];
+        var rhs = node.Operands[1];
+
+        var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
+        var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
+
+        return Expression.GreaterThan(lhsExpression, rhsExpression);
     }
 
-    public static Expression TranslateGreaterEqualsExpression(TranslationContext context, WebqlOperationExpression node)
+    public static Expression TranslateGreaterEqualsExpression(WebqlOperationExpression node)
     {
-        throw new NotImplementedException();
+        var lhs = node.Operands[0];
+        var rhs = node.Operands[1];
+
+        var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
+        var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
+
+        return Expression.GreaterThanOrEqual(lhsExpression, rhsExpression);
     }
 }
-
-
-

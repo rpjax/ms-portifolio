@@ -96,7 +96,8 @@ public static class Program
     {
         var settings = new WebqlCompilerSettings(
             queryableType: typeof(IQueryable<>),
-            entityType: typeof(TestUser)
+            entityType: typeof(TestUser),
+            methodInfoProvider: new MethodInfoProvider()
         );
 
         var compiler = new WebqlCompiler(settings);
@@ -104,23 +105,23 @@ public static class Program
         var query = @"
         { 
             $filter: { 
-                //isActive: true,
-                //nickname: { $like: 'jacques' },
-                //email: { $not: null },
-                //wallet: { 
-                //    usdBalance: { 
-                //        $greater: 59 
-                //    } 
-                //},
-                identity: {
-                    roles: {
-                        $aggregate: {
-                            $filter: { $equals: 'admin' },
-                            $count: { },
-                            $greater: 0
-                        }
-                    }
+                isActive: true,
+                nickname: { $equals: 'jacques' },
+                email: { $notEquals: null },
+                wallet: { 
+                    usdBalance: { 
+                        $greater: 59 
+                    } 
                 }
+                //identity: {
+                //    roles: {
+                //        $aggregate: {
+                //            $filter: { $equals: 'admin' },
+                //            $count: { },
+                //            $greater: 0
+                //        }
+                //    }
+                //}
             } 
         }";
 

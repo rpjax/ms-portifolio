@@ -59,6 +59,9 @@ public class SyntaxTreeVisitor
             case WebqlExpressionType.Operation:
                 return VisitOperationExpression((WebqlOperationExpression)node);
 
+            case WebqlExpressionType.TypeConversion:
+                return VisitTypeConversionExpression((WebqlTypeConversionExpression)node);
+
             default:
                 throw new InvalidOperationException("Invalid node type.");
         }
@@ -133,6 +136,17 @@ public class SyntaxTreeVisitor
             Visit(operand);
         }
 
+        return node;
+    }
+
+    /// <summary>
+    /// Visits the specified type conversion operand.
+    /// </summary>
+    /// <param name="node"></param>
+    /// <returns>The visited node.</returns>
+    public virtual WebqlExpression VisitTypeConversionExpression(WebqlTypeConversionExpression node)
+    {
+        Visit(node.Expression);
         return node;
     }
 

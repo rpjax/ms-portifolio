@@ -83,6 +83,10 @@ public class SyntaxTreeAnalyzer : SyntaxTreeVisitor
                 AnalyzeOperationExpression((WebqlOperationExpression)expression);
                 return;
 
+            case WebqlExpressionType.TypeConversion:
+                AnalyzeTypeConversionExpression((WebqlTypeConversionExpression)expression);
+                return;
+
             default:
                 throw new InvalidOperationException("Invalid operand type.");
         }
@@ -146,6 +150,11 @@ public class SyntaxTreeAnalyzer : SyntaxTreeVisitor
         {
             Analyze(operand);
         }
+    }
+
+    protected virtual void AnalyzeTypeConversionExpression(WebqlTypeConversionExpression expression)
+    {
+        Analyze(expression.Expression);
     }
 
 }

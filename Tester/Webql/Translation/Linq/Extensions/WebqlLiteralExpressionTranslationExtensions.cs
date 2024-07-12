@@ -6,7 +6,7 @@ public static class WebqlLiteralExpressionTranslationExtensions
 {
     public static string GetNormalizedStringValue(this WebqlLiteralExpression node)
     {
-        return node.Value[-1..1];
+        return node.Value.Substring(1, node.Value.Length - 2);
     }
 
 }

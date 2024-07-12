@@ -17,5 +17,5 @@ public class WebqlCompilationContext
     public Type QueryableType => Settings.QueryableType;
     public Type RootQueryableType => typeof(IQueryable<>);
     public Type RootElementType => Settings.ElementType;
-
+    public MethodInfoProvider MethodInfoProvider => Settings.MethodInfoProvider;
 }

@@ -1,7 +1,5 @@
 ﻿using System.Linq.Expressions;
 using Webql.Parsing.Ast;
-using Webql.Translation.Linq.Context;
-using Webql.Translation.Linq.Extensions;
 using Webql.Translation.Linq.Translators;
 
 namespace Webql.Translation.Linq;
@@ -34,32 +32,42 @@ public static class ArithmeticOperationExpressionTranslator
 
     public static Expression TranslateAddExpression(WebqlOperationExpression node)
     {
-        var translationContext = node.GetTranslationContext();
-
-        var leftExpression = translationContext.GetLeftHandSideExpression();
-        var righExpression = ExpressionTranslator.TranslateExpression(node.Operands[0]);
+        var leftExpression = ExpressionTranslator.TranslateExpression(node.Operands[0]);
+        var righExpression = ExpressionTranslator.TranslateExpression(node.Operands[1]);
 
         return Expression.Add(leftExpression, righExpression);
     }
 
     public static Expression TranslateSubtractExpression(WebqlOperationExpression node)
     {
-        throw new NotImplementedException();
+        var leftExpression = ExpressionTranslator.TranslateExpression(node.Operands[0]);
+        var righExpression = ExpressionTranslator.TranslateExpression(node.Operands[1]);
+
+        return Expression.Subtract(leftExpression, righExpression);
     }
 
     public static Expression TranslateDivideExpression(WebqlOperationExpression node)
     {
-        throw new NotImplementedException();
+        var leftExpression = ExpressionTranslator.TranslateExpression(node.Operands[0]);
+        var righExpression = ExpressionTranslator.TranslateExpression(node.Operands[1]);
+
+        return Expression.Divide(leftExpression, righExpression);
     }
 
     public static Expression TranslateMultiplyExpression(WebqlOperationExpression node)
     {
-        throw new NotImplementedException();
+        var leftExpression = ExpressionTranslator.TranslateExpression(node.Operands[0]);
+        var righExpression = ExpressionTranslator.TranslateExpression(node.Operands[1]);
+
+        return Expression.Multiply(leftExpression, righExpression);
     }
 
     public static Expression TranslateModuloExpression(WebqlOperationExpression node)
     {
-        throw new NotImplementedException();
+        var leftExpression = ExpressionTranslator.TranslateExpression(node.Operands[0]);
+        var righExpression = ExpressionTranslator.TranslateExpression(node.Operands[1]);
+
+        return Expression.Modulo(leftExpression, righExpression);
     }
 }
 
