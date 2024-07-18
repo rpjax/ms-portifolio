@@ -39,7 +39,7 @@ public class MethodInfoProvider
      * MethodInfo cache
      */
 
-    private MethodInfo WhereMethodInfo 
+    // TODO: Implement a cache for MethodInfo objects
 
     /*
      * Collection Manipulation LINQ methods

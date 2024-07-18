@@ -1,6 +1,5 @@
 ﻿using Webql.Parsing.Analysis;
 using Webql.Parsing.Ast;
-using Webql.Semantics.Context;
 using Webql.Semantics.Extensions;
 using Webql.Semantics.Scope;
 
@@ -45,8 +44,7 @@ public class ScopeBinderAnalyzer : SyntaxTreeAnalyzer
         }
 
         var rootScope = new WebqlScope(
-            parent: null,
-            type: WebqlScopeType.Aggregation
+            parent: null
         );
 
         node.BindScope(rootScope);
@@ -56,24 +54,9 @@ public class ScopeBinderAnalyzer : SyntaxTreeAnalyzer
     {
         switch (node.ExpressionType)
         {
-            case WebqlExpressionType.Block:
-                BindBlockScope((WebqlBlockExpression)node);
-                break;
-
             case WebqlExpressionType.Operation:
                 BindOperationScope((WebqlOperationExpression)node);
                 break;
-        }
-    }
-
-    private void BindBlockScope(WebqlBlockExpression node)
-    {
-        var localScope = node.GetScope();
-        var localScopeType = localScope.Type;
-
-        if (!node.HasScopeAttribute())
-        {
-            node.BindScope(localScope.CreateChildScope(localScopeType));
         }
     }
 
@@ -81,18 +64,14 @@ public class ScopeBinderAnalyzer : SyntaxTreeAnalyzer
     {
         var localScope = node.GetScope();
 
-        var scopeType = node.Operator is WebqlOperatorType.Aggregate
-            ? WebqlScopeType.Aggregation
-            : localScope.Type;
-
         if (!node.HasScopeAttribute())
         {
-            node.BindScope(localScope.CreateChildScope(localScope.Type));
+            node.BindScope(localScope.CreateChildScope());
         }
 
         foreach (var operand in node.Operands)
         {
-            operand.BindScope(localScope.CreateChildScope(scopeType));
+            operand.BindScope(localScope.CreateChildScope());
         }
     }
 

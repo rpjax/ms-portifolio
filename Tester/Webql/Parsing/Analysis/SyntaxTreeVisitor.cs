@@ -52,9 +52,6 @@ public class SyntaxTreeVisitor : ISyntaxTreeVisitor
             case WebqlExpressionType.TemporaryDeclaration:
                 return VisitTemporaryDeclarationExpression((WebqlTemporaryDeclarationExpression)node);
 
-            case WebqlExpressionType.Block:
-                return VisitBlockExpression((WebqlBlockExpression)node);
-
             case WebqlExpressionType.Operation:
                 return VisitOperationExpression((WebqlOperationExpression)node);
 
@@ -108,21 +105,7 @@ public class SyntaxTreeVisitor : ISyntaxTreeVisitor
     public virtual WebqlExpression VisitTemporaryDeclarationExpression(WebqlTemporaryDeclarationExpression node)
     {
         Visit(node.Value);
-        return node;
-    }
-
-    /// <summary>
-    /// Visits the specified block operand.
-    /// </summary>
-    /// <param name="node">The block operand to visit.</param>
-    /// <returns>The visited block operand.</returns>
-    public virtual WebqlExpression VisitBlockExpression(WebqlBlockExpression node)
-    {
-        foreach (var expression in node.Expressions)
-        {
-            Visit(expression);
-        }
-
+        Visit(node.Expression);
         return node;
     }
 

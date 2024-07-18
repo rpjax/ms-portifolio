@@ -1,7 +1,6 @@
 ﻿using Webql.Core.Extensions;
 using Webql.Parsing.Analysis;
 using Webql.Parsing.Ast;
-using Webql.Semantics.Context;
 using Webql.Semantics.Definitions;
 using Webql.Semantics.Extensions;
 

@@ -8,13 +8,15 @@ public class WebqlTemporaryDeclarationExpression : WebqlExpression
     public string Identifier { get; }
     public string? Type { get; }
     public WebqlExpression Value { get; }
+    public WebqlExpression Expression { get; }
 
     public WebqlTemporaryDeclarationExpression(
         WebqlSyntaxNodeMetadata metadata,
         Dictionary<string, object>? attributes,
         string identifier, 
         string? type, 
-        WebqlExpression value)
+        WebqlExpression value,
+        WebqlExpression expression)
     {
         Metadata = metadata;
         Attributes = attributes ?? new Dictionary<string, object>();
@@ -22,8 +24,10 @@ public class WebqlTemporaryDeclarationExpression : WebqlExpression
         Identifier = identifier;
         Type = type;
         Value = value;
+        Expression = expression;
 
         Value.Parent = this;
+        Expression.Parent = this;
     }
 
     public override IEnumerable<WebqlSyntaxNode> GetChildren()
@@ -32,11 +36,13 @@ public class WebqlTemporaryDeclarationExpression : WebqlExpression
         {
             yield return Value;
         }
+
+        yield return Expression;
     }
 
     public override string ToString()
     {
-        return $"{Type} {Identifier} = {Value}";
+        return $"[{Type} {Identifier} = {Value}] {Expression}";
     }
 
 }

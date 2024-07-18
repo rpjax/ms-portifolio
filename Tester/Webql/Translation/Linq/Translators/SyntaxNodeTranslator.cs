@@ -1,7 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Webql.Parsing.Ast;
 using Webql.Translation.Linq.Exceptions;
-using Webql.Translation.Linq.Extensions;
 
 namespace Webql.Translation.Linq.Translators;
 
@@ -18,8 +17,6 @@ public static class SyntaxNodeTranslator
     /// <exception cref="TranslationException">Thrown when the node type is unknown.</exception>
     public static Expression TranslateNode(WebqlSyntaxNode node)
     {
-        var translationContext = node.GetTranslationContext();
-
         switch (node.NodeType)
         {
             case WebqlNodeType.Query:

@@ -6,22 +6,19 @@ namespace Webql.Semantics.Scope;
 public class WebqlScope
 {
     public WebqlScope? ParentScope { get; }
-    public WebqlScopeType Type { get; }
     public SymbolTable SymbolTable { get; }
 
     public WebqlScope(
         WebqlScope? parent, 
-        WebqlScopeType type, 
         SymbolTable? symbolTable = null)
     {
         ParentScope = parent;
-        Type = type;
         SymbolTable = symbolTable?.Copy() ?? new SymbolTable();
     }
 
-    public WebqlScope CreateChildScope(WebqlScopeType type)
+    public WebqlScope CreateChildScope()
     {
-        return new WebqlScope(this, type);
+        return new WebqlScope(this);
     }
 
     public bool ContainsSymbol(string identifier, bool useParentScope = true)

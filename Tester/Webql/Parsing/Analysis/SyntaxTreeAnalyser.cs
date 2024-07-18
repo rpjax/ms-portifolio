@@ -79,10 +79,6 @@ public class SyntaxTreeAnalyzer : SyntaxTreeVisitor
                 AnalyzeTemporaryDeclarationExpression((WebqlTemporaryDeclarationExpression)expression);
                 return;
 
-            case WebqlExpressionType.Block:
-                AnalyzeBlockExpression((WebqlBlockExpression)expression);
-                return;
-
             case WebqlExpressionType.Operation:
                 AnalyzeOperationExpression((WebqlOperationExpression)expression);
                 return;
@@ -134,18 +130,7 @@ public class SyntaxTreeAnalyzer : SyntaxTreeVisitor
     protected virtual void AnalyzeTemporaryDeclarationExpression(WebqlTemporaryDeclarationExpression expression)
     {
         Analyze(expression.Value);
-    }
-
-    /// <summary>
-    /// Analyzes the given block expression.
-    /// </summary>
-    /// <param name="expression">The block expression to analyze.</param>
-    protected virtual void AnalyzeBlockExpression(WebqlBlockExpression expression)
-    {
-        foreach (var childExpression in expression.Expressions)
-        {
-            Analyze(childExpression);
-        }
+        Analyze(expression.Expression);
     }
 
     /// <summary>

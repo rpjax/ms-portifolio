@@ -180,10 +180,16 @@ not_expression
 
 semantic_expression
 	: aggregate_expression
+	| new_expression
 	;
 
 aggregate_expression
 	: '$aggregate' ':' expression
+	;
+
+// NOTE: the `$new` operator does not expect a colon after it, like the other operators do.
+new_expression
+	: '$new' anonymous_object_expression
 	;
 
 collection_manipulation_expression
@@ -284,7 +290,7 @@ anonymous_object_property
         "scope_access_expression",
         "block_expression",
         "operation_expression",
-        "anonymous_object_expression",
+        "anonymous_object_expression"
     };
 
     private static LR1Parser? ParserInstance { get; set; }

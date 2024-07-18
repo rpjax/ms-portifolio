@@ -29,13 +29,6 @@ public interface ISyntaxTreeVisitor
     WebqlAnonymousObjectProperty VisitAnonymousObjectProperty(WebqlAnonymousObjectProperty node);
 
     /// <summary>
-    /// Visits a block expression.
-    /// </summary>
-    /// <param name="node">The block expression to visit.</param>
-    /// <returns>The visited block expression.</returns>
-    WebqlExpression VisitBlockExpression(WebqlBlockExpression node);
-
-    /// <summary>
     /// Visits a general expression.
     /// </summary>
     /// <param name="node">The expression to visit.</param>

@@ -25,9 +25,6 @@ public static class ExpressionTranslator
             case WebqlExpressionType.TemporaryDeclaration:
                 return TranslateTemporaryDeclarationExpression((WebqlTemporaryDeclarationExpression)node);
 
-            case WebqlExpressionType.Block:
-                return TranslateBlockExpression((WebqlBlockExpression)node);
-
             case WebqlExpressionType.Operation:
                 return OperationExpressionTranslator.TranslateOperationExpression((WebqlOperationExpression)node);
 
@@ -58,59 +55,6 @@ public static class ExpressionTranslator
     private static Expression TranslateTemporaryDeclarationExpression(WebqlTemporaryDeclarationExpression node)
     {
         throw new NotImplementedException();
-    }
-
-    private static Expression TranslateBlockExpression(WebqlBlockExpression node)
-    {
-        throw new NotImplementedException();
-        switch (node.GetScopeType())
-        {
-            case WebqlScopeType.Aggregation:
-                return TranslateAggregateBlockExpression(node);
-
-            case WebqlScopeType.LogicalFiltering:
-                return TranslateLogicalFilteringBlockExpression(node);
-
-            case WebqlScopeType.Projection:
-                throw new NotImplementedException();
-
-            default:
-                throw new InvalidOperationException("Invalid block scope type.");
-        }
-    }
-
-    private static Expression TranslateAggregateBlockExpression(WebqlBlockExpression node)
-    {
-        var expression = null as Expression;
-
-        foreach (var expressionNode in node.Expressions)
-        {
-            expression = SyntaxNodeTranslator.TranslateNode(expressionNode);
-        }
-
-        if (expression == null)
-        {
-            throw new TranslationException("Block expression must have at least one expression", node);
-        }
-
-        return expression;
-    }
-
-    private static Expression TranslateLogicalFilteringBlockExpression(WebqlBlockExpression node)
-    {
-        var expressions = new List<Expression>();
-
-        foreach (var expressionNode in node.Expressions)
-        {
-            expressions.Add(SyntaxNodeTranslator.TranslateNode(expressionNode));
-        }
-
-        if (expressions.Count == 0)
-        {
-            throw new TranslationException("Block expression must have at least one expression", node);
-        }
-
-        return expressions.Aggregate((x, y) => Expression.AndAlso(x, y));
     }
 
     private static Expression TranslateTypeConversionExpression(WebqlTypeConversionExpression node)

@@ -60,16 +60,8 @@ public class SyntaxTreeRewriter : SyntaxTreeVisitor
             attributes: node.Attributes,
             identifier: node.Identifier,
             type: node.Type,
-            value: VisitExpression(node.Value)
-        );
-    }
-
-    public override WebqlExpression VisitBlockExpression(WebqlBlockExpression node)
-    {
-        return new WebqlBlockExpression(
-            metadata: node.Metadata,
-            attributes: node.Attributes,
-            expressions: node.Expressions.Select(VisitExpression)
+            value: VisitExpression(node.Value),
+            expression: VisitExpression(node.Expression)
         );
     }
 

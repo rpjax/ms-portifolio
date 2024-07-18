@@ -99,7 +99,6 @@ public static class WebqlAstBuilderHelper
              * semantic operators
              */
             case "aggregate":
-            case "agg":
                 return WebqlOperatorType.Aggregate;
 
             /*

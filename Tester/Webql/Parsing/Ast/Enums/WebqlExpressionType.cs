@@ -27,11 +27,6 @@ public enum WebqlExpressionType
     MemberAccess,
 
     /// <summary>
-    /// Represents a block expression.
-    /// </summary>
-    Block,
-
-    /// <summary>
     /// Represents an operation expression.
     /// </summary>
     Operation,

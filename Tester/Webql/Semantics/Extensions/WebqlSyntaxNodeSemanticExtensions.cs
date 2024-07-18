@@ -5,7 +5,6 @@ using Webql.Core.Extensions;
 using Webql.Parsing.Ast;
 using Webql.Semantics.Analysis;
 using Webql.Semantics.Attributes;
-using Webql.Semantics.Context;
 using Webql.Semantics.Definitions;
 using Webql.Semantics.Exceptions;
 using Webql.Semantics.Scope;
@@ -65,12 +64,6 @@ public static class WebqlSyntaxNodeSemanticExtensions
         }
 
         node.AddAttribute(AstSemanticAttributes.ScopeAttribute, scope);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlScopeType GetScopeType(this WebqlSyntaxNode node)
-    {
-        return node.GetScope().Type;
     }
 
     /*
@@ -328,9 +321,10 @@ public static class WebqlSyntaxNodeSemanticExtensions
         return "not implemented yet";
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Type GetQueryableType(this WebqlSyntaxNode node, WebqlCompilationContext context)
     {
-        if (node.IsInRootAggregationScope())
+        if (node.IsInRootScope())
         {
             return context.RootQueryableType;
         }
@@ -376,32 +370,27 @@ public static class WebqlSyntaxNodeSemanticExtensions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsAggregationScope(this WebqlSyntaxNode node)
-    {
-        return node.GetScopeType() is WebqlScopeType.Aggregation;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsInRootAggregationScope(this WebqlSyntaxNode node)
+    public static bool IsInRootScope(this WebqlSyntaxNode node)
     {
         var current = node;
+        var isScopeSourceFound = false;
 
         while (current is not null)
         {
-            if (current.IsRoot())
+            if(current.HasScopeAttribute())
             {
-                return true;
-            }
+                if (isScopeSourceFound)
+                {
+                    return false;
+                }
 
-            if (current.IsCollectionOperator())
-            {
-                return false;
+                isScopeSourceFound = true;
             }
 
             current = current.Parent;
         }
 
-        throw new InvalidOperationException();
+        return isScopeSourceFound;
     }
 
     /*

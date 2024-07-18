@@ -275,18 +275,11 @@ public static class WebqlAstBuilder
     {
         switch (node.GetCstScopeType())
         {
-            case WebqlScopeType.Aggregation:
-                return TranslateAggregationBlockExpression(node);
-
             case WebqlScopeType.LogicalFiltering:
                 return TranslateLogicalBlockExpression(node);
-
-            case WebqlScopeType.Projection:
-                return TranslateAggregationBlockExpression(node);
-                return TranslateProjectionBlockExpression(node);
-                
+         
             default:
-                throw new InvalidOperationException("Invalid block scope type.");
+                return TranslateAggregationBlockExpression(node);
         }
     }
 
@@ -379,19 +372,20 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlOperationExpression TranslateOperationExpression(CstInternal node)
+    public static WebqlExpression TranslateOperationExpression(CstInternal node)
     {
-        if (node.Children.Length != 4)
+        var operatorNode = node.Children[1].AsLeaf();
+
+        if(operatorNode.Token.Value.ToString() == "new")
         {
-            throw new Exception("Invalid operation expression");
+            return TranslateNewExpression(node);
         }
 
-        var operatorNode = node.Children[1].AsLeaf();
-        var rhsNode = node.Children[3].AsInternal();
-
-        var @operator = TranslateOperator(operatorNode);    
+        var @operator = TranslateOperator(operatorNode);
         var isCollectionOperator = WebqlOperatorAnalyzer.IsCollectionOperator(@operator);
         var operatorScopeType = WebqlAstBuilderHelper.GetOperatorScopeType(@operator, node.GetCstScopeType());
+
+        var rhsNode = node.Children[3].AsInternal();
 
         rhsNode.SetCstScopeType(operatorScopeType);
 
@@ -488,6 +482,12 @@ public static class WebqlAstBuilder
             name: key,
             value: value
         );
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WebqlAnonymousObjectExpression TranslateNewExpression(CstInternal node)
+    {
+        return TranslateAnonymousObjectExpression(node.Children[2].AsInternal());
     }
 
     /*

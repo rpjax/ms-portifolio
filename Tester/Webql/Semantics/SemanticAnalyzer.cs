@@ -156,9 +156,6 @@ public static class SemanticAnalyzer
             case WebqlExpressionType.TemporaryDeclaration:
                 return CreateTemporaryDeclarationExpressionSemantics(context, (WebqlTemporaryDeclarationExpression)expression);
 
-            case WebqlExpressionType.Block:
-                return CreateBlockExpressionSemantics(context, (WebqlBlockExpression)expression);
-
             case WebqlExpressionType.Operation:
                 return CreateOperationExpressionSemantics(context, (WebqlOperationExpression)expression);
 
@@ -332,30 +329,11 @@ public static class SemanticAnalyzer
         WebqlTemporaryDeclarationExpression temporaryDeclarationExpression)
     {
         throw new NotImplementedException();
-    }
+        var valueSemantics = temporaryDeclarationExpression.Value.GetExpressionSemantics();
 
-    /*
-     * BLOCK EXPRESSION SEMANTICS
-     */
-
-    private static IExpressionSemantics CreateBlockExpressionSemantics(
-        WebqlCompilationContext context,
-        WebqlBlockExpression blockExpression)
-    {
-        throw new NotImplementedException();
-        /*
-         * Temporary fix for empty block expressions.
-         */
-        if (blockExpression.Expressions.Length == 0)
-        {
-            return new ExpressionSemantics(
-                type: typeof(void)
-            );
-        }
-
-        return blockExpression.Expressions
-            .Last()
-            .GetSemantics<IExpressionSemantics>();
+        return new ExpressionSemantics(
+            type: valueSemantics.Type
+        );
     }
 
     /*
