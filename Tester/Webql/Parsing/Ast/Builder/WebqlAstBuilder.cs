@@ -2,9 +2,9 @@
 using ModularSystem.Core.TextAnalysis.Parsing.Extensions;
 using ModularSystem.Core.TextAnalysis.Tokenization;
 using ModularSystem.Core.TextAnalysis.Tokenization.Extensions;
+using System.Runtime.CompilerServices;
 using Webql.Core.Analysis;
 using Webql.Parsing.Ast.Builder.Extensions;
-using Webql.Parsing.Ast.Extensions;
 
 namespace Webql.Parsing.Ast.Builder;
 
@@ -48,6 +48,7 @@ public static class WebqlAstBuilder
         );
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static WebqlExpression TranslateExpression(CstInternal node)
     {
         switch (WebqlAstBuilderHelper.GetCstExpressionType(node))
@@ -67,11 +68,15 @@ public static class WebqlAstBuilder
             case CstExpressionType.Operation:
                 return TranslateOperationExpression(node);
 
+            case CstExpressionType.AnonymousObject:
+                return TranslateAnonymousObjectExpression(node);
+
             default:
                 throw new InvalidOperationException();
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static WebqlExpression TranslateLiteralExpression(CstInternal node)
     {
         if (node.Children.Length != 1)
@@ -155,7 +160,8 @@ public static class WebqlAstBuilder
         }
     }
 
-    public static WebqlReferenceExpression TranslateReferenceExpression(CstInternal node)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WebqlExpression TranslateReferenceExpression(CstInternal node)
     {
         if (node.Children.Length != 1)
         {
@@ -182,13 +188,23 @@ public static class WebqlAstBuilder
             throw new Exception("Invalid scope access expression");
         }
 
-        return new WebqlReferenceExpression(
+        var lhsExpression = node.GetLhsExpression();
+
+        return new WebqlMemberAccessExpression(
             metadata: CreateNodeMetadata(leaf),
             attributes: null,
-            identifier: identifier
+            expression: lhsExpression,
+            memberName: identifier
         );
+
+        //return new WebqlReferenceExpression(
+        //    metadata: CreateNodeMetadata(leaf),
+        //    attributes: null,
+        //    identifier: identifier
+        //);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static WebqlExpression TranslateScopeAccessExpression(CstInternal node)
     {
         if (node.Children.Length != 3)
@@ -223,6 +239,7 @@ public static class WebqlAstBuilder
         return expression;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string TranslateReferenceExpressionToIdentifier(CstInternal node)
     {
         if (node.Children.Length != 1)
@@ -253,9 +270,10 @@ public static class WebqlAstBuilder
         return identifier;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static WebqlExpression TranslateBlockExpression(CstInternal node)
     {
-        switch (node.GetScopeType())
+        switch (node.GetCstScopeType())
         {
             case WebqlScopeType.Aggregation:
                 return TranslateAggregationBlockExpression(node);
@@ -264,13 +282,15 @@ public static class WebqlAstBuilder
                 return TranslateLogicalBlockExpression(node);
 
             case WebqlScopeType.Projection:
+                return TranslateAggregationBlockExpression(node);
                 return TranslateProjectionBlockExpression(node);
                 
             default:
                 throw new InvalidOperationException("Invalid block scope type.");
         }
     }
-        
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static WebqlExpression TranslateAggregationBlockExpression(CstInternal node)
     {
         var expressions = new List<WebqlExpression>(node.Children.Length);
@@ -309,6 +329,7 @@ public static class WebqlAstBuilder
         return lhsExpression;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static WebqlExpression TranslateLogicalBlockExpression(CstInternal node)
     {
         var expressions = new List<WebqlExpression>(node.Children.Length);
@@ -351,26 +372,28 @@ public static class WebqlAstBuilder
         return andExpression;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static WebqlExpression TranslateProjectionBlockExpression(CstInternal node)
     {
         throw new NotImplementedException();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static WebqlOperationExpression TranslateOperationExpression(CstInternal node)
     {
-        if (node.Children.Length != 3)
+        if (node.Children.Length != 4)
         {
             throw new Exception("Invalid operation expression");
         }
 
-        var operatorNode = node.Children[0].AsInternal();
-        var rhsNode = node.Children[2].AsInternal();
+        var operatorNode = node.Children[1].AsLeaf();
+        var rhsNode = node.Children[3].AsInternal();
 
         var @operator = TranslateOperator(operatorNode);    
         var isCollectionOperator = WebqlOperatorAnalyzer.IsCollectionOperator(@operator);
-        var operatorScopeType = WebqlAstBuilderHelper.GetOperatorScopeType(@operator, node.GetScopeType());
+        var operatorScopeType = WebqlAstBuilderHelper.GetOperatorScopeType(@operator, node.GetCstScopeType());
 
-        rhsNode.SetScopeType(operatorScopeType);
+        rhsNode.SetCstScopeType(operatorScopeType);
 
         if (isCollectionOperator)
         {
@@ -387,15 +410,16 @@ public static class WebqlAstBuilder
         );
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static WebqlExpression[] TranslateOperationOperands(CstInternal node)
     {
-        if (node.Children.Length != 3)
+        if (node.Children.Length != 4)
         {
             throw new Exception("Invalid operation expression");
         }
 
-        var operatorNode = node.Children[0].AsInternal();
-        var rhsNode = node.Children[2].AsInternal();
+        var operatorNode = node.Children[1].AsLeaf();
+        var rhsNode = node.Children[3].AsInternal();
 
         var @operator = TranslateOperator(operatorNode);    
 
@@ -419,25 +443,58 @@ public static class WebqlAstBuilder
         return operands;
     }
 
-    public static WebqlOperatorType TranslateOperator(CstInternal node)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WebqlOperatorType TranslateOperator(CstLeaf node)
     {
-        if (node.Children.Length != 2)
+        return WebqlAstBuilderHelper.GetCstOperatorType(node.Token.ToString());
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WebqlAnonymousObjectExpression TranslateAnonymousObjectExpression(CstInternal node)
+    {
+        if (node.Children.Length < 2)
         {
-            throw new Exception("Invalid operator");
+            throw new Exception("Invalid anonymous object expression");
         }
 
-        if (node.Children[1] is not CstLeaf leaf)
+        var properties = new List<WebqlAnonymousObjectProperty>(node.Children.Length / 2);
+
+        for (var i = 0; i < node.Children.Length - 1; i += 4)
         {
-            throw new Exception("Invalid operator");
+            var propertyNode = node.Children[i + 1].AsLeaf();
+            var valueNode = node.Children[i + 3].AsInternal();
+
+            var property = TranslateAnonymousObjectProperty(propertyNode, valueNode);
+
+            properties.Add(property);
         }
 
-        return WebqlAstBuilderHelper.GetCstOperatorType(leaf.Token.ToString());
+        return new WebqlAnonymousObjectExpression(
+            metadata: CreateNodeMetadata(node),
+            attributes: null,
+            properties: properties
+        );
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WebqlAnonymousObjectProperty TranslateAnonymousObjectProperty(CstLeaf propertyNode, CstInternal valueNode)
+    {
+        var key = propertyNode.Token.Value.ToString();
+        var value = TranslateExpression(valueNode);
+
+        return new WebqlAnonymousObjectProperty(
+            metadata: CreateNodeMetadata(propertyNode),
+            attributes: null,
+            name: key,
+            value: value
+        );
     }
 
     /*
      * helper methods.
      */
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static WebqlExpression CreateSourceReferenceExpression(CstNode node)
     {
         return new WebqlReferenceExpression(
@@ -447,6 +504,7 @@ public static class WebqlAstBuilder
         );
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static WebqlExpression CreateElementReferenceExpression(CstNode node)
     {
         return new WebqlReferenceExpression(
@@ -461,6 +519,7 @@ public static class WebqlAstBuilder
     /// </summary>
     /// <param name="node"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static WebqlSyntaxNodeMetadata CreateNodeMetadata(CstNode node)
     {
         return new WebqlSyntaxNodeMetadata(

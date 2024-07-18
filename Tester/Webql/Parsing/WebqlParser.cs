@@ -15,7 +15,13 @@ public static class WebqlParser
 {
     const string RawGrammarText = @"
 /*
-	Document Syntax for WebQL Version 3.0.0, created by Rodrigo Jacques.
+	Document Syntax for WebQL, Version 3.0.0; Created by Rodrigo Jacques.
+	Oficial WebQL repository: https://github.com/rpjcoding/webql-csharp
+
+	NOTE: This document describes syntax using a custom notation, derived from GNU BISON and ANTLR, called GDEF (Grammar Defition Notation).
+	For more information about GDEF go to: https://github.com/rpjcoding/gdef
+
+	NOTE: Non-terminals that start with '$' are tokens. Example: $id, $int, $float, $string, etc.
 */
 
 start
@@ -25,6 +31,11 @@ start
 document
 	: expression
 	;
+
+/*
+	The anonymous_object_expression has been deliberately left out of the expression rule to avoid ambiguity with the block_expression rule.
+	The anonymous_object_expression is only meant to be used as a parameter for operators that require a set of properties, such as the $select operator.
+*/
 
 expression 
 	: literal_expression
@@ -54,7 +65,7 @@ null
 
 reference_expression
 	: $id
-	| '$' $string
+	| '$' $string // legacy support
 	;
 
 scope_access_expression
@@ -66,67 +77,198 @@ block_expression
 	;
 
 operation_expression
-	: operator ':' expression
+	: arithmetic_expression	
+	| relational_expression
+	| string_relational_expression
+	| logical_expression
+	| semantic_expression
+	| collection_manipulation_expression
+	| collection_aggregation_expression
 	;
 
-operator 
-	: arithmetic_operator
-	| relational_operator
-	| string_relational_operator
-	| logical_operator
-	| semantic_operator
-	| collection_manipulation_operator
-	| collection_aggregation_operator
+arithmetic_expression
+	: add_expression
+	| subtract_expression
+	| multiply_expression
+	| divide_expression
+	| modulo_expression
 	;
 
-arithmetic_operator
-	: '$add'
-	| '$subtract'
-	| '$multiply'
-	| '$divide'
+add_expression
+	: '$add' ':' expression
 	;
 
-relational_operator
-	: '$equals'
-	| '$notEquals'
-	| '$greater'
-	| '$less'
-	| '$greaterEquals'
-	| '$lessEquals'
+subtract_expression
+	: '$subtract' ':' expression
 	;
 
-string_relational_operator
-	: '$like'
+multiply_expression
+	: '$multiply' ':' expression
 	;
 
-logical_operator
-	: '$and'
-	| '$or'
-	| '$not'
+modulo_expression
+	: '$modulo' ':' expression
 	;
 
-semantic_operator
-    : ('$aggregate' | '$agg')
-    ;
-
-collection_manipulation_operator
-	: '$filter'
-	| '$select'
-	| '$group'
-	| '$order'
-	| '$limit'
-	| '$skip'
+divide_expression
+	: '$divide' ':' expression
 	;
 
-collection_aggregation_operator
-	: '$count'
-	| '$contains'
-	| '$any'
-	| '$all'
-	| '$sum'
-	| '$average'
-	| '$min'
-	| '$max'
+relational_expression
+	: equals_expression
+	| not_equals_expression
+	| greater_expression
+	| less_expression
+	| greater_equals_expression
+	| less_equals_expression
+	;
+
+equals_expression
+	: '$equals' ':' expression
+	;
+
+not_equals_expression
+	: '$notEquals' ':' expression
+	;
+
+greater_expression
+	: '$greater' ':' expression
+	;
+
+less_expression
+	: '$less' ':' expression
+	;
+
+greater_equals_expression
+	: '$greaterEquals' ':' expression
+	;
+
+less_equals_expression
+	: '$lessEquals' ':' expression
+	;
+
+string_relational_expression
+	: like_expression
+	| regex_expression
+	;
+
+like_expression
+	: '$like' ':' expression
+	;
+
+regex_expression
+	: '$regex' ':' expression
+	;
+
+logical_expression
+	: and_expression
+	| or_expression
+	| not_expression
+	;	
+
+and_expression
+	: '$and' ':' expression
+	;
+
+or_expression
+	: '$or' ':' expression
+	;
+
+not_expression
+	: '$not' ':' expression
+	;
+
+semantic_expression
+	: aggregate_expression
+	;
+
+aggregate_expression
+	: '$aggregate' ':' expression
+	;
+
+collection_manipulation_expression
+	: filter_expression
+	| select_expression
+	| group_expression
+	| order_expression
+	| limit_expression
+	| skip_expression
+	;
+
+filter_expression
+	: '$filter' ':' expression
+	;
+
+select_expression
+	: '$select' ':' anonymous_object_expression
+	;
+
+group_expression
+	: '$group' ':' expression
+	;
+
+order_expression
+	: '$order' ':' expression
+	;
+
+limit_expression
+	: '$limit' ':' $int
+	;
+
+skip_expression
+	: '$skip' ':' $int
+	;
+
+collection_aggregation_expression
+	: count_expression
+	| contains_expression
+	| any_expression
+	| all_expression
+	| sum_expression
+	| average_expression
+	| min_expression
+	| max_expression
+	;
+
+count_expression
+	: '$count' ':' expression
+	;
+
+contains_expression
+	: '$contains' ':' expression
+	;
+
+any_expression
+	: '$any' ':' expression
+	;
+
+all_expression
+	: '$all' ':' expression
+	;
+
+sum_expression
+	: '$sum' ':' expression
+	;
+
+average_expression
+	: '$average' ':' expression
+	;
+
+min_expression
+	: '$min' ':' expression
+	;
+
+max_expression
+	: '$max' ':' expression
+	;
+
+anonymous_object_expression
+	: '{' anonymous_object_property { ',' anonymous_object_property } '}'
+	;
+
+anonymous_object_property
+	: $id ':' expression
+	| $string ':' expression
 	;
 ";
 
@@ -142,6 +284,7 @@ collection_aggregation_operator
         "scope_access_expression",
         "block_expression",
         "operation_expression",
+        "anonymous_object_expression",
     };
 
     private static LR1Parser? ParserInstance { get; set; }

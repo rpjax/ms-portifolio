@@ -11,7 +11,7 @@ public class SyntaxTreeAnalyzer : SyntaxTreeVisitor
     /// Executes the analysis of the syntax tree.
     /// </summary>
     /// <param name="syntaxTree">The syntax tree to analyze.</param>
-    public void ExecuteAnalysis(WebqlSyntaxNode? syntaxTree)
+    public void ExecuteAnalysis(WebqlSyntaxNode syntaxTree)
     {
         Analyze(syntaxTree);
     }
@@ -35,6 +35,10 @@ public class SyntaxTreeAnalyzer : SyntaxTreeVisitor
 
             case WebqlNodeType.Expression:
                 AnalyzeExpression((WebqlExpression)node);
+                return;
+
+            case WebqlNodeType.AnonymousObjectProperty:
+                AnalyzeAnonymousObjectProperty((WebqlAnonymousObjectProperty)node);
                 return;
 
             default:
@@ -85,6 +89,10 @@ public class SyntaxTreeAnalyzer : SyntaxTreeVisitor
 
             case WebqlExpressionType.TypeConversion:
                 AnalyzeTypeConversionExpression((WebqlTypeConversionExpression)expression);
+                return;
+
+            case WebqlExpressionType.AnonymousObject:
+                AnalyzeAnonymousObjectExpression((WebqlAnonymousObjectExpression)expression);
                 return;
 
             default:
@@ -155,6 +163,19 @@ public class SyntaxTreeAnalyzer : SyntaxTreeVisitor
     protected virtual void AnalyzeTypeConversionExpression(WebqlTypeConversionExpression expression)
     {
         Analyze(expression.Expression);
+    }
+
+    protected virtual void AnalyzeAnonymousObjectExpression(WebqlAnonymousObjectExpression expression)
+    {
+        foreach (var property in expression.Properties)
+        {
+            Analyze(property);
+        }
+    }
+
+    protected virtual void AnalyzeAnonymousObjectProperty(WebqlAnonymousObjectProperty property)
+    {
+        Analyze(property.Value);
     }
 
 }

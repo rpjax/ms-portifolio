@@ -1,9 +1,11 @@
 ﻿using ModularSystem.Core.TextAnalysis.Parsing.Components;
+using System.Runtime.CompilerServices;
 
 namespace Webql.Parsing.Ast.Builder;
 
 public static class WebqlAstBuilderHelper
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static CstExpressionType GetCstExpressionType(CstInternal node)
     {
         switch (node.Name)
@@ -23,11 +25,15 @@ public static class WebqlAstBuilderHelper
             case "operation_expression":
                 return CstExpressionType.Operation;
 
+            case "anonymous_object_expression":
+                return CstExpressionType.AnonymousObject;
+
             default:
-                throw new InvalidOperationException();
+                throw new InvalidOperationException($"Invalid expression type: {node.Name}");
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static WebqlOperatorType GetCstOperatorType(string name)
     {
         switch (name)
@@ -149,6 +155,7 @@ public static class WebqlAstBuilderHelper
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static WebqlScopeType GetOperatorScopeType(WebqlOperatorType operatorType, WebqlScopeType defaultValue)
     {
         switch (operatorType)

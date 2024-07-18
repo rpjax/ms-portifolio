@@ -303,6 +303,9 @@ public static class WebqlOperatorAnalyzer
             case WebqlOperatorType.Count:
                 return WebqlCollectionAggregationOperator.Count;
 
+            case WebqlOperatorType.Contains:
+                return WebqlCollectionAggregationOperator.Contains;
+
             case WebqlOperatorType.Index:
                 return WebqlCollectionAggregationOperator.Index;
 

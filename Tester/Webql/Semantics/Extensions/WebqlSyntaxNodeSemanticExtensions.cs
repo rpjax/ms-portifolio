@@ -78,16 +78,33 @@ public static class WebqlSyntaxNodeSemanticExtensions
      */
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool HasSemanticsAttribute(this WebqlSyntaxNode node)
+    {
+        return node.HasAttribute(AstSemanticAttributes.SemanticsCacheAttribute);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ISemantics GetSemantics(this WebqlSyntaxNode node)
     {
-        return SemanticAnalyzer.CreateSemantics(node.GetCompilationContext(), node);
+        if(node.HasSemanticsAttribute())
+        {
+            return node.GetAttribute<ISemantics>(AstSemanticAttributes.SemanticsCacheAttribute);
+        }
+
+        var semantics = SemanticAnalyzer.CreateSemantics(node.GetCompilationContext(), node);
+
+        /*
+         * Caches the semantics in the syntax tree node.
+         */
+        node.BindSemantics(semantics);
+
+        return semantics;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TSemantics GetSemantics<TSemantics>(this WebqlSyntaxNode node) where TSemantics : ISemantics
     {
-        var compilationContext = node.GetCompilationContext();
-        var semantics = SemanticAnalyzer.CreateSemantics(compilationContext, node);
+        var semantics = node.GetSemantics();
 
         if(semantics is not TSemantics cast)
         {
@@ -98,13 +115,18 @@ public static class WebqlSyntaxNodeSemanticExtensions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void BindSemantics(this WebqlSyntaxNode node, ISemantics semantics)
+    public static void BindSemantics(this WebqlSyntaxNode node, ISemantics semantics, bool enableOverride = false)
     {
-        node.AddAttribute(AstSemanticAttributes.SemanticsAttribute, semantics);
+        if(enableOverride && node.HasSemanticsAttribute())
+        {
+            node.RemoveAttribute(AstSemanticAttributes.SemanticsCacheAttribute);
+        }
+
+        node.AddAttribute(AstSemanticAttributes.SemanticsCacheAttribute, semantics);
     }
 
     /*
-     * Symbols related extensions
+     * Symbol resolution related extensions
      */
 
     public static ISymbol? TryResolveSymbol(this WebqlSyntaxNode node, string identifier)
@@ -157,7 +179,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
     }
 
     /*
-     * Source symbol related extensions
+     * Source symbol resolution related extensions
      */
 
     public static SourceSymbol GetSourceSymbol(this WebqlSyntaxNode node)
@@ -191,7 +213,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
     }
 
     /*
-     * Element symbol related extensions
+     * Element symbol resolution related extensions
      */
 
     public static ParameterSymbol GetElementSymbol(this WebqlSyntaxNode node)
@@ -272,6 +294,29 @@ public static class WebqlSyntaxNodeSemanticExtensions
     /*
      * 
      */
+
+    public static IMemberAccessSemantics GetMemberAccessSemantics(this WebqlMemberAccessExpression node)
+    {
+        return node.GetSemantics<IMemberAccessSemantics>();
+    }
+
+    /*
+     * 
+     */
+
+    public static IAnonymousObjectSemantics GetAnonymousObjectSemantics(this WebqlAnonymousObjectExpression node)
+    {
+        return node.GetSemantics<IAnonymousObjectSemantics>();
+    }
+
+    /*
+     * 
+     */
+
+    public static IAnonymousObjectPropertySemantics GetAnonymousObjectPropertySemantics(this WebqlAnonymousObjectProperty node)
+    {
+        return node.GetSemantics<IAnonymousObjectPropertySemantics>();
+    }
 
     /*
      * Generic helpers

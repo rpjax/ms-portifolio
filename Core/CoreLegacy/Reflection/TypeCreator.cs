@@ -356,5 +356,37 @@ public class AnonymousTypeCreationOptions
     /// Setters allow for modification of the property values after the object has been instantiated.
     /// </remarks>
     public bool CreateSetters { get; set; } = false;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AnonymousTypeCreationOptions"/> class.
+    /// </summary>
+    public AnonymousTypeCreationOptions()
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AnonymousTypeCreationOptions"/> class with the specified parameters.
+    /// </summary>
+    /// <param name="name">The name to be used for the dynamically created anonymous type.</param>
+    /// <param name="properties">The collection of property definitions for the dynamically created anonymous type.</param>
+    /// <param name="genericTypeArguments">The generic type arguments for the dynamically created anonymous type.</param>
+    /// <param name="useCache">Indicates whether to use a cache for storing and reusing dynamically created types.</param>
+    /// <param name="createDefaultConstructor">Indicates whether to include a default constructor in the anonymous type.</param>
+    /// <param name="createSetters">Indicates whether to create setters for the properties of the anonymous type.</param>
+    public AnonymousTypeCreationOptions(
+        string? name,
+        IEnumerable<AnonymousPropertyDefinition> properties,
+        Type[]? genericTypeArguments = null,
+        bool useCache = true,
+        bool createDefaultConstructor = false,
+        bool createSetters = false)
+    {
+        Name = name ?? TypeCreator.AnonymousTypeDefaultName;
+        Properties = properties;
+        GenericTypeArguments = genericTypeArguments ?? Array.Empty<Type>();
+        UseCache = useCache;
+        CreateDefaultConstructor = createDefaultConstructor;
+        CreateSetters = createSetters;
+    }
 }
 

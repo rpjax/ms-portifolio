@@ -1,4 +1,5 @@
-﻿using Webql.Parsing.Ast;
+﻿using Webql.Core.Extensions;
+using Webql.Parsing.Ast;
 
 namespace Webql.Parsing.Analysis;
 
@@ -89,6 +90,25 @@ public class SyntaxTreeRewriter : SyntaxTreeVisitor
             attributes: node.Attributes,
             targetType: node.TargetType,
             expression: VisitExpression(node.Expression)
+        );
+    }
+
+    public override WebqlExpression VisitAnonymousObjectExpression(WebqlAnonymousObjectExpression node)
+    {
+        return new WebqlAnonymousObjectExpression(
+            metadata: node.Metadata,
+            attributes: node.Attributes,
+            properties: node.Properties.Select(x => VisitAnonymousObjectProperty(x))
+        );
+    }
+
+    public override WebqlAnonymousObjectProperty VisitAnonymousObjectProperty(WebqlAnonymousObjectProperty node)
+    {
+        return new WebqlAnonymousObjectProperty(
+            metadata: node.Metadata,
+            attributes: node.Attributes,
+            name: node.Name,
+            value: VisitExpression(node.Value)
         );
     }
 

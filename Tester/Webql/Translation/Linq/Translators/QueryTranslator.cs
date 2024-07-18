@@ -20,7 +20,7 @@ public static class QueryTranslator
         }   
 
         var parameterExpression = translationContext.GetSourceParameterExpression();
-        var bodyExpression = SyntaxNodeTranslator.TranslateNode(node.Expression);
+        var bodyExpression = ExpressionTranslator.TranslateExpression(node.Expression);
 
         var lambdaExpression = Expression.Lambda(bodyExpression, parameterExpression);
         return lambdaExpression;

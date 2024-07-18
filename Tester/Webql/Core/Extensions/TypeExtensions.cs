@@ -1,10 +1,12 @@
 ﻿using ModularSystem.Core.Linq;
 using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace Webql.Core.Extensions;
 
 public static class TypeExtensions
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsQueryable(this Type type)
     {
         if(type == typeof(string))
@@ -19,6 +21,7 @@ public static class TypeExtensions
                i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsAsyncQueryable(this Type type)
     {
         return false
@@ -28,16 +31,19 @@ public static class TypeExtensions
                i.GetGenericTypeDefinition() == typeof(IAsyncQueryable<>));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsNotQueryable(this Type type)
     {
         return !IsQueryable(type);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsNotAsyncQueryable(this Type type)
     {
         return !IsAsyncQueryable(type);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Type? TryGetQueryableElementType(this Type type)
     {
         if (IsNotQueryable(type))
@@ -80,6 +86,7 @@ public static class TypeExtensions
         return null;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Type GetQueryableElementType(this Type type)
     {
         var elementType = TryGetQueryableElementType(type);
@@ -92,4 +99,3 @@ public static class TypeExtensions
         return elementType;
     }
 }
-

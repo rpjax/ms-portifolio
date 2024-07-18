@@ -11,7 +11,7 @@
 public static class AstSemanticAttributes
 {
     public const string ContextAttribute = "semantic_context";
-    public const string SemanticsAttribute = "semantics";
     public const string ScopeAttribute = "scope";
     public const string ScopeType = "scope_type";
+    public const string SemanticsCacheAttribute = "semantics";
 }

@@ -1,9 +1,7 @@
 ﻿using System.Linq.Expressions;
 using Webql.Core.Extensions;
 using Webql.Parsing.Ast;
-using Webql.Semantics.Definitions;
 using Webql.Semantics.Extensions;
-using Webql.Translation.Linq.Context;
 using Webql.Translation.Linq.Extensions;
 using Webql.Translation.Linq.Translators;
 
@@ -11,24 +9,24 @@ namespace Webql.Translation.Linq;
 
 public static class CollectionManipulationExpressionTranslator
 {
-    public static Expression TranslateCollectionManipulationExpression(TranslationContext context, WebqlOperationExpression node)
+    public static Expression TranslateCollectionManipulationExpression(WebqlOperationExpression node)
     {
-        switch (node.Operator)
+        switch (node.GetCollectionManipulationOperator())
         {
-            case WebqlOperatorType.Filter:
+            case WebqlCollectionManipulationOperator.Filter:
                 return TranslateFilterExpression(node);
 
-            case WebqlOperatorType.Select:
-                return TranslateSelectExpression(context, node);
+            case WebqlCollectionManipulationOperator.Select:
+                return TranslateSelectExpression(node);
 
-            case WebqlOperatorType.SelectMany:
-                return TranslateSelectManyExpression(context, node);
+            case WebqlCollectionManipulationOperator.SelectMany:
+                return TranslateSelectManyExpression(node);
 
-            case WebqlOperatorType.Limit:
-                return TranslateLimitExpression(context, node);
+            case WebqlCollectionManipulationOperator.Limit:
+                return TranslateLimitExpression(node);
 
-            case WebqlOperatorType.Skip:
-                return TranslateSkipExpression(context, node);
+            case WebqlCollectionManipulationOperator.Skip:
+                return TranslateSkipExpression(node);
 
             default:
                 throw new InvalidOperationException("Invalid operator.");
@@ -37,7 +35,7 @@ public static class CollectionManipulationExpressionTranslator
 
     public static Expression TranslateFilterExpression(WebqlOperationExpression node)
     {
-        var compilationContext = node.GetCompilationContext();
+        var context = node.GetCompilationContext();
 
         var lhs = node.Operands[0];
         var rhs = node.Operands[1];
@@ -45,7 +43,26 @@ public static class CollectionManipulationExpressionTranslator
         var lhsSemantics = lhs.GetExpressionSemantics();
         var rhsSemantics = rhs.GetExpressionSemantics();
 
-        var methodInfo = compilationContext.MethodInfoProvider.GetWhereMethodInfo(lhsSemantics.Type);
+        var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
+        var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
+
+        var elementParameter = rhs.GetElementParameterExpression();
+        var lambdaExpression = Expression.Lambda(rhsExpression, elementParameter);
+
+        var methodInfo = context.MethodInfoProvider.GetWhereMethodInfo(sourceType: lhsSemantics.Type);
+
+        return Expression.Call(methodInfo, lhsExpression, lambdaExpression);
+    }
+
+    public static Expression TranslateSelectExpression(WebqlOperationExpression node)
+    {
+        var context = node.GetCompilationContext();
+
+        var lhs = node.Operands[0];
+        var rhs = node.Operands[1];
+
+        var lhsSemantics = lhs.GetExpressionSemantics();
+        var rhsSemantics = rhs.GetExpressionSemantics();
 
         var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
         var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
@@ -53,28 +70,52 @@ public static class CollectionManipulationExpressionTranslator
         var elementParameter = rhs.GetElementParameterExpression();
         var lambdaExpression = Expression.Lambda(rhsExpression, elementParameter);
 
-        var whereExpression = Expression.Call(methodInfo, lhsExpression, lambdaExpression);
+        var sourceType = lhsSemantics.Type;
+        var resultType = rhsSemantics.Type;
+        var methodInfo = context.MethodInfoProvider
+            .GetSelectMethodInfo(sourceType: sourceType, resultType: resultType);
 
-        return whereExpression;
+        return Expression.Call(methodInfo, lhsExpression, lambdaExpression);
     }
 
-    public static Expression TranslateSelectExpression(TranslationContext context, WebqlOperationExpression node)
+    public static Expression TranslateSelectManyExpression(WebqlOperationExpression node)
     {
         throw new NotImplementedException();
     }
 
-    public static Expression TranslateSelectManyExpression(TranslationContext context, WebqlOperationExpression node)
+    public static Expression TranslateLimitExpression(WebqlOperationExpression node)
     {
-        throw new NotImplementedException();
+        var context = node.GetCompilationContext();
+
+        var lhs = node.Operands[0];
+        var rhs = node.Operands[1];
+
+        var lhsSemantics = lhs.GetExpressionSemantics();
+        var rhsSemantics = rhs.GetExpressionSemantics();
+
+        var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
+        var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
+
+        var methodInfo = context.MethodInfoProvider.GetTakeMethodInfo(sourceType: lhsSemantics.Type);
+
+        return Expression.Call(methodInfo, lhsExpression, rhsExpression);
     }
 
-    public static Expression TranslateLimitExpression(TranslationContext context, WebqlOperationExpression node)
+    public static Expression TranslateSkipExpression(WebqlOperationExpression node)
     {
-        throw new NotImplementedException();
-    }
+        var context = node.GetCompilationContext();
 
-    public static Expression TranslateSkipExpression(TranslationContext context, WebqlOperationExpression node)
-    {
-        throw new NotImplementedException();
+        var lhs = node.Operands[0];
+        var rhs = node.Operands[1];
+
+        var lhsSemantics = lhs.GetExpressionSemantics();
+        var rhsSemantics = rhs.GetExpressionSemantics();
+
+        var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
+        var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
+
+        var methodInfo = context.MethodInfoProvider.GetSkipMethodInfo(sourceType: lhsSemantics.Type);
+
+        return Expression.Call(methodInfo, lhsExpression, rhsExpression);
     }
 }

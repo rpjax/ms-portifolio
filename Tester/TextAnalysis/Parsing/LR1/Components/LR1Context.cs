@@ -1,4 +1,5 @@
-﻿using ModularSystem.Core.TextAnalysis.Parsing.Components;
+﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.Core.TextAnalysis.Parsing.Components;
 using ModularSystem.Core.TextAnalysis.Tokenization;
 
 namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
@@ -41,8 +42,8 @@ public class LR1Context
     public Error SyntaxError(int state, Token lookahead)
     {
         var expectedSymbols = ParsingTable[state].State.Items
-            .Where(x => x.Symbol?.IsTerminal is true)
-            .Select(x => new { Symbol = x.Symbol!, Rule = x.GetSignature(useLookaheads: false) })
+            .Where(x => x.Symbol?.IsTerminal is true || true)
+            .Select(x => new { Symbol = x.Symbol ?? Epsilon.Instance, Rule = x.GetSignature(useLookaheads: false) })
             .ToArray();
         ;
 

@@ -10,7 +10,7 @@ namespace Webql.Translation.Linq.Translators;
 
 public static class WebqlLinqTranslator
 {
-    public static Expression Translate(WebqlQuery node)
+    public static Expression Translate(WebqlSyntaxNode node)
     {    
         var contextBinder = new TranslationContextBinderAnalyzer();   
         var expressionDeclarator = new ExpressionDeclaratorAnalyzer();

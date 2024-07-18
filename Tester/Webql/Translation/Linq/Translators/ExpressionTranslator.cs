@@ -1,8 +1,7 @@
 ﻿using System.Linq.Expressions;
-using Webql.Core;
+using System.Reflection;
 using Webql.Parsing.Ast;
 using Webql.Semantics.Extensions;
-using Webql.Translation.Linq.Context;
 using Webql.Translation.Linq.Exceptions;
 using Webql.Translation.Linq.Extensions;
 
@@ -35,6 +34,9 @@ public static class ExpressionTranslator
             case WebqlExpressionType.TypeConversion:
                 return TranslateTypeConversionExpression((WebqlTypeConversionExpression)node);
 
+            case WebqlExpressionType.AnonymousObject:
+                return TranslateAnonymousObjectExpression((WebqlAnonymousObjectExpression)node);
+
             default:
                 throw new TranslationException("Unknown expression type", node);
         }
@@ -47,15 +49,10 @@ public static class ExpressionTranslator
 
     private static Expression TranslateMemberAccessExpression(WebqlMemberAccessExpression node)
     {
-        var normalizedIdentifier = IdentifierHelper.NormalizeIdentifier(node.MemberName);
-        var expressionSemantics = node.Expression.GetExpressionSemantics();
-        var propertyInfo = expressionSemantics.Type.GetProperties()
-            .Where(x => IdentifierHelper.NormalizeIdentifier(x.Name) == normalizedIdentifier)
-            .First();
-
+        var semantics = node.GetMemberAccessSemantics();     
         var expression = TranslateExpression(node.Expression);
 
-        return Expression.Property(expression, propertyInfo);
+        return Expression.Property(expression, semantics.PropertyInfo);
     }
 
     private static Expression TranslateTemporaryDeclarationExpression(WebqlTemporaryDeclarationExpression node)
@@ -124,4 +121,23 @@ public static class ExpressionTranslator
         );
     }
 
+    private static Expression TranslateAnonymousObjectExpression(WebqlAnonymousObjectExpression node)
+    {
+        var semantics = node.GetAnonymousObjectSemantics();
+        var objectType = semantics.Type;
+        var objectTypeProperties = objectType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var objectBindings = new List<MemberBinding>();
+
+        foreach (var property in node.Properties)
+        {
+            var propertySemantics = property.GetAnonymousObjectPropertySemantics();
+            var propertyExpression = TranslateExpression(property.Value);
+
+            var binding = Expression.Bind(propertySemantics.PropertyInfo, propertyExpression);
+
+            objectBindings.Add(binding);
+        }
+        
+        return Expression.MemberInit(Expression.New(semantics.Type), objectBindings);
+    }
 }

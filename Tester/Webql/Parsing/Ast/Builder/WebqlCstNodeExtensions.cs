@@ -53,12 +53,12 @@ public static class WebqlCstNodeExtensions
      * scope type methods.
      */
 
-    public static WebqlScopeType GetScopeType(this CstNode node)
+    public static WebqlScopeType GetCstScopeType(this CstNode node)
     {
         return node.GetBuildContext().ScopeType;
     }
 
-    public static void SetScopeType(this CstNode node, WebqlScopeType scopeType)
+    public static void SetCstScopeType(this CstNode node, WebqlScopeType scopeType)
     {
         EnsureContextAttached(node);
         node.GetBuildContext().SetScopeType(scopeType);
@@ -139,7 +139,7 @@ public static class WebqlCstNodeExtensions
 
     public static bool IsBlockSimplificationDisabled(this CstNode node)
     {
-        return node.GetScopeType() != WebqlScopeType.LogicalFiltering;
+        return node.GetCstScopeType() != WebqlScopeType.LogicalFiltering;
     }
 
 }

@@ -8,17 +8,16 @@ namespace Webql.Parsing.Analysis;
 /// It dynamically dispatches the call to the appropriate method based on the node type. <br/>
 /// Custom visitors can inherit from this class and override the methods to perform the desired action.
 /// </summary>
-public class SyntaxTreeVisitor
+public class SyntaxTreeVisitor : ISyntaxTreeVisitor
 {
     /// <summary>
     /// Visits the specified syntax node.
     /// </summary>
     /// <param name="node">The syntax node to visit.</param>
     /// <returns>The visited syntax node.</returns>
-    [return: NotNullIfNotNull("node")]
-    public virtual WebqlSyntaxNode? Visit(WebqlSyntaxNode? node)
+    public virtual WebqlSyntaxNode Visit(WebqlSyntaxNode node)
     {
-        return node?.Accept(this);
+        return node.Accept(this);
     }
 
     /// <summary>
@@ -28,7 +27,7 @@ public class SyntaxTreeVisitor
     /// <returns>The visited node.</returns>
     public virtual WebqlQuery VisitQuery(WebqlQuery node)
     {
-        Visit(node.Expression);
+        NullableVisit(node.Expression);
         return node;
     }
 
@@ -61,6 +60,9 @@ public class SyntaxTreeVisitor
 
             case WebqlExpressionType.TypeConversion:
                 return VisitTypeConversionExpression((WebqlTypeConversionExpression)node);
+
+            case WebqlExpressionType.AnonymousObject:
+                return VisitAnonymousObjectExpression((WebqlAnonymousObjectExpression)node);
 
             default:
                 throw new InvalidOperationException("Invalid node type.");
@@ -148,6 +150,46 @@ public class SyntaxTreeVisitor
     {
         Visit(node.Expression);
         return node;
+    }
+
+    /// <summary>
+    /// Visits the specified anonymous type expression.
+    /// </summary>
+    /// <param name="node">The anonymous type expression to visit.</param>
+    /// <returns>The visited anonymous type expression.</returns>
+    public virtual WebqlExpression VisitAnonymousObjectExpression(WebqlAnonymousObjectExpression node)
+    {
+        foreach (var property in node.Properties)
+        {
+            Visit(property);
+        }
+
+        return node;
+    }
+
+    /*
+     * Anonymouse type property
+     */
+
+    /// <summary>
+    /// Visits the specified anonymous object property.
+    /// </summary>
+    /// <param name="node">The anonymous type property to visit.</param>
+    /// <returns>The visited anonymous type property.</returns>
+    public virtual WebqlAnonymousObjectProperty VisitAnonymousObjectProperty(WebqlAnonymousObjectProperty node)
+    {
+        Visit(node.Value);
+        return node;
+    }
+
+    /*
+     * Helper methods
+     */
+
+    [return: NotNullIfNotNull("node")]
+    private WebqlSyntaxNode? NullableVisit(WebqlSyntaxNode? node)
+    {
+        return node is not null ? Visit(node) : null;
     }
 
 }

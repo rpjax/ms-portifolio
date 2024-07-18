@@ -6,66 +6,92 @@ using Webql.Semantics.Exceptions;
 using Webql.Core.Analysis;
 using Webql.Semantics.Symbols;
 using Webql.Core.Extensions;
-using Microsoft.CodeAnalysis;
+using ModularSystem.Core.Reflection;
+using System.Reflection;
 
 namespace Webql.Semantics.Analysis;
 
 public static class SemanticAnalyzer
 {
-    public static WebqlQuery ExecuteAnalysisPipeline(WebqlCompilationContext context, WebqlQuery node)
-    {
-        DecorateTree(context, node);
-        ValidateSemantics(node);
+    /*
+     * Main API for using the semantic analyzer.
+     */
 
-        return ExecuteSemanticalRewrites(node);
-    }
-
-    public static void DecorateTree(WebqlCompilationContext context, WebqlSyntaxNode node)
+    //*
+    public static void BindSemanticsToAst(WebqlCompilationContext context, WebqlSyntaxNode node)
     {
         node.BindCompilationContext(context);
         BindScopes(node);
         DeclareSymbols(node);
     }
 
-    public static void BindScopes(WebqlSyntaxNode node)
+    private static void BindScopes(WebqlSyntaxNode node)
     {
         new ScopeBinderAnalyzer()
             .ExecuteAnalysis(node);
     }
 
-    public static void DeclareSymbols(WebqlSyntaxNode node)
+    private static void DeclareSymbols(WebqlSyntaxNode node)
     {
         new SymbolDeclaratorAnalyzer()
             .ExecuteAnalysis(node);
     }
 
-    public static void ValidateSemantics(WebqlSyntaxNode node)
+    //*
+    public static void ExecuteSemanticalAnalysis(ref WebqlSyntaxNode node)
+    {
+        ExecutePreValidationRewrites(ref node);
+        ValidateSemantics(node);
+        ExecutePostValidationsRewrites(ref node);
+    }
+
+    private static void ValidateSemantics(WebqlSyntaxNode node)
     {
         ValidateOperatorArity(node);
         ValidateOperatorTypes(node);
     }
 
-    public static void ValidateOperatorArity(WebqlSyntaxNode node)
+    private static void ValidateOperatorArity(WebqlSyntaxNode node)
     {
+        // TODO: Implement this
         //new OperandArityValidatorAnalyzer()
         //    .ExecuteAnalysis(node);
     }
 
-    public static void ValidateOperatorTypes(WebqlSyntaxNode node)
+    private static void ValidateOperatorTypes(WebqlSyntaxNode node)
     {
         new TypeValidatorAnalyzer()
             .ExecuteAnalysis(node);
     }
 
-    public static WebqlQuery ExecuteSemanticalRewrites(WebqlQuery node)
+    private static void ExecutePreValidationRewrites(ref WebqlSyntaxNode node)
     {
-        node = new TypeConversionRewriter().VisitQuery(node);
+        var context = node.GetCompilationContext();
 
-        return node;
+        foreach (var visitor in context.Settings.PreValidationVisitors)
+        {
+            node = visitor.Visit(node);
+        }
+
+        // Adds type conversions where necessary. E.g. `1 + 1.0` => `1 + (int)1.0`
+        node = new ImplicitTypeConversionRewriter().Visit(node);
+    }
+
+    private static void ExecutePostValidationsRewrites(ref WebqlSyntaxNode node)
+    {
+        var context = node.GetCompilationContext();
+
+        foreach (var visitor in context.Settings.PostValidationVisitors)
+        {
+            node = visitor.Visit(node);
+        }
     }
 
     /*
-     * Main entry point for the semantic analysis.
+     * Main entry point for the creation of semantics.
+     * 
+     * NOTE: 'Semantics' refers to the type information and other metadata that is bound to the AST nodes. 
+     * It is used to perform assertions and transformations on the AST, and to generate the final output.
      */
 
     public static ISemantics CreateSemantics(
@@ -80,6 +106,9 @@ public static class SemanticAnalyzer
             case WebqlNodeType.Expression:
                 return CreateExpressionSemantics(context, (WebqlExpression)node);
 
+            case WebqlNodeType.AnonymousObjectProperty:
+                return CreateAnonymousObjectPropertySemantics(context, (WebqlAnonymousObjectProperty)node);
+
             default:
                 throw new InvalidOperationException();
         }
@@ -89,7 +118,7 @@ public static class SemanticAnalyzer
      * QUERY SEMANTICS
      */
 
-    public static IQuerySemantics CreateQuerySemantics(
+    private static IQuerySemantics CreateQuerySemantics(
         WebqlCompilationContext context,
         WebqlQuery query)
     {
@@ -109,7 +138,7 @@ public static class SemanticAnalyzer
      * EXPRESSION SEMANTICS
      */
 
-    public static IExpressionSemantics CreateExpressionSemantics(
+    private static IExpressionSemantics CreateExpressionSemantics(
         WebqlCompilationContext context,
         WebqlExpression expression)
     {
@@ -136,6 +165,9 @@ public static class SemanticAnalyzer
             case WebqlExpressionType.TypeConversion:
                 return CreateTypeConversionExpressionSemantics(context, (WebqlTypeConversionExpression)expression);
 
+            case WebqlExpressionType.AnonymousObject:
+                return CreateAnonymousObjectSemantics(context, (WebqlAnonymousObjectExpression)expression);
+
             default:
                 throw new InvalidOperationException();
         }
@@ -145,7 +177,7 @@ public static class SemanticAnalyzer
      * LITERAL EXPRESSION SEMANTICS
      */
 
-    public static IExpressionSemantics CreateLiteralExpressionSemantics(
+    private static IExpressionSemantics CreateLiteralExpressionSemantics(
         WebqlCompilationContext context,
         WebqlLiteralExpression expression)
     {
@@ -174,7 +206,7 @@ public static class SemanticAnalyzer
         }
     }
 
-    public static IExpressionSemantics CreateBoolSemantics(
+    private static IExpressionSemantics CreateBoolSemantics(
         WebqlCompilationContext context,
         WebqlLiteralExpression expression)
     {
@@ -183,7 +215,7 @@ public static class SemanticAnalyzer
         );
     }
 
-    public static IExpressionSemantics CreateNullSemantics(
+    private static IExpressionSemantics CreateNullSemantics(
         WebqlCompilationContext context,
         WebqlLiteralExpression expression)
     {
@@ -217,7 +249,7 @@ public static class SemanticAnalyzer
         );
     }
 
-    public static IExpressionSemantics CreateIntLiteralSemantics(
+    private static IExpressionSemantics CreateIntLiteralSemantics(
         WebqlCompilationContext context,
         WebqlLiteralExpression expression)
     {
@@ -226,7 +258,7 @@ public static class SemanticAnalyzer
         );
     }
 
-    public static IExpressionSemantics CreateFloatLiteralSemantics(
+    private static IExpressionSemantics CreateFloatLiteralSemantics(
         WebqlCompilationContext context,
         WebqlLiteralExpression expression)
     {
@@ -235,14 +267,14 @@ public static class SemanticAnalyzer
         );
     }
 
-    public static IExpressionSemantics CreateHexLiteralSemantics(
+    private static IExpressionSemantics CreateHexLiteralSemantics(
         WebqlCompilationContext context,
         WebqlLiteralExpression expression)
     {
         throw new NotImplementedException();
     }
 
-    public static IExpressionSemantics CreateStringLiteralSemantics(
+    private static IExpressionSemantics CreateStringLiteralSemantics(
         WebqlCompilationContext context,
         WebqlLiteralExpression expression)
     {
@@ -255,7 +287,7 @@ public static class SemanticAnalyzer
      * REFERENCE EXPRESSION SEMANTICS
      */
 
-    public static IExpressionSemantics CreateReferenceExpressionSemantics(
+    private static IExpressionSemantics CreateReferenceExpressionSemantics(
         WebqlCompilationContext context,
         WebqlReferenceExpression referenceExpression)
     {
@@ -270,7 +302,7 @@ public static class SemanticAnalyzer
      * SCOPE ACCESS EXPRESSION SEMANTICS
      */
 
-    public static IExpressionSemantics CreateMemberAccessExpressionSemantics(
+    private static IMemberAccessSemantics CreateMemberAccessExpressionSemantics(
         WebqlCompilationContext context,
         WebqlMemberAccessExpression memberAccessExpression)
     {
@@ -285,8 +317,9 @@ public static class SemanticAnalyzer
             throw memberAccessExpression.CreatePropertyNotFoundException(childType, memberName);
         }
 
-        return new ExpressionSemantics(
-            type: propertyInfo.PropertyType
+        return new MemberAccessSemantics(
+            type: propertyInfo.PropertyType,
+            propertyInfo: propertyInfo
         );
     }
 
@@ -294,7 +327,7 @@ public static class SemanticAnalyzer
      * TEMPORARY DECLARATION EXPRESSION SEMANTICS
      */
 
-    public static IExpressionSemantics CreateTemporaryDeclarationExpressionSemantics(
+    private static IExpressionSemantics CreateTemporaryDeclarationExpressionSemantics(
         WebqlCompilationContext context,
         WebqlTemporaryDeclarationExpression temporaryDeclarationExpression)
     {
@@ -305,7 +338,7 @@ public static class SemanticAnalyzer
      * BLOCK EXPRESSION SEMANTICS
      */
 
-    public static IExpressionSemantics CreateBlockExpressionSemantics(
+    private static IExpressionSemantics CreateBlockExpressionSemantics(
         WebqlCompilationContext context,
         WebqlBlockExpression blockExpression)
     {
@@ -313,7 +346,7 @@ public static class SemanticAnalyzer
         /*
          * Temporary fix for empty block expressions.
          */
-        if(blockExpression.Expressions.Length == 0)
+        if (blockExpression.Expressions.Length == 0)
         {
             return new ExpressionSemantics(
                 type: typeof(void)
@@ -329,7 +362,7 @@ public static class SemanticAnalyzer
      * OPERATION EXPRESSION SEMANTICS
      */
 
-    public static IExpressionSemantics CreateOperationExpressionSemantics(
+    private static IExpressionSemantics CreateOperationExpressionSemantics(
         WebqlCompilationContext context,
         WebqlOperationExpression operationExpression)
     {
@@ -361,7 +394,7 @@ public static class SemanticAnalyzer
         }
     }
 
-    public static IExpressionSemantics CreateArithmeticOperationExpressionSemantics(
+    private static IExpressionSemantics CreateArithmeticOperationExpressionSemantics(
         WebqlCompilationContext context,
         WebqlOperationExpression operationExpression)
     {
@@ -375,7 +408,7 @@ public static class SemanticAnalyzer
         );
     }
 
-    public static IExpressionSemantics CreateRelationalOperationExpressionSemantics(
+    private static IExpressionSemantics CreateRelationalOperationExpressionSemantics(
         WebqlCompilationContext context,
         WebqlOperationExpression operationExpression)
     {
@@ -384,7 +417,7 @@ public static class SemanticAnalyzer
         );
     }
 
-    public static IExpressionSemantics CreateStringRelationalOperationExpressionSemantics(
+    private static IExpressionSemantics CreateStringRelationalOperationExpressionSemantics(
         WebqlCompilationContext context,
         WebqlOperationExpression operationExpression)
     {
@@ -396,7 +429,7 @@ public static class SemanticAnalyzer
         );
     }
 
-    public static IExpressionSemantics CreateLogicalOperationExpressionSemantics(
+    private static IExpressionSemantics CreateLogicalOperationExpressionSemantics(
         WebqlCompilationContext context,
         WebqlOperationExpression operationExpression)
     {
@@ -405,7 +438,7 @@ public static class SemanticAnalyzer
         );
     }
 
-    public static IExpressionSemantics CreateSemanticOperationExpressionSemantics(
+    private static IExpressionSemantics CreateSemanticOperationExpressionSemantics(
         WebqlCompilationContext context,
         WebqlOperationExpression operationExpression)
     {
@@ -425,7 +458,7 @@ public static class SemanticAnalyzer
      * SEMANTIC OPERATION EXPRESSION SEMANTICS
      */
 
-    public static IExpressionSemantics CreateAggregateExpressionSemantics(
+    private static IExpressionSemantics CreateAggregateExpressionSemantics(
         WebqlCompilationContext context,
         WebqlOperationExpression operationExpression)
     {
@@ -443,7 +476,7 @@ public static class SemanticAnalyzer
      * COLLECTION MANIPULATION OPERATION EXPRESSION SEMANTICS
      */
 
-    public static IExpressionSemantics CreateCollectionManipulationOperationExpressionSemantics(
+    private static IExpressionSemantics CreateCollectionManipulationOperationExpressionSemantics(
         WebqlCompilationContext context,
         WebqlOperationExpression operationExpression)
     {
@@ -469,7 +502,7 @@ public static class SemanticAnalyzer
      * COLLECTION AGGREGATION OPERATION EXPRESSION SEMANTICS
      */
 
-    public static IExpressionSemantics CreateCollectionAggregationOperationExpressionSemantics(
+    private static IExpressionSemantics CreateCollectionAggregationOperationExpressionSemantics(
         WebqlCompilationContext context,
         WebqlOperationExpression node)
     {
@@ -549,6 +582,65 @@ public static class SemanticAnalyzer
     {
         return new ExpressionSemantics(
             type: expression.TargetType
+        );
+    }
+
+    /*
+     * ANONYMOUS OBJECT EXPRESSION SEMANTICS
+     */
+
+    private static IAnonymousObjectSemantics CreateAnonymousObjectSemantics(
+        WebqlCompilationContext context,
+        WebqlAnonymousObjectExpression expression)
+    {
+        var propertyDefinitions = new List<AnonymousPropertyDefinition>();
+
+        foreach (var property in expression.Properties)
+        {
+            var valueSemantics = property.Value.GetExpressionSemantics();
+
+            var propertyDefinition = new AnonymousPropertyDefinition(
+                name: property.Name,
+                type: valueSemantics.Type
+            );
+
+            propertyDefinitions.Add(propertyDefinition);
+        }
+
+        var typeCreaionOptions = new AnonymousTypeCreationOptions(
+            name: null,
+            properties: propertyDefinitions,
+            createDefaultConstructor: true,
+            createSetters: true
+        );
+
+        var type = TypeCreator.CreateAnonymousType(typeCreaionOptions);
+        var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+        return new AnonymousObjectSemantics(
+            type: type
+        );
+    }
+
+    private static IAnonymousObjectPropertySemantics CreateAnonymousObjectPropertySemantics(
+        WebqlCompilationContext context,
+        WebqlAnonymousObjectProperty expression)
+    {
+        var parent = (expression.Parent as WebqlAnonymousObjectExpression)!;
+        var parentSemantics = parent.GetAnonymousObjectSemantics();
+        var expressionSemantics = expression.Value.GetExpressionSemantics();
+
+        var propertyInfo = parentSemantics.Type.GetProperty(expression.Name);
+
+        if(propertyInfo is null)
+        {
+            throw new SemanticException($"Property '{expression.Name}' not found in the projected type '{parentSemantics.Type.Name}'. Ensure the property name is correctly defined in the projection.", expression);
+        }
+
+        return new AnonymousObjectPropertySemantics(
+            name: expression.Name,
+            type: propertyInfo.PropertyType,
+            propertyInfo: propertyInfo
         );
     }
 

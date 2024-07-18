@@ -12,6 +12,10 @@ using Webql.Semantics.Extensions;
 using Webql.Core;
 using Webql;
 using ModularSystem.Core.AccessManagement;
+using MongoDB.Driver;
+using MongoDB.Driver.Linq;
+using ModularSystem.Mongo.Repositories;
+using ModularSystem.Mongo;
 
 namespace ModularSystem.Tester;
 
@@ -70,7 +74,7 @@ public class TestWallet
     public decimal UsdtBalance { get; set; }
 }
 
-public class TestUser
+public class TestUser : MongoEntity
 {
     public static List<TestUser> Source { get; } = new List<TestUser>()
     {
@@ -113,19 +117,30 @@ public static class Program
                         $greater: 59 
                     } 
                 }
-                //identity: {
-                //    roles: {
-                //        $aggregate: {
-                //            $filter: { $equals: 'admin' },
-                //            $count: { },
-                //            $greater: 0
-                //        }
-                //    }
-                //}
-            } 
+            },
+            $select: { 
+                nickname: nickname,
+                isAdmin: { identity: { roles: { $contains: 'admin' } } },
+                isJacques: { nickname: { $like: 'jacques' } },
+                myObject: $new { 
+                    nickname: nickname,
+                    email: email,
+                    wallet: wallet
+                }
+            }
         }";
 
-        var expression = compiler.Translate(query);
+        var expression = compiler.Compile(query);
+
+        IMongoCollection<TestUser> collection = null!;
+
+        var result = collection.AsQueryable()
+            .Where(x => x.IsActive)
+            .AnyAsync();
+
+        var repository = new MongoRepository<TestUser>(collection);
+
+        var queryable = repository.AsQueryable();
 
         return;
     }

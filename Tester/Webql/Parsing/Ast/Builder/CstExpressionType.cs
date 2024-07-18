@@ -6,5 +6,6 @@ public enum CstExpressionType
     Reference,
     ScopeAccess,
     Block,
-    Operation
+    Operation,
+    AnonymousObject,
 }

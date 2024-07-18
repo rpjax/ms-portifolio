@@ -5,7 +5,7 @@ using Webql.Semantics.Extensions;
 
 namespace Webql.Semantics.Analysis;
 
-public class TypeConversionRewriter : SyntaxTreeRewriter
+public class ImplicitTypeConversionRewriter : SyntaxTreeRewriter
 {
     public override WebqlExpression VisitOperationExpression(WebqlOperationExpression node)
     {
@@ -23,7 +23,7 @@ public class TypeConversionRewriter : SyntaxTreeRewriter
 
         if (!SemanticsTypeHelper.TypesAreCompatible(lhsSemantics.Type, rhsSemantics.Type))
         {
-            throw node.CreateOperatorIncompatibleTypeException(lhsSemantics.Type, rhsSemantics.Type);
+            return base.VisitOperationExpression(node);
         }
 
         if(lhsSemantics.Type == rhsSemantics.Type)
