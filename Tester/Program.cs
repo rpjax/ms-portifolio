@@ -97,9 +97,7 @@ public static class Program
     public static void Main()
     {
         var settings = new WebqlCompilerSettings(
-            queryableType: typeof(IQueryable<>),
-            entityType: typeof(TestUser),
-            methodInfoProvider: new MethodInfoProvider()
+            linqProvider: new WebqlLinqProvider()
         );
 
         var compiler = new WebqlCompiler(settings);
@@ -128,7 +126,19 @@ public static class Program
             }
         }";
 
-        var expression = compiler.Compile(query);
+        query = @"
+        { 
+            $filter: { 
+                nickname: { 
+                    $and: [
+                        { $like: 'Alice' }, 
+                        { $like: 'Bob' }
+                    ] 
+                } 
+            } 
+        }";
+
+        var expression = compiler.Compile(query: query, elementType: typeof(TestUser));
 
         IMongoCollection<TestUser> collection = null!;
 

@@ -62,4 +62,23 @@ public static class WebqlSyntaxNodeExtensions
         node.SetAttribute(CompilationContextKey, context);
     }
 
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WebqlLinqProvider GetLinqProvider(this WebqlSyntaxNode node)
+    {
+        return node.GetCompilationContext().LinqProvider;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Type GetQueryableType(this WebqlSyntaxNode node)
+    {
+        return node.GetCompilationContext().GetQueryableType(node);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Type GetCompilationElementType(this WebqlSyntaxNode node)
+    {
+        return node.GetCompilationContext().ElementType;
+    }
+
 }

@@ -1,40 +1,37 @@
-﻿using ModularSystem.Core.Linq;
+﻿using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using ModularSystem.Core.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Webql.Core.Extensions;
 using Webql.Parsing.Analysis;
+using Webql.Parsing.Ast;
+using Webql.Semantics.Extensions;
 
 namespace Webql.Core;
 
 public class WebqlCompilerSettings
 {
-    public static Type DefaultQueryableType { get; } = typeof(IQueryable<>);
-    public static Type DefaultAsyncQueryableType { get; } = typeof(IAsyncQueryable<>);
-
-    public Type QueryableType { get; } 
-    public Type ElementType { get; }
-    public MethodInfoProvider MethodInfoProvider { get; }
+    public WebqlLinqProvider LinqProvider { get; }
     public ISyntaxTreeVisitor[] PreValidationVisitors { get; }
     public ISyntaxTreeVisitor[] PostValidationVisitors { get; }
 
     public WebqlCompilerSettings(
-        Type queryableType, 
-        Type entityType, 
-        MethodInfoProvider methodInfoProvider,
+        WebqlLinqProvider? linqProvider = null,
         ISyntaxTreeVisitor[]? preValidationVisitors = null,
         ISyntaxTreeVisitor[]? postValidationVisitors = null)
     {
-        QueryableType = queryableType;
-        ElementType = entityType;
-        MethodInfoProvider = methodInfoProvider;
+        LinqProvider = linqProvider ?? new WebqlLinqProvider();
         PreValidationVisitors = preValidationVisitors ?? new ISyntaxTreeVisitor[0];
         PostValidationVisitors = postValidationVisitors ?? new ISyntaxTreeVisitor[0];
     }
 
 }
 
-public class MethodInfoProvider
+public class WebqlLinqProvider
 {
+    public static Type DefaultQueryableType { get; } = typeof(IQueryable<>);
+    public static Type DefaultAsyncQueryableType { get; } = typeof(IAsyncQueryable<>);
+
     /*
      * MethodInfo cache
      */
@@ -42,11 +39,21 @@ public class MethodInfoProvider
     // TODO: Implement a cache for MethodInfo objects
 
     /*
+     * Type providers
+     */
+
+    public Type GetQueryableType(WebqlSyntaxNode node)
+    {
+        return typeof(IQueryable<>);
+    }
+
+    /*
      * Collection Manipulation LINQ methods
      */
 
-    public MethodInfo GetWhereMethodInfo(Type sourceType)
+    public MethodInfo GetWhereMethodInfo(WebqlExpression source)
     {
+        var sourceType = source.GetExpressionType();
         var elementType = sourceType.GetQueryableElementType();
 
         if(sourceType.IsAsyncQueryable())
@@ -70,9 +77,11 @@ public class MethodInfoProvider
         }
     }
 
-    public MethodInfo GetSelectMethodInfo(Type sourceType, Type resultType)
+    public MethodInfo GetSelectMethodInfo(WebqlExpression source, WebqlExpression selector)
     {
+        var sourceType = source.GetExpressionType();
         var elementType = sourceType.GetQueryableElementType();
+        var resultType = selector.GetExpressionType();
 
         if (sourceType.IsAsyncQueryable())
         {

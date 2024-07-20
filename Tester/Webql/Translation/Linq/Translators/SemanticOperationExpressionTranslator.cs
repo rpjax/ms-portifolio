@@ -1,7 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Webql.Parsing.Ast;
 using Webql.Semantics.Extensions;
-using Webql.Translation.Linq.Context;
 
 namespace Webql.Translation.Linq.Translators;
 
@@ -14,12 +13,20 @@ public static class SemanticOperationExpressionTranslator
             case WebqlSemanticOperator.Aggregate:
                 return TranslateAggregateExpression(node);
 
+            case WebqlSemanticOperator.New:
+                return TranslateNewExpression(node);
+
             default:
                 throw new InvalidOperationException("Invalid operator.");
         }
     }
 
     private static Expression TranslateAggregateExpression(WebqlOperationExpression node)
+    {
+        return ExpressionTranslator.TranslateExpression(node.Operands[0]);
+    }
+
+    private static Expression TranslateNewExpression(WebqlOperationExpression node)
     {
         return ExpressionTranslator.TranslateExpression(node.Operands[0]);
     }

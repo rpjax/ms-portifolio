@@ -101,6 +101,9 @@ public static class WebqlAstBuilderHelper
             case "aggregate":
                 return WebqlOperatorType.Aggregate;
 
+            case "new":
+                return WebqlOperatorType.New;
+
             /*
              * collection manipulation operators
              */
@@ -174,4 +177,11 @@ public static class WebqlAstBuilderHelper
         }
     }
 
+}
+
+public enum CstOperatorArity
+{
+    Unary,
+    Binary,
+    Special
 }

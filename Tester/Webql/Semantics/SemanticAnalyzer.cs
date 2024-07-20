@@ -425,11 +425,12 @@ public static class SemanticAnalyzer
             case WebqlSemanticOperator.Aggregate:
                 return CreateAggregateExpressionSemantics(context, operationExpression);
 
-            default:
-                break;
-        }
+            case WebqlSemanticOperator.New:
+                return CreateNewExpressionSemantics(context, operationExpression);
 
-        throw new NotImplementedException();
+            default:
+                throw new InvalidOperationException("Invalid semantic operator.");
+        }
     }
 
     /*
@@ -447,6 +448,30 @@ public static class SemanticAnalyzer
 
         return new ExpressionSemantics(
             type: lastOperandSemantics.Type
+        );
+    }
+
+    private static IExpressionSemantics CreateNewExpressionSemantics(
+        WebqlCompilationContext context,
+        WebqlOperationExpression operationExpression)
+    {
+        if(operationExpression.Operands.Length != 1)
+        {
+            throw operationExpression.CreateInvalidOperandCountException(
+                expectedCount: 1, 
+                actualCount: operationExpression.Operands.Length
+            );
+        }
+
+        if (operationExpression.Operands[0] is not WebqlAnonymousObjectExpression anonymousObjectExpression)
+        {
+            throw new SemanticException("The $new operator expects an anonymous object as its operand.", operationExpression);
+        }
+
+        var anonymousObjectSemantics = anonymousObjectExpression.GetAnonymousObjectSemantics();
+
+        return new ExpressionSemantics(
+            type: anonymousObjectSemantics.Type
         );
     }
 
@@ -468,7 +493,7 @@ public static class SemanticAnalyzer
 
         var elementType = lhsType.GetQueryableElementType();
 
-        var type = operationExpression.GetQueryableType(context)
+        var type = operationExpression.GetQueryableType()
             .MakeGenericType(elementType);
 
         return new ExpressionSemantics(

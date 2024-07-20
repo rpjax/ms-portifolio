@@ -35,13 +35,8 @@ public static class CollectionManipulationExpressionTranslator
 
     public static Expression TranslateFilterExpression(WebqlOperationExpression node)
     {
-        var context = node.GetCompilationContext();
-
         var lhs = node.Operands[0];
         var rhs = node.Operands[1];
-
-        var lhsSemantics = lhs.GetExpressionSemantics();
-        var rhsSemantics = rhs.GetExpressionSemantics();
 
         var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
         var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
@@ -49,20 +44,16 @@ public static class CollectionManipulationExpressionTranslator
         var elementParameter = rhs.GetElementParameterExpression();
         var lambdaExpression = Expression.Lambda(rhsExpression, elementParameter);
 
-        var methodInfo = context.MethodInfoProvider.GetWhereMethodInfo(sourceType: lhsSemantics.Type);
+        var methodInfo = node.GetLinqProvider()
+            .GetWhereMethodInfo(source: lhs);
 
         return Expression.Call(methodInfo, lhsExpression, lambdaExpression);
     }
 
     public static Expression TranslateSelectExpression(WebqlOperationExpression node)
     {
-        var context = node.GetCompilationContext();
-
         var lhs = node.Operands[0];
         var rhs = node.Operands[1];
-
-        var lhsSemantics = lhs.GetExpressionSemantics();
-        var rhsSemantics = rhs.GetExpressionSemantics();
 
         var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
         var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
@@ -70,10 +61,8 @@ public static class CollectionManipulationExpressionTranslator
         var elementParameter = rhs.GetElementParameterExpression();
         var lambdaExpression = Expression.Lambda(rhsExpression, elementParameter);
 
-        var sourceType = lhsSemantics.Type;
-        var resultType = rhsSemantics.Type;
-        var methodInfo = context.MethodInfoProvider
-            .GetSelectMethodInfo(sourceType: sourceType, resultType: resultType);
+        var methodInfo = node.GetLinqProvider()
+            .GetSelectMethodInfo(source: lhs, selector: rhs);
 
         return Expression.Call(methodInfo, lhsExpression, lambdaExpression);
     }
@@ -85,8 +74,6 @@ public static class CollectionManipulationExpressionTranslator
 
     public static Expression TranslateLimitExpression(WebqlOperationExpression node)
     {
-        var context = node.GetCompilationContext();
-
         var lhs = node.Operands[0];
         var rhs = node.Operands[1];
 
@@ -96,15 +83,14 @@ public static class CollectionManipulationExpressionTranslator
         var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
         var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
 
-        var methodInfo = context.MethodInfoProvider.GetTakeMethodInfo(sourceType: lhsSemantics.Type);
+        var methodInfo = node.GetLinqProvider()
+            .GetTakeMethodInfo(sourceType: lhsSemantics.Type);
 
         return Expression.Call(methodInfo, lhsExpression, rhsExpression);
     }
 
     public static Expression TranslateSkipExpression(WebqlOperationExpression node)
     {
-        var context = node.GetCompilationContext();
-
         var lhs = node.Operands[0];
         var rhs = node.Operands[1];
 
@@ -114,7 +100,8 @@ public static class CollectionManipulationExpressionTranslator
         var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
         var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
 
-        var methodInfo = context.MethodInfoProvider.GetSkipMethodInfo(sourceType: lhsSemantics.Type);
+        var methodInfo = node.GetLinqProvider()
+            .GetSkipMethodInfo(sourceType: lhsSemantics.Type);
 
         return Expression.Call(methodInfo, lhsExpression, rhsExpression);
     }

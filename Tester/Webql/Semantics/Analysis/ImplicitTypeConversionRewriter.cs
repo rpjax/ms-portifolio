@@ -9,8 +9,7 @@ public class ImplicitTypeConversionRewriter : SyntaxTreeRewriter
 {
     public override WebqlExpression VisitOperationExpression(WebqlOperationExpression node)
     {
-
-        if(!node.IsBinaryTypeCompatibleOperator())
+        if(!node.OperatorRequiresOperandsToBeOfSameType())
         {
             return base.VisitOperationExpression(node);
         }

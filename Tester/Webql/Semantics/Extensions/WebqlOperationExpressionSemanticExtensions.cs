@@ -81,9 +81,9 @@ public static class WebqlOperationExpressionSemanticExtensions
         return expression.GetOperatorArity() == WebqlOperatorArity.Binary;
     }
 
-    public static bool IsBinaryTypeCompatibleOperator(this WebqlOperationExpression expression)
+    public static bool OperatorRequiresOperandsToBeOfSameType(this WebqlOperationExpression expression)
     {
-        return WebqlOperatorAnalyzer.IsBinaryTypeCompatibleOperator(expression.Operator);
+        return WebqlOperatorAnalyzer.OperatorRequiresOperandsToBeOfSameType(expression.Operator);
     }
 
     public static bool IsLinqQueryableMethodCallOperator(this WebqlOperationExpression expression)

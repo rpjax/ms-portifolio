@@ -57,7 +57,7 @@ public static class CollectionAggregationExpressionTranslator
         var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
         var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
 
-        var methodInfo = context.MethodInfoProvider.GetCountMethodInfo(lhsSemantics.Type);
+        var methodInfo = context.LinqProvider.GetCountMethodInfo(lhsSemantics.Type);
 
         return Expression.Call(methodInfo, lhsExpression, rhsExpression);
     }
@@ -75,7 +75,7 @@ public static class CollectionAggregationExpressionTranslator
         var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
         var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
 
-        var methodInfo = context.MethodInfoProvider.GetContainsMethodInfo(lhsSemantics.Type);
+        var methodInfo = context.LinqProvider.GetContainsMethodInfo(lhsSemantics.Type);
 
         return Expression.Call(methodInfo, lhsExpression, rhsExpression);
     }
@@ -93,7 +93,7 @@ public static class CollectionAggregationExpressionTranslator
         var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
         var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
 
-        var methodInfo = context.MethodInfoProvider.GetIndexMethodInfo(lhsSemantics.Type);
+        var methodInfo = context.LinqProvider.GetIndexMethodInfo(lhsSemantics.Type);
 
         return Expression.Call(methodInfo, lhsExpression, rhsExpression);
     }
@@ -111,7 +111,7 @@ public static class CollectionAggregationExpressionTranslator
         var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
         var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
 
-        var methodInfo = context.MethodInfoProvider.GetAnyMethodInfo(lhsSemantics.Type);
+        var methodInfo = context.LinqProvider.GetAnyMethodInfo(lhsSemantics.Type);
 
         return Expression.Call(methodInfo, lhsExpression, rhsExpression);
     }
@@ -129,7 +129,7 @@ public static class CollectionAggregationExpressionTranslator
         var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
         var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
 
-        var methodInfo = context.MethodInfoProvider.GetAllMethodInfo(lhsSemantics.Type);
+        var methodInfo = context.LinqProvider.GetAllMethodInfo(lhsSemantics.Type);
 
         return Expression.Call(methodInfo, lhsExpression, rhsExpression);
     }
@@ -147,7 +147,7 @@ public static class CollectionAggregationExpressionTranslator
         var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
         var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
 
-        var methodInfo = context.MethodInfoProvider.GetMinMethodInfo(lhsSemantics.Type);
+        var methodInfo = context.LinqProvider.GetMinMethodInfo(lhsSemantics.Type);
 
         return Expression.Call(methodInfo, lhsExpression, rhsExpression);
     }
@@ -165,7 +165,7 @@ public static class CollectionAggregationExpressionTranslator
         var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
         var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
 
-        var methodInfo = context.MethodInfoProvider.GetMaxMethodInfo(lhsSemantics.Type);
+        var methodInfo = context.LinqProvider.GetMaxMethodInfo(lhsSemantics.Type);
 
         return Expression.Call(methodInfo, lhsExpression, rhsExpression);
     }
@@ -183,7 +183,7 @@ public static class CollectionAggregationExpressionTranslator
         var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
         var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
 
-        var methodInfo = context.MethodInfoProvider.GetSumMethodInfo(lhsSemantics.Type);
+        var methodInfo = context.LinqProvider.GetSumMethodInfo(lhsSemantics.Type);
 
         return Expression.Call(methodInfo, lhsExpression, rhsExpression);
     }
@@ -201,7 +201,7 @@ public static class CollectionAggregationExpressionTranslator
         var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
         var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
 
-        var methodInfo = context.MethodInfoProvider.GetAverageMethodInfo(lhsSemantics.Type);
+        var methodInfo = context.LinqProvider.GetAverageMethodInfo(lhsSemantics.Type);
 
         return Expression.Call(methodInfo, lhsExpression, rhsExpression);
     }

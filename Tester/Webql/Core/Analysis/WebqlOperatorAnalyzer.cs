@@ -37,6 +37,7 @@ public static class WebqlOperatorAnalyzer
                 return WebqlOperatorCategory.Logical;
 
             case WebqlOperatorType.Aggregate:
+            case WebqlOperatorType.New:
                 return WebqlOperatorCategory.Semantic;
 
             case WebqlOperatorType.Filter:
@@ -69,6 +70,7 @@ public static class WebqlOperatorAnalyzer
             case WebqlOperatorType.Not:
             case WebqlOperatorType.Count:
             case WebqlOperatorType.Aggregate:
+            case WebqlOperatorType.New:
                 return WebqlOperatorArity.Unary;
 
             case WebqlOperatorType.Add:
@@ -91,7 +93,6 @@ public static class WebqlOperatorAnalyzer
             case WebqlOperatorType.SelectMany:
             case WebqlOperatorType.Limit:
             case WebqlOperatorType.Skip:
-            // the $count operator is unary, but i still need to figure out how to handle it
             case WebqlOperatorType.Contains:
             case WebqlOperatorType.Index:
             case WebqlOperatorType.Any:
@@ -123,7 +124,10 @@ public static class WebqlOperatorAnalyzer
 
             case WebqlOperatorType.Aggregate:
                 return WebqlUnaryOperator.Aggregate;
-            
+
+            case WebqlOperatorType.New:
+                return WebqlUnaryOperator.New;
+
             default:
                 throw new InvalidOperationException();
         }
@@ -228,6 +232,9 @@ public static class WebqlOperatorAnalyzer
         {
             case WebqlOperatorType.Aggregate:
                 return WebqlSemanticOperator.Aggregate;
+
+            case WebqlOperatorType.New:
+                return WebqlSemanticOperator.New;
 
             default:
                 throw new InvalidOperationException();
@@ -386,7 +393,7 @@ public static class WebqlOperatorAnalyzer
     //    return GetOperatorArity(operatorType) == WebqlOperatorArity.Ternary;
     //}
 
-    public static bool IsBinaryTypeCompatibleOperator(WebqlOperatorType operatorType)
+    public static bool OperatorRequiresOperandsToBeOfSameType(WebqlOperatorType operatorType)
     {
         switch (GetOperatorCategory(operatorType))
         {
@@ -401,11 +408,11 @@ public static class WebqlOperatorAnalyzer
         }
     }
 
-        /*
-         * Type Based Classification
-         */
+    /*
+     * Type Based Classification
+     */
 
-        public static bool IsCollectionOperator(this WebqlOperatorType @operator)
+    public static bool IsCollectionOperator(this WebqlOperatorType @operator)
     {
         var operatorCategory = GetOperatorCategory(@operator);
 

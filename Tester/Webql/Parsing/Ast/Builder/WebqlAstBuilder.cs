@@ -23,7 +23,7 @@ public static class WebqlAstBuilder
         if (node.Children.Length > 1)
         {
             throw new Exception("Invalid query");
-        }   
+        }
 
         var query = null as WebqlQuery;
         var rootScopeType = WebqlScopeType.Aggregation;
@@ -217,7 +217,7 @@ public static class WebqlAstBuilder
 
         var referenceIdentifier = TranslateReferenceExpressionToIdentifier(referenceNode);
         var referenceNodeMetadata = CreateNodeMetadata(referenceNode);
-        
+
         expressionNode.SetLhsExpressionToMemberAccess(referenceIdentifier);
 
         var expression = TranslateExpression(expressionNode);
@@ -277,7 +277,7 @@ public static class WebqlAstBuilder
         {
             case WebqlScopeType.LogicalFiltering:
                 return TranslateLogicalBlockExpression(node);
-         
+
             default:
                 return TranslateAggregationBlockExpression(node);
         }
@@ -296,7 +296,7 @@ public static class WebqlAstBuilder
             .ToArray()
             ;
 
-        if(expressionNodes.Length == 0)
+        if (expressionNodes.Length == 0)
         {
             return new WebqlLiteralExpression(
                 metadata: CreateNodeMetadata(node),
@@ -335,7 +335,7 @@ public static class WebqlAstBuilder
             .ToArray()
             ;
 
-        if(expressionNodes.Length == 0)
+        if (expressionNodes.Length == 0)
         {
             return new WebqlLiteralExpression(
                 metadata: CreateNodeMetadata(node),
@@ -375,26 +375,37 @@ public static class WebqlAstBuilder
     public static WebqlExpression TranslateOperationExpression(CstInternal node)
     {
         var operatorNode = node.Children[1].AsLeaf();
-
-        if(operatorNode.Token.Value.ToString() == "new")
-        {
-            return TranslateNewExpression(node);
-        }
-
         var @operator = TranslateOperator(operatorNode);
-        var isCollectionOperator = WebqlOperatorAnalyzer.IsCollectionOperator(@operator);
         var operatorScopeType = WebqlAstBuilderHelper.GetOperatorScopeType(@operator, node.GetCstScopeType());
 
-        var rhsNode = node.Children[3].AsInternal();
+        node.SetCstScopeType(operatorScopeType);
 
-        rhsNode.SetCstScopeType(operatorScopeType);
-
-        if (isCollectionOperator)
+        switch (WebqlOperatorAnalyzer.GetOperatorArity(@operator))
         {
-            rhsNode.SetLhsExpressionToElementReference();
+            case WebqlOperatorArity.Unary:
+                return TranslateUnaryOperation(node, @operator);
+
+            case WebqlOperatorArity.Binary:
+                return TranslateBinaryOperation(node, @operator);
+
+            default:
+                throw new Exception("Unsupported operator arity. Impossible to build the AST with this operator.");
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WebqlExpression TranslateUnaryOperation(CstInternal node, WebqlOperatorType @operator)
+    {
+        /*
+        * The AST building is different for those operators, so they are handled separately.
+        */
+        switch (WebqlOperatorAnalyzer.GetUnaryOperator(@operator))
+        {
+            case WebqlUnaryOperator.New:
+                return TranslateNewExpression(node);
         }
 
-        var operands = TranslateOperationOperands(node);
+        var operands = TranslateUnaryOperands(node);
 
         return new WebqlOperationExpression(
             metadata: CreateNodeMetadata(node),
@@ -405,7 +416,60 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression[] TranslateOperationOperands(CstInternal node)
+    public static WebqlExpression[] TranslateUnaryOperands(CstInternal node)
+    {
+        if (node.Children.Length != 4)
+        {
+            throw new Exception("Invalid operation expression");
+        }
+
+        var operand = node.Children[3].AsInternal();
+        var expression = TranslateExpression(operand);
+
+        return new WebqlExpression[] { expression };
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WebqlAnonymousObjectExpression TranslateNewExpression(CstInternal node)
+    {
+        return TranslateAnonymousObjectExpression(node.Children[2].AsInternal());
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WebqlExpression TranslateBinaryOperation(CstInternal node, WebqlOperatorType @operator)
+    {
+        /*
+         * The AST building is different for those operators, so they are handled separately.
+         */
+        switch (WebqlOperatorAnalyzer.GetBinaryOperator(@operator))
+        {
+            case WebqlBinaryOperator.Or:
+                return TranslateOrExpression(node);
+
+            case WebqlBinaryOperator.And:
+                return TranslateAndExpression(node);
+        }
+
+        var isCollectionOperator = WebqlOperatorAnalyzer.IsCollectionOperator(@operator);
+        var expressionNode = node.Children[3].AsInternal();
+
+        if (isCollectionOperator)
+        {
+            expressionNode.SetLhsExpressionToElementReference();
+        }
+
+        var operands = TranslateBinaryOperands(node);
+
+        return new WebqlOperationExpression(
+            metadata: CreateNodeMetadata(node),
+            attributes: null,
+            @operator: @operator,
+            operands: operands
+        );
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WebqlExpression[] TranslateBinaryOperands(CstInternal node)
     {
         if (node.Children.Length != 4)
         {
@@ -415,9 +479,9 @@ public static class WebqlAstBuilder
         var operatorNode = node.Children[1].AsLeaf();
         var rhsNode = node.Children[3].AsInternal();
 
-        var @operator = TranslateOperator(operatorNode);    
+        var @operator = TranslateOperator(operatorNode);
 
-        if(@operator == WebqlOperatorType.Aggregate)
+        if (@operator == WebqlOperatorType.Aggregate)
         {
             return new WebqlExpression[] { TranslateExpression(rhsNode) };
         }
@@ -435,6 +499,72 @@ public static class WebqlAstBuilder
         };
 
         return operands;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WebqlExpression TranslateOrExpression(CstInternal node)
+    {
+        var expression = null as WebqlExpression;
+
+        for (int i = 4; i < node.Children.Length; i = i + 2)
+        {   
+            var operandNode = node.Children[i].AsInternal();
+            var operand = TranslateExpression(operandNode);
+
+            if(expression is null)
+            {
+                expression = operand;
+            }
+            else
+            {
+                expression = new WebqlOperationExpression(
+                    metadata: CreateNodeMetadata(node),
+                    attributes: null,
+                    @operator: WebqlOperatorType.Or,
+                    operands: new WebqlExpression[] { expression, operand }
+                );
+            }
+        }
+        
+        if(expression is null)
+        {
+            throw new InvalidOperationException("Invalid OrExpression. The syntax defined by the grammar should only accept non empty array expressions.");
+        }
+
+        return expression;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WebqlExpression TranslateAndExpression(CstInternal node)
+    {
+        var expression = null as WebqlExpression;
+
+        for (int i = 4; i < node.Children.Length; i = i + 2)
+        {
+            var operandNode = node.Children[i].AsInternal();
+            var operand = TranslateExpression(operandNode);
+
+            if (expression is null)
+            {
+                expression = operand;
+            }
+            else
+            {
+                expression = new WebqlOperationExpression(
+                    metadata: CreateNodeMetadata(node),
+                    attributes: null,
+                    @operator: WebqlOperatorType.And,
+                    operands: new WebqlExpression[] { expression, operand }
+                );
+            }
+        }
+
+        if (expression is null)
+        {
+            throw new InvalidOperationException("Invalid AndExpression. The syntax defined by the grammar should only accept non empty array expressions.");
+        }
+
+        return expression;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -482,12 +612,6 @@ public static class WebqlAstBuilder
             name: key,
             value: value
         );
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlAnonymousObjectExpression TranslateNewExpression(CstInternal node)
-    {
-        return TranslateAnonymousObjectExpression(node.Children[2].AsInternal());
     }
 
     /*

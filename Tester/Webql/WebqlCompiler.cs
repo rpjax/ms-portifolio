@@ -18,9 +18,9 @@ public class WebqlCompiler
     /// Initializes a new instance of the <see cref="WebqlCompiler"/> class.
     /// </summary>
     /// <param name="settings">The compiler settings.</param>
-    public WebqlCompiler(WebqlCompilerSettings settings)
+    public WebqlCompiler(WebqlCompilerSettings? settings = null)
     {
-        Settings = settings;
+        Settings = settings ?? new WebqlCompilerSettings();
     }
 
     /// <summary>
@@ -28,10 +28,10 @@ public class WebqlCompiler
     /// </summary>
     /// <param name="query">The Webql query.</param>
     /// <returns>The compiled expression.</returns>
-    public Expression Compile(string query)
+    public Expression Compile(string query, Type elementType)
     {
         // Represents the compilation process. Each compilation process has its own context.
-        var context = new WebqlCompilationContext(Settings);
+        var context = new WebqlCompilationContext(Settings, elementType);
 
         /*
          * Analysis.

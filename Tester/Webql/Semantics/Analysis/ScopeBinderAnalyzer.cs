@@ -71,6 +71,11 @@ public class ScopeBinderAnalyzer : SyntaxTreeAnalyzer
 
         foreach (var operand in node.Operands)
         {
+            if(operand.HasScopeAttribute())
+            {
+                continue;
+            }
+
             operand.BindScope(localScope.CreateChildScope());
         }
     }

@@ -28,11 +28,9 @@ public enum WebqlOperatorType
 
     // Semantic Operators
     Aggregate,
-    //Expr, // ok
+    New, // todo
     //Parse, // ok
     //Type,
-    //New, // todo
-    //MemberAccess,
 
     // Collection Manipulation Operators
     // TODO: review those operators, i want to reformulate projection.
@@ -93,7 +91,8 @@ public enum WebqlUnaryOperator
 {
     Not,
     Count,
-    Aggregate
+    Aggregate,
+    New
 }
 
 public enum WebqlBinaryOperator
@@ -131,6 +130,7 @@ public enum WebqlBinaryOperator
 public enum WebqlSemanticOperator
 {
     Aggregate,
+    New
 }
 
 public enum WebqlCollectionOperator

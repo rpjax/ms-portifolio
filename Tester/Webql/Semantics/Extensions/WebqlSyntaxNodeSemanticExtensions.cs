@@ -79,7 +79,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ISemantics GetSemantics(this WebqlSyntaxNode node)
     {
-        if(node.HasSemanticsAttribute())
+        if (node.HasSemanticsAttribute())
         {
             return node.GetAttribute<ISemantics>(AstSemanticAttributes.SemanticsCacheAttribute);
         }
@@ -99,7 +99,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
     {
         var semantics = node.GetSemantics();
 
-        if(semantics is not TSemantics cast)
+        if (semantics is not TSemantics cast)
         {
             throw new InvalidOperationException();
         }
@@ -110,7 +110,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void BindSemantics(this WebqlSyntaxNode node, ISemantics semantics, bool enableOverride = false)
     {
-        if(enableOverride && node.HasSemanticsAttribute())
+        if (enableOverride && node.HasSemanticsAttribute())
         {
             node.RemoveAttribute(AstSemanticAttributes.SemanticsCacheAttribute);
         }
@@ -122,6 +122,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
      * Symbol resolution related extensions
      */
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ISymbol? TryResolveSymbol(this WebqlSyntaxNode node, string identifier)
     {
         var scope = node.GetScope();
@@ -130,6 +131,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
         return symbol;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TSymbol? TryResolveSymbol<TSymbol>(this WebqlSyntaxNode node, string identifier) where TSymbol : class, ISymbol
     {
         var symbol = node.TryResolveSymbol(identifier);
@@ -147,6 +149,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
         return typedSymbol;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ISymbol ResolveSymbol(this WebqlSyntaxNode node, string identifier)
     {
         var symbol = node.TryResolveSymbol(identifier);
@@ -159,6 +162,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
         return symbol;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TSymbol ResolveSymbol<TSymbol>(this WebqlSyntaxNode node, string identifier) where TSymbol : class, ISymbol
     {
         var symbol = node.ResolveSymbol(identifier);
@@ -175,12 +179,13 @@ public static class WebqlSyntaxNodeSemanticExtensions
      * Source symbol resolution related extensions
      */
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SourceSymbol GetSourceSymbol(this WebqlSyntaxNode node)
     {
-        var scope = node.GetScope();    
+        var scope = node.GetScope();
         var symbol = scope.ResolveSymbol<SourceSymbol>(WebqlAstSymbols.SourceIdentifier);
 
-        if(symbol is null)
+        if (symbol is null)
         {
             throw node.CreateSymbolNotFoundException(WebqlAstSymbols.SourceIdentifier);
         }
@@ -188,6 +193,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
         return symbol;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void DeclareSourceSymbol(this WebqlSyntaxNode node, Type type)
     {
         var scope = node.GetScope();
@@ -197,7 +203,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
             type: type
         );
 
-        if(scope.ContainsSymbol(symbol.Identifier, useParentScope: false))
+        if (scope.ContainsSymbol(symbol.Identifier, useParentScope: false))
         {
             node.CreateSymbolAlreadyDeclaredException(symbol.Identifier);
         }
@@ -209,6 +215,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
      * Element symbol resolution related extensions
      */
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ParameterSymbol GetElementSymbol(this WebqlSyntaxNode node)
     {
         var scope = node.GetScope();
@@ -222,6 +229,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
         return symbol;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void DeclareElementSymbol(this WebqlSyntaxNode node, Type type)
     {
         var scope = node.GetScope();
@@ -231,7 +239,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
             type: type
         );
 
-        if(scope.ContainsSymbol(symbol.Identifier, useParentScope: false))
+        if (scope.ContainsSymbol(symbol.Identifier, useParentScope: false))
         {
             node.CreateSymbolAlreadyDeclaredException(symbol.Identifier);
         }
@@ -243,6 +251,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
      * Expression related extensions
      */
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void EnsureOperandCount(this WebqlOperationExpression node, int expectedCount)
     {
         var actualCount = node.Operands.Length;
@@ -253,6 +262,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void EnsureAtLeastOneOperand(this WebqlOperationExpression node)
     {
         var actualCount = node.Operands.Length;
@@ -263,6 +273,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void EnsureIsQueryable(this WebqlExpression node)
     {
         var semantics = node.GetSemantics<IExpressionSemantics>();
@@ -274,20 +285,23 @@ public static class WebqlSyntaxNodeSemanticExtensions
         }
     }
 
-    public static Type GetExpressionType(this WebqlExpression node)
-    {
-        return node.GetSemantics<IExpressionSemantics>().Type;
-    }
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IExpressionSemantics GetExpressionSemantics(this WebqlExpression node)
     {
         return node.GetSemantics<IExpressionSemantics>();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Type GetExpressionType(this WebqlExpression node)
+    {
+        return node.GetExpressionSemantics().Type;
     }
 
     /*
      * 
      */
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IMemberAccessSemantics GetMemberAccessSemantics(this WebqlMemberAccessExpression node)
     {
         return node.GetSemantics<IMemberAccessSemantics>();
@@ -297,6 +311,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
      * 
      */
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IAnonymousObjectSemantics GetAnonymousObjectSemantics(this WebqlAnonymousObjectExpression node)
     {
         return node.GetSemantics<IAnonymousObjectSemantics>();
@@ -306,6 +321,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
      * 
      */
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IAnonymousObjectPropertySemantics GetAnonymousObjectPropertySemantics(this WebqlAnonymousObjectProperty node)
     {
         return node.GetSemantics<IAnonymousObjectPropertySemantics>();
@@ -314,37 +330,6 @@ public static class WebqlSyntaxNodeSemanticExtensions
     /*
      * Generic helpers
      */
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string GetSemanticIdentifier(this WebqlSyntaxNode node)
-    {
-        return "not implemented yet";
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Type GetQueryableType(this WebqlSyntaxNode node, WebqlCompilationContext context)
-    {
-        if (node.IsInRootScope())
-        {
-            return context.RootQueryableType;
-        }
-
-        return context.QueryableType;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    [Obsolete("This has no semantical meaning anymore. Use the ScopeType instead.")]
-    public static bool IsScopeSource(this WebqlSyntaxNode node)
-    {
-        if (node is not WebqlOperationExpression operationExpression)
-        {
-            return false;
-        }
-
-        var @operator = operationExpression.Operator;
-
-        return WebqlOperatorAnalyzer.IsCollectionOperator(@operator);
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsRoot(this WebqlSyntaxNode node)
@@ -370,6 +355,12 @@ public static class WebqlSyntaxNodeSemanticExtensions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsScopeSource(this WebqlSyntaxNode node)
+    {
+        return node.HasScopeAttribute();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsInRootScope(this WebqlSyntaxNode node)
     {
         var current = node;
@@ -377,7 +368,7 @@ public static class WebqlSyntaxNodeSemanticExtensions
 
         while (current is not null)
         {
-            if(current.HasScopeAttribute())
+            if (current.HasScopeAttribute())
             {
                 if (isScopeSourceFound)
                 {

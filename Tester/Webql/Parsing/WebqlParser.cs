@@ -167,11 +167,11 @@ logical_expression
 	;	
 
 and_expression
-	: '$and' ':' expression
+	: '$and' ':' expression_array
 	;
 
 or_expression
-	: '$or' ':' expression
+	: '$or' ':' expression_array
 	;
 
 not_expression
@@ -275,6 +275,10 @@ anonymous_object_expression
 anonymous_object_property
 	: $id ':' expression
 	| $string ':' expression
+	;
+
+expression_array
+	: '[' expression { ',' expression } ']'
 	;
 ";
 

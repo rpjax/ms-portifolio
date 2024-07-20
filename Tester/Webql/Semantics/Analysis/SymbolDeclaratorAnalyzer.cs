@@ -45,9 +45,8 @@ public class SymbolDeclaratorAnalyzer : SyntaxTreeAnalyzer
             throw new InvalidOperationException("Query node must be the root node.");
         }
 
-        var compilationContext = node.GetCompilationContext();
-        var queryableType = compilationContext.RootQueryableType;
-        var elementType = compilationContext.RootElementType;
+        var queryableType = node.GetQueryableType();
+        var elementType = node.GetCompilationElementType();
 
         var sourceType = queryableType.MakeGenericType(elementType);
 
