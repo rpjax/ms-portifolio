@@ -1,7 +1,8 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Language.Transformations;
+﻿using ModularSystem.Core;
+using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Language.Transformations;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Extensions;
+namespace ModularSystem.TextAnalysis.Language.Extensions;
 
 public static partial class ProductionSetTransformationsExtensions
 {

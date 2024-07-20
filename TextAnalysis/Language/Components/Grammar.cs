@@ -1,7 +1,7 @@
 ﻿using System.Text;
-using ModularSystem.Core.TextAnalysis.Language.Transformations;
+using ModularSystem.TextAnalysis.Language.Transformations;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Components;
+namespace ModularSystem.TextAnalysis.Language.Components;
 
 /// <summary>
 /// Definition of a context-free grammar. (Chomsky hierarchy type 2) <br/>

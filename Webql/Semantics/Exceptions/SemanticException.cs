@@ -1,4 +1,4 @@
-﻿using ModularSystem.Core.TextAnalysis.Parsing.Components;
+﻿using ModularSystem.TextAnalysis.Parsing.Components;
 using Webql.Exceptions;
 using Webql.Parsing.Ast;
 
@@ -16,7 +16,7 @@ public class SemanticException : WebqlCompilationException
     public SemanticException(
         string message, 
         WebqlSyntaxNode node)
-        : base(message, node.Metadata.StartPosition)
+        : base(message, node.Metadata.Position)
     { 
     }
 

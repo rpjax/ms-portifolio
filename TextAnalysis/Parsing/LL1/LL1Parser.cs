@@ -1,11 +1,11 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Tokenization;
-using ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
-using ModularSystem.Core.TextAnalysis.Parsing.Components;
-using ModularSystem.Core.TextAnalysis.Language.Extensions;
-using ModularSystem.Core.TextAnalysis.Tokenization.Extensions;
+﻿using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Tokenization;
+using ModularSystem.TextAnalysis.Parsing.LL1.Components;
+using ModularSystem.TextAnalysis.Parsing.Components;
+using ModularSystem.TextAnalysis.Language.Extensions;
+using ModularSystem.TextAnalysis.Tokenization.Extensions;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing;
+namespace ModularSystem.TextAnalysis.Parsing;
 
 [Obsolete("This parser is under maintenance. CST builder integration is pending.")]
 public class LL1Parser

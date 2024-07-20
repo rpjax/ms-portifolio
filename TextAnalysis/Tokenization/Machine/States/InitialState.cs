@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core.TextAnalysis.Tokenization.Components;
+﻿using ModularSystem.TextAnalysis.Tokenization.Components;
 using System.Runtime.CompilerServices;
 
-namespace ModularSystem.Core.TextAnalysis.Tokenization.Machine;
+namespace ModularSystem.TextAnalysis.Tokenization.Machine;
 
 public class InitialState : IState
 {

@@ -1,9 +1,10 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Tokenization;
-using ModularSystem.Core.TextAnalysis.Tokenization.Tools;
+﻿using ModularSystem.Core;
+using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Tokenization;
+using ModularSystem.TextAnalysis.Tokenization.Tools;
 using System.Runtime.CompilerServices;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Extensions;
+namespace ModularSystem.TextAnalysis.Language.Extensions;
 
 public static class TerminalExtensions
 {

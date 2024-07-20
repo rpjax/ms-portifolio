@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Parsing.Components;
+﻿namespace ModularSystem.TextAnalysis.Parsing.Components;
 
 public class CstNodeVisitor
 {
@@ -7,17 +7,17 @@ public class CstNodeVisitor
         return node.Accept(this);
     }
 
-    public virtual CstNode VisitRoot(CstRoot node)
+    public virtual CstNode VisitRoot(CstRootNode node)
     {
         return node;
     }
 
-    public virtual CstNode VisitNonTerminal(CstInternal node)
+    public virtual CstNode VisitNonTerminal(CstInternalNode node)
     {
         return node;
     }
 
-    public virtual CstNode VisitTerminal(CstLeaf node)
+    public virtual CstNode VisitTerminal(CstLeafNode node)
     {
         return node;
     }

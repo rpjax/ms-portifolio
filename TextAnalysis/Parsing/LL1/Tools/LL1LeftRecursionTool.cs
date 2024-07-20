@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Language.Graph;
+﻿using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Language.Graph;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Tools;
+namespace ModularSystem.TextAnalysis.Parsing.LL1.Tools;
 
 public class LL1LeftRecursionTool : GraphVisitor
 {

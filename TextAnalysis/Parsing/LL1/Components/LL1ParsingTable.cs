@@ -1,6 +1,6 @@
-﻿using ModularSystem.Core.TextAnalysis.Tokenization;
+﻿using ModularSystem.TextAnalysis.Tokenization;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Components;
+namespace ModularSystem.TextAnalysis.Language.Components;
 
 public class LL1ParsingTableEntry
 {

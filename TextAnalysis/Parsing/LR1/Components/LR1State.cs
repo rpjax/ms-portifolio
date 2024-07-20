@@ -1,8 +1,8 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Language.Extensions;
+﻿using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Language.Extensions;
 using System.Collections;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
+namespace ModularSystem.TextAnalysis.Parsing.LR1.Components;
 
 /// <summary>
 /// Defines a class that represents an LR(1) state.

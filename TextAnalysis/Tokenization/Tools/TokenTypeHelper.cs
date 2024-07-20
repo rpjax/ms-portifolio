@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Tokenization.Tools;
+﻿namespace ModularSystem.TextAnalysis.Tokenization.Tools;
 
 public static class TokenTypeHelper
 {

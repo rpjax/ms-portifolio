@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using ModularSystem.Core.Linq;
-using ModularSystem.Core.TextAnalysis.Tokenization;
-using ModularSystem.Core.TextAnalysis.Grammars;
-using ModularSystem.Core.TextAnalysis.Parsing;
-using ModularSystem.Core.TextAnalysis.Parsing.Extensions;
-using ModularSystem.Core.TextAnalysis.Parsing.Components;
+using ModularSystem.TextAnalysis.Tokenization;
+using ModularSystem.TextAnalysis.Grammars;
+using ModularSystem.TextAnalysis.Parsing;
+using ModularSystem.TextAnalysis.Parsing.Extensions;
+using ModularSystem.TextAnalysis.Parsing.Components;
 using Webql.Parsing;
 using Webql.Core;
 using Webql;
@@ -348,7 +348,7 @@ semantic_value
         var times = new List<long>();
 
         var parser = new LR1Parser(new GdefGrammar());
-        var root = null as CstRoot;
+        var root = null as CstRootNode;
 
         for (int i = 0; i < 10_000; i++)
         {

@@ -1,7 +1,8 @@
-using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Language.Extensions;
+using ModularSystem.Core;
+using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Language.Extensions;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
+namespace ModularSystem.TextAnalysis.Parsing.LL1.Components;
 
 public class LL1LeftRecursionCicle
 {

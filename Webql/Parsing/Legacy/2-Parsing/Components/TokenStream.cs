@@ -1,4 +1,4 @@
-﻿using ModularSystem.Core.TextAnalysis.Tokenization;
+﻿using ModularSystem.TextAnalysis.Tokenization;
 
 namespace ModularSystem.Webql.Analysis.DocumentSyntax.Parsing;
 

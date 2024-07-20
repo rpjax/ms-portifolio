@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Tokenization.Components;
+﻿namespace ModularSystem.TextAnalysis.Tokenization.Components;
 
 /// <summary>
 /// Represents the type of a character in the source text. It caracterizes <see cref="char"/> into a specific category.

@@ -1,7 +1,7 @@
-using ModularSystem.Core.TextAnalysis.Language.Extensions;
-using ModularSystem.Core.TextAnalysis.Tokenization;
+using ModularSystem.TextAnalysis.Language.Extensions;
+using ModularSystem.TextAnalysis.Tokenization;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Components;
+namespace ModularSystem.TextAnalysis.Language.Components;
 
 /// <summary>
 /// Represents a terminal symbol in a context-free grammar.

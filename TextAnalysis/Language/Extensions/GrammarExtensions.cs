@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
+﻿using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Parsing.LL1.Components;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Extensions;
+namespace ModularSystem.TextAnalysis.Language.Extensions;
 
 public static class GrammarExtensions
 {

@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Language.Graph;
+﻿namespace ModularSystem.TextAnalysis.Language.Graph;
 
 public enum RecursionType
 {

@@ -1,9 +1,9 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Tokenization.Tools;
+﻿using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Tokenization.Tools;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace ModularSystem.Core.TextAnalysis.Tokenization.Components;
+namespace ModularSystem.TextAnalysis.Tokenization.Components;
 
 /// <summary>
 /// Represents the lexical context of the lexer.

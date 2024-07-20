@@ -36,7 +36,7 @@ public class WebqlCompiler
         /*
          * Analysis.
          */
-
+            
         // Parses the raw query into an AST.
         var syntaxTree = WebqlParser.ParseToAst(query) as WebqlSyntaxNode;
 

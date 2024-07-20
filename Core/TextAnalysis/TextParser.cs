@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace ModularSystem.Core.TextAnalysis;
+namespace ModularSystem.TextAnalysis;
 
 public enum TextParserAction
 {

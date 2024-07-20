@@ -1,8 +1,8 @@
-using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Language.Extensions;
-using ModularSystem.Core.TextAnalysis.Parsing.LL1.Tools;
+using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Language.Extensions;
+using ModularSystem.TextAnalysis.Parsing.LL1.Tools;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Transformations;
+namespace ModularSystem.TextAnalysis.Language.Transformations;
 
 public class LeftRecursionRemoval : ISetTransformer
 {

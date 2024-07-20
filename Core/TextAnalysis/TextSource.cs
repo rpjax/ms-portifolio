@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis;
+﻿namespace ModularSystem.TextAnalysis;
 
 /// <summary>
 /// Encapsulates a stream of text, allowing for peeking(n) chars without consuming from the stream.

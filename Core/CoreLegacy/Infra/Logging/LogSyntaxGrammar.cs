@@ -1,4 +1,4 @@
-﻿using ModularSystem.Core.TextAnalysis;
+﻿using ModularSystem.TextAnalysis;
 using System.Text.RegularExpressions;
 
 namespace ModularSystem.Core.Logging;

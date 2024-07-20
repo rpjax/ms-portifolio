@@ -1,7 +1,7 @@
 ﻿using ModularSystem.Core.Cli;
 using ModularSystem.Core.Logging;
 
-namespace ModularSystem.Core.TextAnalysis.CommomGrammar;
+namespace ModularSystem.TextAnalysis.CommomGrammar;
 
 public class CommonSyntaxGrammar : SyntaxGrammar
 {

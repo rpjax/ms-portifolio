@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis;
+﻿namespace ModularSystem.TextAnalysis;
 
 // A regular grammar is defined by:
 // - A finite collection of terminal symbols Σ (alfabet).

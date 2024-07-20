@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Tokenization;
+﻿namespace ModularSystem.TextAnalysis.Tokenization;
 
 /// <summary>
 /// Represents the type of a token. This enumeration is used by the tokenizer to classify tokens.
@@ -16,17 +16,25 @@ public enum TokenType : int
     Eoi,
 
     /// <summary>
-    /// Identifiers. Ex: <c>name</c>, <c>age</c>.
+    /// Identifiers must start with a letter or underscore, followed by any number of digits, letters, or underscores.
+    /// <br/>
+    /// The formation rule in regex notation is: <c>^[a-zA-Z_][a-zA-Z0-9_]*$</c>.
+    /// <br/>
+    /// Ex: <c>name</c>, <c>Name</c>, <c>_name_</c>, <c>name99</c>. 
     /// </summary>
     Identifier,
 
     /// <summary>
     /// Special identifier that carries a specific meaning in the context of the language. Ex: <c>if</c>, <c>else</c>, <c>for</c>, <c>while</c> etc...
+    /// <br/>
+    /// <remarks>
+    /// This type exists to enable support for keywords. However, as of the current implementation, the tokenizer does not generate any keywords. All words are considered identifiers instead.
+    /// </remarks>
     /// </summary>
     Keyword,
 
     /// <summary>
-    /// Single-character punctuators. Ex: <c>,</c> <c>:</c> <c>(</c> <c>[</c> <c>{</c> etc...
+    /// Single-character punctuators. Ex: <c>,</c> <c>:</c> <c>(</c> <c>[</c> <c>{</c> 
     /// </summary>
     Punctuation,
 

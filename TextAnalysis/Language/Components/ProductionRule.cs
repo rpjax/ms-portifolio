@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Language.Components;
+﻿namespace ModularSystem.TextAnalysis.Language.Components;
 
 /// <summary>
 /// A production rule is a rule that defines how a non-terminal symbol can be replaced by a sequence of other symbols. <br/>

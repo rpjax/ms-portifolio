@@ -1,6 +1,6 @@
-﻿using ModularSystem.Core.TextAnalysis.Parsing.Components;
+﻿using ModularSystem.TextAnalysis.Parsing.Components;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing.Extensions;
+namespace ModularSystem.TextAnalysis.Parsing.Extensions;
 
 public static class CstNodeExtensions
 {
@@ -10,9 +10,9 @@ public static class CstNodeExtensions
             .Build();
     }
 
-    public static CstRoot AsRoot(this CstNode node)
+    public static CstRootNode AsRoot(this CstNode node)
     {
-        if(node is not CstRoot root)
+        if(node is not CstRootNode root)
         {
             throw new InvalidOperationException("Node is not a root node");
         }
@@ -20,9 +20,9 @@ public static class CstNodeExtensions
         return root;
     }
 
-    public static CstInternal AsInternal(this CstNode node)
+    public static CstInternalNode AsInternal(this CstNode node)
     {
-        if(node is not CstInternal internalNode)
+        if(node is not CstInternalNode internalNode)
         {
             throw new InvalidOperationException("Node is not an internal node");
         }
@@ -30,9 +30,9 @@ public static class CstNodeExtensions
         return internalNode;
     }
 
-    public static CstLeaf AsLeaf(this CstNode node)
+    public static CstLeafNode AsLeaf(this CstNode node)
     {
-        if(node is not CstLeaf leaf)
+        if(node is not CstLeafNode leaf)
         {
             throw new InvalidOperationException("Node is not a leaf node");
         }

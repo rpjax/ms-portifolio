@@ -1,6 +1,6 @@
-using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Language.Components;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
+namespace ModularSystem.TextAnalysis.Parsing.LL1.Components;
 
 public class LL1FollowTable
 {

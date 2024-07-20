@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Language.Extensions;
+﻿using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Language.Extensions;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Tools;
+namespace ModularSystem.TextAnalysis.Language.Tools;
 
 public class SymbolRealizabilityTool
 {

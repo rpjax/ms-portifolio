@@ -1,6 +1,6 @@
-using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Language.Components;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
+namespace ModularSystem.TextAnalysis.Parsing.LR1.Components;
 
 public class LR1Grammar : Grammar
 {

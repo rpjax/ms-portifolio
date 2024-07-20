@@ -1,8 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
-using ModularSystem.Core.TextAnalysis.Gdef;
-using ModularSystem.Core.TextAnalysis.Parsing;
-using ModularSystem.Core.TextAnalysis.Parsing.Components;
-using ModularSystem.Core.TextAnalysis.Parsing.Tools;
+using ModularSystem.TextAnalysis.Gdef;
+using ModularSystem.TextAnalysis.Parsing;
+using ModularSystem.TextAnalysis.Parsing.Components;
+using ModularSystem.TextAnalysis.Parsing.Tools;
 using Webql.Parsing.Ast;
 using Webql.Parsing.Ast.Builder;
 
@@ -332,7 +332,7 @@ expression_array
     /// <param name="text"></param>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static CstRoot Parse(string text)
+    public static CstRootNode Parse(string text)
     {
         var cst = GetParser().Parse(text);
         var reducer = new CstReducer(cst, ReduceWhitelist);

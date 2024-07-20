@@ -8,7 +8,7 @@ public class TranslationException : WebqlCompilationException
     public TranslationException(
         string message, 
         WebqlSyntaxNode node)
-        : base(message, node.Metadata.StartPosition)
+        : base(message, node.Metadata.Position)
     {
     }
 }

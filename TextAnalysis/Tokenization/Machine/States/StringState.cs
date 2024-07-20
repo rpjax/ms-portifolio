@@ -1,6 +1,6 @@
-﻿using ModularSystem.Core.TextAnalysis.Tokenization.Components;
+﻿using ModularSystem.TextAnalysis.Tokenization.Components;
 
-namespace ModularSystem.Core.TextAnalysis.Tokenization.Machine;
+namespace ModularSystem.TextAnalysis.Tokenization.Machine;
 
 public class StringState : IState
 {

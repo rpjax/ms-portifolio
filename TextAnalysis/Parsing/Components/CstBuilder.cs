@@ -1,10 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
-using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Tokenization;
+using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Tokenization;
 using System.Collections;
 using System.Runtime.CompilerServices;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing.Components;
+namespace ModularSystem.TextAnalysis.Parsing.Components;
 
 internal class TokenCollection : IEnumerable<Token>
 {
@@ -72,7 +72,7 @@ public class CstBuilder
     public void CreateLeaf(Token token)
     {
         TokenAccumulator.Add(new TokenCollection(token));
-        NodeAccumulator.Add(new CstLeaf(token: token, metadata: GetLeafMetadata(token)));
+        NodeAccumulator.Add(new CstLeafNode(token: token, metadata: GetLeafMetadata(token)));
     }
 
     /// <summary>
@@ -91,11 +91,11 @@ public class CstBuilder
         if (!IncludeEpsilons)
         {
             children = children
-                 .Where(x => x is CstInternal node ? !node.IsEpsilon : true)
+                 .Where(x => x is CstInternalNode node ? !node.IsEpsilon : true)
                  .ToArray();
         }
 
-        var node = new CstInternal(
+        var node = new CstInternalNode(
             name: production.Head.Name,
             children: children,
             metadata: metadata,
@@ -131,7 +131,7 @@ public class CstBuilder
         // It also helps to debug the parser by showing where an epsilon reduction occurred.
         //
         // The metadata for the epsilon collection is derived from the last token in the token accumulator.
-        NodeAccumulator.Add(new CstInternal(
+        NodeAccumulator.Add(new CstInternalNode(
             name: production.Head.Name,
             children: Array.Empty<CstNode>(),
             metadata: GetEpsilonInternalMetadata(),
@@ -155,11 +155,11 @@ public class CstBuilder
         if (!IncludeEpsilons)
         {
             children = children
-                 .Where(x => x is CstInternal node ? !node.IsEpsilon : true)
+                 .Where(x => x is CstInternalNode node ? !node.IsEpsilon : true)
                  .ToArray();
         }
 
-        var node = new CstRoot(
+        var node = new CstRootNode(
             name: production.Head.Name,
             children: children,
             metadata: metadata
@@ -174,7 +174,7 @@ public class CstBuilder
     /// <returns>The root collection of the CST.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the CST is empty or not complete.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public CstRoot Build()
+    public CstRootNode Build()
     {
         if (NodeAccumulator.Count == 0)
         {
@@ -185,7 +185,7 @@ public class CstBuilder
             throw new InvalidOperationException("CST is not complete.");
         }
 
-        if (NodeAccumulator.Single() is not CstRoot root)
+        if (NodeAccumulator.Single() is not CstRootNode root)
         {
             throw new InvalidOperationException("CST is not complete.");
         }
@@ -237,17 +237,21 @@ public class CstBuilder
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private CstNodeMetadata GetLeafMetadata(Token token)
     {
-        return new CstNodeMetadata(
-            startPosition: new SyntaxElementPosition(
+        var position = new SyntaxElementPosition(
+            start: new LexicalCoordinate(
                 index: token.Metadata.Position.StartIndex,
                 line: token.Metadata.Position.Line,
                 column: token.Metadata.Position.Column - token.Value.Length + 1
             ),
-            endPosition: new SyntaxElementPosition(
+            end: new LexicalCoordinate(
                 index: token.Metadata.Position.EndIndex,
                 line: token.Metadata.Position.Line,
                 column: token.Metadata.Position.Column + 1
             )
+        );
+
+        return new CstNodeMetadata(
+            position: position
         );
     }
 
@@ -262,17 +266,21 @@ public class CstBuilder
         var firstToken = collection.First();
         var lastToken = collection.Last();
 
-        return new CstNodeMetadata(
-            startPosition: new SyntaxElementPosition(
+        var position = new SyntaxElementPosition(
+            start: new LexicalCoordinate(
                 index: firstToken.Metadata.Position.StartIndex,
                 line: firstToken.Metadata.Position.Line,
                 column: firstToken.Metadata.Position.Column - firstToken.Value.Length + 1
             ),
-            endPosition: new SyntaxElementPosition(
+            end: new LexicalCoordinate(
                 index: lastToken.Metadata.Position.EndIndex,
                 line: lastToken.Metadata.Position.Line,
                 column: lastToken.Metadata.Position.Column + 1
             )
+        );
+
+        return new CstNodeMetadata(
+            position: position
         );
     }
 
@@ -281,17 +289,21 @@ public class CstBuilder
     {
         var lastToken = TokenAccumulator.LastOrDefault()?.FirstOrDefault();
 
-        return new CstNodeMetadata(
-            startPosition: new SyntaxElementPosition(
+        var position = new SyntaxElementPosition(
+            start: new LexicalCoordinate(
                 index: lastToken?.Metadata.Position.EndIndex ?? 0,
                 line: lastToken?.Metadata.Position.Line ?? 0,
                 column: lastToken?.Metadata.Position.Column - lastToken?.Value.Length + 1 ?? 0
             ),
-            endPosition: new SyntaxElementPosition(
+            end: new LexicalCoordinate(
                 index: lastToken?.Metadata.Position.EndIndex ?? 0,
                 line: lastToken?.Metadata.Position.Line ?? 0,
                 column: lastToken?.Metadata.Position.Column + 1 ?? 0
             )
+        );
+
+        return new CstNodeMetadata(
+            position: position
         );
     }
 

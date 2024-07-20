@@ -1,8 +1,9 @@
-using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Language.Extensions;
-using ModularSystem.Core.TextAnalysis.Parsing.LL1.Tools;
+using ModularSystem.Core;
+using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Language.Extensions;
+using ModularSystem.TextAnalysis.Parsing.LL1.Tools;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Graph;
+namespace ModularSystem.TextAnalysis.Language.Graph;
 
 public enum ChildPosition
 {

@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Gdef;
+﻿namespace ModularSystem.TextAnalysis.Gdef;
 
 public class GdefParsingTableBuilder
 {

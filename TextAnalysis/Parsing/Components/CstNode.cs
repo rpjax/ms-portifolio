@@ -1,6 +1,6 @@
-﻿using ModularSystem.Core.TextAnalysis.Tokenization;
+﻿using ModularSystem.TextAnalysis.Tokenization;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing.Components;
+namespace ModularSystem.TextAnalysis.Parsing.Components;
 
 /// <summary>
 /// Represents the type of a node in the concrete syntax tree (CST).
@@ -160,7 +160,7 @@ public abstract class CstNode
 /// <summary>
 /// Represents a root node in the concrete syntax tree (CST).
 /// </summary>
-public class CstRoot : CstNode
+public class CstRootNode : CstNode
 {
     /// <inheritdoc/>
     public override CstNodeType Type => CstNodeType.Root;
@@ -177,12 +177,12 @@ public class CstRoot : CstNode
     public CstNode[] Children { get; }
 
     /// <summary>
-    /// Creates a new instance of the <see cref="CstRoot"/> class.
+    /// Creates a new instance of the <see cref="CstRootNode"/> class.
     /// </summary>
     /// <param name="name"></param>
     /// <param name="children"></param>
     /// <param name="metadata"></param>
-    public CstRoot(
+    public CstRootNode(
         string name, 
         CstNode[] children, 
         CstNodeMetadata metadata) : base(children)
@@ -201,14 +201,14 @@ public class CstRoot : CstNode
     ///<inheritdoc/>
     public override string ToString()
     {
-        return $"{Name} -> `{string.Join(" ", Children.Select(x => x.ToString()))}`";
+        return $"{Name}: [`{string.Join(" ", Children.Select(x => x.ToString()))}`]";
     }
 }
 
 /// <summary>
 /// Represents an internal node in the concrete syntax tree (CST).
 /// </summary>
-public class CstInternal : CstNode
+public class CstInternalNode : CstNode
 {
     /// <inheritdoc/>
     public override CstNodeType Type => CstNodeType.Internal;
@@ -230,13 +230,13 @@ public class CstInternal : CstNode
     public bool IsEpsilon { get; }
 
     /// <summary>
-    /// Creates a new instance of the <see cref="CstInternal"/> class.
+    /// Creates a new instance of the <see cref="CstInternalNode"/> class.
     /// </summary>
     /// <param name="name"></param>
     /// <param name="children"></param>
     /// <param name="metadata"></param>
     /// <param name="isEpsilon"></param>
-    public CstInternal(
+    public CstInternalNode(
         string name, 
         CstNode[] children, 
         CstNodeMetadata metadata, 
@@ -257,14 +257,14 @@ public class CstInternal : CstNode
     ///<inheritdoc/>
     public override string ToString()
     {
-        return $"{Name} -> `{string.Join(" ", Children.Select(x => x.ToString()))}`";
+        return $"{Name}: [`{string.Join(" ", Children.Select(x => x.ToString()))}`]";
     }
 }
 
 /// <summary>
 /// Represents a leaf node in the concrete syntax tree (CST).
 /// </summary>
-public class CstLeaf : CstNode
+public class CstLeafNode : CstNode
 {
     /// <inheritdoc/>
     public override CstNodeType Type => CstNodeType.Leaf;
@@ -281,11 +281,11 @@ public class CstLeaf : CstNode
     public Token Token { get; }
 
     /// <summary>
-    /// Creates a new instance of the <see cref="CstLeaf"/> class.
+    /// Creates a new instance of the <see cref="CstLeafNode"/> class.
     /// </summary>
     /// <param name="token"></param>
     /// <param name="metadata"></param>
-    public CstLeaf(Token token, CstNodeMetadata metadata) : base(null)
+    public CstLeafNode(Token token, CstNodeMetadata metadata) : base(null)
     {
         Token = token;
         Metadata = metadata;

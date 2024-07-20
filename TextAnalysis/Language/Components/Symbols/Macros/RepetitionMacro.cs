@@ -1,6 +1,6 @@
-using ModularSystem.Core.TextAnalysis.Language.Extensions;
+using ModularSystem.TextAnalysis.Language.Extensions;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Components;
+namespace ModularSystem.TextAnalysis.Language.Components;
 
 /// <summary>
 /// Represents a repetition macro. It is analoguous to EBNF's "{ }" operator.

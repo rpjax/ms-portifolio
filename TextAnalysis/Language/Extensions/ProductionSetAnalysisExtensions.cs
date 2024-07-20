@@ -1,9 +1,10 @@
-using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Language.Tools;
-using ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
-using ModularSystem.Core.TextAnalysis.Parsing.LL1.Tools;
+using ModularSystem.Core;
+using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Language.Tools;
+using ModularSystem.TextAnalysis.Parsing.LL1.Components;
+using ModularSystem.TextAnalysis.Parsing.LL1.Tools;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Extensions;
+namespace ModularSystem.TextAnalysis.Language.Extensions;
 
 public static class ProductionSetAnalysisExtensions
 {

@@ -1,6 +1,6 @@
-using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Language.Components;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Graph;
+namespace ModularSystem.TextAnalysis.Language.Graph;
 
 public static class GraphNodeExtensions
 {

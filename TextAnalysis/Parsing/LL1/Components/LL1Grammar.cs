@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Parsing.LL1.Tools;
+﻿using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Parsing.LL1.Tools;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Components;
+namespace ModularSystem.TextAnalysis.Parsing.LL1.Components;
 
 public class LL1Grammar : Grammar
 {

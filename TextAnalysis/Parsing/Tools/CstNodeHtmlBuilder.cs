@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core.TextAnalysis.Parsing.Components;
+﻿using ModularSystem.TextAnalysis.Parsing.Components;
 using System.Text;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing.Extensions;
+namespace ModularSystem.TextAnalysis.Parsing.Extensions;
 
 public class CstNodeHtmlBuilder
 {
@@ -51,15 +51,15 @@ public class CstNodeHtmlBuilder
         switch (node.Type)
         {
             case CstNodeType.Root:
-                BuildRoot((CstRoot)node);
+                BuildRoot((CstRootNode)node);
                 break;
 
             case CstNodeType.Internal:
-                BuildInternal((CstInternal)node);
+                BuildInternal((CstInternalNode)node);
                 break;
 
             case CstNodeType.Leaf:
-                BuildLeaf((CstLeaf)node);
+                BuildLeaf((CstLeafNode)node);
                 break;
 
             default:
@@ -67,7 +67,7 @@ public class CstNodeHtmlBuilder
         }
     }
 
-    private void BuildRoot(CstRoot node)
+    private void BuildRoot(CstRootNode node)
     {
         Builder.Append("<li>");
         Builder.Append("<details>");
@@ -84,7 +84,7 @@ public class CstNodeHtmlBuilder
         Builder.Append("</li>");
     }
 
-    private void BuildInternal(CstInternal node)
+    private void BuildInternal(CstInternalNode node)
     {
         Builder.Append("<li>");
         Builder.Append("<details>");
@@ -102,7 +102,7 @@ public class CstNodeHtmlBuilder
     }
 
 
-    private void BuildLeaf(CstLeaf node)
+    private void BuildLeaf(CstLeafNode node)
     {
         //var text = node.IsEpsilon
         //    ? $"<li> ε ({node.Symbol.ToString()})</li>"

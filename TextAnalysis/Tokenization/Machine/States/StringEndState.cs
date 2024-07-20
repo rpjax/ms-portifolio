@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace ModularSystem.Core.TextAnalysis.Tokenization.Machine;
+namespace ModularSystem.TextAnalysis.Tokenization.Machine;
 
 public class StringEndState : IState
 {

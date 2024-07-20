@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Tokenization;
+﻿namespace ModularSystem.TextAnalysis.Tokenization;
 
 /// <summary>
 /// Represents a token produced by the lexical Analyzer, using a lexeme production rule.

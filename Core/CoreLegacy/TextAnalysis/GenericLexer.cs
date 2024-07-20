@@ -1,9 +1,10 @@
-﻿using ModularSystem.Core.Helpers;
+﻿using ModularSystem.Core;
+using ModularSystem.Core.Helpers;
 using System.Buffers;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace ModularSystem.Core.TextAnalysis;
+namespace ModularSystem.TextAnalysis;
 
 public delegate LexerState LexerStateTransition(LexerState state, LexerInput input);
 

@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Text;
-using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Language.Components;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Graph;
+namespace ModularSystem.TextAnalysis.Language.Graph;
 
 public class LL1GraphNode : IEnumerable<LL1GraphNode>
 {

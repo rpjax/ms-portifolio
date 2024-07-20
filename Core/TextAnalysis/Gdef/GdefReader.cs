@@ -1,6 +1,7 @@
-﻿using System.Text.RegularExpressions;
+﻿using ModularSystem.Core;
+using System.Text.RegularExpressions;
 
-namespace ModularSystem.Core.TextAnalysis.Gdef;
+namespace ModularSystem.TextAnalysis.Gdef;
 
 /// <summary>
 /// Reads my custom ".gdef" file. The GDEF extends the BNF format.

@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis;
+﻿namespace ModularSystem.TextAnalysis;
 
 /// <summary>
 /// A context-free-grammar, type 2, production. <br/>

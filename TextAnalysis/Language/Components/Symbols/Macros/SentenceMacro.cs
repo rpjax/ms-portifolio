@@ -1,4 +1,4 @@
-namespace ModularSystem.Core.TextAnalysis.Language.Components;
+namespace ModularSystem.TextAnalysis.Language.Components;
 
 public interface ISentenceMacro : IMacroSymbol
 {

@@ -1,6 +1,6 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
+﻿using ModularSystem.TextAnalysis.Language.Components;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Extensions;
+namespace ModularSystem.TextAnalysis.Language.Extensions;
 
 public static class ExpandedAlternativeMacroExtensions
 {

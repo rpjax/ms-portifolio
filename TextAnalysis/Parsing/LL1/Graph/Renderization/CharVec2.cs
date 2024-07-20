@@ -1,4 +1,4 @@
-namespace ModularSystem.Core.TextAnalysis.Language.Graph.Renderization;
+namespace ModularSystem.TextAnalysis.Language.Graph.Renderization;
 
 public class Vec2
 {

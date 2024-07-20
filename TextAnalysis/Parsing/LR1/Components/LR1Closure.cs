@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
+﻿namespace ModularSystem.TextAnalysis.Parsing.LR1.Components;
 
 public class LR1Closure : LR1ItemCollection
 {

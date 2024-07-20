@@ -1,6 +1,7 @@
-﻿using ModularSystem.Core.TextAnalysis.Tokenization.Components;
+﻿using ModularSystem.Core;
+using ModularSystem.TextAnalysis.Tokenization.Components;
 
-namespace ModularSystem.Core.TextAnalysis.Tokenization.Experimental;
+namespace ModularSystem.TextAnalysis.Tokenization.Experimental;
 
 public interface ICharacterStream
 {

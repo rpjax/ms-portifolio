@@ -1,11 +1,11 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Language.Extensions;
-using ModularSystem.Core.TextAnalysis.Parsing.Components;
-using ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
-using ModularSystem.Core.TextAnalysis.Tokenization;
+﻿using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Language.Extensions;
+using ModularSystem.TextAnalysis.Parsing.Components;
+using ModularSystem.TextAnalysis.Parsing.LR1.Components;
+using ModularSystem.TextAnalysis.Tokenization;
 using System.Runtime.CompilerServices;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing;
+namespace ModularSystem.TextAnalysis.Parsing;
 
 /// <summary>
 /// Represents a LR(1) parser. It is capable of parsing text based on a given grammar.
@@ -38,7 +38,7 @@ public class LR1Parser
     /// </summary>
     /// <param name="text"></param>
     /// <returns></returns>
-    public CstRoot Parse(string text)
+    public CstRootNode Parse(string text)
     {
         using var inputStream = new InputStream(
             input: text,

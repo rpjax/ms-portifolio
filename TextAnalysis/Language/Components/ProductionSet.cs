@@ -1,7 +1,7 @@
 using System.Collections;
-using ModularSystem.Core.TextAnalysis.Language.Transformations;
+using ModularSystem.TextAnalysis.Language.Transformations;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Components;
+namespace ModularSystem.TextAnalysis.Language.Components;
 
 public class ProductionSet :
     IEnumerable<ProductionRule>

@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
+﻿namespace ModularSystem.TextAnalysis.Parsing.LR1.Components;
 
 /// <summary>
 /// Represents an action type in a LR(1) parsing table.

@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Tokenization.Machine;
+﻿namespace ModularSystem.TextAnalysis.Tokenization.Machine;
 
 public enum TokenizerState
 {

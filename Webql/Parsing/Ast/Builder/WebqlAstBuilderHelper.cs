@@ -1,4 +1,4 @@
-﻿using ModularSystem.Core.TextAnalysis.Parsing.Components;
+﻿using ModularSystem.TextAnalysis.Parsing.Components;
 using System.Runtime.CompilerServices;
 
 namespace Webql.Parsing.Ast.Builder;
@@ -6,7 +6,7 @@ namespace Webql.Parsing.Ast.Builder;
 public static class WebqlAstBuilderHelper
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static CstExpressionType GetCstExpressionType(CstInternal node)
+    public static CstExpressionType GetCstExpressionType(CstInternalNode node)
     {
         switch (node.Name)
         {

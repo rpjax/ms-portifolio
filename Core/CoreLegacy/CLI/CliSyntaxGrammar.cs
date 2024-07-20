@@ -1,4 +1,4 @@
-﻿using ModularSystem.Core.TextAnalysis;
+﻿using ModularSystem.TextAnalysis;
 
 namespace ModularSystem.Core.Cli;
 

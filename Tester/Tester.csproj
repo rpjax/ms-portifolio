@@ -7,13 +7,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="TextAnalysis\Language\LL\**" />
-    <Content Remove="TextAnalysis\Language\LL\**" />
-    <EmbeddedResource Remove="TextAnalysis\Language\LL\**" />
-    <None Remove="TextAnalysis\Language\LL\**" />
-  </ItemGroup>
-
   <!--THIS MAKES REFERENCE TO THE ASPNET SHARED ASSEMBLIES.-->
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -24,9 +17,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Webql\Parsing\Legacy\Components\" />
+    <ProjectReference Include="..\TextAnalysis\TextAnalysis.csproj" />
+    <ProjectReference Include="..\Webql\Webql.csproj" />
   </ItemGroup>
 
 </Project>

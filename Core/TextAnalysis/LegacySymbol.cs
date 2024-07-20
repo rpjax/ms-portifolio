@@ -1,8 +1,8 @@
 ﻿using System.Text;
 
-namespace ModularSystem.Core.TextAnalysis;
+namespace ModularSystem.TextAnalysis;
 
-[Obsolete("Use ModularSystem.Core.TextAnalysis.Language.Components.Symbol instead")]
+[Obsolete("Use ModularSystem.TextAnalysis.Language.Components.Symbol instead")]
 public abstract class LegacySymbol : IEquatable<LegacySymbol>
 {
     public abstract bool IsTerminal { get; }
@@ -13,7 +13,7 @@ public abstract class LegacySymbol : IEquatable<LegacySymbol>
     public abstract ReadOnlySpan<char> GetValue();
 }
 
-[Obsolete("Use ModularSystem.Core.TextAnalysis.Language.Components.Terminal instead")]
+[Obsolete("Use ModularSystem.TextAnalysis.Language.Components.Terminal instead")]
 public class LegacyTerminalSymbol : LegacySymbol
 {
     public override bool IsTerminal => true;
@@ -45,7 +45,7 @@ public class LegacyTerminalSymbol : LegacySymbol
     }
 }
 
-[Obsolete("Use ModularSystem.Core.TextAnalysis.Language.Components.NonTerminal instead")]
+[Obsolete("Use ModularSystem.TextAnalysis.Language.Components.NonTerminal instead")]
 public class LegacyNonTerminalSymbol : LegacySymbol
 {
     public override bool IsTerminal => false;
@@ -105,7 +105,7 @@ public class LegacyNonTerminalSymbol : LegacySymbol
     }
 }
 
-[Obsolete("Use ModularSystem.Core.TextAnalysis.Language.Components.Epsilon instead")]
+[Obsolete("Use ModularSystem.TextAnalysis.Language.Components.Epsilon instead")]
 public class LegacyEpsilonSymbol : LegacySymbol
 {
     public override bool IsTerminal => true;

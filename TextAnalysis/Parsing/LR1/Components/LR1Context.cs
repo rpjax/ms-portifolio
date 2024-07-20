@@ -1,8 +1,9 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Parsing.Components;
-using ModularSystem.Core.TextAnalysis.Tokenization;
+﻿using ModularSystem.Core;
+using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Parsing.Components;
+using ModularSystem.TextAnalysis.Tokenization;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
+namespace ModularSystem.TextAnalysis.Parsing.LR1.Components;
 
 /// <summary>
 /// Represents the context of a LR(1) parser execution. It contains the input stream, the stack and the concrete syntax tree (CST) builder.

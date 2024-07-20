@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Tokenization.Machine;
+﻿using ModularSystem.Core;
+
+namespace ModularSystem.TextAnalysis.Tokenization.Machine;
 
 public class ErrorResult : ITransitionResult
 {

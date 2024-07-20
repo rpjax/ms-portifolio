@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
+﻿namespace ModularSystem.TextAnalysis.Parsing.LR1.Components;
 
 /// <summary>
 /// Represents a LR(1) item collection that is used as a kernel for a state.

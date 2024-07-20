@@ -1,8 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
-using ModularSystem.Core.TextAnalysis.Parsing.Components;
-using ModularSystem.Core.TextAnalysis.Parsing.Extensions;
-using ModularSystem.Core.TextAnalysis.Tokenization;
-using ModularSystem.Core.TextAnalysis.Tokenization.Extensions;
+using ModularSystem.TextAnalysis.Parsing.Components;
+using ModularSystem.TextAnalysis.Parsing.Extensions;
+using ModularSystem.TextAnalysis.Tokenization;
+using ModularSystem.TextAnalysis.Tokenization.Extensions;
 using System.Runtime.CompilerServices;
 using Webql.Core.Analysis;
 using Webql.Parsing.Ast.Builder.Extensions;
@@ -19,7 +19,7 @@ public static class WebqlAstBuilder
     /// </summary>
     /// <param name="node">The CstRoot node to translate.</param>
     /// <returns>The translated WebqlQuery object.</returns>
-    public static WebqlQuery TranslateQuery(CstRoot node)
+    public static WebqlQuery TranslateQuery(CstRootNode node)
     {
         if (node.Children.Length > 1)
         {
@@ -50,7 +50,7 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression TranslateExpression(CstInternal node)
+    public static WebqlExpression TranslateExpression(CstInternalNode node)
     {
         switch (WebqlAstBuilderHelper.GetCstExpressionType(node))
         {
@@ -78,14 +78,14 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression TranslateLiteralExpression(CstInternal node)
+    public static WebqlExpression TranslateLiteralExpression(CstInternalNode node)
     {
         if (node.Children.Length != 1)
         {
             throw new Exception("Invalid literal expression");
         }
 
-        if (node.Children[0] is not CstLeaf leaf)
+        if (node.Children[0] is not CstLeafNode leaf)
         {
             throw new Exception("Invalid literal expression");
         }
@@ -157,7 +157,7 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression TranslateIntLiteral(CstLeaf leaf)
+    public static WebqlExpression TranslateIntLiteral(CstLeafNode leaf)
     {
         return new WebqlLiteralExpression(
             metadata: CreateNodeMetadata(leaf),
@@ -168,13 +168,13 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression TranslateReferenceExpression(CstInternal node)
+    public static WebqlExpression TranslateReferenceExpression(CstInternalNode node)
     {
         if (node.Children.Length != 1)
         {
             throw new Exception("Invalid reference expression");
         }
-        if (node.Children[0] is not CstLeaf leaf)
+        if (node.Children[0] is not CstLeafNode leaf)
         {
             throw new Exception("Invalid reference expression");
         }
@@ -212,7 +212,7 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression TranslateScopeAccessExpression(CstInternal node)
+    public static WebqlExpression TranslateScopeAccessExpression(CstInternalNode node)
     {
         if (node.Children.Length != 3)
         {
@@ -247,13 +247,13 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string TranslateReferenceExpressionToIdentifier(CstInternal node)
+    public static string TranslateReferenceExpressionToIdentifier(CstInternalNode node)
     {
         if (node.Children.Length != 1)
         {
             throw new Exception("Invalid reference expression");
         }
-        if (node.Children[0] is not CstLeaf leaf)
+        if (node.Children[0] is not CstLeafNode leaf)
         {
             throw new Exception("Invalid reference expression");
         }
@@ -278,7 +278,7 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression TranslateBlockExpression(CstInternal node)
+    public static WebqlExpression TranslateBlockExpression(CstInternalNode node)
     {
         switch (node.GetCstScopeType())
         {
@@ -291,7 +291,7 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression TranslateAggregationBlockExpression(CstInternal node)
+    public static WebqlExpression TranslateAggregationBlockExpression(CstInternalNode node)
     {
         var expressions = new List<WebqlExpression>(node.Children.Length);
         var expressionNodes = node.Children
@@ -330,7 +330,7 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression TranslateLogicalBlockExpression(CstInternal node)
+    public static WebqlExpression TranslateLogicalBlockExpression(CstInternalNode node)
     {
         var expressions = new List<WebqlExpression>(node.Children.Length);
         var expressionNodes = node.Children
@@ -373,13 +373,13 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression TranslateProjectionBlockExpression(CstInternal node)
+    public static WebqlExpression TranslateProjectionBlockExpression(CstInternalNode node)
     {
         throw new NotImplementedException();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression TranslateOperationExpression(CstInternal node)
+    public static WebqlExpression TranslateOperationExpression(CstInternalNode node)
     {
         var operatorNode = node.Children[1].AsLeaf();
         var @operator = TranslateOperator(operatorNode);
@@ -401,7 +401,7 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression TranslateUnaryOperation(CstInternal node, WebqlOperatorType @operator)
+    public static WebqlExpression TranslateUnaryOperation(CstInternalNode node, WebqlOperatorType @operator)
     {
         /*
         * The AST building is different for those operators, so they are handled separately.
@@ -423,7 +423,7 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression[] TranslateUnaryOperands(CstInternal node)
+    public static WebqlExpression[] TranslateUnaryOperands(CstInternalNode node)
     {
         if (node.Children.Length != 4)
         {
@@ -437,13 +437,13 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlAnonymousObjectExpression TranslateNewExpression(CstInternal node)
+    public static WebqlAnonymousObjectExpression TranslateNewExpression(CstInternalNode node)
     {
         return TranslateAnonymousObjectExpression(node.Children[2].AsInternal());
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression TranslateBinaryOperation(CstInternal node, WebqlOperatorType @operator)
+    public static WebqlExpression TranslateBinaryOperation(CstInternalNode node, WebqlOperatorType @operator)
     {
         /*
          * The AST building is different for those operators, so they are handled separately.
@@ -482,7 +482,7 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression[] TranslateBinaryOperands(CstInternal node)
+    public static WebqlExpression[] TranslateBinaryOperands(CstInternalNode node)
     {
         if (node.Children.Length != 4)
         {
@@ -515,7 +515,7 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression TranslateOrExpression(CstInternal node)
+    public static WebqlExpression TranslateOrExpression(CstInternalNode node)
     {
         var expression = null as WebqlExpression;
 
@@ -548,7 +548,7 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression TranslateAndExpression(CstInternal node)
+    public static WebqlExpression TranslateAndExpression(CstInternalNode node)
     {
         var expression = null as WebqlExpression;
 
@@ -581,7 +581,7 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression TranslateLimitExpression(CstInternal node)
+    public static WebqlExpression TranslateLimitExpression(CstInternalNode node)
     {
         var rhsNode = node.Children[3].AsLeaf();
 
@@ -597,7 +597,7 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlExpression TranslateSkipExpression(CstInternal node)
+    public static WebqlExpression TranslateSkipExpression(CstInternalNode node)
     {
         var rhsNode = node.Children[3].AsLeaf();
 
@@ -613,13 +613,13 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlOperatorType TranslateOperator(CstLeaf node)
+    public static WebqlOperatorType TranslateOperator(CstLeafNode node)
     {
         return WebqlAstBuilderHelper.GetCstOperatorType(node.Token.ToString());
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlAnonymousObjectExpression TranslateAnonymousObjectExpression(CstInternal node)
+    public static WebqlAnonymousObjectExpression TranslateAnonymousObjectExpression(CstInternalNode node)
     {
         if (node.Children.Length < 2)
         {
@@ -646,7 +646,7 @@ public static class WebqlAstBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlAnonymousObjectProperty TranslateAnonymousObjectProperty(CstLeaf propertyNode, CstInternal valueNode)
+    public static WebqlAnonymousObjectProperty TranslateAnonymousObjectProperty(CstLeafNode propertyNode, CstInternalNode valueNode)
     {
         var key = propertyNode.Token.Value.ToString();
         var value = TranslateExpression(valueNode);
@@ -692,8 +692,7 @@ public static class WebqlAstBuilder
     public static WebqlSyntaxNodeMetadata CreateNodeMetadata(CstNode node)
     {
         return new WebqlSyntaxNodeMetadata(
-            startPosition: node.Metadata.StartPosition,
-            endPosition: node.Metadata.EndPosition
+            position: node.Metadata.Position
         );
     }
 

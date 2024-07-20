@@ -1,6 +1,6 @@
-using ModularSystem.Core.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Language.Components;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Transformations;
+namespace ModularSystem.TextAnalysis.Language.Transformations;
 
 public class SetTransformationBuilder
 {

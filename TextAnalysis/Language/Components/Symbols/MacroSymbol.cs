@@ -1,4 +1,4 @@
-namespace ModularSystem.Core.TextAnalysis.Language.Components;
+namespace ModularSystem.TextAnalysis.Language.Components;
 
 /// <summary>
 /// Represents a macro symbol within a context-free grammar. <br/>

@@ -1,14 +1,14 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Parsing.Components;
+﻿using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Parsing.Components;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing.Tools;
+namespace ModularSystem.TextAnalysis.Parsing.Tools;
 
 /// <summary>
 /// Defines a class that reduces a concrete syntax tree (CST) to a more compact form.
 /// </summary>
 public class CstReducer
 {
-    private CstRoot Root { get; }
+    private CstRootNode Root { get; }
     private string[] NonTerminalWhitelist { get; }
 
     /// <summary>
@@ -16,7 +16,7 @@ public class CstReducer
     /// </summary>
     /// <param name="root"></param>
     /// <param name="nonTerminalWhitelist"></param>
-    public CstReducer(CstRoot root, string[] nonTerminalWhitelist)
+    public CstReducer(CstRootNode root, string[] nonTerminalWhitelist)
     {
         Root = root;
         NonTerminalWhitelist = nonTerminalWhitelist;
@@ -26,7 +26,7 @@ public class CstReducer
     /// Reduces the concrete syntax tree (CST) to a more compact form.
     /// </summary>
     /// <returns></returns>
-    public CstRoot Execute()
+    public CstRootNode Execute()
     {
         var rootName = Root.Name;
         var rootChildren = Reduce(Root);
@@ -37,7 +37,7 @@ public class CstReducer
             var shouldReduceRoot = rootChildren.Length == 1 
                 && !NonTerminalWhitelist.Contains(Root.Name);
 
-            if (shouldReduceRoot && rootChildren[0] is CstInternal internalNode)
+            if (shouldReduceRoot && rootChildren[0] is CstInternalNode internalNode)
             {
                 rootName = internalNode.Name;
                 rootChildren = internalNode.Children;
@@ -47,7 +47,7 @@ public class CstReducer
             break;
         }
 
-        return new CstRoot(rootName, rootChildren, rootMetadata);
+        return new CstRootNode(rootName, rootChildren, rootMetadata);
     }
 
     private CstNode[] Reduce(CstNode node)
@@ -55,20 +55,20 @@ public class CstReducer
         switch (node.Type)
         {
             case CstNodeType.Root:
-                return ReduceMany(((CstRoot)node).Children);
+                return ReduceMany(((CstRootNode)node).Children);
 
             case CstNodeType.Internal:
-                return ReduceInternal((CstInternal)node);
+                return ReduceInternal((CstInternalNode)node);
 
             case CstNodeType.Leaf:
-                return ReduceLeaf((CstLeaf)node);
+                return ReduceLeaf((CstLeafNode)node);
 
             default:
                 throw new InvalidOperationException();
         }
     }
 
-    private CstNode[] ReduceInternal(CstInternal node)
+    private CstNode[] ReduceInternal(CstInternalNode node)
     {
         if (!NonTerminalWhitelist.Contains(node.Name))
         {
@@ -82,13 +82,13 @@ public class CstReducer
             newChildren.AddRange(Reduce(child));
         }
 
-        return new CstInternal[]
+        return new CstInternalNode[]
         {
-            new CstInternal(node.Name, newChildren.ToArray(), node.Metadata)
+            new CstInternalNode(node.Name, newChildren.ToArray(), node.Metadata)
         };
     }
 
-    private CstNode[] ReduceLeaf(CstLeaf leaf)
+    private CstNode[] ReduceLeaf(CstLeafNode leaf)
     {
         return new CstNode[] { leaf };
     }

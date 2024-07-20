@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
+namespace ModularSystem.TextAnalysis.Parsing.LR1.Components;
 
 /// <summary>
 /// Represents a collection of LR(1) states.

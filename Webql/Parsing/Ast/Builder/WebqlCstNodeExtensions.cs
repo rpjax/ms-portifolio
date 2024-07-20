@@ -1,4 +1,4 @@
-﻿using ModularSystem.Core.TextAnalysis.Parsing.Components;
+﻿using ModularSystem.TextAnalysis.Parsing.Components;
 
 namespace Webql.Parsing.Ast.Builder.Extensions;
 

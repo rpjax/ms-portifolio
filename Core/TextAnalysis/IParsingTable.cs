@@ -1,6 +1,6 @@
 ﻿//using TextAnalysis;
 
-//namespace ModularSystem.Core.TextAnalysis;
+//namespace ModularSystem.TextAnalysis;
 
 //public interface IParsingTable
 //{

@@ -1,10 +1,10 @@
-﻿using ModularSystem.Core.TextAnalysis.Grammars;
-using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Parsing;
-using ModularSystem.Core.TextAnalysis.Parsing.Components;
-using ModularSystem.Core.TextAnalysis.Parsing.Tools;
+﻿using ModularSystem.TextAnalysis.Grammars;
+using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Parsing;
+using ModularSystem.TextAnalysis.Parsing.Components;
+using ModularSystem.TextAnalysis.Parsing.Tools;
 
-namespace ModularSystem.Core.TextAnalysis.Gdef;
+namespace ModularSystem.TextAnalysis.Gdef;
 
 /// <summary>
 /// Reconizes and parses gdef files. (Grammar Definition Format)
@@ -74,7 +74,7 @@ public static class GdefParser
     /// </summary>
     /// <param name="text"></param>
     /// <returns></returns>
-    public static CstRoot Parse(string text)
+    public static CstRootNode Parse(string text)
     {
         return GetParser().Parse(text);
     }

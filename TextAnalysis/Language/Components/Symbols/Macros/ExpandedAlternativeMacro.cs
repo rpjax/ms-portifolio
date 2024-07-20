@@ -1,6 +1,6 @@
-using ModularSystem.Core.TextAnalysis.Language.Extensions;
+using ModularSystem.TextAnalysis.Language.Extensions;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Components;
+namespace ModularSystem.TextAnalysis.Language.Components;
 
 /// <summary>
 /// Represents an expanded alternative macro. It is used to represent a set of alternatives in a grammar.

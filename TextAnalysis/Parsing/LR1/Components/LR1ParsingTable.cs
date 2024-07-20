@@ -1,12 +1,12 @@
-﻿using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Language.Extensions;
-using ModularSystem.Core.TextAnalysis.Parsing.LR1.Tools;
-using ModularSystem.Core.TextAnalysis.Tokenization;
-using ModularSystem.Core.TextAnalysis.Tokenization.Extensions;
+﻿using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Language.Extensions;
+using ModularSystem.TextAnalysis.Parsing.LR1.Tools;
+using ModularSystem.TextAnalysis.Tokenization;
+using ModularSystem.TextAnalysis.Tokenization.Extensions;
 using System.Collections;
 using System.Runtime.CompilerServices;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing.LR1.Components;
+namespace ModularSystem.TextAnalysis.Parsing.LR1.Components;
 
 /// <summary>
 /// Represents a LR(1) parsing table. Contains the entries and the production rules.

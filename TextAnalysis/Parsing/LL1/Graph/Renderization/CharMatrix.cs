@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Text;
 
-namespace ModularSystem.Core.TextAnalysis.Language.Graph.Renderization;
+namespace ModularSystem.TextAnalysis.Language.Graph.Renderization;
 
 public class CharMatrix : IEnumerable<CharVec2>
 {

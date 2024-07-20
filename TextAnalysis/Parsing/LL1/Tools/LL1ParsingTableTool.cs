@@ -1,8 +1,8 @@
-﻿using ModularSystem.Core.TextAnalysis.Language;
-using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Language.Extensions;
+﻿using ModularSystem.TextAnalysis.Language;
+using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Language.Extensions;
 
-namespace ModularSystem.Core.TextAnalysis.Parsing.LL1.Tools;
+namespace ModularSystem.TextAnalysis.Parsing.LL1.Tools;
 
 public class LL1ParsingTableTool
 {

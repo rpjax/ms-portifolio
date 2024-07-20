@@ -1,6 +1,6 @@
-﻿using ModularSystem.Core.TextAnalysis.Language;
-using ModularSystem.Core.TextAnalysis.Language.Components;
-using ModularSystem.Core.TextAnalysis.Tokenization;
+﻿using ModularSystem.TextAnalysis.Language;
+using ModularSystem.TextAnalysis.Language.Components;
+using ModularSystem.TextAnalysis.Tokenization;
 
 namespace ModularSystem.Webql.Analysis.DocumentSyntax.Parsing;
 

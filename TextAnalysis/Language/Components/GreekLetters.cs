@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Language;
+﻿namespace ModularSystem.TextAnalysis.Language;
 
 public static class GreekLetters
 {

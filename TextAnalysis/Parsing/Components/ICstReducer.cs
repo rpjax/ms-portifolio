@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Parsing.Components;
+﻿namespace ModularSystem.TextAnalysis.Parsing.Components;
 
 public interface ICstReducer
 {

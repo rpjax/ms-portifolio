@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core.TextAnalysis.Tokenization.Components;
-using ModularSystem.Core.TextAnalysis.Tokenization.Machine;
+﻿using ModularSystem.TextAnalysis.Tokenization.Components;
+using ModularSystem.TextAnalysis.Tokenization.Machine;
 
-namespace ModularSystem.Core.TextAnalysis.Tokenization.Experimental;
+namespace ModularSystem.TextAnalysis.Tokenization.Experimental;
 
 //*
 //* first aproach

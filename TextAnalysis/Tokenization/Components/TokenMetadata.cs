@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.TextAnalysis.Tokenization;
+﻿namespace ModularSystem.TextAnalysis.Tokenization;
 
 /// <summary>
 /// Represents the position of a token in the source text. 

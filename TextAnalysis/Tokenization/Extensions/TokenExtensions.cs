@@ -1,8 +1,8 @@
-﻿using ModularSystem.Core.TextAnalysis.Tokenization.Tools;
+﻿using ModularSystem.TextAnalysis.Tokenization.Tools;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
-namespace ModularSystem.Core.TextAnalysis.Tokenization.Extensions;
+namespace ModularSystem.TextAnalysis.Tokenization.Extensions;
 
 public static class TokenExtensions
 {
