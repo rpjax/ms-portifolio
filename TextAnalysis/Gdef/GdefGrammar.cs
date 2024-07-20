@@ -36,7 +36,7 @@ public class GdefGrammar : Grammar
                 new Terminal(TokenType.Punctuation, "<"),
                 new Terminal(TokenType.Identifier, "lexer"),
                 new Terminal(TokenType.Punctuation, ">"),
-
+                    
                 new RepetitionMacro(
                     new NonTerminal("lexer_statement")
                 ),
