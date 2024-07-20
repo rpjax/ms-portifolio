@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Webql.Core;
+using Webql.Core.Helpers;
 
 namespace Webql.Semantics.Analysis;
 

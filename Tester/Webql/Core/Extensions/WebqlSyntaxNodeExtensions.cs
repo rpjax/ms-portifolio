@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Webql.Core.Linq;
 using Webql.Parsing.Ast;
 using Webql.Semantics.Extensions;
 
@@ -64,7 +65,7 @@ public static class WebqlSyntaxNodeExtensions
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WebqlLinqProvider GetLinqProvider(this WebqlSyntaxNode node)
+    public static IWebqlLinqProvider GetLinqProvider(this WebqlSyntaxNode node)
     {
         return node.GetCompilationContext().LinqProvider;
     }

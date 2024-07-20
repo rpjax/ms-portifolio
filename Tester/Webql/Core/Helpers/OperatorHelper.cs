@@ -1,6 +1,6 @@
 ﻿using Webql.Parsing.Ast;
 
-namespace Webql.Core;
+namespace Webql.Core.Helpers;
 
 public static class OperatorHelper
 {

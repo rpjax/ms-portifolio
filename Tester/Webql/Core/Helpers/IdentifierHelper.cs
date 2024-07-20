@@ -1,6 +1,6 @@
 ﻿using ModularSystem.Core;
 
-namespace Webql.Core;
+namespace Webql.Core.Helpers;
 
 public static class IdentifierHelper
 {

@@ -77,14 +77,11 @@ public static class CollectionManipulationExpressionTranslator
         var lhs = node.Operands[0];
         var rhs = node.Operands[1];
 
-        var lhsSemantics = lhs.GetExpressionSemantics();
-        var rhsSemantics = rhs.GetExpressionSemantics();
-
         var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
         var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
 
         var methodInfo = node.GetLinqProvider()
-            .GetTakeMethodInfo(sourceType: lhsSemantics.Type);
+            .GetTakeMethodInfo(source: lhs);
 
         return Expression.Call(methodInfo, lhsExpression, rhsExpression);
     }
@@ -94,14 +91,11 @@ public static class CollectionManipulationExpressionTranslator
         var lhs = node.Operands[0];
         var rhs = node.Operands[1];
 
-        var lhsSemantics = lhs.GetExpressionSemantics();
-        var rhsSemantics = rhs.GetExpressionSemantics();
-
         var lhsExpression = ExpressionTranslator.TranslateExpression(lhs);
         var rhsExpression = ExpressionTranslator.TranslateExpression(rhs);
 
         var methodInfo = node.GetLinqProvider()
-            .GetSkipMethodInfo(sourceType: lhsSemantics.Type);
+            .GetSkipMethodInfo(source: lhs);
 
         return Expression.Call(methodInfo, lhsExpression, rhsExpression);
     }
