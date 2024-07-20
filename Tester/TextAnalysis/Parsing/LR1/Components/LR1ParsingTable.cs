@@ -61,36 +61,9 @@ public class LR1ParsingTable : IEnumerable<LR1ParsingTableEntry>
 
     public LR1ParsingTableEntry this[int index] => Entries[index];
 
-    public enum KeyStrategy
-    {
-        Type,
-        Value
-    }
-
-    //public static string CreateActionKey(object obj, KeyStrategy strategy)
-    //{
-    //    if (obj is Token token)
-    //    {
-    //        return CreateActionKey(token, strategy);
-    //    }
-
-    //    if (obj is Terminal terminal)
-    //    {
-    //        return CreateActionKey(terminal, strategy);
-    //    }
-
-    //    if (obj is NonTerminal nonterminal)
-    //    {
-    //        return CreateActionKey(nonterminal);
-    //    }
-
-    //    if(obj is Epsilon)
-    //    {
-    //        return Epsilon.Instance.ToString();
-    //    }
-
-    //    throw new Exception();
-    //}
+    /*
+     * Key creation methods. These keys are used to index the action table.
+     */
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string CreateActionKey(Token token, bool useValue = false)
@@ -125,11 +98,19 @@ public class LR1ParsingTable : IEnumerable<LR1ParsingTableEntry>
         throw new Exception("Invalid symbol type.");
     }
 
+    /*
+     * Static factory method
+     */
+
     public static LR1ParsingTable Create(Grammar grammar)
     {
         return new LR1ParsingTableFactory()
             .Create(grammar);
     }
+
+    /*
+     * Lookup methods
+     */
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public LR1Action? Lookup(int state, Token token)
@@ -170,6 +151,10 @@ public class LR1ParsingTable : IEnumerable<LR1ParsingTableEntry>
 
         return ref Productions[index];
     }
+
+    /*
+     * Enumeration of entries
+     */
 
     public IEnumerator<LR1ParsingTableEntry> GetEnumerator()
     {

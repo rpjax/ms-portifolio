@@ -175,7 +175,11 @@ public class TypeValidatorAnalyzer : SyntaxTreeAnalyzer
     {
         expression.EnsureOperandCount(2);
 
-        var rhsSemantics = expression.Operands[0].GetSemantics<IExpressionSemantics>();
+        var rhs = expression.Operands[1];
+        var rhsSemantics = rhs.GetSemantics<IExpressionSemantics>();
+
+        // TODO...
+        rhs.EnsureExpressionType(typeof(int));
 
         if (rhsSemantics.Type != typeof(int))
         {

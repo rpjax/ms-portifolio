@@ -172,8 +172,3 @@ public struct ProductionRule : IEquatable<ProductionRule>
         return $"{head} = {body} ;";
     }
 }
-
-public struct SemanticAction
-{
-    
-}

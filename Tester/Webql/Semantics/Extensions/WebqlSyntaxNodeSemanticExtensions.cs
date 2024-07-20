@@ -252,40 +252,6 @@ public static class WebqlSyntaxNodeSemanticExtensions
      */
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void EnsureOperandCount(this WebqlOperationExpression node, int expectedCount)
-    {
-        var actualCount = node.Operands.Length;
-
-        if (actualCount != expectedCount)
-        {
-            throw node.CreateInvalidOperandCountException(expectedCount, actualCount);
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void EnsureAtLeastOneOperand(this WebqlOperationExpression node)
-    {
-        var actualCount = node.Operands.Length;
-
-        if (actualCount == 0)
-        {
-            throw new SemanticException($"Operator '{node.Operator}' expects at least one operand, but none were provided", node);
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void EnsureIsQueryable(this WebqlExpression node)
-    {
-        var semantics = node.GetSemantics<IExpressionSemantics>();
-        var type = semantics.Type;
-
-        if (type.IsNotQueryable())
-        {
-            throw node.CreateExpressionIsNotQuryableException(type);
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IExpressionSemantics GetExpressionSemantics(this WebqlExpression node)
     {
         return node.GetSemantics<IExpressionSemantics>();
@@ -382,6 +348,52 @@ public static class WebqlSyntaxNodeSemanticExtensions
         }
 
         return isScopeSourceFound;
+    }
+
+    /*
+     * Semantic validation related extensions
+     */
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void EnsureOperandCount(this WebqlOperationExpression node, int expectedCount)
+    {
+        var actualCount = node.Operands.Length;
+
+        if (actualCount != expectedCount)
+        {
+            throw node.CreateInvalidOperandCountException(expectedCount, actualCount);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void EnsureAtLeastOneOperand(this WebqlOperationExpression node)
+    {
+        var actualCount = node.Operands.Length;
+
+        if (actualCount == 0)
+        {
+            throw new SemanticException($"Operator '{node.Operator}' expects at least one operand, but none were provided", node);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void EnsureIsQueryable(this WebqlExpression node)
+    {
+        var semantics = node.GetSemantics<IExpressionSemantics>();
+        var type = semantics.Type;
+
+        if (type.IsNotQueryable())
+        {
+            throw node.CreateExpressionIsNotQuryableException(type);
+        }
+    }
+
+    public static void EnsureExpressionType(this WebqlExpression node, Type type)
+    {
+        if(node.GetExpressionType() != type)
+        {
+            // TODO...
+        }
     }
 
     /*

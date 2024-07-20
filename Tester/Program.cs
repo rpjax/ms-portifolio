@@ -136,7 +136,8 @@ public static class Program
                         { $like: 'Bob' }
                     ] 
                 } 
-            } 
+            },
+            $limit: 10
         }";
 
         var expression = compiler.Compile(query: query, elementType: typeof(TestUser));

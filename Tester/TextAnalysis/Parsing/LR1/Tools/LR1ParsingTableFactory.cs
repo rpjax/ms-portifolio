@@ -27,7 +27,7 @@ public class LR1ParsingTableFactory : IFactory<Grammar, LR1ParsingTable>
 
         var set = new ProductionSet(
             start: grammar.Start,
-            productions: productions.ToArray()
+            productions: productions
         );
 
         foreach (var state in states)
@@ -101,7 +101,7 @@ public class LR1ParsingTableFactory : IFactory<Grammar, LR1ParsingTable>
             .Select(x => new 
             { 
                 Symbol = x.Key!, 
-                GotoKernel = new LR1Kernel(x.Select(x => x.GetNextItem()).ToArray()) 
+                GotoKernel = new LR1Kernel(x.Select(x => x.CreateNextItem()).ToArray()) 
             })
             .ToArray();
 
@@ -180,7 +180,7 @@ public class LR1ParsingTableFactory : IFactory<Grammar, LR1ParsingTable>
             .Select(x => new
             {
                 Symbol = x.Key!,
-                GotoKernel = new LR1Kernel(x.Select(x => x.GetNextItem()).ToArray())
+                GotoKernel = new LR1Kernel(x.Select(x => x.CreateNextItem()).ToArray())
             })
             .ToArray();
 

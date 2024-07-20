@@ -143,7 +143,7 @@ public class LR1Item :
         return Production.Body.GetRange(start, Production.Body.Length - start);
     }
 
-    public LR1Item GetNextItem()
+    public LR1Item CreateNextItem()
     {
         if(Position >= Production.Body.Length)
         {

@@ -1,4 +1,5 @@
-﻿using ModularSystem.Core.TextAnalysis.Parsing.Components;
+﻿using Microsoft.CodeAnalysis;
+using ModularSystem.Core.TextAnalysis.Parsing.Components;
 using ModularSystem.Core.TextAnalysis.Parsing.Extensions;
 using ModularSystem.Core.TextAnalysis.Tokenization;
 using ModularSystem.Core.TextAnalysis.Tokenization.Extensions;
@@ -132,12 +133,7 @@ public static class WebqlAstBuilder
                 );
 
             case TokenType.Integer:
-                return new WebqlLiteralExpression(
-                    metadata: metadata,
-                    attributes: null,
-                    literalType: WebqlLiteralType.Int,
-                    value: leaf.Token.Value.ToString()
-                );
+                return TranslateIntLiteral(leaf);
 
             case TokenType.Float:
                 return new WebqlLiteralExpression(
@@ -158,6 +154,17 @@ public static class WebqlAstBuilder
             default:
                 throw new InvalidOperationException();
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WebqlExpression TranslateIntLiteral(CstLeaf leaf)
+    {
+        return new WebqlLiteralExpression(
+            metadata: CreateNodeMetadata(leaf),
+            attributes: null,
+            literalType: WebqlLiteralType.Int,
+            value: leaf.Token.Value.ToString()
+        );
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -448,6 +455,12 @@ public static class WebqlAstBuilder
 
             case WebqlBinaryOperator.And:
                 return TranslateAndExpression(node);
+
+            case WebqlBinaryOperator.Limit:
+                return TranslateLimitExpression(node);
+
+            case WebqlBinaryOperator.Skip:
+                return TranslateSkipExpression(node);
         }
 
         var isCollectionOperator = WebqlOperatorAnalyzer.IsCollectionOperator(@operator);
@@ -565,6 +578,38 @@ public static class WebqlAstBuilder
         }
 
         return expression;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WebqlExpression TranslateLimitExpression(CstInternal node)
+    {
+        var rhsNode = node.Children[3].AsLeaf();
+
+        var lhsExpression = node.GetLhsExpression();
+        var rhsExpression = TranslateIntLiteral(rhsNode);
+
+        return new WebqlOperationExpression(
+            metadata: CreateNodeMetadata(node),
+            attributes: null,
+            @operator: WebqlOperatorType.Limit,
+            operands: new WebqlExpression[] { lhsExpression, rhsExpression }
+        );
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WebqlExpression TranslateSkipExpression(CstInternal node)
+    {
+        var rhsNode = node.Children[3].AsLeaf();
+
+        var lhsExpression = node.GetLhsExpression();
+        var rhsExpression = TranslateIntLiteral(rhsNode);
+
+        return new WebqlOperationExpression(
+            metadata: CreateNodeMetadata(node),
+            attributes: null,
+            @operator: WebqlOperatorType.Skip,
+            operands: new WebqlExpression[] { lhsExpression, rhsExpression }
+        );
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

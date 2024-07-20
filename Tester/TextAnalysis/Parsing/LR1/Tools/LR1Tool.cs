@@ -348,7 +348,7 @@ public class LR1Tool
             var symbol = entry.Key;
 
             var kernelItems = entry
-                .Select(item => item.GetNextItem())
+                .Select(item => item.CreateNextItem())
                 .ToArray();
 
             var kernel = new LR1Kernel(kernelItems);
