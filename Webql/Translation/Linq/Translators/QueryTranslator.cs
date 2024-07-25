@@ -7,23 +7,21 @@ namespace Webql.Translation.Linq.Translators;
 
 public static class QueryTranslator
 {
-    public static Expression TranslateQuery(WebqlQuery node)
+    public static LambdaExpression TranslateQuery(WebqlQuery node)
     {
         /*
          * Outputs a lambda expression that executes the query.
          */
-        var translationContext = node.GetTranslationContext();
 
         if(node.Expression == null)
         {
             throw new TranslationException("Query must have an expression", node);
         }   
 
-        var parameterExpression = translationContext.GetSourceParameterExpression();
         var bodyExpression = ExpressionTranslator.TranslateExpression(node.Expression);
+        var parameterExpression = node.GetSourceParameterExpression();
 
-        var lambdaExpression = Expression.Lambda(bodyExpression, parameterExpression);
-        return lambdaExpression;
+        return Expression.Lambda(bodyExpression, parameterExpression);
     }
 }
 

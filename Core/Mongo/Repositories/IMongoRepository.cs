@@ -9,9 +9,9 @@ namespace ModularSystem.Mongo;
 /// including support for CRUD operations, <br/>
 /// transactions, and entity retrieval by ObjectId. 
 /// </summary>
-/// <typeparam name="T">The type of the entity managed by the repository. Entities must implement <see cref="IMongoEntity"/>,
+/// <typeparam name="T">The type of the entity managed by the repository. Entities must implement <see cref="IMongoModel"/>,
 /// which includes a definition for an ObjectId to serve as the entity's unique identifier.</typeparam>
-public interface IMongoRepository<T> : IRepository<T> where T : IMongoEntity
+public interface IMongoRepository<T> : IRepository<T> where T : IMongoModel
 {
     /// <summary>
     /// Binds a MongoDB client session to the repository, enabling support for transactions.
@@ -32,18 +32,6 @@ public interface IMongoRepository<T> : IRepository<T> where T : IMongoEntity
     void UnbindSession();
 
     /// <summary>
-    /// Asynchronously attempts to retrieve an entity by its ObjectId.
-    /// </summary>
-    /// <param name="id">The ObjectId of the entity to retrieve.</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation, containing the entity if found; otherwise, null.
-    /// </returns>
-    /// <remarks>
-    /// Use this method when you need to fetch an entity based on its unique identifier but are unsure if it exists.
-    /// </remarks>
-    Task<T?> TryGetAsync(ObjectId id);
-
-    /// <summary>
     /// Asynchronously retrieves an entity by its ObjectId, throwing an exception if not found.
     /// </summary>
     /// <param name="id">The ObjectId of the entity to retrieve.</param>
@@ -52,5 +40,5 @@ public interface IMongoRepository<T> : IRepository<T> where T : IMongoEntity
     /// <remarks>
     /// Use this method to fetch an entity when you expect the entity to exist and consider its absence an exceptional case.
     /// </remarks>
-    Task<T> GetAsync(ObjectId id);
+    Task<T?> GetAsync(ObjectId id);
 }

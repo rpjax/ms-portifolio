@@ -53,6 +53,12 @@ public static class ArithmeticOperatorExpressionAnalyzer
         );
     }
 
+    /// <summary>
+    /// Resolves the type for arithmetic operations between two operands.
+    /// </summary>
+    /// <param name="leftType">The type of the left operand.</param>
+    /// <param name="rightType">The type of the right operand.</param>
+    /// <returns>The resolved type for the arithmetic operation.</returns>
     private static Type ResolveType(Type leftType, Type rightType)
     {
         var anyIsFloat = SemanticsHelper.TypeIsFloatNumber(leftType) || SemanticsHelper.TypeIsFloatNumber(rightType);

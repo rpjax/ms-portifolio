@@ -3,6 +3,8 @@ using ModularSystem.Core.Linq;
 using ModularSystem.Mongo.Linq;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using ModularSystem.Core.Linq.Extensions;
+using ModularSystem.Core.Linq.Expressions;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Mongo.Repositories;
@@ -11,27 +13,43 @@ namespace ModularSystem.Mongo.Repositories;
 /// Provides a repository for managing MongoDB collections.
 /// </summary>
 /// <typeparam name="T">The type of the entity.</typeparam>
-public class MongoRepository<T> : IMongoRepository<T> where T : IMongoEntity
+public class MongoRepository<T> : IMongoRepository<T> where T : IMongoModel
 {
     //*
     // Helpers
     //*
 
+    /// <summary>
+    /// Gets a filter definition builder for the entity type.
+    /// </summary>
     protected FilterDefinitionBuilder<T> FilterBuilder => new FilterDefinitionBuilder<T>();
+
+    /// <summary>
+    /// Gets an update definition builder for the entity type.
+    /// </summary>
     protected UpdateDefinitionBuilder<T> UpdateBuilder => new UpdateDefinitionBuilder<T>();
 
     private IMongoCollection<T> Collection { get; }
     private IClientSessionHandle? Session { get; set; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MongoRepository{T}"/> class.
+    /// </summary>
+    /// <param name="collection"></param>
     public MongoRepository(IMongoCollection<T> collection)
     {
         Collection = collection;
         Session = null;
     }
 
-    //*
-    // Create
-    //*
+    /// <summary>
+    /// Disposes of the repository.
+    /// </summary>
+    /// <exception cref="NotImplementedException"></exception>
+    public void Dispose()
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Asynchronously inserts a single entity into the collection.
@@ -83,29 +101,11 @@ public class MongoRepository<T> : IMongoRepository<T> where T : IMongoEntity
     /// </summary>
     /// <param name="id">The ID of the entity.</param>
     /// <returns>The entity if found; otherwise, null.</returns>
-    public Task<T?> TryGetAsync(ObjectId id)
+    public Task<T?> GetAsync(ObjectId id)
     {
         return AsQueryable()
             .Where(x => x.Id == id)
             .FirstOrDefaultAsync();
-    }
-
-    /// <summary>
-    /// Asynchronously gets an entity by its ID. Throws if the entity is not found.
-    /// </summary>
-    /// <param name="id">The ID of the entity to find.</param>
-    /// <returns>The entity.</returns>
-    /// <exception cref="ErrorException">Thrown when the entity is not found.</exception>
-    public async Task<T> GetAsync(ObjectId id)
-    {
-        var entity = await TryGetAsync(id);
-
-        if (entity == null)
-        {
-            throw new ErrorException("Could not find entity.");
-        }
-
-        return entity;
     }
 
     //*
@@ -118,7 +118,7 @@ public class MongoRepository<T> : IMongoRepository<T> where T : IMongoEntity
     /// <param name="entity">The entity to replace.</param>
     public async Task UpdateAsync(T entity)
     {
-        var filter = FindByIdFilter(entity.Id);
+        var filter = CreateIdFilter(entity.Id);
 
         if (Session != null)
         {
@@ -136,20 +136,20 @@ public class MongoRepository<T> : IMongoRepository<T> where T : IMongoEntity
     /// <param name="update">The update definition.</param>
     /// <returns>The number of modified entities.</returns>
     /// <exception cref="ErrorException">Thrown when the update operation is not properly defined.</exception>
-    public async Task<long> UpdateAsync(IUpdate<T> update)
+    public async Task<long> UpdateAsync(IUpdateExpression update)
     {
-        var reader = new UpdateReader<T>(update);
+        var reader = new UpdateExpressionReader<T>(update);
 
         var predicate = reader
             .GetFilterExpression();
 
         var modifications = reader
-            .GetUpdateSetExpressions()
+            .GetModificationExpressions()
             .ToArray();
 
         if (predicate == null)
         {
-            throw new ErrorException("Update operation requires a filter definition. To allow updates without a filter, adjust the settings in the provided configuration object when initializing the data access object.");
+            throw new Exception("Update operation requires a filter definition. To allow updates without a filter, adjust the settings in the provided configuration object when initializing the data access object.");
         }
         if (modifications == null || modifications.IsEmpty())
         {
@@ -180,7 +180,7 @@ public class MongoRepository<T> : IMongoRepository<T> where T : IMongoEntity
 
         if (!result.IsAcknowledged || !result.IsModifiedCountAvailable)
         {
-            throw new ErrorException("The operation was not acknowledged by the mongo database.");
+            throw new Exception("The operation was not acknowledged by the mongo database.");
         }
 
         return result.ModifiedCount;
@@ -196,7 +196,7 @@ public class MongoRepository<T> : IMongoRepository<T> where T : IMongoEntity
     /// <param name="entity">The entity to delete.</param>
     public async Task DeleteAsync(T entity)
     {
-        var filter = FindByIdFilter(entity.Id);
+        var filter = CreateIdFilter(entity.Id);
 
         if (Session != null)
         {
@@ -215,7 +215,7 @@ public class MongoRepository<T> : IMongoRepository<T> where T : IMongoEntity
     /// <returns>The number of deleted entities.</returns>
     public async Task<long> DeleteAsync(Expression<Func<T, bool>> predicate)
     {
-        var filter = PredicateFilter(predicate);
+        var filter = CreateFilterFromPredicate(predicate);
         var result = null as DeleteResult;
 
         if (Session != null)
@@ -255,13 +255,24 @@ public class MongoRepository<T> : IMongoRepository<T> where T : IMongoEntity
     // Internal Helpers
     //*
 
-    protected FilterDefinition<T> FindByIdFilter(ObjectId id)
+
+    /// <summary>
+    /// Creates a filter definition for an entity by its ID.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    protected FilterDefinition<T> CreateIdFilter(ObjectId id)
     {
         return new FilterDefinitionBuilder<T>()
             .Eq(x => x.Id, id);
     }
 
-    protected FilterDefinition<T> PredicateFilter(Expression<Func<T, bool>> predicate)
+    /// <summary>
+    /// Creates a filter definition from a predicate.
+    /// </summary>
+    /// <param name="predicate"></param>
+    /// <returns></returns>
+    protected FilterDefinition<T> CreateFilterFromPredicate(Expression<Func<T, bool>> predicate)
     {
         return new FilterDefinitionBuilder<T>()
             .Where(predicate);

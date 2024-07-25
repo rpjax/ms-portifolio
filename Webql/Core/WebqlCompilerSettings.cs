@@ -4,6 +4,9 @@ using Webql.Translation.Linq.Providers;
 
 namespace Webql.Core;
 
+/// <summary>
+/// Represents the settings for the WebqlCompiler.
+/// </summary>
 public class WebqlCompilerSettings
 {
     /// <summary>
@@ -33,7 +36,7 @@ public class WebqlCompilerSettings
         ISyntaxTreeVisitor[]? postValidationVisitors = null)
     {
         LinqProvider = linqProvider ?? new WebqlLinqProvider();
-        PreValidationVisitors = preValidationVisitors ?? new ISyntaxTreeVisitor[0];
-        PostValidationVisitors = postValidationVisitors ?? new ISyntaxTreeVisitor[0];
+        PreValidationVisitors = preValidationVisitors ?? Array.Empty<ISyntaxTreeVisitor>();
+        PostValidationVisitors = postValidationVisitors ?? Array.Empty<ISyntaxTreeVisitor>();
     }
 }

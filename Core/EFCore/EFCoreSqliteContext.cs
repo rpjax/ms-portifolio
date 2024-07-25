@@ -6,8 +6,48 @@ namespace ModularSystem.EntityFramework;
 /// <summary>
 /// Represents an Entity Framework Core context specifically designed for SQLite databases.
 /// </summary>
-/// <typeparam name="T">The type of the entity that this context operates on. Must be a class and implement the <see cref="IEFEntity"/> interface.</typeparam>
-public class EFCoreSqliteContext<T> : EFCoreContext where T : class, IEFEntity
+public class EFCoreSqliteContext : DbContextBase
+{
+    private FileInfo FileInfo { get; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EFCoreSqliteContext"/> class with the specified SQLite database file.
+    /// </summary>
+    /// <param name="fileInfo">The SQLite database file.</param>
+    public EFCoreSqliteContext(FileInfo fileInfo)
+    {
+        if (fileInfo.Extension != "db")
+        {
+            fileInfo = new FileInfo($"{fileInfo.FullName.Substring(0, fileInfo.FullName.Length - fileInfo.Extension.Length)}.db");
+        }
+
+        if (fileInfo.DirectoryName == null)
+        {
+            throw new ArgumentException(nameof(fileInfo));
+        }
+
+        FileInfo = fileInfo;
+        FileSystemHelper.EnsureDirectoryExists(fileInfo.DirectoryName);
+        Database.EnsureCreated();
+    }
+
+    /// <summary>
+    /// Configures the DbContext options for SQLite.
+    /// </summary>
+    /// <param name="optionsBuilder">The options builder used to configure the DbContext.</param>
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.UseSqlite($@"Data Source={FileInfo.FullName}");
+    }
+
+}
+
+/// <summary>
+/// Represents an Entity Framework Core context specifically designed for SQLite databases.
+/// </summary>
+/// <typeparam name="TEntity">The type of the entity that this context operates on. Must be a class and implement the <see cref="IEFCoreEntity"/> interface.</typeparam>
+public class EFCoreSqliteContext<TEntity> : DbContextBase where TEntity : class, IEFCoreEntity
 {
     /// <summary>
     /// The default table name used in the <see cref="EFCoreSqliteContext{T}"/>.
@@ -15,9 +55,9 @@ public class EFCoreSqliteContext<T> : EFCoreContext where T : class, IEFEntity
     public const string DefaultTableName = "Entries";
 
     /// <summary>
-    /// Gets the set of entities of type <typeparamref name="T"/> that can be queried from and written to the database.
+    /// Gets the set of entities of type <typeparamref name="TEntity"/> that can be queried from and written to the database.
     /// </summary>
-    public DbSet<T> Entries { get; set; }
+    public DbSet<TEntity> Entries { get; set; }
 
     private FileInfo FileInfo { get; }
     private string TableName { get; }
@@ -74,6 +114,6 @@ public class EFCoreSqliteContext<T> : EFCoreContext where T : class, IEFEntity
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.Entity<T>().ToTable(TableName);
+        modelBuilder.Entity<TEntity>().ToTable(TableName);
     }
 }

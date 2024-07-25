@@ -18,6 +18,18 @@ public static class SemanticAnalyzer
      */
 
     //*
+    public static void ExecuteSemanticalAnalysis(WebqlCompilationContext context, ref WebqlSyntaxNode node)
+    {
+        // Performs the initial semantic analysis, which binds semantics to the AST.
+        BindSemanticsToAst(context, node);
+
+        // Validates the semantics of the AST, and performs necessary transformations.
+        ExecutePreValidationRewrites(ref node);
+        ValidateSemantics(node);
+        ExecutePostValidationRewrites(ref node);
+    }
+
+    //*
     public static void BindSemanticsToAst(WebqlCompilationContext context, WebqlSyntaxNode node)
     {
         node.BindCompilationContext(context);
@@ -35,14 +47,6 @@ public static class SemanticAnalyzer
     {
         new SymbolDeclaratorAnalyzer()
             .ExecuteAnalysis(node);
-    }
-
-    //*
-    public static void ExecuteSemanticalAnalysis(ref WebqlSyntaxNode node)
-    {
-        ExecutePreValidationRewrites(ref node);
-        ValidateSemantics(node);
-        ExecutePostValidationsRewrites(ref node);
     }
 
     private static void ValidateSemantics(WebqlSyntaxNode node)
@@ -77,7 +81,7 @@ public static class SemanticAnalyzer
         node = new ImplicitTypeConversionRewriter().Visit(node);
     }
 
-    private static void ExecutePostValidationsRewrites(ref WebqlSyntaxNode node)
+    private static void ExecutePostValidationRewrites(ref WebqlSyntaxNode node)
     {
         var context = node.GetCompilationContext();
 

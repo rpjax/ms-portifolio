@@ -21,6 +21,17 @@ public static class WebqlLinqTranslator
     }
 
     /// <summary>
+    /// Translates the given WebQL query to a LINQ expression.
+    /// </summary>
+    /// <param name="node">The WebQL syntax node to translate.</param>
+    /// <returns>The translated LINQ expression.</returns>
+    public static LambdaExpression TranslateQuery(WebqlQuery node)
+    {
+        InjectTranslationComponents(node);
+        return QueryTranslator.TranslateQuery(node);
+    }
+
+    /// <summary>
     /// Injects the necessary translation components into the WebQL syntax node.
     /// </summary>
     /// <param name="node">The WebQL syntax node to inject components into.</param>

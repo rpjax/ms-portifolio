@@ -15,6 +15,7 @@ using MongoDB.Driver.Linq;
 using ModularSystem.Mongo.Repositories;
 using ModularSystem.Mongo;
 using Webql.Translation.Linq.Providers;
+using Tester;
 
 namespace ModularSystem.Tester;
 
@@ -73,7 +74,7 @@ public class TestWallet
     public decimal UsdtBalance { get; set; }
 }
 
-public class TestUser : MongoEntity
+public class TestUser : MongoModel
 {
     public static List<TestUser> Source { get; } = new List<TestUser>()
     {
@@ -140,17 +141,12 @@ public static class Program
             $limit: 10
         }";
 
-        var expression = compiler.Compile(query: query, elementType: typeof(TestUser));
 
-        IMongoCollection<TestUser> collection = null!;
-
-        var result = collection.AsQueryable()
-            .Where(x => x.IsActive)
-            .AnyAsync();
+        var collection = null as IMongoCollection<TestUser>;
 
         var repository = new MongoRepository<TestUser>(collection);
 
-        var queryable = repository.AsQueryable();
+        var controller = new WebqlController<TestUser>(compiler, repository);
 
         return;
     }

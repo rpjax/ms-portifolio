@@ -8,8 +8,8 @@ namespace ModularSystem.Mongo;
 /// <summary>
 /// Provides a base for entities in a MongoDB context.
 /// </summary>
-/// <typeparam name="T">The type of the entity, which should implement the <see cref="IMongoEntity"/> interface.</typeparam>
-public abstract class MongoEntityService<T> : EntityService<T> where T : class, IMongoEntity
+/// <typeparam name="T">The type of the entity, which should implement the <see cref="IMongoModel"/> interface.</typeparam>
+public abstract class MongoEntityService<T> : EntityService<T> where T : class, IMongoModel
 {
     /// <summary>
     /// Asynchronously creates an <see cref="IMongoQueryable{T}"/> instance for querying the MongoDB collection of type <typeparamref name="T"/>.
@@ -34,11 +34,11 @@ public abstract class MongoEntityService<T> : EntityService<T> where T : class, 
     /// <param name="parameter">The parameter expression used as the source for the member access.</param>
     /// <returns>A <see cref="MemberExpression"/> representing the ID property of the entity.</returns>
     /// <remarks>
-    /// This method leverages the fact that the entity type <typeparamref name="T"/> has an "Id" property, as declared in <see cref="IMongoEntity"/>.
+    /// This method leverages the fact that the entity type <typeparamref name="T"/> has an "Id" property, as declared in <see cref="IMongoModel"/>.
     /// </remarks>
     protected override MemberExpression CreateIdSelectorExpression(ParameterExpression parameter)
     {
-        return Expression.Property(parameter, nameof(IMongoEntity.Id));
+        return Expression.Property(parameter, nameof(IMongoModel.Id));
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ public abstract class MongoEntityService<T> : EntityService<T> where T : class, 
 /// Provides services for entities with a GUID identifier in a MongoDB collection.
 /// </summary>
 /// <typeparam name="T">The entity type with a GUID identifier.</typeparam>
-public abstract class MongoGuidEntityService<T> : EntityService<T> where T : class, IMongoGuidEntity
+public abstract class MongoGuidEntityService<T> : EntityService<T> where T : class, IMongoGuidModel
 {
     /// <summary>
     /// Creates a queryable object for MongoDB collection entities of type <typeparamref name="T"/>.
@@ -87,7 +87,7 @@ public abstract class MongoGuidEntityService<T> : EntityService<T> where T : cla
     /// <returns>An expression selecting the ID.</returns>
     protected override MemberExpression CreateIdSelectorExpression(ParameterExpression parameter)
     {
-        return Expression.Property(parameter, nameof(IMongoGuidEntity.Id));
+        return Expression.Property(parameter, nameof(IMongoGuidModel.Id));
     }
 
     /// <summary>

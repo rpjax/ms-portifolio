@@ -12,8 +12,8 @@ namespace ModularSystem.Mongo;
 /// Provides a concrete implementation of <see cref="IDataAccessObject{T}"/> tailored for MongoDB operations.<br/>
 /// This class encapsulates the CRUD operations and other utility functions specific to MongoDB, ensuring a consistent and efficient data access pattern.
 /// </summary>
-/// <typeparam name="T">The type of the entity being accessed, which must implement <see cref="IMongoEntity"/>.</typeparam>
-public class MongoDataAccessObject<T> : IDataAccessObject<T> where T : IMongoEntity
+/// <typeparam name="T">The type of the entity being accessed, which must implement <see cref="IMongoModel"/>.</typeparam>
+public class MongoDataAccessObject<T> : IDataAccessObject<T> where T : IMongoModel
 {
     /// <summary>
     /// Provides direct access to the MongoDB collection associated with the type <typeparamref name="T"/>.
@@ -169,7 +169,7 @@ public class MongoDataAccessObject<T> : IDataAccessObject<T> where T : IMongoEnt
     /// The task result contains the number of updated entities 
     /// if the operation was acknowledged and the modified count is available; otherwise, it returns null.
     /// </returns>
-    public virtual async Task<long?> UpdateAsync(IUpdate<T> update)
+    public virtual async Task<long?> UpdateAsync(IUpdateExpression<T> update)
     {
         var reader = new UpdateReader<T>(update);
 
@@ -381,8 +381,8 @@ public class MongoDataAccessObject<T> : IDataAccessObject<T> where T : IMongoEnt
 /// Provides a concrete implementation of <see cref="IDataAccessObject{T}"/> tailored for MongoDB operations.<br/>
 /// This class encapsulates the CRUD operations and other utility functions specific to MongoDB, ensuring a consistent and efficient data access pattern.
 /// </summary>
-/// <typeparam name="T">The type of the entity being accessed, which must implement <see cref="IMongoEntity"/>.</typeparam>
-public class MongoGuidDataAccessObject<T> : IDataAccessObject<T> where T : IMongoGuidEntity
+/// <typeparam name="T">The type of the entity being accessed, which must implement <see cref="IMongoModel"/>.</typeparam>
+public class MongoGuidDataAccessObject<T> : IDataAccessObject<T> where T : IMongoGuidModel
 {
     /// <summary>
     /// Provides direct access to the MongoDB collection associated with the type <typeparamref name="T"/>.
@@ -538,7 +538,7 @@ public class MongoGuidDataAccessObject<T> : IDataAccessObject<T> where T : IMong
     /// The task result contains the number of updated entities 
     /// if the operation was acknowledged and the modified count is available; otherwise, it returns null.
     /// </returns>
-    public virtual async Task<long?> UpdateAsync(IUpdate<T> update)
+    public virtual async Task<long?> UpdateAsync(IUpdateExpression<T> update)
     {
         var reader = new UpdateReader<T>(update);
 

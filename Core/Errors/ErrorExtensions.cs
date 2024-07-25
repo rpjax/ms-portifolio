@@ -32,7 +32,7 @@ public static class ErrorExtensions
     /// <returns>The value associated with the specified key, or null if the key is not found.</returns>
     public static string? GetData(this Error error, string key)
     {
-        foreach (var item in error.DebugData)
+        foreach (var item in error.Data)
         {
             if (item.Key == key)
             {
@@ -57,13 +57,13 @@ public static class ErrorExtensions
         {
             return error;
         }
-        if (string.IsNullOrEmpty(error.Source))
+        if (string.IsNullOrEmpty(error.Details))
         {
-            error.Source = source;
+            error.Details = source;
             return error;
         }
 
-        error.Source = $"{source}{separator}{error.Source}";
+        error.Details = $"{source}{separator}{error.Details}";
 
         return error;
     }
@@ -135,8 +135,8 @@ public static class ErrorExtensions
             return error;
         }
 
-        error.DebugData = error.DebugData.RemoveWhere(x => x.Key == key);
-        error.DebugData.Add(new(key, value));
+        error.Data = error.Data.RemoveWhere(x => x.Key == key);
+        error.Data.Add(new(key, value));
         return error;
     }
 
@@ -149,7 +149,7 @@ public static class ErrorExtensions
     /// <returns>The <see cref="Error"/> instance with the added data.</returns>
     public static Error AddData(this Error error, params KeyValuePair<string, string>[] values)
     {
-        error.DebugData.AddRange(values);
+        error.Data.AddRange(values);
         return error;
     }
 
@@ -164,7 +164,7 @@ public static class ErrorExtensions
     /// <returns>The <see cref="Error"/> instance with the added data.</returns>
     public static Error AddData(this Error error, string key, string value)
     {
-        error.DebugData.Add(new KeyValuePair<string, string>(key, value));
+        error.Data.Add(new KeyValuePair<string, string>(key, value));
         return error;
     }
 
@@ -205,7 +205,7 @@ public static class ErrorExtensions
             return error;
         }
 
-        error.DebugData.Add(new(key, JsonSerializerSingleton.Serialize(value)));
+        error.Data.Add(new(key, JsonSerializerSingleton.Serialize(value)));
 
         return error;
     }

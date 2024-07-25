@@ -24,11 +24,11 @@ public class WebqlCompiler
     }
 
     /// <summary>
-    /// Compiles the specified Webql query into an expression.
+    /// Compiles the specified webql query into an expression.
     /// </summary>
     /// <param name="query">The Webql query.</param>
     /// <returns>The compiled expression.</returns>
-    public Expression Compile(string query, Type elementType)
+    public LambdaExpression Compile(string query, Type elementType)
     {
         // Represents the compilation process. Each compilation process has its own context.
         var context = new WebqlCompilationContext(Settings, elementType);
@@ -40,18 +40,15 @@ public class WebqlCompiler
         // Parses the raw query into an AST.
         var syntaxTree = WebqlParser.ParseToAst(query) as WebqlSyntaxNode;
 
-        // Performs the initial semantic analysis, which binds semantics to the AST.
-        SemanticAnalyzer.BindSemanticsToAst(context, syntaxTree);
-
         // Executes the analysis pipeline. It may include tree transformations and other analysis steps.
-        SemanticAnalyzer.ExecuteSemanticalAnalysis(ref syntaxTree);
+        SemanticAnalyzer.ExecuteSemanticalAnalysis(context: context, node: ref syntaxTree);
 
         /*
          * Synthesis.
          */
 
         // Translates the AST to a LINQ expression.
-        return WebqlLinqTranslator.Translate(node: syntaxTree);
+        return WebqlLinqTranslator.TranslateQuery(node: (syntaxTree as WebqlQuery)!);
     }
 
 }
