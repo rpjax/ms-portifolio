@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ModularSystem.Core.Linq;
+using ModularSystem.Core.Patterns;
 using ModularSystem.Core.Threading;
 using ModularSystem.EntityFramework;
 using ModularSystem.EntityFramework.Repositories;

@@ -1,4 +1,4 @@
-﻿using ModularSystem.Core;
+﻿using ModularSystem.Core.Extensions;
 
 namespace Webql.Core.Helpers;
 

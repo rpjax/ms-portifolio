@@ -48,7 +48,7 @@ public abstract class MongoModel : IMongoModel
     /// <remarks>
     /// The ObjectId is a 12-byte identifier typically employed by MongoDB to uniquely identify documents within a collection.
     /// </remarks>
-    [BsonId, EntityKey]
+    [BsonId]
     public ObjectId Id { get; set; }
 }
 

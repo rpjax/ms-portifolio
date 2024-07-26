@@ -2,8 +2,7 @@
 using ModularSystem.Core;
 using ModularSystem.Core.Linq;
 using ModularSystem.Core.Linq.Expressions;
-using ModularSystem.Core.Logging;
-using ModularSystem.Mongo;
+using ModularSystem.Core.Patterns;
 using System.Collections;
 using System.Linq.Expressions;
 
@@ -33,8 +32,6 @@ public class LiteDbRepository<TEntity> : IRepository<TEntity> where TEntity : IL
 
     public Task CreateAsync(TEntity entity)
     {
-        entity.CreatedAt = DateTime.UtcNow;
-        entity.ModifiedAt = DateTime.UtcNow;
         Collection.Insert(entity);
         return Task.CompletedTask;
     }
@@ -52,7 +49,6 @@ public class LiteDbRepository<TEntity> : IRepository<TEntity> where TEntity : IL
 
     public Task UpdateAsync(TEntity entity)
     {
-        entity.ModifiedAt = DateTime.UtcNow;
         Collection.Update(entity);
         return Task.CompletedTask;
     }

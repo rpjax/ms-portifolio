@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core;
+﻿namespace ModularSystem.Core.Patterns;
 
 /// <summary>
 /// Defines a builder interface responsible for creating instances of type <typeparamref name="T"/>.

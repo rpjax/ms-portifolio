@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core;
+﻿namespace ModularSystem.Core.Patterns;
 
 /// <summary>
 /// Defines a contract for a specification pattern. <br/>

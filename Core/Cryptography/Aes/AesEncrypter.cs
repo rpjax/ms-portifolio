@@ -153,7 +153,7 @@ public class AesEncrypter : Encrypter
     {
         if (data.Length == 0)
         {
-            throw new AppException("Aes encryptor cannot work with a byte array of zero length.");
+            throw new Exception("Aes encryptor cannot work with a byte array of zero length.");
         }
     }
 }

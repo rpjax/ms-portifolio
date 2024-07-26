@@ -1,4 +1,6 @@
-﻿namespace ModularSystem.Core.Threading;
+﻿using ModularSystem.Core.Extensions;
+
+namespace ModularSystem.Core.Threading;
 
 /// <summary>
 /// Provides static methods to queue and manage jobs for execution by the thread pool. <br/>

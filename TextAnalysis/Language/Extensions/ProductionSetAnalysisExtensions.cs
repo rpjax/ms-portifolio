@@ -3,6 +3,7 @@ using ModularSystem.TextAnalysis.Language.Components;
 using ModularSystem.TextAnalysis.Language.Tools;
 using ModularSystem.TextAnalysis.Parsing.LL1.Components;
 using ModularSystem.TextAnalysis.Parsing.LL1.Tools;
+using System.Text.Json;
 
 namespace ModularSystem.TextAnalysis.Language.Extensions;
 
@@ -431,11 +432,13 @@ public static class ProductionSetAnalysisExtensions
 
         if (unrealizableProductions.Length != 0)
         {
-            var error = new Error("The grammar contains unrealizable productionsGroup.")
-                .AddDetails("The unrealizable productionsGroup", unrealizableProductions.ToString())
-                .AddDetails("The production set", set.ToString())
-                .AddJsonData("The unrealizable productionsGroup", unrealizableProductions)
-                .AddJsonData("The production set", set)
+            var unrealizableProductionsStr = string.Join(Environment.NewLine, unrealizableProductions.Select(x => x.ToString()));
+
+            var error = new ErrorBuilder()
+                .SetTitle("The grammar contains unrealizable productionsGroup.")
+                .AddDetail("The unrealizable productionsGroup", unrealizableProductionsStr)
+                .AddDetail("The production set", set.ToString())
+                .Build();
                 ;
 
             errors.Add(error);
@@ -445,11 +448,13 @@ public static class ProductionSetAnalysisExtensions
 
         if (unreachableProductions.Length != 0)
         {
-            var error = new Error("The grammar contains unreachable symbols.")
-                .AddDetails("The unreachable productionsGroup", unreachableProductions.ToString())
-                .AddDetails("The production set", set.ToString())
-                .AddJsonData("The unreachable productionsGroup", unreachableProductions)
-                .AddJsonData("The production set", set)
+            var unreachableProductionsStr = string.Join(Environment.NewLine, unreachableProductions.Select(x => x.ToString()));
+
+            var error = new ErrorBuilder()
+                .SetTitle("The grammar contains unreachable symbols.")
+                .AddDetail("The unreachable productionsGroup", unreachableProductionsStr)
+                .AddDetail("The production set", set.ToString())
+                .Build();
                 ;
 
             errors.Add(error);
@@ -460,11 +465,14 @@ public static class ProductionSetAnalysisExtensions
         if (leftRecursiveCicles.Length != 0)
         {
             var ciclesStr = string.Join(Environment.NewLine, leftRecursiveCicles.Select(x => x.ToString()));
-            var error = new Error("The grammar contains left recursion cicles.")
-                .AddDetails("The left recursion cicles", ciclesStr)
-                .AddDetails("The production set", set.ToString())
-                .AddJsonData("The left recursion cicles", leftRecursiveCicles)
-                .AddJsonData("The production set", set)
+            var leftRecursiveCiclesStr = string.Join(Environment.NewLine, leftRecursiveCicles.Select(x => x.ToString()));
+
+            var error = new ErrorBuilder()
+                .SetTitle("The grammar contains left recursion cicles.")
+                .AddDetail("The left recursion cicles", ciclesStr)
+                .AddDetail("The production set", set.ToString())
+                .AddDetail("The left recursion cicles", leftRecursiveCiclesStr)
+                .Build()
                 ;
 
             errors.Add(error);
@@ -475,11 +483,12 @@ public static class ProductionSetAnalysisExtensions
         if (firstSetConflictingProductionSubsets.Length != 0)
         {
             var subsetsStr = string.Join(Environment.NewLine, firstSetConflictingProductionSubsets.Select(x => x.ToString()));
-            var error = new Error("The grammar contains first set conflicts.")
-                .AddDetails("The first set conflicting production subsets", subsetsStr)
-                .AddDetails("The production set", set.ToString())
-                .AddJsonData("The first set conflicting production subsets", firstSetConflictingProductionSubsets)
-                .AddJsonData("The production set", set)
+
+            var error = new ErrorBuilder()
+                .SetTitle("The grammar contains first set conflicts.")
+                .AddDetail("The first set conflicting production subsets", subsetsStr)
+                .AddDetail("The production set", set.ToString())
+                .Build()
                 ;
 
             errors.Add(error);
@@ -490,11 +499,12 @@ public static class ProductionSetAnalysisExtensions
         if (firstFollowConflictingProductionSubsets.Length != 0)
         {
             var subsetsStr = string.Join(Environment.NewLine, firstFollowConflictingProductionSubsets.Select(x => x.ToString()));
-            var error = new Error("The grammar contains first-follow set conflicts.")
-                .AddDetails("The first-follow set conflicting production subsets", subsetsStr)
-                .AddDetails("The production set", set.ToString())
-                .AddJsonData("The first-follow set conflicting production subsets", firstFollowConflictingProductionSubsets)
-                .AddJsonData("The production set", set)
+
+            var error = new ErrorBuilder()
+                .SetTitle("The grammar contains first-follow set conflicts.")
+                .AddDetail("The first-follow set conflicting production subsets", subsetsStr)
+                .AddDetail("The production set", set.ToString())
+                .Build()
                 ;
 
             errors.Add(error);
@@ -512,11 +522,12 @@ public static class ProductionSetAnalysisExtensions
         if (unrealizableProductions.Length != 0)
         {
             var str = string.Join(Environment.NewLine, unrealizableProductions.Select(x => x.ToString()));
-            var error = new Error("The grammar contains unrealizable productions.")
-                .AddDetails("The unrealizable productions", str)
-                .AddDetails("The production set", set.ToString())
-                .AddJsonData("The unrealizable productions", unrealizableProductions)
-                .AddJsonData("The production set", set)
+
+            var error = new ErrorBuilder()
+                .SetTitle("The grammar contains unrealizable productions.")
+                .AddDetail("The unrealizable productions", str)
+                .AddDetail("The production set", set.ToString())
+                .Build();
                 ;
 
             errors.Add(error);
@@ -527,11 +538,12 @@ public static class ProductionSetAnalysisExtensions
         if (unreachableProductions.Length != 0)
         {
             var str = string.Join(Environment.NewLine, unreachableProductions.Select(x => x.ToString()));
-            var error = new Error("The grammar contains unreachable symbols.")
-                .AddDetails("The unreachable productions", str)
-                .AddDetails("The production set", set.ToString())
-                .AddJsonData("The unreachable productions", unreachableProductions)
-                .AddJsonData("The production set", set)
+
+            var error = new ErrorBuilder()
+                .SetTitle("The grammar contains unreachable symbols.")
+                .AddDetail("The unreachable productions", str)
+                .AddDetail("The production set", set.ToString())
+                .Build();
                 ;
 
             errors.Add(error);

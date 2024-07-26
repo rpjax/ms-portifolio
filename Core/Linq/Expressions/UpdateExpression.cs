@@ -1,5 +1,4 @@
-﻿using ModularSystem.Core.Expressions;
-using ModularSystem.Core.Extensions;
+﻿using ModularSystem.Core.Patterns;
 using System.Linq.Expressions;
 
 namespace ModularSystem.Core.Linq.Expressions;
@@ -46,33 +45,6 @@ public class UpdateExpression : IUpdateExpression
         Modifications = modifications;
     }
 
-}
-
-/// <summary>
-/// Represents an update assignment expression for modifying entities.
-/// </summary>
-public class UpdateModificationExpression : Expression
-{
-    /// <summary>
-    /// Gets the selector expression for the field being modified.
-    /// </summary>
-    public Expression Selector { get; }
-
-    /// <summary>
-    /// Gets the new value for the field.
-    /// </summary>
-    public Expression Value { get; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UpdateModificationExpression"/> class.
-    /// </summary>
-    /// <param name="selector"></param>
-    /// <param name="value"></param>
-    public UpdateModificationExpression(Expression selector, Expression value)
-    {
-        Selector = selector;
-        Value = value;
-    }
 }
 
 /// <summary>
@@ -171,43 +143,9 @@ public class UpdateExpressionBuilder<T> : IBuilder<UpdateExpression>
             value: Expression.Constant(value, typeof(TField))
         );
 
-
-
-        var analyser = new SelectorExpressionAnalyzer<T, TField>(selector).Execute();
-
         var valueExpr = Expression.Constant(value, typeof(TField));
 
-        var modification = new UpdateSetExpression(
-            fieldName: analyser.GetFieldName(),
-            type: analyser.GetFieldType(),
-            selector: selector,
-            value: valueExpr
-        );
-
-        var updatesForSelectedField = Modifications.Cast<UpdateSetExpression>()
-            .Where(x => x.FieldName == modification.FieldName)
-            .ToArray();
-
-        if (updatesForSelectedField.IsEmpty())
-        {
-            Modifications.Add(modification);
-            return this;
-        }
-
-        if (ConflictStrategy == ConflictStrategyType.Throw)
-        {
-            throw new InvalidOperationException($"A modification for the field '{modification.FieldName}' already exists. To override or skip this conflict, adjust the ConflictStrategy.");
-        }
-        if (ConflictStrategy == ConflictStrategyType.Skip)
-        {
-            return this;
-        }
-
-        var oldModification = updatesForSelectedField.First();
-
-        Modifications.Remove(oldModification);
-        Modifications.Add(modification);
-        return this;
+        throw new NotImplementedException();        
     }
 
     internal UpdateExpressionBuilder<T> SetFilter(Expression? expression)
@@ -237,18 +175,15 @@ public class UpdateExpressionReader<T>
 {
     private Expression? Filter { get; }
     private Expression[] Modifications { get; }
-    private Configs Config { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UpdateExpressionReader{T}"/> class using an interface representation of an update.
     /// </summary>
     /// <param name="update">The update data structure containing the raw expressions to be interpreted.</param>
-    /// <param name="configs">Optional configuration settings influencing the interpretation process.</param>
-    public UpdateExpressionReader(IUpdateExpression update, Configs? configs = null)
+    public UpdateExpressionReader(IUpdateExpression update)
     {
         Filter = update.Filter;
         Modifications = update.Modifications;
-        Config = configs ?? new Configs();
     }
 
     /// <summary>
@@ -257,20 +192,18 @@ public class UpdateExpressionReader<T>
     /// <returns>The interpreted filter expression, if present; otherwise, null.</returns>
     public Expression<Func<T, bool>>? GetFilterExpression()
     {
-        return Config.UseParameterUniformityVisitor
-            ? VisitExpression(Filter as Expression<Func<T, bool>>)
-            : Filter as Expression<Func<T, bool>>;
+        throw new NotImplementedException();
     }
 
     /// <summary>
     /// Attempts to extract all update set expressions from the update without throwing exceptions for non-matching types.
     /// </summary>
     /// <returns>An enumerable of update set expressions.</returns>
-    public IEnumerable<UpdateSetExpression> TryGetModificationExpressions()
+    public IEnumerable<UpdateModificationExpression> TryGetModificationExpressions()
     {
         foreach (var expression in Modifications)
         {
-            if (expression is UpdateSetExpression cast)
+            if (expression is UpdateModificationExpression cast)
             {
                 yield return cast;
             }
@@ -281,11 +214,11 @@ public class UpdateExpressionReader<T>
     /// Extracts all update set expressions from the update, throwing an exception if any non-matching type is encountered.
     /// </summary>
     /// <returns>An enumerable of update set expressions.</returns>
-    public IEnumerable<UpdateSetExpression> GetModificationExpressions()
+    public IEnumerable<UpdateModificationExpression> GetModificationExpressions()
     {
         foreach (var expression in Modifications)
         {
-            if (expression is UpdateSetExpression updateSetExpression)
+            if (expression is UpdateModificationExpression updateSetExpression)
             {
                 yield return updateSetExpression;
                 continue;
@@ -295,41 +228,4 @@ public class UpdateExpressionReader<T>
         }
     }
 
-    /// <summary>
-    /// Constructs an expression visitor to ensure uniformity in parameter references across combined expressions.
-    /// </summary>
-    /// <returns>A newly created expression visitor.</returns>
-    protected ExpressionVisitor CreateExpressionVisitor()
-    {
-        return new ParameterExpressionReferenceBinder();
-    }
-
-    /// <summary>
-    /// Visits and potentially modifies an expression.
-    /// </summary>
-    /// <typeparam name="TResult">Type of expression to be visited.</typeparam>
-    /// <param name="expression">Expression to visit.</param>
-    /// <returns>Modified expression, if any; otherwise the original expression.</returns>
-    protected TResult? VisitExpression<TResult>(TResult? expression) where TResult : Expression
-    {
-        if (expression == null)
-        {
-            return null;
-        }
-
-        return CreateExpressionVisitor()
-            .Visit(expression)
-            .TypeCast<TResult>();
-    }
-
-    /// <summary>
-    /// Configuration settings influencing the interpretation process of the <see cref="UpdateExpressionReader{T}"/>.
-    /// </summary>
-    public class Configs
-    {
-        /// <summary>
-        /// Gets or sets a value indicating whether the ParameterUniformityVisitor should be used during the interpretation process to ensure consistent parameter references.
-        /// </summary>
-        public bool UseParameterUniformityVisitor { get; set; } = true;
-    }
 }

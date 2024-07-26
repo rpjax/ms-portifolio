@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core;
+using ModularSystem.Core.Patterns;
 using MongoDB.Bson;
 using MongoDB.Driver;
 

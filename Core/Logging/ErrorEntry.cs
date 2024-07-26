@@ -1,6 +1,7 @@
 ﻿using ModularSystem.EntityFramework;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using ModularSystem.Core.Patterns;
 
 namespace ModularSystem.Core.Logging;
 

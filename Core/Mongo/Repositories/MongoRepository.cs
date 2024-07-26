@@ -138,52 +138,53 @@ public class MongoRepository<T> : IMongoRepository<T> where T : IMongoModel
     /// <exception cref="ErrorException">Thrown when the update operation is not properly defined.</exception>
     public async Task<long> UpdateAsync(IUpdateExpression update)
     {
-        var reader = new UpdateExpressionReader<T>(update);
+        throw new NotImplementedException();
+        //var reader = new UpdateExpressionReader<T>(update);
 
-        var predicate = reader
-            .GetFilterExpression();
+        //var predicate = reader
+        //    .GetFilterExpression();
 
-        var modifications = reader
-            .GetModificationExpressions()
-            .ToArray();
+        //var modifications = reader
+        //    .GetModificationExpressions()
+        //    .ToArray();
 
-        if (predicate == null)
-        {
-            throw new Exception("Update operation requires a filter definition. To allow updates without a filter, adjust the settings in the provided configuration object when initializing the data access object.");
-        }
-        if (modifications == null || modifications.IsEmpty())
-        {
-            return 0;
-        }
+        //if (predicate == null)
+        //{
+        //    throw new Exception("Update operation requires a filter definition. To allow updates without a filter, adjust the settings in the provided configuration object when initializing the data access object.");
+        //}
+        //if (modifications == null || modifications.IsEmpty())
+        //{
+        //    return 0;
+        //}
 
-        var filterDefinition = FilterBuilder.Where(predicate);
-        var updateDefinition = UpdateBuilder.Combine();
+        //var filterDefinition = FilterBuilder.Where(predicate);
+        //var updateDefinition = UpdateBuilder.Combine();
 
-        foreach (var updateSet in modifications)
-        {
-            var valueExpression = updateSet.Value;
-            var value = valueExpression as object;
+        //foreach (var updateSet in modifications)
+        //{
+        //    var valueExpression = updateSet.Value;
+        //    var value = valueExpression as object;
 
-            if (value is ConstantExpression constantExpression)
-            {
-                value = constantExpression.Value;
-            }
+        //    if (value is ConstantExpression constantExpression)
+        //    {
+        //        value = constantExpression.Value;
+        //    }
 
-            var set = UpdateBuilder
-                .Set(updateSet.FieldName, value);
+        //    var set = UpdateBuilder
+        //        .Set(updateSet.FieldName, value);
 
-            updateDefinition = UpdateBuilder
-                .Combine(updateDefinition, set);
-        }
+        //    updateDefinition = UpdateBuilder
+        //        .Combine(updateDefinition, set);
+        //}
 
-        var result = await Collection.UpdateManyAsync(filterDefinition, updateDefinition);
+        //var result = await Collection.UpdateManyAsync(filterDefinition, updateDefinition);
 
-        if (!result.IsAcknowledged || !result.IsModifiedCountAvailable)
-        {
-            throw new Exception("The operation was not acknowledged by the mongo database.");
-        }
+        //if (!result.IsAcknowledged || !result.IsModifiedCountAvailable)
+        //{
+        //    throw new Exception("The operation was not acknowledged by the mongo database.");
+        //}
 
-        return result.ModifiedCount;
+        //return result.ModifiedCount;
     }
 
     //*

@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core;
+using ModularSystem.Core.Exceptions;
 using ModularSystem.TextAnalysis.Language.Components;
 using ModularSystem.TextAnalysis.Language.Transformations;
 

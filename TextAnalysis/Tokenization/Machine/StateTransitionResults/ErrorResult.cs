@@ -14,4 +14,11 @@ public class ErrorResult : ITransitionResult
         Action = TokenizerAction.Error;
         Error = error;
     }
+
+    public ErrorResult(string error)
+    {
+        NextState = TokenizerState.None;
+        Action = TokenizerAction.Error;
+        Error = new Error(error);
+    }
 }

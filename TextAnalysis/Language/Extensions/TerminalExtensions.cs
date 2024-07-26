@@ -1,4 +1,4 @@
-﻿using ModularSystem.Core;
+﻿using ModularSystem.Core.Extensions;
 using ModularSystem.TextAnalysis.Language.Components;
 using ModularSystem.TextAnalysis.Tokenization;
 using ModularSystem.TextAnalysis.Tokenization.Tools;

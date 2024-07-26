@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ModularSystem.Core;
 using ModularSystem.Core.Linq;
+using ModularSystem.Core.Linq.Expressions;
 using ModularSystem.Core.Linq.Extensions;
+using ModularSystem.Core.Patterns;
 using ModularSystem.EntityFramework.Linq;
 using System.Linq.Expressions;
 

@@ -68,8 +68,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="CLI\" />
-    <Folder Include="Legacy\Application\Initializer\Internal\" />
-    <Folder Include="Web\" />
   </ItemGroup>
 
 </Project>

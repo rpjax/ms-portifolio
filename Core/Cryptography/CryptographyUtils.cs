@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using ModularSystem.Core.Extensions;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace ModularSystem.Core.Cryptography;

@@ -1,4 +1,7 @@
-﻿namespace ModularSystem.Core.Threading;
+﻿using ModularSystem.Core.Exceptions;
+using ModularSystem.Core.Extensions;
+
+namespace ModularSystem.Core.Threading;
 
 /// <summary>
 /// Provides an asynchronous mutual exclusion lock mechanism.

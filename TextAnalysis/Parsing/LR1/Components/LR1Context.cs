@@ -1,4 +1,5 @@
 ﻿using ModularSystem.Core;
+using ModularSystem.Core.Exceptions;
 using ModularSystem.TextAnalysis.Language.Components;
 using ModularSystem.TextAnalysis.Parsing.Components;
 using ModularSystem.TextAnalysis.Tokenization;
@@ -31,10 +32,11 @@ public class LR1Context
 
     public Exception UnexpectedEndOfTokens()
     {
-        var error = new Error()
-            .SetText("Unexpected end of tokens.")
+        var error = new ErrorBuilder()
+            .SetTitle("Unexpected end of tokens.")
             .SetCode("SYNTAX_ERROR")
-            .AddDetails("Stack Trace", InputStream.LookaheadToken?.ToStringVerbose())
+            .AddDetail("Stack Trace", InputStream.LookaheadToken?.ToStringVerbose())
+            .Build()
             ;
 
         return new ErrorException(error);
@@ -50,11 +52,12 @@ public class LR1Context
 
         var expectedSymbolsText = string.Join($",{Environment.NewLine}or ", expectedSymbols.Select(x => $"{x.Symbol} to form {x.Rule}"));
 
-        return new Error()
-            .SetText("Syntax error.")
+        return new ErrorBuilder()
+            .SetTitle("Syntax error.")
             .SetCode("SYNTAX_ERROR")
-            .AddDetails("At", InputStream.LookaheadToken?.ToStringVerbose())
-            .AddDetails("Expected", expectedSymbolsText)
+            .AddDetail("At", InputStream.LookaheadToken?.ToStringVerbose())
+            .AddDetail("Expected", expectedSymbolsText)
+            .Build()
             ;
     }
 
