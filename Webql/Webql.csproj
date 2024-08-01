@@ -1,19 +1,30 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>A web query language that compiles to LINQ Expressions.</Title>
+    <Company>AIDAN</Company>
+    <Authors>Rodrigo Pazzini Jacques</Authors>
+    <Description>...</Description>
+    <Version>1.0.0-prerelease.1</Version>
+    <PackageReadmeFile>docs.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/rpjax/modular_system-dotnet/tree/version/main/Webql</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Parsing\Legacy\Components\" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\TextAnalysis\TextAnalysis.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="docs.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

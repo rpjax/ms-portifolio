@@ -12,6 +12,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Module TextAnalysis", "Module TextAnalysis", "{E1F2863C-395A-4CE9-9AA6-336546FBEE31}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Module Core", "Module Core", "{E3DCAE57-CB1D-4755-A2AC-D899DEE8FB35}"
+	ProjectSection(SolutionItems) = preProject
+		Core\readme.md = Core\readme.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Module Web", "Module Web", "{83F96F55-198E-46D4-89A7-8C3B51A5E3D8}"
 EndProject
@@ -33,11 +36,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore", "EFCore\EFCore.csp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Module Logging", "Module Logging", "{3DB046BE-4898-42E9-A927-EBE1B13456CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logging", "Logging\Logging.csproj", "{D3BD76B6-B75C-4A3B-A573-28A83B585049}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Logging", "Logging\Logging.csproj", "{D3BD76B6-B75C-4A3B-A573-28A83B585049}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Module LiteDB", "Module LiteDB", "{1CEAE595-1CA5-458C-AD3C-D29EF4A167A3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteDB", "LiteDB\LiteDB.csproj", "{E1F76BE1-9889-4E35-AD06-987AA76C8E31}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LiteDB", "LiteDB\LiteDB.csproj", "{E1F76BE1-9889-4E35-AD06-987AA76C8E31}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
