@@ -1,17 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ModularSystem.Core;
 using ModularSystem.Core.Patterns;
-using ModularSystem.Mongo.Repositories;
-using ModularSystem.Web.AccessManagement;
 using ModularSystem.Web.AccessManagement.Attributes;
 using ModularSystem.Web.AccessManagement.Jwt.Services;
 using ModularSystem.Web.Controllers;
-using ModularSystem.Web.Cryptography;
 using Webql;
 
 namespace Tester;
 
-[AuthorizeController("admin")]
 public class WebqlController<TEntity> : WebController where TEntity : IEntity
 {
     private WebqlCompiler Compiler { get; }
@@ -39,6 +35,7 @@ public class WebqlController<TEntity> : WebController where TEntity : IEntity
         return Ok();
     }
 
+    [AuthorizeAction("auth:sign-in")]
     public IActionResult SignIn([FromQuery] string username, [FromQuery] string password)
     {
         if(username != "jacques" || password != "nderakore")

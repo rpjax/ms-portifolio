@@ -153,6 +153,8 @@ public static class Program
 
         var controller = new WebqlController<TestUser>(compiler, repository);
 
+        var repositoryProvider = new EFCo
+
         var appBuilder = WebApplication.CreateBuilder();
 
         appBuilder.Services.AddSingleton<IAccessPolicyService, AttributeAccessPolicyService>();

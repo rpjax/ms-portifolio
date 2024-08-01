@@ -32,10 +32,6 @@ public class AuthorizeControllerAttribute : AccessManagementAttribute
 /// Specifies authorization policies for a specific action method within a controller. <br/>
 /// When applied, it requires that the caller meets the specified authorization criteria to execute the action.
 /// </summary>
-/// <remarks>
-/// Use this attribute to override or supplement the permissions required by the <see cref="AuthorizeControllerAttribute"/> <br/>
-/// at the controller level or to specify permissions for actions in controllers without a controller-level authorization attribute.
-/// </remarks>
 [AttributeUsage(AttributeTargets.Method)]
 public class AuthorizeActionAttribute : AccessManagementAttribute
 {
