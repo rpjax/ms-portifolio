@@ -7,11 +7,9 @@
 public static class ErrorFlags
 {
     /// <summary>
-    /// Signals that the error is safe to display to the user. <br/>
-    /// This flag can be used to indicate that the error message does not contain sensitive information
-    /// and is intended for general visibility.
+    /// Indicates that the error can be displayed to the user, and should not contain sensitive information. <br/>
     /// </summary>
-    public const string Public = "public";
+    public const string UserVisible = "user_visible";
 
     /// <summary>
     /// Indicates that the error is relevant for debugging purposes. <br/>
@@ -42,4 +40,3 @@ public static class ErrorFlags
     /// </summary>
     public const string Bug = "bug";
 }
-

@@ -1,7 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
-using ModularSystem.Core;
-using System.Text;
 
 namespace ModularSystem.Web;
 
@@ -31,11 +28,6 @@ public abstract class Middleware
     /// This delegate is invoked after the current middleware completes its processing.
     /// </summary>
     protected RequestDelegate Next { get; }
-
-    /// <summary>
-    /// Determines whether to log exceptions or not.
-    /// </summary>
-    protected bool EnableExceptionLogging { get; set; } = true;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Middleware"/> class with the specified next delegate in the pipeline.
@@ -120,127 +112,6 @@ public abstract class Middleware
     protected virtual Task<Strategy> OnExceptionAsync(HttpContext context, Exception exception)
     {
         return Task.FromResult(Strategy.Continue);
-    }
-
-    /// <summary>
-    /// Sends an HTTP response with no content.
-    /// </summary>
-    /// <param name="context">The current HTTP context.</param>
-    protected void WriteNoContentResponse(HttpContext context)
-    {
-        context.Response.Clear();
-        context.Response.StatusCode = 204;
-    }
-
-    /// <summary>
-    /// Sends an HTTP response with the specified content type and data.
-    /// </summary>
-    protected async Task WriteTextResponseAsync(HttpContext context, int statusCode, string contentType, string data)
-    {
-        var bytes = Encoding.UTF8.GetBytes(data);
-
-        context.Response.StatusCode = statusCode;
-        context.Response.ContentType = contentType;
-        context.Response.ContentLength = bytes.Length;
-
-        await context.Response.Body.WriteAsync(bytes, 0, bytes.Length);
-    }
-
-    /// <summary>
-    /// Sends a JSON response with the specified status code and data.
-    /// </summary>
-    protected Task WriteJsonResponseAsync(HttpContext context, int statusCode, string data)
-    {
-        return WriteTextResponseAsync(context, statusCode, "application/json", data);
-    }
-
-    /// <summary>
-    /// Sends an HTML response with the specified status code and data.
-    /// </summary>
-    protected Task WriteHtmlResponseAsync(HttpContext context, int statusCode, string html)
-    {
-        return WriteTextResponseAsync(context, statusCode, "text/html", html);
-    }
-
-    /// <summary>
-    /// Writes an exception response to the HTTP context based on the provided exception and application settings. <br/>
-    /// This method formats the provided exception into a suitable response format and sends it to the client, 
-    /// adhering to the application's error exposure settings.
-    /// </summary>
-    /// <param name="context">The current HTTP context.</param>
-    /// <param name="exception">The exception to be processed and potentially written in the response.</param>
-    /// <returns>A task representing the asynchronous operation of writing the exception response.</returns>
-    /// <remarks>
-    /// The behavior of this method is influenced by <c>AspnetSettings.ExposeExceptions</c> and <c>AspnetSettings.ExposeNonPublicErrors</c>. <br/>
-    /// If <c>AspnetSettings.ExposeExceptions</c> is true, the exception details are included in the response. <br/>
-    /// If the exception includes errors flagged as "public", or if <c>AspnetSettings.ExposeNonPublicErrors</c> is true, 
-    /// these errors are displayed to the user. <br/>
-    /// In cases where no error is provided, or if all errors are not flagged as "public" and <c>AspnetSettings.ExposeNonPublicErrors</c> 
-    /// is not set, no detailed error information will be displayed in the response.
-    /// </remarks>
-    protected Task WriteExceptionResponseAsync(HttpContext context, Exception exception)
-    {
-        return context.WriteExceptionResponseAsync(exception, EnableExceptionLogging);
-    }
-
-    /// <summary>
-    /// Retrieves the value of a specified cookie from the current HTTP request.
-    /// </summary>
-    protected string? GetCookie(HttpContext context, string name)
-    {
-        if (context.Request.Cookies.TryGetValue(name, out string? cookie))
-        {
-            return cookie;
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Retrieves the value of a specified query parameter from the current HTTP request.
-    /// </summary>
-    protected string? GetQueryParam(HttpContext context, string name)
-    {
-        if (context.Request.Query.TryGetValue(name, out StringValues stringValue))
-        {
-            return stringValue.FirstOrDefault();
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Sets a cookie with the specified key and value in the HTTP response.
-    /// </summary>
-    protected void SetCookie(HttpContext context, string key, string value)
-    {
-        var options = new CookieOptions() { Expires = TimeProvider.Now() };
-        context.Response.Cookies.Append(key, value, options);
-    }
-
-    /// <summary>
-    /// Sets a cookie with the specified key, value, and expiration date in the HTTP response.
-    /// </summary>
-    protected void SetCookie(HttpContext context, string key, string value, DateTime expires)
-    {
-        var options = new CookieOptions() { Expires = expires };
-        context.Response.Cookies.Append(key, value, options);
-    }
-
-    /// <summary>
-    /// Sets a cookie with the specified options in the HTTP response.
-    /// </summary>
-    protected void SetCookie(HttpContext context, string key, string value, CookieOptions options)
-    {
-        context.Response.Cookies.Append(key, value, options);
-    }
-
-    /// <summary>
-    /// Deletes the specified cookie from the HTTP response.
-    /// </summary>
-    protected void DeleteCookie(HttpContext context, string cookieName)
-    {
-        context.Response.Cookies.Delete(cookieName);
     }
 
 }

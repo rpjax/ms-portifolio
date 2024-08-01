@@ -45,7 +45,7 @@ public class WebEncodedTextEncrypter : ITextEncrypter
         var bytes = Encoding.GetBytes(data);
         var encryptedBytes = Encrypter.Encrypt(bytes);
 
-        return WebHelper.ToUrlBase64(encryptedBytes);
+        return WebEncodingHelper.ToWebEncodedBase64(encryptedBytes);
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ public class WebEncodedTextEncrypter : ITextEncrypter
     /// <returns>The original content of the text, after decryption.</returns>
     public virtual string Decrypt(string encryptedData)
     {
-        var encryptedBytes = WebHelper.FromUrlBase64(encryptedData);
+        var encryptedBytes = WebEncodingHelper.FromWebEncodedBase64(encryptedData);
         var bytes = Encrypter.Decrypt(encryptedBytes);
 
         return Encoding.GetString(bytes);
@@ -66,9 +66,7 @@ public class WebEncodedTextEncrypter : ITextEncrypter
     {
         try
         {
-            var encryptedBytes = WebHelper.FromUrlBase64(encryptedData);
-
-            return Encrypter.Verify(encryptedBytes);
+            return Encrypter.Verify(WebEncodingHelper.FromWebEncodedBase64(encryptedData));
         }
         catch
         {

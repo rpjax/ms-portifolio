@@ -20,11 +20,6 @@ namespace ModularSystem.Web.Controllers;
 public abstract class WebController : ControllerBase
 {
     /// <summary>
-    /// Determines whether to log exceptions or not.
-    /// </summary>
-    protected bool EnableExceptionLogging { get; set; } = true;
-
-    /// <summary>
     /// Initializes a new instance of the <see cref="WebController"/> class.
     /// </summary>
     protected WebController()
@@ -99,16 +94,9 @@ public abstract class WebController : ControllerBase
     /// </summary>
     /// <returns>An IIdentity object.</returns>
     /// <exception cref="AppException">Thrown when the identity object cannot be found in the HttpContext.Items dictionary.</exception>
-    protected virtual IIdentity GetIdentity()
+    protected virtual IIdentity? GetIdentity()
     {
-        var identity = HttpContext.GetIdentity();
-
-        if (identity == null)
-        {
-            throw new InvalidOperationException("Could not get the 'IIdentity' object from 'HttpContext.Items'.");
-        }
-
-        return identity;
+        return HttpContext.GetIdentity();
     }
 
     /// <summary>
@@ -157,11 +145,14 @@ public abstract class WebController : ControllerBase
     }
 
     /// <summary>
-    /// Read the HTTP body as a JSON string and attempts to deserialized it as a <typeparamref name="T"/> instance.
+    /// Deserializes the request body as JSON into an object of type <typeparamref name="T"/>.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    protected async Task<T?> DeserializeBodyAsJsonAsync<T>()
+    /// <typeparam name="T">The type of the object to deserialize the JSON into.</typeparam>
+    /// <param name="options">Optional <see cref="JsonSerializerOptions"/> to use for deserialization. If <c>null</c>, default options are used.</param>
+    /// <returns>
+    /// The deserialized object of type <typeparamref name="T"/> if the body is valid JSON; otherwise, <c>null</c>.
+    /// </returns>
+    protected async Task<T?> DeserializeBodyAsJsonAsync<T>(JsonSerializerOptions? options = null)
     {
         var str = await ReadBodyAsStringAsync();
 
@@ -170,77 +161,133 @@ public abstract class WebController : ControllerBase
             return default;
         }
 
-        return JsonSerializerSingleton.Deserialize<T>(str);
-    }
-
-
-    /// <summary>
-    /// Tries to retrieve a service of the specified type from the ASP.NET Core dependency injection container.
-    /// </summary>
-    /// <typeparam name="T">The type of service to retrieve.</typeparam>
-    /// <param name="service">When this method returns, contains the service instance if the service is found, or null if the service is not found. This parameter is passed uninitialized.</param>
-    /// <returns>true if the service is found; otherwise, false.</returns>
-    /// <remarks>
-    /// This method is useful for optional dependencies that might not be registered in the application's service container. It allows conditional logic based on the availability of a service without throwing exceptions if the service is not registered.
-    /// </remarks>
-    protected bool TryGetService<T>([MaybeNullWhen(false)] out T service) 
-    {
-        //new Dictionary<string, string>().TryGetValue
-        var value = HttpContext.RequestServices.GetService<T>();
-
-        if(value is null)
-        {
-            service = default;
-            return false;
-        }
-
-        service = value;
-        return true;
+        return JsonSerializer.Deserialize<T>(str, options);
     }
 
     /// <summary>
-    /// Retrieves a service of type <typeparamref name="T"/> from the ASP.NET Core dependency injection container.
+    /// Retrieves a service of type <typeparamref name="TService"/> from the request's service provider.
     /// </summary>
-    /// <typeparam name="T">The type of service to retrieve.</typeparam>
+    /// <typeparam name="TService">The type of the service to retrieve.</typeparam>
     /// <returns>
-    /// The instance of the service.
+    /// An instance of the service if it is registered; otherwise, <c>null</c>.
+    /// </returns>
+    protected TService? GetService<TService>()
+    {
+        return HttpContext.RequestServices.GetService<TService>();
+    }
+
+    /// <summary>
+    /// Attempts to retrieve a service of type <typeparamref name="T"/> from the request's service provider.
+    /// </summary>
+    /// <typeparam name="T">The type of the service to retrieve.</typeparam>
+    /// <param name="service">When this method returns, contains the service instance if found; otherwise, <c>null</c>.</param>
+    /// <returns>
+    /// <c>true</c> if the service was successfully retrieved; otherwise, <c>false</c>.
+    /// </returns>
+    protected bool TryGetService<T>([MaybeNullWhen(false)] out T service)
+    {
+        service = HttpContext.RequestServices.GetService<T>();
+        return service != null;
+    }
+
+    /// <summary>
+    /// Retrieves a required service of type <typeparamref name="T"/> from the request's service provider.
+    /// </summary>
+    /// <typeparam name="T">The type of the service to retrieve.</typeparam>
+    /// <returns>
+    /// The service instance if it is registered; otherwise, throws an <see cref="InvalidOperationException"/>.
     /// </returns>
     /// <exception cref="InvalidOperationException">
-    /// Thrown if the service of type <typeparamref name="T"/> cannot be resolved from the service provider.
+    /// Thrown when the service of type <typeparamref name="T"/> cannot be resolved from the service provider.
     /// </exception>
-    /// <remarks>
-    /// This method ensures that a service of the specified type is returned. It uses <see cref="TryGetService{T}"/> 
-    /// internally to attempt service resolution and throws an <see cref="InvalidOperationException"/> if the service
-    /// cannot be found. Use this method when the requested service is essential for the operation to proceed.
-    /// </remarks>
-    protected T GetService<T>() 
+    protected T GetRequiredService<T>()
     {
-        if(!TryGetService<T>(out var service))
+        if (!TryGetService<T>(out var service))
         {
-            throw new InvalidOperationException($"Could not resolve service of type '{typeof(T).Name}' from the service provider.");      
+            throw new InvalidOperationException($"Could not resolve service of type '{typeof(T).Name}' from the service provider.");
         }
 
         return service;
     }
 
     //*
-    // HTTP response.
+    // HTTP responses.
     //*
 
-    protected IActionResult ProblemResponse(int statusCode, ErrorResponse response)
+    /*
+     * Problem details response.
+     */
+
+    protected IActionResult ProblemResponse(
+        int statusCode,
+        ProblemResponse response,
+        JsonSerializerOptions? options = null)
     {
         HttpContext.Response.StatusCode = statusCode;
-        return Content(JsonSerializer.Serialize(response), "application/json");
+        return Content(
+            content: JsonSerializer.Serialize(response, options),
+            contentType: "application/json");
     }
 
-    protected IActionResult ProblemResponse(int statusCode, params Error[] errors)
+    protected IActionResult ProblemResponse(
+        int statusCode,
+        string? title = null,
+        string? type = null,
+        string? detail = null,
+        IEnumerable<Error>? errors = null,
+        JsonSerializerOptions? options = null)
     {
-        return ProblemResponse(statusCode, ErrorResponse.FromErrors(errors));
+        var response = new ProblemResponse(
+            title: title,
+            type: type,
+            detail: detail,
+            errors: errors);
+
+        return ProblemResponse(statusCode, response, options);
     }
 
-    protected IActionResult ProblemResponse(int statusCode, Exception exception)
+    protected IActionResult ProblemResponse(
+        int statusCode,
+        Error error,
+        JsonSerializerOptions? options = null)
     {
-        return ProblemResponse(statusCode, ErrorResponse.FromException(exception));
+        return ProblemResponse(
+            statusCode: statusCode,
+            response: Responses.ProblemResponse.FromError(error),
+            options: options);
+    }
+
+    protected IActionResult ProblemResponse(
+        int statusCode,
+        IEnumerable<Error> errors,
+        JsonSerializerOptions? options = null)
+    {
+        return ProblemResponse(
+            statusCode: statusCode,
+            response: Responses.ProblemResponse.FromErrors(errors),
+            options: options);
+    }
+
+    protected IActionResult ProblemResponse(
+        int statusCode,
+        Exception exception,
+        JsonSerializerOptions? options = null)
+    {
+        return ProblemResponse(
+            statusCode: statusCode,
+            response: Responses.ProblemResponse.FromException(exception),
+            options: options);
+    }
+
+    protected IActionResult ProblemResponse(
+        int statusCode,
+        string message,
+        JsonSerializerOptions? options = null)
+    {
+        return ProblemResponse(
+            statusCode: statusCode,
+            response: Responses.ProblemResponse.FromError(new Error(title: message)),
+            options: options);
     }
 
 }

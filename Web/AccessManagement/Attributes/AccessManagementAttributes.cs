@@ -7,48 +7,24 @@
 /// </summary>
 public abstract class AccessManagementAttribute : Attribute
 {
+    public abstract IAccessPolicy GetAccessPolicy();
 }
 
-/// <summary>
-/// Decorates a controller with authorization requirements, specifying the permissions necessary for accessing its actions.
-/// </summary>
-/// <remarks>
-/// The <see cref="AuthorizeControllerAttribute"/> is used at the controller level to enforce a set of permissions across all action methods within the controller. 
-/// This ensures that only users with the appropriate permissions can interact with the controller's endpoints. Permissions are defined as strings and can 
-/// represent specific actions, resources, or roles within the system. When combined with a permissions prefix, this attribute allows for a structured and 
-/// scalable approach to defining access control policies within an ASP.NET Core application.
-/// </remarks>
 [AttributeUsage(AttributeTargets.Class)]
 public class AuthorizeControllerAttribute : AccessManagementAttribute
 {
-    /// <summary>
-    /// Optional prefix used to namespace permissions for concise attribute application.
-    /// </summary>
-    /// <example>
-    /// For a controller managing user profiles in a "users" domain, a prefix of "users:profile:" could be used. Subsequent permissions 
-    /// such as "read" or "update" can then be specified without repeating the common prefix, leading to cleaner and more maintainable code.
-    /// </example>
-    public string? PermissionsPrefix { get; }
+    public string Permission { get; }
 
-    /// <summary>
-    /// A list of permissions that are required to access any action within the controller.
-    /// </summary>
-    /// <example>
-    /// In a controller managing financial records, permissions might include "financial:records:read" for accessing records 
-    /// and "financial:records:write" for creating or modifying records. These permissions ensure that only appropriately authorized users 
-    /// can perform sensitive financial operations.
-    /// </example>
-    public IReadOnlyList<string> Permissions { get; } 
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AuthorizeControllerAttribute"/> with a specified set of permissions.
-    /// </summary>
-    /// <param name="prefix">An optional prefix to be prepended to each permission, allowing for namespace-like structuring of permissions.</param>
-    /// <param name="permissions">The permissions required to access the controller's actions.</param>
-    public AuthorizeControllerAttribute(string? prefix = null, params string[] permissions)
+    public AuthorizeControllerAttribute(string permission)
     {
-        PermissionsPrefix = prefix;
-        Permissions = permissions;
+        Permission = permission;
+    }
+
+    public override IAccessPolicy GetAccessPolicy()
+    {
+        return new AccessPolicyBuilder()
+            .AddRequiredPermission(new IdentityPermission(Permission))
+            .Build();
     }
 }
 
@@ -63,18 +39,18 @@ public class AuthorizeControllerAttribute : AccessManagementAttribute
 [AttributeUsage(AttributeTargets.Method)]
 public class AuthorizeActionAttribute : AccessManagementAttribute
 {
-    /// <summary>
-    /// Gets the list of permissions required to execute the action method.
-    /// </summary>
-    public IReadOnlyList<string> Permissions { get; }
+    public string Permission { get; }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AuthorizeActionAttribute"/> class with the specified permissions.
-    /// </summary>
-    /// <param name="permissions">A list of permissions required to execute the action method.</param>
-    public AuthorizeActionAttribute(params string[] permissions)
+    public AuthorizeActionAttribute(string permission)
     {
-        Permissions = permissions;
+        Permission = permission;
+    }
+
+    public override IAccessPolicy GetAccessPolicy()
+    {
+        return new AccessPolicyBuilder()
+            .AddRequiredPermission(new IdentityPermission(Permission))
+            .Build();
     }
 }
 
@@ -85,4 +61,8 @@ public class AuthorizeActionAttribute : AccessManagementAttribute
 [AttributeUsage(AttributeTargets.Method)]
 public class AnonymousActionAttribute : AccessManagementAttribute
 {
+    public override IAccessPolicy GetAccessPolicy()
+    {
+        return new AccessPolicy();
+    }
 }

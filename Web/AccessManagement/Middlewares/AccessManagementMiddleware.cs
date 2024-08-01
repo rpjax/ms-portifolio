@@ -1,25 +1,27 @@
 ﻿using Microsoft.AspNetCore.Http;
 using ModularSystem.Core;
-using ModularSystem.Web.AccessManagement;
-using ModularSystem.Web.Attributes;
+using ModularSystem.Web.AccessManagement.Services;
 
-namespace ModularSystem.Web;
+namespace ModularSystem.Web.AccessManagement.Middlewares;
 
 /// <summary>
 /// Middleware for managing access control within the application, integrating authentication and authorization services.
 /// </summary>
 public class AccessManagementMiddleware : Middleware
 {
-    private IAccessManagementService Service { get; }
+    private IAuthorizationService AuthorizationService { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AccessManagementMiddleware"/> class.
     /// </summary>
     /// <param name="next">The next middleware delegate in the request pipeline.</param>
     /// <param name="service">The access management service used for authentication and authorization.</param>
-    public AccessManagementMiddleware(RequestDelegate next, IAccessManagementService service) : base(next)
+    public AccessManagementMiddleware(
+        RequestDelegate next,
+        IAuthorizationService authorizationService)
+        : base(next)
     {
-        Service = service;
+        AuthorizationService = authorizationService;
     }
 
     /// <summary>
@@ -35,63 +37,31 @@ public class AccessManagementMiddleware : Middleware
     /// </remarks>
     protected override async Task<Strategy> BeforeNextAsync(HttpContext context)
     {
-        //var anonymousAttribute = TryGetAnonymousAttribute(context);
-        //var authorizeAttribute = TryGetAuthorizeAttribute(context);
+        var result = await AuthorizationService.AuthorizeAsync(context);
 
-        //// If the endpoint allows anonymous access or doesn't require authorization, continue the pipeline.
-        //if (anonymousAttribute != null || authorizeAttribute == null)
-        //{
-        //    return Strategy.Continue;
-        //}
-
-        var identity = await Service.AuthenticationService.TryGetIdentityAsync(context);
-        var authorizationResult = await Service.AuthorizationService.AuthorizeAsync(context, identity);
-
-        if (authorizationResult.IsFailure)
+        if (result.IsSuccess)
         {
-            await WriteUnauthorizedResponseAsync(context);
-            return Strategy.Break;
+            return Strategy.Continue;
         }
 
-        if (identity != null)
-        {
-            context.SetIdentity(identity);
-        }
-
-        return Strategy.Continue;
+        await WriteUnauthorizedResponseAsync(context, result.Errors);
+        return Strategy.Break;
     }
 
     /// <summary>
     /// Writes an unauthorized response to the client, including a message indicating the failure reason.
     /// </summary>
     /// <param name="context">The <see cref="HttpContext"/> for the current request.</param>
-    private async Task WriteUnauthorizedResponseAsync(HttpContext context)
+    private async Task WriteUnauthorizedResponseAsync(HttpContext context, IEnumerable<Error> errors)
     {
-        var message = "The authenticated user lacks the required permissions to execute this operation. Ensure you have the right privileges.";
-        var error = new Error(message).AddFlags(ErrorFlags.Public);
+        var title = "Unauthorized access.";
+        var detail = "The user does not have permission to access this resource.";
 
-        await context.WriteErrorResponseAsync(401, error);
+        await context.WriteProblemResponseAsync(
+            statusCode: 401,
+            title: title,
+            detail: detail,
+            errors: errors);
     }
 
-    /// <summary>
-    /// Attempts to retrieve an <see cref="AccessManagementAttribute"/> from the current endpoint's metadata.
-    /// </summary>
-    /// <param name="context">The <see cref="HttpContext"/> for the current request.</param>
-    /// <returns>The found <see cref="AccessManagementAttribute"/>, or null if not present.</returns>
-    private AccessManagementAttribute? TryGetAuthorizeAttribute(HttpContext context)
-    {
-        var endpoint = context.GetEndpoint();
-        return endpoint?.Metadata.GetMetadata<AccessManagementAttribute>();
-    }
-
-    /// <summary>
-    /// Attempts to retrieve an <see cref="AnonymousActionAttribute"/> from the current endpoint's metadata.
-    /// </summary>
-    /// <param name="context">The <see cref="HttpContext"/> for the current request.</param>
-    /// <returns>The found <see cref="AnonymousActionAttribute"/>, or null if not present.</returns>
-    private AnonymousActionAttribute? TryGetAnonymousAttribute(HttpContext context)
-    {
-        var endpoint = context.GetEndpoint();
-        return endpoint?.Metadata.GetMetadata<AnonymousActionAttribute>();
-    }
 }

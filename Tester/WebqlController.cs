@@ -1,11 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ModularSystem.Core;
-using ModularSystem.Web;
-using System.Linq.Expressions;
+using ModularSystem.Core.Patterns;
+using ModularSystem.Mongo.Repositories;
+using ModularSystem.Web.AccessManagement;
+using ModularSystem.Web.AccessManagement.Attributes;
+using ModularSystem.Web.AccessManagement.Jwt.Services;
+using ModularSystem.Web.Controllers;
+using ModularSystem.Web.Cryptography;
 using Webql;
 
 namespace Tester;
 
+[AuthorizeController("admin")]
 public class WebqlController<TEntity> : WebController where TEntity : IEntity
 {
     private WebqlCompiler Compiler { get; }
@@ -26,8 +32,30 @@ public class WebqlController<TEntity> : WebController where TEntity : IEntity
 
         var result = function.DynamicInvoke(RepositoryProvider.GetRepository<TEntity>().AsQueryable());
 
+        var x = new OperationResult<string>(new Error(title: ""));
+
         Console.WriteLine(result);
 
         return Ok();
     }
+
+    public IActionResult SignIn([FromQuery] string username, [FromQuery] string password)
+    {
+        if(username != "jacques" || password != "nderakore")
+        {
+            return ProblemResponse(401, title: "Unauthorized", detail: "Invalid credentials");
+        }
+
+        var tokenService = GetRequiredService<JwtIdentityService>();
+
+        var identity = new JwtIdentityBuilder()
+            .AddPermission("admin")
+            .Build();
+
+        var token = tokenService.CreateToken(identity);
+
+        return Ok();
+    }
 }
+
+

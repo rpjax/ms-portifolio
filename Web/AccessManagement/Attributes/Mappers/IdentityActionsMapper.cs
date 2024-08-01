@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
-using ModularSystem.Core;
-using ModularSystem.Core.AccessManagement;
+using ModularSystem.Web.AccessManagement;
+using ModularSystem.Web.AccessManagement.Attributes;
 using System.Reflection;
 
 namespace ModularSystem.Web.Attributes;
@@ -136,7 +136,7 @@ public class IdentityActionsMapper
 
             if (permissions.IsEmpty())
             {
-                throw new ErrorException($"The action method \"{controllerName}.{methodInfo.Name}\" is configured with access control attributes but did not resolve to any permissions. This effectively leaves the resource unprotected. To explicitly mark this resource as publicly accessible without permissions, please annotate it with the [AnonymousAction] attribute. Ensure the access management attributes ([AuthorizeAction], etc.) are correctly configured to generate the intended permissions.");
+                throw new Exception($"The action method \"{controllerName}.{methodInfo.Name}\" is configured with access control attributes but did not resolve to any permissions. This effectively leaves the resource unprotected. To explicitly mark this resource as publicly accessible without permissions, please annotate it with the [AnonymousAction] attribute. Ensure the access management attributes ([AuthorizeAction], etc.) are correctly configured to generate the intended permissions.");
             }
 
             yield return new HttpIdentityAction(route, method, permissions);

@@ -24,7 +24,7 @@ public class AttributesHandlerMiddleware : Middleware
         if (forbbidenActionAttribute != null)
         {
             var error = new Error("This operation is forbidden.")
-                .AddFlags(ErrorFlags.Public);
+                .AddFlags(ErrorFlags.UserVisible);
 
             var result = new OperationResult(error);
 

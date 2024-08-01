@@ -1,4 +1,5 @@
-﻿using ModularSystem.Core;
+﻿using Microsoft.AspNetCore.Http;
+using ModularSystem.Core;
 using ModularSystem.Core.Logging;
 
 namespace ModularSystem.Web;
@@ -19,7 +20,11 @@ internal class ExceptionHandlerMiddleware : Middleware
             Logger.Log(Error.FromException(exception));
         }
 
-        await WriteExceptionResponseAsync(context, exception);
+        await context.WriteProblemResponseAsync(
+            statusCode: 500,
+            title: "An unexpected error occurred.",
+            detail: "The server encountered an unexpected error while processing the request.");
+
         return Strategy.Break;
     }
 

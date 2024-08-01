@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using ModularSystem.Core;
-using ModularSystem.Core.Logging;
+using ModularSystem.Core.Extensions;
 using ModularSystem.Web.Responses;
 using System.Text;
 using System.Text.Json;
@@ -78,7 +79,7 @@ public static class HttpContextExtensions
     {
         var authorizationHeader = context.GetAuthorizationHeader();
 
-        if (authorizationHeader == null)
+        if (authorizationHeader is null)
         {
             return null;
         }
@@ -88,7 +89,6 @@ public static class HttpContextExtensions
         if (shouldRemoveBearerWord)
         {
             var match = BearerRegex.Match(authorizationHeader);
-
             return authorizationHeader.Substring(match.Index + match.Length).Replace(" ", "");
         }
 
@@ -134,40 +134,94 @@ public static class HttpContextExtensions
     {
         return WriteTextResponseAsync(context, statusCode, "text/html", html);
     }
-   
-    public static Task WriteErrorResponseAsync(
+
+    /*
+     * Problem details response.
+     */
+
+    public static Task WriteProblemResponseAsync(
         this HttpContext context,
         int statusCode,
-        ErrorResponse response)
+        ProblemResponse response,
+        JsonSerializerOptions? options = null)
     {
         return WriteJsonResponseAsync(
-            context: context, 
-            statusCode: statusCode, 
-            data: JsonSerializer.Serialize(response)
-        );
-    }
-
-    public static Task WriteErrorResponseAsync(
-        this HttpContext context,
-        int statusCode,
-        Error error)
-    {
-        return WriteErrorResponseAsync(
             context: context,
             statusCode: statusCode,
-            response: ErrorResponse.FromError(error)
-        );
+            data: JsonSerializer.Serialize(response, options));
     }
 
-    public static Task WriteErrorResponseAsync(
+    public static Task WriteProblemResponseAsync(
         this HttpContext context,
         int statusCode,
-        Exception exception)
+        string? title = null,
+        string? type = null,
+        string? detail = null,
+        IEnumerable<Error>? errors = null,
+        JsonSerializerOptions? options = null)
     {
-        return WriteErrorResponseAsync(
+        var response = new ProblemResponse(
+            title: title,
+            type: type,
+            detail: detail,
+            errors: errors);
+
+        return WriteProblemResponseAsync(
             context: context,
             statusCode: statusCode,
-            response: ErrorResponse.FromException(exception)
-        );
+            response: response,
+            options: options);
+    }
+
+    public static Task WriteProblemResponseAsync(
+        this HttpContext context,
+        int statusCode,
+        Error error,
+        JsonSerializerOptions? options = null)
+    {
+        return WriteProblemResponseAsync(
+            context: context,
+            statusCode: statusCode,
+            response: ProblemResponse.FromError(error),
+            options: options);
+    }
+
+    public static Task WriteProblemResponseAsync(
+        this HttpContext context,
+        int statusCode,
+        IEnumerable<Error> errors,
+        JsonSerializerOptions? options = null)
+    {
+        return WriteProblemResponseAsync(
+            context: context,
+            statusCode: statusCode,
+            response: ProblemResponse.FromErrors(errors),
+            options: options);
+    }
+
+    public static Task WriteProblemResponseAsync(
+        this HttpContext context,
+        int statusCode,
+        Exception exception,
+        JsonSerializerOptions? options = null)
+    {
+        return WriteProblemResponseAsync(
+            context: context,
+            statusCode: statusCode,
+            response: ProblemResponse.FromException(exception),
+            options: options);
+    }
+
+    public static Task WriteProblemResponseAsync(
+        this HttpContext context,
+        int statusCode,
+        string message,
+        JsonSerializerOptions? options = null)
+    {
+        return WriteProblemResponseAsync(
+            context: context,
+            statusCode: statusCode,
+            response: ProblemResponse.FromError(new Error(title: message)),
+            options: options);
     }
 }

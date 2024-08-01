@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
-using ModularSystem.Core.Linq;
 using ModularSystem.TextAnalysis.Tokenization;
 using ModularSystem.TextAnalysis.Grammars;
 using ModularSystem.TextAnalysis.Parsing;
@@ -9,13 +8,19 @@ using ModularSystem.TextAnalysis.Parsing.Components;
 using Webql.Parsing;
 using Webql.Core;
 using Webql;
-using ModularSystem.Core.AccessManagement;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using ModularSystem.Mongo.Repositories;
 using ModularSystem.Mongo;
 using Webql.Translation.Linq.Providers;
 using Tester;
+using ModularSystem.Web.AccessManagement.Services;
+using ModularSystem.Web.AccessManagement.Authorization;
+using ModularSystem.Web.AccessManagement;
+using ModularSystem.Web.AccessManagement.Jwt.Services;
+using ModularSystem.Web;
+using ModularSystem.Web.AccessManagement.Middlewares;
+using ModularSystem.Core.Patterns;
 
 namespace ModularSystem.Tester;
 
@@ -147,6 +152,19 @@ public static class Program
         var repository = new MongoRepository<TestUser>(collection);
 
         var controller = new WebqlController<TestUser>(compiler, repository);
+
+        var appBuilder = WebApplication.CreateBuilder();
+
+        appBuilder.Services.AddSingleton<IAccessPolicyService, AttributeAccessPolicyService>();
+        appBuilder.Services.AddSingleton<IIdentityService, JwtIdentityService>();
+        appBuilder.Services.AddSingleton<IAuthorizationService, AuthorizationService>();
+        appBuilder.Services.AddSingleton<IRepositoryProvider, MongoRepositoryProvider>();
+
+        var app = appBuilder.Build();
+
+        app.UseMiddleware<AccessManagementMiddleware>(controller);
+
+        app.Run();
 
         return;
     }

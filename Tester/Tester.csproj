@@ -19,6 +19,7 @@
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\TextAnalysis\TextAnalysis.csproj" />
     <ProjectReference Include="..\Webql\Webql.csproj" />
+    <ProjectReference Include="..\Web\Web.csproj" />
   </ItemGroup>
 
 </Project>

@@ -28,7 +28,7 @@ public interface IEncrypter : IDisposable
     /// <summary>
     /// Verifies the integrity or authenticity of the specified data.
     /// </summary>
-    /// <param name="data">The data to be verified.</param>
+    /// <param name="encryptedData">The data to be verified.</param>
     /// <returns><c>true</c> if the data is verified to be authentic or intact; otherwise, <c>false</c>.</returns>
-    bool Verify(byte[] data);
+    bool Verify(byte[] encryptedData);
 }

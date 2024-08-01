@@ -15,6 +15,11 @@ public interface IOperationResult
     bool IsSuccess { get; }
 
     /// <summary>
+    /// Gets a value indicating whether the operation failed.
+    /// </summary>
+    bool IsFailure { get; }
+
+    /// <summary>
     /// Gets a collection of errors encountered during the operation.
     /// </summary>
     IReadOnlyList<Error> Errors { get; }
@@ -52,13 +57,7 @@ public class OperationResult : IOperationResult
     /// <summary>
     /// A list of encountered errors during the operation.
     /// </summary>
-    public IReadOnlyList<Error> Errors { get; init; } 
-
-    /// <summary>
-    /// Gets a value indicating whether the operation resulted in errors.
-    /// </summary>
-    [JsonIgnore]
-    public bool ContainsErrors { get => Errors.IsNotEmpty(); }
+    public IReadOnlyList<Error> Errors { get; init; }
 
     /// <summary>
     /// Creates a successful operation result.
@@ -68,42 +67,30 @@ public class OperationResult : IOperationResult
         IsSuccess = true;
         Errors = Array.Empty<Error>();
     }
-    
-    /// <summary>
-    /// Creates an operation result with the specified success status and optional errors in case of failure.
-    /// </summary>
-    /// <param name="isSuccess"></param>
-    /// <param name="errors"></param>
-    /// <exception cref="ArgumentException"></exception>
-    public OperationResult(bool isSuccess, params Error[] errors)
-    {
-        if(isSuccess && errors.IsNotEmpty())
-        {
-            throw new ArgumentException("An operation cannot be successful and contain errors at the same time.");
-        }
-
-        IsSuccess = true;
-        Errors = errors;
-    }
 
     /// <summary>
     /// Creates a failed operation result with a specified error.
     /// </summary>
-    /// <param name="errors"> The errors causing the failure.</param>
-    public OperationResult(params Error[] errors)
+    /// <param name="error"> The error causing the failure.</param>
+    public OperationResult(Error error)
     {
         IsSuccess = false;
-        Errors = errors;
+        Errors = new Error[] { error };
     }
 
     /// <summary>
     /// Creates a failed operation result with multiple errors.
     /// </summary>
-    /// <param name="errors">A list of errors causing failure.</param>
+    /// <param name="errors"> The errors causing the failure. </param>
     public OperationResult(IEnumerable<Error> errors)
     {
         IsSuccess = false;
         Errors = errors.ToArray();
+
+        if (Errors.Count == 0)
+        {
+            throw new ArgumentException("At least one error must be provided for a failed operation result.", nameof(errors));
+        }
     }
 
     /// <summary>
@@ -130,39 +117,39 @@ public class OperationResult : IOperationResult
 /// <see cref="NonAtomicOperationResult{T}"/> class.
 /// </summary>
 /// <typeparam name="T">The type of data included in the operation result, if any.</typeparam>
-public class OperationResult<T> : OperationResult, IOperationResult<T?>
+public class OperationResult<T> : OperationResult, IOperationResult<T>
 {
     /// <summary>
     /// The data produced by the operation.
     /// </summary>
-    public T? Data { get; set; }
+    public T Data { get; set; }
 
     /// <summary>
     /// Creates a successful operation result with optional data.
     /// </summary>
     /// <param name="data">The operation result data, if any.</param>
-    public OperationResult(T? data = default)
+    public OperationResult(T data)
     {
         IsSuccess = true;
-        Data = data;
+        Data = data!;
     }
 
     /// <summary>
     /// Creates a failed operation result with a specified error.
     /// </summary>
     /// <param name="error">The error causing the operation failure.</param>
-    public OperationResult(Error error) : base(error)
+    public OperationResult(Error error) : base(new Error[] { error })
     {
-
+        Data = default!;
     }
 
     /// <summary>
     /// Creates a failed operation result with multiple errors.
     /// </summary>
-    /// <param name="errors">The errors causing the operation failure.</param>
-    public OperationResult(IEnumerable<Error> errors) : base(errors)
+    /// <param name="errors"> The errors causing the failure.</param>
+    public OperationResult(IEnumerable<Error> errors) : base(errors.ToArray())
     {
-
+        Data = default!;
     }
 
     /// <summary>
@@ -173,12 +160,14 @@ public class OperationResult<T> : OperationResult, IOperationResult<T?>
     /// <exception cref="InvalidOperationException">Thrown if the operation was unsuccessful or data is null.</exception>
     public T GetData()
     {
-        if (!IsSuccess)
+        if (IsFailure)
         {
             throw new InvalidOperationException("Cannot retrieve data from an unsuccessful operation result. Check 'IsSuccess' before calling 'GetData'.");
         }
 
-        if (Data == null)
+        var isNotNullable = Nullable.GetUnderlyingType(typeof(T)) is null;
+
+        if (isNotNullable && Data is null)
         {
             throw new InvalidOperationException("The data is null. This operation result indicates success but contains no data.");
         }
@@ -186,19 +175,4 @@ public class OperationResult<T> : OperationResult, IOperationResult<T?>
         return Data;
     }
 
-
-    /// <summary>
-    /// Updates the operation result with new data and returns the instance.
-    /// </summary>
-    /// <param name="data">The new data for the operation result.</param>
-    /// <returns>The updated OperationResult instance.</returns>
-    public OperationResult<T> SetData(T? data)
-    {
-        Data = data;
-        return this;
-    }
-
 }
-
-
-

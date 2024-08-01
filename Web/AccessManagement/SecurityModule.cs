@@ -60,22 +60,7 @@ public interface IIdentity
 /// // wildcard includes all actions and sub-hierarchies from "documents" downwards.
 /// </code>
 /// </example>
-public interface IIdentityPermission : IEquatable<IIdentityPermission>
-{
-    /// <summary>
-    /// Retrieves the segments of the permission string, separated by colons. Each segment represents a hierarchical <br/>
-    /// level of the permission structure. 
-    /// <br/>
-    /// Example: The permission string "documents:read" has two segments, "documents" and "read".
-    /// </summary>
-    /// <returns></returns>
-    IEnumerable<string> GetSegments();
-}
-
-/// <summary>
-/// Represents a permission within the access control system. Permissions are defined by a string
-/// </summary>
-public class IdentityPermission : IIdentityPermission
+public interface IIdentityPermission 
 {
     /// <summary>
     /// Represents a wildcard that matches any single level in the permission hierarchy.
@@ -88,6 +73,36 @@ public class IdentityPermission : IIdentityPermission
     public const string RecursiveWildcard = "**";
 
     /// <summary>
+    /// Retrieves the segments of the permission string, separated by colons. Each segment represents a hierarchical <br/>
+    /// level of the permission structure. 
+    /// <br/>
+    /// Example: The permission string "documents:read" has two segments, "documents" and "read".
+    /// </summary>
+    /// <returns></returns>
+    IEnumerable<string> GetSegments();
+}
+
+/// <summary>
+/// Represents a policy that defines the required permissions for accessing a resource or performing an action. <br/>
+/// Policies are used to enforce access control by specifying what permissions an identity must have.
+/// </summary>
+public interface IAccessPolicy
+{
+    /// <summary>
+    /// Determines whether a given identity is authorized according to this policy. <br/>
+    /// Authorization is granted if the identity has all required permissions defined by the policy.
+    /// </summary>
+    /// <param name="identity"></param>
+    /// <returns></returns>
+    bool Authorize(IIdentity? identity);
+}
+
+/// <summary>
+/// Represents a permission within the access control system. Permissions are defined by a string
+/// </summary>
+public class IdentityPermission : IIdentityPermission
+{
+    /// <summary>
     /// Regular expression to validate segment patterns within permission strings. <br/>
     /// This ensures that permissions are well-formed according to the rules of the access control system.
     /// </summary>
@@ -97,7 +112,7 @@ public class IdentityPermission : IIdentityPermission
     /// The segments of the permission string, separated by colons. Each segment represents a hierarchical <br/>
     /// level of the permission structure, allowing for complex and granular access control definitions.
     /// </summary>
-    public List<string> Segments { get; set; } = new();
+    public string[] Segments { get; set; }
 
     /// <summary>
     /// Initializes a new instance of IdentityPermission from a permission string, parsing it into hierarchical segments.
@@ -119,6 +134,7 @@ public class IdentityPermission : IIdentityPermission
         }
 
         var split = permissionString.Split(":");
+        var segments = new List<string>();
 
         foreach (var segment in split)
         {
@@ -129,8 +145,10 @@ public class IdentityPermission : IIdentityPermission
                 throw new ArgumentException(error);
             }
 
-            Segments.Add(segment);
+            segments.Add(segment);
         }
+
+        Segments = segments.ToArray();
     }
 
     /*
@@ -143,7 +161,7 @@ public class IdentityPermission : IIdentityPermission
     /// </summary>
     public static IdentityPermission WildcardPermission()
     {
-        return new IdentityPermission(Wildcard);
+        return new IdentityPermission(IIdentityPermission.Wildcard);
     }
 
     /// <summary>
@@ -152,7 +170,7 @@ public class IdentityPermission : IIdentityPermission
     /// </summary>
     public static IdentityPermission RecursiveWildcardPermission()
     {
-        return new IdentityPermission(RecursiveWildcard);
+        return new IdentityPermission(IIdentityPermission.RecursiveWildcard);
     }
 
     /*
@@ -202,15 +220,6 @@ public class IdentityPermission : IIdentityPermission
 /// Represents a policy that defines the required permissions for accessing a resource or performing an action. <br/>
 /// Policies are used to enforce access control by specifying what permissions an identity must have.
 /// </summary>
-public interface IAccessPolicy
-{
-    bool Authorize(IIdentity identity);
-}
-
-/// <summary>
-/// Represents a policy that defines the required permissions for accessing a resource or performing an action. <br/>
-/// Policies are used to enforce access control by specifying what permissions an identity must have.
-/// </summary>
 public class AccessPolicy : IAccessPolicy
 {
     /// <summary>
@@ -222,13 +231,20 @@ public class AccessPolicy : IAccessPolicy
     private IIdentityPermission[] RequiredPermissions { get; set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AccessPolicy"/> class with an optional collection
-    /// of required permissions.
+    /// Initializes an empty access policy with no required permissions.
     /// </summary>
-    /// <param name="requiredPermissions">The collection of permissions to initialize the policy with.</param>
-    public AccessPolicy(IEnumerable<IIdentityPermission>? requiredPermissions)
+    public AccessPolicy()
     {
-        RequiredPermissions = requiredPermissions?.ToArray() ?? Array.Empty<IIdentityPermission>();
+        RequiredPermissions = Array.Empty<IIdentityPermission>();
+    }
+
+    /// <summary>
+    /// Initializes a new access policy with the specified required permissions.
+    /// </summary>
+    /// <param name="requiredPermissions"></param>
+    public AccessPolicy(IEnumerable<IIdentityPermission> requiredPermissions)
+    {
+        RequiredPermissions = requiredPermissions.ToArray();
     }
 
     /// <summary>
@@ -239,9 +255,9 @@ public class AccessPolicy : IAccessPolicy
     /// </summary>
     /// <param name="identity">The identity to authorize.</param>
     /// <returns><c>true</c> if the identity is authorized; otherwise, <c>false</c>.</returns>
-    public virtual bool Authorize(IIdentity identity)
+    public virtual bool Authorize(IIdentity? identity)
     {
-        var identityPermissions = identity.GetPermissions();
+        var identityPermissions = identity?.GetPermissions() ?? Array.Empty<IIdentityPermission>();
 
         foreach (var requiredPermission in RequiredPermissions)
         {
@@ -275,8 +291,8 @@ public class AccessPolicy : IAccessPolicy
             var identitySegment = identityPermissionSegments.ElementAtOrDefault(i);
 
             if (identitySegment == null) return false;
-            if (identitySegment == IdentityPermission.RecursiveWildcard) return true;
-            if (identitySegment == IdentityPermission.Wildcard) continue;
+            if (identitySegment == IIdentityPermission.RecursiveWildcard) return true;
+            if (identitySegment == IIdentityPermission.Wildcard) continue;
             if (identitySegment != requiredSegment) return false;
         }
         return true;
@@ -284,41 +300,19 @@ public class AccessPolicy : IAccessPolicy
 }
 
 /// <summary>
-/// Concrete implementation of IIdentity, encapsulating a unique identifier and associated permissions and roles. <br/>
-/// This class serves as the foundation for identity objects within the system.
+/// Represents an identity within the access control system, encapsulating  a collection of permissions.
 /// </summary>
-/// <example>
-/// Creating an identity for a user might involve specifying a unique username or ID, along with permissions like
-/// ["documents:read", "documents:write"] and roles such as ["editor", "reviewer"].
-/// </example>
 public class Identity : IIdentity
 {
-    /// <summary>
-    /// Collection of permissions associated with the identity. <br/>
-    /// This property defines what actions the identity can perform or what resources it can access, <br/>
-    /// forming the basis of the access control mechanism.
-    /// </summary>
-    public List<IIdentityPermission> Permissions { get; set; }
+    private IIdentityPermission[] Permissions { get; }
 
     /// <summary>
-    /// Collection of role names associated with the identity. Roles are used to group <br/>
-    /// permissions into meaningful sets that represent specific functions or capabilities <br/>
-    /// within the system, simplifying permission management.
+    /// Initializes a new instance of the <see cref="Identity"/> class with the specified name and permissions.
     /// </summary>
-    public List<string> Roles { get; set; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Identity"/> class with specified
-    /// unique identifier, permissions, and roles.
-    /// </summary>
-    /// <param name="permissions">The collection of permissions associated with the identity.</param>
-    /// <param name="roles">The collection of role names associated with the identity.</param>
-    public Identity(
-        IEnumerable<IIdentityPermission> permissions,
-        IEnumerable<string> roles)
+    /// <param name="permissions">The permissions associated with this identity.</param>
+    public Identity(IEnumerable<IIdentityPermission> permissions)
     {
-        Permissions = permissions.ToList();
-        Roles = roles.ToList();
+        Permissions = permissions.ToArray();
     }
 
     /// <summary>
@@ -329,116 +323,53 @@ public class Identity : IIdentity
 
 }
 
-/// <summary>
-/// Represents a named role within the access control system. <br/>
-/// A role groups multiple permissions together, allowing for easier management of access controls based on <br/>
-/// common functions or responsibilities.
-/// </summary>
-public class IdentityRole
-{
-    /// <summary>
-    /// The name of the role, used for identification and assignment to identities.
-    /// </summary>
-    public string Name { get; set; }
+public class AccessPolicyBuilder : IBuilder<AccessPolicy>
+{   
+    private List<IIdentityPermission> Permissions { get; } = new();
 
-    /// <summary>
-    /// The list of permissions associated with this role. These permissions define <br/>
-    /// the access rights granted to identities assigned this role.
-    /// </summary>
-    public List<IIdentityPermission> Permissions { get; set; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="IdentityRole"/> class with a specified name 
-    /// and an optional list of permissions.
-    /// </summary>
-    /// <param name="name">The name of the role.</param>
-    /// <param name="permissions">An optional list of permissions to associate with this role.</param>
-    [JsonConstructor]
-    public IdentityRole(string name, IEnumerable<IIdentityPermission> permissions)
+    public AccessPolicy Build()
     {
-        Name = name;
-        Permissions = permissions?.ToList() ?? new();
+        return new AccessPolicy(Permissions);
+    }
+
+    public AccessPolicyBuilder AddRequiredPermission(IIdentityPermission permission)
+    {
+        Permissions.Add(permission);
+        return this;
+    }
+
+    public AccessPolicyBuilder AddRequiredPermissions(IEnumerable<IIdentityPermission> permissions)
+    {
+        Permissions.AddRange(permissions);
+        return this;
     }
 
 }
 
-/// <summary>
-/// Represents a specific action or operation within the system, with associated permissions
-/// defining the access control requirements. This allows for detailed control over what
-/// actions an identity can perform, based on its permissions.
-/// </summary>
-public class IdentityAction
+public class IdentityBuilder : IBuilder<Identity>
 {
-    /// <summary>
-    /// Gets or sets the name of the action.
-    /// </summary>
-    public string Name { get; set; }
+    private List<IIdentityPermission> Permissions { get; } = new();
 
-    /// <summary>
-    /// Gets or sets the permissions required for executing this action on the specified resource.
-    /// </summary>
-    public IIdentityPermission[] RequiredPermissions { get; set; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="IdentityAction"/> class based on an action string.
-    /// </summary>
-    /// <param name="name">The action string in the format "domain:resource:action".</param>
-    /// <param name="requiredPermissions"></param>
-    /// <remarks>
-    /// The action string should adhere to the format "domain:resource:action". 
-    /// It provides a structured way to quickly define actions and their scope.
-    /// </remarks>
-    [JsonConstructor]
-    public IdentityAction(string name, IEnumerable<IIdentityPermission> requiredPermissions)
+    public Identity Build()
     {
-        Name = name;
-        RequiredPermissions = requiredPermissions.ToArray();
+        return new Identity(Permissions);
     }
 
-    /// <summary>
-    /// Returns a string that represents the current action.
-    /// </summary>
-    /// <returns>
-    /// A string in the format "domain:resource:action".
-    /// </returns>
-    public override string ToString()
+    public IdentityBuilder AddPermission(IIdentityPermission permission)
     {
-        return $"{Name} - {RequiredPermissions.Length} required permissions.";
+        Permissions.Add(permission);
+        return this;
     }
 
-    /// <summary>
-    /// Retrieves the access policy associated with this action, detailing the permissions required to execute it.
-    /// </summary>
-    /// <returns>An <see cref="AccessPolicy"/> object that encapsulates the set of permissions required for this action.</returns>
-    public virtual AccessPolicy GetAccessPolicy()
+    public IdentityBuilder AddPermissions(IEnumerable<IIdentityPermission> permissions)
     {
-        return new AccessPolicy(RequiredPermissions);
+        Permissions.AddRange(permissions);
+        return this;
     }
 
-}
-
-public interface IIdentityProvider
-{
-    IOperationResult<IIdentity?> GetIdentity(HttpContent httpContent);
-}
-
-public interface IAccessPolicyProvider
-{
-    IAccessPolicy? GetAccessPolicy(HttpContent httpContent);
-}
-
-public class EmptyIdentity : IIdentity
-{
-    public IEnumerable<IIdentityPermission> GetPermissions()
+    public IdentityBuilder AddPermission(string permission)
     {
-        return Array.Empty<IIdentityPermission>();
-    }
-}
-
-public class EmptyAccessPolicy : IAccessPolicy
-{
-    public bool Authorize(IIdentity identity)
-    {
-        return true;
+        Permissions.Add(new IdentityPermission(permission));
+        return this;
     }
 }
