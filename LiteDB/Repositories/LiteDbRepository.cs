@@ -1,12 +1,12 @@
 ﻿using LiteDB;
-using ModularSystem.Core;
-using ModularSystem.Core.Linq;
-using ModularSystem.Core.Linq.Expressions;
-using ModularSystem.Core.Patterns;
+using Aidan.Core;
+using Aidan.Core.Linq;
+using Aidan.Core.Linq.Expressions;
+using Aidan.Core.Patterns;
 using System.Collections;
 using System.Linq.Expressions;
 
-namespace ModularSystem.LiteDb.Repositories;
+namespace Aidan.LiteDb.Repositories;
 
 public interface ILiteDbEntity : IEntity
 {

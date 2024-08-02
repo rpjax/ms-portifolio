@@ -1,9 +1,9 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Core.Exceptions;
-using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Language.Transformations;
+﻿using Aidan.Core;
+using Aidan.Core.Exceptions;
+using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Transformations;
 
-namespace ModularSystem.TextAnalysis.Language.Extensions;
+namespace Aidan.TextAnalysis.Language.Extensions;
 
 public static partial class ProductionSetTransformationsExtensions
 {

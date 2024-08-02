@@ -1,8 +1,8 @@
-﻿using ModularSystem.Web.Webql.Synthesis.Productions;
-using ModularSystem.Webql.Analysis;
+﻿using Aidan.Web.Webql.Synthesis.Productions;
+using Aidan.Webql.Analysis;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Synthesis;
+namespace Aidan.Webql.Synthesis;
 
 public class ProjectionLambdaTranslator : TranslatorBase
 {

@@ -1,10 +1,10 @@
-﻿using ModularSystem.Core.Linq;
-using ModularSystem.Webql.Analysis.Semantics;
-using ModularSystem.Webql.Synthesis.Compilation.LINQ.Extensions;
+﻿using Aidan.Core.Linq;
+using Aidan.Webql.Analysis.Semantics;
+using Aidan.Webql.Synthesis.Compilation.LINQ.Extensions;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace ModularSystem.Webql.Synthesis.Compilation.LINQ;
+namespace Aidan.Webql.Synthesis.Compilation.LINQ;
 
 /// <summary>
 /// Provides a mechanism for translating WebQL query nodes into LINQ expressions. <br/>

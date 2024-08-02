@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace ModularSystem.Core.Extensions;
+namespace Aidan.Core.Extensions;
 
 /// <summary>
 /// A collection of extension methods for <see cref="IEnumerable{T}"/> objects.

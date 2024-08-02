@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ModularSystem.Core;
-using ModularSystem.Core.Patterns;
-using ModularSystem.Web.AccessManagement.Attributes;
-using ModularSystem.Web.AccessManagement.Jwt.Services;
-using ModularSystem.Web.Controllers;
+using Aidan.Core;
+using Aidan.Core.Patterns;
+using Aidan.Web.AccessManagement.Attributes;
+using Aidan.Web.AccessManagement.Jwt.Services;
+using Aidan.Web.Controllers;
 using Webql;
 
 namespace Tester;

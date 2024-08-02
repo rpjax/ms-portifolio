@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Synthesis;
+namespace Aidan.Webql.Synthesis;
 
 /// <summary>
 /// Translates the &lt;arg-array&gt; symbol to an Expression array.

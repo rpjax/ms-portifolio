@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core.Patterns;
+﻿using Aidan.Core.Patterns;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Core.Linq.Expressions;
+namespace Aidan.Core.Linq.Expressions;
 
 /// <summary>
 /// Represents an interface for update expressions.

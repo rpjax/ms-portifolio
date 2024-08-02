@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.Patterns;
+﻿namespace Aidan.Core.Patterns;
 
 /// <summary>
 /// Defines a contract for a specification pattern. <br/>

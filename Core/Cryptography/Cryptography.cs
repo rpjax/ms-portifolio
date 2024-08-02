@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using System.Security.Cryptography;
 
-namespace ModularSystem.Core.Cryptography;
+namespace Aidan.Core.Cryptography;
 
 /// <summary>
 /// Provides a base implementation for cryptographic encryption and decryption operations.

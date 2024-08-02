@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core;
+﻿namespace Aidan.Core;
 
 /// <summary>
 /// Represents a non-value, providing a concrete type alternative to C#'s void. <br/>

@@ -1,8 +1,8 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Web.Webql.Synthesis.Productions;
+﻿using Aidan.Core;
+using Aidan.Web.Webql.Synthesis.Productions;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Synthesis;
+namespace Aidan.Webql.Synthesis;
 
 /// <summary>
 /// Represents a translator for WebQL operators. This class facilitates the translation of various WebQL operators <br/>

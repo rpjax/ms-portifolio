@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Webql.Analysis;
+﻿namespace Aidan.Webql.Analysis;
 
 public class NodeTypeEvaluator : SemanticsVisitor
 {

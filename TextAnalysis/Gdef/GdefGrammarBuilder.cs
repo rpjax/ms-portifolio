@@ -1,9 +1,9 @@
-﻿using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Parsing.Components;
-using ModularSystem.TextAnalysis.Tokenization;
-using ModularSystem.TextAnalysis.Tokenization.Extensions;
+﻿using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Parsing.Components;
+using Aidan.TextAnalysis.Tokenization;
+using Aidan.TextAnalysis.Tokenization.Extensions;
 
-namespace ModularSystem.TextAnalysis.Gdef;
+namespace Aidan.TextAnalysis.Gdef;
 
 /// <summary>
 /// Represents a translator for converting a Concrete Syntax Tree (CST) to a grammar.

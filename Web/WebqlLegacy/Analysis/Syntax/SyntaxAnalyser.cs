@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Nodes;
 
-namespace ModularSystem.Webql.Analysis;
+namespace Aidan.Webql.Analysis;
 
 /// <summary>
 /// Provides methods for parsing JSON into specific WebQL syntax nodes.

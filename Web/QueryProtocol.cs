@@ -1,9 +1,9 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Web.Expressions;
+﻿using Aidan.Core;
+using Aidan.Web.Expressions;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Web;
+namespace Aidan.Web;
 
 /// <summary>
 /// Defines the communication protocol for library components within a web context.<br/>

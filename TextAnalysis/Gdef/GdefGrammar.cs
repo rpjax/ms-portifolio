@@ -1,7 +1,7 @@
-using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Tokenization;
+using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Tokenization;
 
-namespace ModularSystem.TextAnalysis.Grammars;
+namespace Aidan.TextAnalysis.Grammars;
 
 public class GdefGrammar : Grammar
 {

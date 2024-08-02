@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core;
-using ModularSystem.TextAnalysis.Tokenization.Components;
+﻿using Aidan.Core;
+using Aidan.TextAnalysis.Tokenization.Components;
 
-namespace ModularSystem.TextAnalysis.Tokenization.Experimental;
+namespace Aidan.TextAnalysis.Tokenization.Experimental;
 
 public interface ICharacterStream
 {

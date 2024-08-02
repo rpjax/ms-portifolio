@@ -1,6 +1,6 @@
-using ModularSystem.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Components;
 
-namespace ModularSystem.TextAnalysis.Parsing.LR1.Components;
+namespace Aidan.TextAnalysis.Parsing.LR1.Components;
 
 public class LR1Grammar : Grammar
 {

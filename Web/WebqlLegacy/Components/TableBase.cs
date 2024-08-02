@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Webql.Components;
+﻿namespace Aidan.Webql.Components;
 
 public abstract class TableBase<TEntry> where TEntry : class
 {

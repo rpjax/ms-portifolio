@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.TextAnalysis.Language.Extensions;
+﻿namespace Aidan.TextAnalysis.Language.Extensions;
 
 public static class IEpsilonExtensions
 {

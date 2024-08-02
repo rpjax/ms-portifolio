@@ -1,8 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
-using ModularSystem.TextAnalysis.Parsing.Components;
-using ModularSystem.TextAnalysis.Parsing.Extensions;
-using ModularSystem.TextAnalysis.Tokenization;
-using ModularSystem.TextAnalysis.Tokenization.Extensions;
+using Aidan.TextAnalysis.Parsing.Components;
+using Aidan.TextAnalysis.Parsing.Extensions;
+using Aidan.TextAnalysis.Tokenization;
+using Aidan.TextAnalysis.Tokenization.Extensions;
 using System.Runtime.CompilerServices;
 using Webql.Core.Analysis;
 using Webql.Parsing.Ast.Builder.Extensions;

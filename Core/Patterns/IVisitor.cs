@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace ModularSystem.Core;
+namespace Aidan.Core;
 
 /// <summary>
 /// Represents the Visitor pattern, which allows a new operation to be added to classes without modifying them. <br/>

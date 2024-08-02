@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace ModularSystem.TextAnalysis.Parsing.LR1.Components;
+namespace Aidan.TextAnalysis.Parsing.LR1.Components;
 
 public class LR1ItemCollection : 
     IEnumerable<LR1Item>,

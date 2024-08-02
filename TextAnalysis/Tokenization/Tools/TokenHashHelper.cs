@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace ModularSystem.TextAnalysis.Tokenization.Tools;
+namespace Aidan.TextAnalysis.Tokenization.Tools;
 
 public static class TokenHashHelper
 {

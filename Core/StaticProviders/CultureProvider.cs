@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace ModularSystem.Core;
+namespace Aidan.Core;
 
 public static class CultureProvider
 {

@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
-using ModularSystem.Core;
-using ModularSystem.Core.Patterns;
-using ModularSystem.Web.AccessManagement.Extensions;
-using ModularSystem.Web.AccessManagement.Services;
+using Aidan.Core;
+using Aidan.Core.Patterns;
+using Aidan.Web.AccessManagement.Extensions;
+using Aidan.Web.AccessManagement.Services;
 
-namespace ModularSystem.Web.AccessManagement.Authorization;
+namespace Aidan.Web.AccessManagement.Authorization;
 
 /// <summary>
 /// Provides an authorization service that leverages attributes to determine access control decisions for web resources.

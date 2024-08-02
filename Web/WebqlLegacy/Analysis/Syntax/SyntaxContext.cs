@@ -1,6 +1,6 @@
-﻿using ModularSystem.Webql.Analysis.Parsing;
+﻿using Aidan.Webql.Analysis.Parsing;
 
-namespace ModularSystem.Webql.Analysis;
+namespace Aidan.Webql.Analysis;
 
 public class SyntaxContext
 {

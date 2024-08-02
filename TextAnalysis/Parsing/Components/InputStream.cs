@@ -1,7 +1,7 @@
-﻿using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Tokenization;
+﻿using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Tokenization;
 
-namespace ModularSystem.TextAnalysis.Parsing.Components;
+namespace Aidan.TextAnalysis.Parsing.Components;
 
 /// <summary>
 /// Represents a stream of <see cref="Token"/> with one token lookahead. It is used by LL(1) and LR(1) parsers.

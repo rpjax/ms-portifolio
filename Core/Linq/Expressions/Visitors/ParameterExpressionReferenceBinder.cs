@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core.Extensions;
+﻿using Aidan.Core.Extensions;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Core.Linq.Expressions.Visitors;
+namespace Aidan.Core.Linq.Expressions.Visitors;
 
 /// <summary>
 /// A specialized expression visitor that binds parameter expressions to existing references. <br/>

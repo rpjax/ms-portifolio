@@ -1,7 +1,7 @@
-﻿using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Language.Graph;
+﻿using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Graph;
 
-namespace ModularSystem.TextAnalysis.Parsing.LL1.Tools;
+namespace Aidan.TextAnalysis.Parsing.LL1.Tools;
 
 public class LL1LeftRecursionTool : GraphVisitor
 {

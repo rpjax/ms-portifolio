@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ModularSystem.Core.Linq;
-using ModularSystem.Core.Patterns;
-using ModularSystem.Core.Threading;
-using ModularSystem.EntityFramework;
-using ModularSystem.EntityFramework.Repositories;
+using Aidan.Core.Linq;
+using Aidan.Core.Patterns;
+using Aidan.Core.Threading;
+using Aidan.EntityFramework;
+using Aidan.EntityFramework.Repositories;
 
-namespace ModularSystem.Core.Logging;
+namespace Aidan.Core.Logging;
 
 public class ErrorLoggerSettings
 {

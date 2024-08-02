@@ -1,6 +1,6 @@
-﻿using ModularSystem.TextAnalysis.Tokenization.Components;
+﻿using Aidan.TextAnalysis.Tokenization.Components;
 
-namespace ModularSystem.TextAnalysis.Tokenization.Machine;
+namespace Aidan.TextAnalysis.Tokenization.Machine;
 
 public class StringState : IState
 {

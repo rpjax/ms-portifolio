@@ -1,6 +1,6 @@
-﻿using ModularSystem.Web.AccessManagement.Tokens;
+﻿using Aidan.Web.AccessManagement.Tokens;
 
-namespace ModularSystem.Web.AccessManagement.Services;
+namespace Aidan.Web.AccessManagement.Services;
 
 /// <summary>
 /// Represents a service for creating web tokens.

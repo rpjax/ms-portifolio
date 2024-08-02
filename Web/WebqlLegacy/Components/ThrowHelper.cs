@@ -1,7 +1,7 @@
-﻿using ModularSystem.Webql.Analysis;
-using ModularSystem.Webql.Synthesis;
+﻿using Aidan.Webql.Analysis;
+using Aidan.Webql.Synthesis;
 
-namespace ModularSystem.Webql;
+namespace Aidan.Webql;
 
 /// <summary>
 /// Provides helper methods to throw semantic exceptions with detailed error messages.

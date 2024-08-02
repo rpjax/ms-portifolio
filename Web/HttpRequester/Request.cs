@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Web.Http;
+﻿using Aidan.Core;
+using Aidan.Web.Http;
 
-namespace ModularSystem.Web;
+namespace Aidan.Web;
 
 /// <summary>
 /// Represents an HTTP request with its properties including URI, headers, method, and body.

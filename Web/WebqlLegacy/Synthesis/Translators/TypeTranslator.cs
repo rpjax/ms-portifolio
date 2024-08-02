@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Webql.Synthesis;
+﻿namespace Aidan.Webql.Synthesis;
 
 public class TypeTranslator : TranslatorBase
 {

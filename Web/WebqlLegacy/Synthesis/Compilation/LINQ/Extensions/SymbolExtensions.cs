@@ -1,7 +1,7 @@
-﻿using ModularSystem.Webql.Analysis;
-using ModularSystem.Webql.Analysis.Semantics;
+﻿using Aidan.Webql.Analysis;
+using Aidan.Webql.Analysis.Semantics;
 
-namespace ModularSystem.Webql.Synthesis.Compilation.LINQ.Extensions;
+namespace Aidan.Webql.Synthesis.Compilation.LINQ.Extensions;
 
 public static class SymbolExtensions
 {

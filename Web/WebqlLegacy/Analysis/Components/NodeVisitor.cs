@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace ModularSystem.Webql.Analysis;
+namespace Aidan.Webql.Analysis;
 
 /// <summary>
 /// Represents a visitor for nodes in a syntax tree used during the semantic analysis phase. <br/>

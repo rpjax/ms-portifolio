@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
-using ModularSystem.Core;
-using ModularSystem.Web.Attributes;
+using Aidan.Core;
+using Aidan.Web.Attributes;
 
-namespace ModularSystem.Web;
+namespace Aidan.Web;
 
 public class AttributesHandlerMiddleware : Middleware
 {

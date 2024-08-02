@@ -1,6 +1,6 @@
-using ModularSystem.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Components;
 
-namespace ModularSystem.TextAnalysis.Parsing.LL1.Components;
+namespace Aidan.TextAnalysis.Parsing.LL1.Components;
 
 public enum LL1SemanticActionType
 {

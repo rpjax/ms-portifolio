@@ -1,7 +1,7 @@
-using ModularSystem.TextAnalysis.Language.Extensions;
-using ModularSystem.TextAnalysis.Tokenization;
+using Aidan.TextAnalysis.Language.Extensions;
+using Aidan.TextAnalysis.Tokenization;
 
-namespace ModularSystem.TextAnalysis.Language.Components;
+namespace Aidan.TextAnalysis.Language.Components;
 
 /// <summary>
 /// Represents a terminal symbol in a context-free grammar.

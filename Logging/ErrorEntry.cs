@@ -1,10 +1,10 @@
-﻿using ModularSystem.EntityFramework;
+﻿using Aidan.EntityFramework;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using ModularSystem.Core.Patterns;
-using ModularSystem.Core;
+using Aidan.Core.Patterns;
+using Aidan.Core;
 
-namespace ModularSystem.Logging.Errors;
+namespace Aidan.Logging.Errors;
 
 public class ErrorEntry : IEFCoreModel
 {

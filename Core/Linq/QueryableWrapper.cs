@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Core.Linq;
+namespace Aidan.Core.Linq;
 
 /// <summary>
 /// Provides a wrapper around an IQueryable source, allowing it to be treated as an <see cref="IQueryable{object}"/>.

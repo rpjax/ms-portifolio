@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace ModularSystem.Web;
+namespace Aidan.Web;
 
 /// <summary>
 /// Provides a foundational structure for creating custom middleware components in an ASP.NET Core application.

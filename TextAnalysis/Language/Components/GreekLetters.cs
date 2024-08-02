@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.TextAnalysis.Language;
+﻿namespace Aidan.TextAnalysis.Language;
 
 public static class GreekLetters
 {

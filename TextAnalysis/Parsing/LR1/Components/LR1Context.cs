@@ -1,10 +1,10 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Core.Exceptions;
-using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Parsing.Components;
-using ModularSystem.TextAnalysis.Tokenization;
+﻿using Aidan.Core;
+using Aidan.Core.Exceptions;
+using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Parsing.Components;
+using Aidan.TextAnalysis.Tokenization;
 
-namespace ModularSystem.TextAnalysis.Parsing.LR1.Components;
+namespace Aidan.TextAnalysis.Parsing.LR1.Components;
 
 /// <summary>
 /// Represents the context of a LR(1) parser execution. It contains the input stream, the stack and the concrete syntax tree (CST) builder.

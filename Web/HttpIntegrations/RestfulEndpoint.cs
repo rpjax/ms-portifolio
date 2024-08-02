@@ -1,8 +1,8 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Web.Http;
+﻿using Aidan.Core;
+using Aidan.Web.Http;
 using System.Net;
 
-namespace ModularSystem.Web;
+namespace Aidan.Web;
 
 /// <summary>
 /// Defines a RESTful endpoint that processes input of type <typeparamref name="TIn"/> and produces output of type <typeparamref name="TOut"/>. <br/>

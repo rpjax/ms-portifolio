@@ -1,8 +1,8 @@
-﻿using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Language.Extensions;
+﻿using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Extensions;
 using System.Collections;
 
-namespace ModularSystem.TextAnalysis.Parsing.LR1.Components;
+namespace Aidan.TextAnalysis.Parsing.LR1.Components;
 
 /// <summary>
 /// Defines a class that represents an LR(1) state.

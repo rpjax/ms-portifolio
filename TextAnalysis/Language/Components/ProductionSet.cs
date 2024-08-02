@@ -1,7 +1,7 @@
 using System.Collections;
-using ModularSystem.TextAnalysis.Language.Transformations;
+using Aidan.TextAnalysis.Language.Transformations;
 
-namespace ModularSystem.TextAnalysis.Language.Components;
+namespace Aidan.TextAnalysis.Language.Components;
 
 public class ProductionSet :
     IEnumerable<ProductionRule>

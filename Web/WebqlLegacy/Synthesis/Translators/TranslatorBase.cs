@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core;
+﻿using Aidan.Core;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Synthesis;
+namespace Aidan.Webql.Synthesis;
 
 public abstract class TranslatorBase
 {

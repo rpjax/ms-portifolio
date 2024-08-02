@@ -1,9 +1,9 @@
-﻿using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Tokenization;
+﻿using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Tokenization;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace ModularSystem.TextAnalysis.Parsing.LR1.Components;
+namespace Aidan.TextAnalysis.Parsing.LR1.Components;
 
 /// <summary>
 /// Represents a single entry in the LR1 parsing table.

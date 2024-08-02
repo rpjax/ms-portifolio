@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core.Exceptions;
-using ModularSystem.Core.Extensions;
+﻿using Aidan.Core.Exceptions;
+using Aidan.Core.Extensions;
 
-namespace ModularSystem.Core.Threading;
+namespace Aidan.Core.Threading;
 
 /// <summary>
 /// Provides an asynchronous mutual exclusion lock mechanism.

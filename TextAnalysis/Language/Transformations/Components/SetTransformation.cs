@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json.Serialization;
 
-namespace ModularSystem.TextAnalysis.Language.Transformations;
+namespace Aidan.TextAnalysis.Language.Transformations;
 
 public class SetTransformation :
     IEquatable<SetTransformation>,

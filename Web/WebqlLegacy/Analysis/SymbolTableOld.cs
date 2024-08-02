@@ -1,9 +1,9 @@
-﻿using ModularSystem.Webql.Synthesis;
+﻿using Aidan.Webql.Synthesis;
 using System.Collections;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace ModularSystem.Webql.Analysis;
+namespace Aidan.Webql.Analysis;
 
 public class SymbolOld
 {

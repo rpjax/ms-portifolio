@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.Threading;
+﻿namespace Aidan.Core.Threading;
 
 /// <summary>
 /// Represents a routine that repetitively performs an asynchronous task with a specified delay between iterations.

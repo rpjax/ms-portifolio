@@ -1,7 +1,7 @@
-﻿using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Parsing.LL1.Components;
+﻿using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Parsing.LL1.Components;
 
-namespace ModularSystem.TextAnalysis.Language.Extensions;
+namespace Aidan.TextAnalysis.Language.Extensions;
 
 public static class GrammarExtensions
 {

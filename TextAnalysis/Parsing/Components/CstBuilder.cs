@@ -1,10 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
-using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Tokenization;
+using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Tokenization;
 using System.Collections;
 using System.Runtime.CompilerServices;
 
-namespace ModularSystem.TextAnalysis.Parsing.Components;
+namespace Aidan.TextAnalysis.Parsing.Components;
 
 internal class TokenCollection : IEnumerable<Token>
 {

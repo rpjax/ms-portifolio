@@ -1,6 +1,6 @@
-﻿using ModularSystem.Core.Extensions;
+﻿using Aidan.Core.Extensions;
 
-namespace ModularSystem.Core.Threading;
+namespace Aidan.Core.Threading;
 
 /// <summary>
 /// Provides static methods to queue and manage jobs for execution by the thread pool. <br/>

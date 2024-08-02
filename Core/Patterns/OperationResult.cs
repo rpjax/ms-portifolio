@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core.Extensions;
+﻿using Aidan.Core.Extensions;
 using System.Text.Json.Serialization;
 
-namespace ModularSystem.Core.Patterns;
+namespace Aidan.Core.Patterns;
 
 /// <summary>
 /// Interface representing the result of an operation, including any validation results and errors.

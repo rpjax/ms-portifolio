@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.Cryptography;
+﻿namespace Aidan.Core.Cryptography;
 
 /// <summary>
 /// Defines a contract for cryptographic encryption and decryption operations.

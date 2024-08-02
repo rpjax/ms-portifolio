@@ -1,11 +1,11 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Web.Webql.Synthesis.Symbols;
-using ModularSystem.Webql.Analysis;
-using ModularSystem.Webql.Synthesis.Symbols;
+﻿using Aidan.Core;
+using Aidan.Web.Webql.Synthesis.Symbols;
+using Aidan.Webql.Analysis;
+using Aidan.Webql.Synthesis.Symbols;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace ModularSystem.Webql.Synthesis;
+namespace Aidan.Webql.Synthesis;
 
 /// <summary>
 /// Translation helper that operates on an array. <br/>

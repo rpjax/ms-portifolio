@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using ModularSystem.Webql.Analysis;
-using ModularSystem.Webql.Analysis.Semantics;
-using ModularSystem.Webql.Components;
+using Aidan.Webql.Analysis;
+using Aidan.Webql.Analysis.Semantics;
+using Aidan.Webql.Components;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Synthesis.Compilation.LINQ;
+namespace Aidan.Webql.Synthesis.Compilation.LINQ;
 
 public class TranslationContext
 {

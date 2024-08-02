@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using ModularSystem.Core;
+using Aidan.Core;
 using System.Text.Json.Serialization;
 
-namespace ModularSystem.Web;
+namespace Aidan.Web;
 
 /// <summary>
 /// Provides extension methods for <see cref="IMvcBuilder"/> to simplify the addition of JSON converters.

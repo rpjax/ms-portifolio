@@ -1,6 +1,6 @@
-﻿using ModularSystem.Webql.Analysis.SyntaxFeatures;
+﻿using Aidan.Webql.Analysis.SyntaxFeatures;
 
-namespace ModularSystem.Webql.Analysis;
+namespace Aidan.Webql.Analysis;
 
 /// <summary>
 /// Represents the pipeline for analyzing WebQL nodes. This static class orchestrates the different phases <br/>

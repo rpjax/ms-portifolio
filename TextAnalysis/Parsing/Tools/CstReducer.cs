@@ -1,7 +1,7 @@
-﻿using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Parsing.Components;
+﻿using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Parsing.Components;
 
-namespace ModularSystem.TextAnalysis.Parsing.Tools;
+namespace Aidan.TextAnalysis.Parsing.Tools;
 
 /// <summary>
 /// Defines a class that reduces a concrete syntax tree (CST) to a more compact form.

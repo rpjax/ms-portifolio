@@ -1,9 +1,9 @@
-﻿using ModularSystem.Core.Linq;
+﻿using Aidan.Core.Linq;
 using MongoDB.Driver.Linq;
 using System.Collections;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Synthesis;
+namespace Aidan.Webql.Synthesis;
 
 public class WebqlQueryable : IQueryable<object>
 {

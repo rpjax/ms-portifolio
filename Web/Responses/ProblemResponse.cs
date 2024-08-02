@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core;
+﻿using Aidan.Core;
 using System.Text.Json.Serialization;
 
-namespace ModularSystem.Web.Responses;
+namespace Aidan.Web.Responses;
 
 /// <summary>
 /// Represents an error response based on RFC 7807 - Problem Details for HTTP APIs.

@@ -1,9 +1,9 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Core.Patterns;
+﻿using Aidan.Core;
+using Aidan.Core.Patterns;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace ModularSystem.Mongo;
+namespace Aidan.Mongo;
 
 /// <summary>
 /// Defines a repository interface for managing MongoDB entities,

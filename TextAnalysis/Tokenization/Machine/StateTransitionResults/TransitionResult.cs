@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.TextAnalysis.Tokenization.Machine;
+﻿namespace Aidan.TextAnalysis.Tokenization.Machine;
 
 public struct TransitionResult : ITransitionResult
 {

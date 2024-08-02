@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ModularSystem.Core.Reflection;
+using Aidan.Core.Reflection;
 
-namespace ModularSystem.EntityFramework;
+namespace Aidan.EntityFramework;
 
 /// <summary>
 /// Represents a base context for Entity Framework Core operations.

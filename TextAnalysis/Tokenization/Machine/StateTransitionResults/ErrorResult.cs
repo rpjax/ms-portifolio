@@ -1,6 +1,6 @@
-﻿using ModularSystem.Core;
+﻿using Aidan.Core;
 
-namespace ModularSystem.TextAnalysis.Tokenization.Machine;
+namespace Aidan.TextAnalysis.Tokenization.Machine;
 
 public class ErrorResult : ITransitionResult
 {

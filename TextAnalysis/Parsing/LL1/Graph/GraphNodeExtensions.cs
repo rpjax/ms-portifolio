@@ -1,6 +1,6 @@
-using ModularSystem.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Components;
 
-namespace ModularSystem.TextAnalysis.Language.Graph;
+namespace Aidan.TextAnalysis.Language.Graph;
 
 public static class GraphNodeExtensions
 {

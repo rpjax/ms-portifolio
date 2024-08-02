@@ -2,17 +2,17 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
-using ModularSystem.Core;
-using ModularSystem.Web.AccessManagement;
-using ModularSystem.Web.AccessManagement.Attributes;
-using ModularSystem.Web.AccessManagement.Extensions;
-using ModularSystem.Web.Attributes;
-using ModularSystem.Web.Responses;
+using Aidan.Core;
+using Aidan.Web.AccessManagement;
+using Aidan.Web.AccessManagement.Attributes;
+using Aidan.Web.AccessManagement.Extensions;
+using Aidan.Web.Attributes;
+using Aidan.Web.Responses;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
 
-namespace ModularSystem.Web.Controllers;
+namespace Aidan.Web.Controllers;
 
 /// <summary>
 /// Represents a base web controller that provides utility methods and exception handling mechanisms.

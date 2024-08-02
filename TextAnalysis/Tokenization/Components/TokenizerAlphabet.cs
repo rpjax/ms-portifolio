@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Runtime.CompilerServices;
 
-namespace ModularSystem.TextAnalysis.Tokenization.Components;
+namespace Aidan.TextAnalysis.Tokenization.Components;
 
 /// <summary>
 /// Represents the lexical alphabet used by the tokenizer.

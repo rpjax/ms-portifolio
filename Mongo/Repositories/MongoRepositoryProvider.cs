@@ -1,7 +1,7 @@
 ﻿using MongoDB.Driver;
-using ModularSystem.Core.Patterns;
+using Aidan.Core.Patterns;
 
-namespace ModularSystem.Mongo.Repositories;
+namespace Aidan.Mongo.Repositories;
 
 /// <summary>
 /// Provides a MongoDB implementation of the <see cref="IRepositoryProvider"/> interface.

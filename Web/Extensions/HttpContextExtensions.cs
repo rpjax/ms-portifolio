@@ -1,14 +1,14 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
-using ModularSystem.Core;
-using ModularSystem.Core.Extensions;
-using ModularSystem.Web.Responses;
+using Aidan.Core;
+using Aidan.Core.Extensions;
+using Aidan.Web.Responses;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace ModularSystem.Web;
+namespace Aidan.Web;
 
 /// <summary>
 /// Provides extension methods for <see cref="HttpContext"/> to facilitate common tasks such as extracting authorization details, cookies, and query parameters.

@@ -1,4 +1,4 @@
-namespace ModularSystem.TextAnalysis.Language.Graph;
+namespace Aidan.TextAnalysis.Language.Graph;
 
 public class GraphVisitor
 {

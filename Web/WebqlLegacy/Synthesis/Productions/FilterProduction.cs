@@ -1,6 +1,6 @@
-﻿using ModularSystem.Webql.Synthesis;
+﻿using Aidan.Webql.Synthesis;
 
-namespace ModularSystem.Web.Webql.Synthesis.Productions;
+namespace Aidan.Web.Webql.Synthesis.Productions;
 
 public class AxiomProduction : SymbolProduction
 {

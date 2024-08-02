@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Synthesis;
+namespace Aidan.Webql.Synthesis;
 
 public class ArgumentTranslator
 {

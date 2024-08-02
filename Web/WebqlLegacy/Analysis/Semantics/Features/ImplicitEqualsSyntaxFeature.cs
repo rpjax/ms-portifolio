@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace ModularSystem.Webql.Analysis.SyntaxFeatures;
+namespace Aidan.Webql.Analysis.SyntaxFeatures;
 
 /// <summary>
 /// A specialized semantics visitor that introduces implicit equality checks into the syntax tree. <br/>

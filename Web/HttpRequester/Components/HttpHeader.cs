@@ -1,9 +1,9 @@
-﻿using ModularSystem.Core;
+﻿using Aidan.Core;
 using System.Collections;
 using System.Text;
 using System.Text.Json.Serialization;
 
-namespace ModularSystem.Web.Http;
+namespace Aidan.Web.Http;
 
 /// <summary>
 /// Represents the Authorization header structure.

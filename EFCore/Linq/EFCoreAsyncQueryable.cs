@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ModularSystem.Core.Linq;
+using Aidan.Core.Linq;
 using System.Collections;
 using System.Linq.Expressions;
 
-namespace ModularSystem.EntityFramework.Linq;
+namespace Aidan.EntityFramework.Linq;
 
 /// <summary>
 /// Represents an asynchronous queryable wrapper for Entity Framework Core.

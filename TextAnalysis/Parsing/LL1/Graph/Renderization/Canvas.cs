@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace ModularSystem.TextAnalysis.Language.Graph.Renderization;
+namespace Aidan.TextAnalysis.Language.Graph.Renderization;
 
 public class Canvas
 {

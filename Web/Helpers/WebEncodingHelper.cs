@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Web;
+﻿namespace Aidan.Web;
 
 /// <summary>
 /// Provides helper methods to convert byte arrays to Base64 strings and vice versa, <br/>

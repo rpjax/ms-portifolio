@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace ModularSystem.TextAnalysis.Tokenization.Machine;
+namespace Aidan.TextAnalysis.Tokenization.Machine;
 
 public class IntegerNumberState : IState
 {

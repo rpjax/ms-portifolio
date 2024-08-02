@@ -1,12 +1,12 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Core.Extensions;
-using ModularSystem.Core.Linq;
+﻿using Aidan.Core;
+using Aidan.Core.Extensions;
+using Aidan.Core.Linq;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using System.Collections;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Mongo.Linq;
+namespace Aidan.Mongo.Linq;
 
 /// <summary>
 /// Represents an asynchronous queryable collection in MongoDB.

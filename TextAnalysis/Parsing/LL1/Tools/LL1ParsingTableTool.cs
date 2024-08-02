@@ -1,8 +1,8 @@
-﻿using ModularSystem.TextAnalysis.Language;
-using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Language.Extensions;
+﻿using Aidan.TextAnalysis.Language;
+using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Extensions;
 
-namespace ModularSystem.TextAnalysis.Parsing.LL1.Tools;
+namespace Aidan.TextAnalysis.Parsing.LL1.Tools;
 
 public class LL1ParsingTableTool
 {

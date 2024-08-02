@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace ModularSystem.Core.Helpers;
+namespace Aidan.Core.Helpers;
 
 public class LoremIpsum
 {

@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core;
+﻿using Aidan.Core;
 using System.Diagnostics.CodeAnalysis;
 
-namespace ModularSystem.Webql.Analysis.SyntaxFeatures;
+namespace Aidan.Webql.Analysis.SyntaxFeatures;
 
 /// <summary>
 /// Implements the implicit "$and" syntax for WebQL analysis. <br/>

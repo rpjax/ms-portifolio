@@ -1,12 +1,12 @@
-﻿//using ModularSystem.Core.AccessManagement;
+﻿//using Aidan.Core.AccessManagement;
 
-//namespace ModularSystem.Web.Attributes;
+//namespace Aidan.Web.Attributes;
 
 ///// <summary>
 ///// Represents an attribute used to annotate MVC action methods with identity-related action information.
 ///// </summary>
 ///// <remarks>
-///// The attribute provides a way to map a controller action method to a specific <see cref="ModularSystem.Core.AccessManagement.IdentityAction"/>, <br/>
+///// The attribute provides a way to map a controller action method to a specific <see cref="Aidan.Core.AccessManagement.IdentityAction"/>, <br/>
 ///// which is used for access control purposes based on the defined domain, resource, and action.
 ///// </remarks>
 //public class IdentityActionAttribute : Attribute

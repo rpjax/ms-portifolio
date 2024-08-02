@@ -1,7 +1,7 @@
-﻿using ModularSystem.Webql.Analysis;
-using ModularSystem.Webql.Synthesis;
+﻿using Aidan.Webql.Analysis;
+using Aidan.Webql.Synthesis;
 
-namespace ModularSystem.Webql;
+namespace Aidan.Webql;
 
 /// <summary>
 /// Represents a base class for exceptions related to parsing in the WebQL system.

@@ -1,15 +1,15 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Core.Linq;
-using ModularSystem.Mongo.Linq;
+﻿using Aidan.Core;
+using Aidan.Core.Linq;
+using Aidan.Mongo.Linq;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using ModularSystem.Core.Linq.Extensions;
-using ModularSystem.Core.Linq.Expressions;
+using Aidan.Core.Linq.Extensions;
+using Aidan.Core.Linq.Expressions;
 using System.Linq.Expressions;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Reflection;
 
-namespace ModularSystem.Mongo.Repositories;
+namespace Aidan.Mongo.Repositories;
 
 /// <summary>
 /// Provides a repository for managing MongoDB collections.

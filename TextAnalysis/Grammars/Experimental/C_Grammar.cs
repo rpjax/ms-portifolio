@@ -1,7 +1,7 @@
-using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Tokenization;
+using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Tokenization;
 
-namespace ModularSystem.TextAnalysis.Language.Grammars;
+namespace Aidan.TextAnalysis.Language.Grammars;
 
 public class C_Grammar : Grammar
 {

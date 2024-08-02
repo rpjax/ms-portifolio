@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 
-namespace ModularSystem.Web;
+namespace Aidan.Web;
 
 /// <summary>
 /// Provides extension methods for the <see cref="IApplicationBuilder"/> to facilitate the integration of the IAM (Identity and Access Management) system.

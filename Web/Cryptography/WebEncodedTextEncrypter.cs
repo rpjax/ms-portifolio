@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core.Cryptography;
+﻿using Aidan.Core.Cryptography;
 using System.Text;
 
-namespace ModularSystem.Web.Cryptography;
+namespace Aidan.Web.Cryptography;
 
 /// <summary>
 /// Provides functionalities to encrypt and decrypt textual data using an underlying byte-based encryption scheme.

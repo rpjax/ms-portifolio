@@ -1,10 +1,10 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Core.Extensions;
-using ModularSystem.Core.Patterns;
+﻿using Aidan.Core;
+using Aidan.Core.Extensions;
+using Aidan.Core.Patterns;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace ModularSystem.Web.AccessManagement;
+namespace Aidan.Web.AccessManagement;
 
 /// <summary>
 /// Defines an interface for identity objects within the system, allowing for unique identification <br/>

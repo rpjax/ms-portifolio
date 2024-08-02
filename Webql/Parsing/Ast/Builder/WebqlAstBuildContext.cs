@@ -1,4 +1,4 @@
-﻿using ModularSystem.TextAnalysis.Parsing.Components;
+﻿using Aidan.TextAnalysis.Parsing.Components;
 
 namespace Webql.Parsing.Ast.Builder;
 

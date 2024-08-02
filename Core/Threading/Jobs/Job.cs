@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.Threading;
+﻿namespace Aidan.Core.Threading;
 
 /// <summary>
 /// Represents an abstract base job that can be queued for execution. <br/>

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Text;
 using System.Text.Json.Serialization;
 
-namespace ModularSystem.TextAnalysis.Language.Transformations;
+namespace Aidan.TextAnalysis.Language.Transformations;
 
 public class SetTransformationCollection : 
     IEnumerable<SetTransformation>

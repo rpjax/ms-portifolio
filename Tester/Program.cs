@@ -1,28 +1,28 @@
 ﻿using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
-using ModularSystem.TextAnalysis.Tokenization;
-using ModularSystem.TextAnalysis.Grammars;
-using ModularSystem.TextAnalysis.Parsing;
-using ModularSystem.TextAnalysis.Parsing.Extensions;
-using ModularSystem.TextAnalysis.Parsing.Components;
+using Aidan.TextAnalysis.Tokenization;
+using Aidan.TextAnalysis.Grammars;
+using Aidan.TextAnalysis.Parsing;
+using Aidan.TextAnalysis.Parsing.Extensions;
+using Aidan.TextAnalysis.Parsing.Components;
 using Webql.Parsing;
 using Webql.Core;
 using Webql;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
-using ModularSystem.Mongo.Repositories;
-using ModularSystem.Mongo;
+using Aidan.Mongo.Repositories;
+using Aidan.Mongo;
 using Webql.Translation.Linq.Providers;
 using Tester;
-using ModularSystem.Web.AccessManagement.Services;
-using ModularSystem.Web.AccessManagement.Authorization;
-using ModularSystem.Web.AccessManagement;
-using ModularSystem.Web.AccessManagement.Jwt.Services;
-using ModularSystem.Web;
-using ModularSystem.Web.AccessManagement.Middlewares;
-using ModularSystem.Core.Patterns;
+using Aidan.Web.AccessManagement.Services;
+using Aidan.Web.AccessManagement.Authorization;
+using Aidan.Web.AccessManagement;
+using Aidan.Web.AccessManagement.Jwt.Services;
+using Aidan.Web;
+using Aidan.Web.AccessManagement.Middlewares;
+using Aidan.Core.Patterns;
 
-namespace ModularSystem.Tester;
+namespace Aidan.Tester;
 
 /*
  * Debate com o mano lá

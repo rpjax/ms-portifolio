@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.TextAnalysis.Tokenization;
+﻿namespace Aidan.TextAnalysis.Tokenization;
 
 /// <summary>
 /// Represents a token produced by the lexical Analyzer, using a lexeme production rule.

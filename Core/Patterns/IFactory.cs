@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core;
+﻿namespace Aidan.Core;
 
 /// <summary>
 /// Defines a factory interface responsible for creating instances of type <typeparamref name="T"/>.

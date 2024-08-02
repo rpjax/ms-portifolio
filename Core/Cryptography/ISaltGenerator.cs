@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.Cryptography;
+﻿namespace Aidan.Core.Cryptography;
 
 /// <summary>
 /// Represents the contract for salt generation in cryptographic operations.

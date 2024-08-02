@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core;
+﻿namespace Aidan.Core;
 
 /// <summary>
 /// Represents a Uniform Resource Identifier (URI) and provides easy access and manipulation of the parts of the URI.

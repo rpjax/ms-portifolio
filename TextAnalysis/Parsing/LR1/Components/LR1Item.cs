@@ -1,8 +1,8 @@
-﻿using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Language.Extensions;
+﻿using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Extensions;
 using System.Diagnostics.CodeAnalysis;
 
-namespace ModularSystem.TextAnalysis.Parsing.LR1.Components;
+namespace Aidan.TextAnalysis.Parsing.LR1.Components;
 
 public class LR1Item : 
     IEquatable<LR1Item>, 

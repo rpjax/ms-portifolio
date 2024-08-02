@@ -1,8 +1,8 @@
-using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Parsing.Components;
-using ModularSystem.TextAnalysis.Tokenization;
+using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Parsing.Components;
+using Aidan.TextAnalysis.Tokenization;
 
-namespace ModularSystem.TextAnalysis.Parsing.LL1.Components;
+namespace Aidan.TextAnalysis.Parsing.LL1.Components;
 
 public class LL1SyntaxContext
 {

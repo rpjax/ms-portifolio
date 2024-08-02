@@ -1,7 +1,7 @@
-﻿using ModularSystem.TextAnalysis.Parsing.Components;
+﻿using Aidan.TextAnalysis.Parsing.Components;
 using System.Text;
 
-namespace ModularSystem.TextAnalysis.Parsing.Extensions;
+namespace Aidan.TextAnalysis.Parsing.Extensions;
 
 public class CstNodeHtmlBuilder
 {

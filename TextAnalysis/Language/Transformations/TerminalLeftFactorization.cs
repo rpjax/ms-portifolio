@@ -1,7 +1,7 @@
-using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Language.Extensions;
+using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Extensions;
 
-namespace ModularSystem.TextAnalysis.Language.Transformations;
+namespace Aidan.TextAnalysis.Language.Transformations;
 
 /// <summary>
 /// Represents a transformation that factors out common prefixes in a production subset.

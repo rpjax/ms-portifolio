@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core.Extensions;
+﻿using Aidan.Core.Extensions;
 using System.Reflection;
 
-namespace ModularSystem.Core.Reflection;
+namespace Aidan.Core.Reflection;
 
 /// <summary>
 /// Provides extension methods for the <see cref="Type"/> class to enhance its capabilities.

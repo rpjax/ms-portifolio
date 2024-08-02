@@ -1,9 +1,9 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Web.Http;
+﻿using Aidan.Core;
+using Aidan.Web.Http;
 using System.Text;
 using System.Text.Json;
 
-namespace ModularSystem.Web;
+namespace Aidan.Web;
 
 /// <summary>
 /// Represents an HTTP response and provides methods to interact with and process its content.

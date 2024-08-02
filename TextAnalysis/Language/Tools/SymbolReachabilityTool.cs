@@ -1,7 +1,7 @@
-﻿using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Language.Graph;
+﻿using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Graph;
 
-namespace ModularSystem.TextAnalysis.Language.Tools;
+namespace Aidan.TextAnalysis.Language.Tools;
 
 public class SymbolReachabilityTool : GraphVisitor
 {

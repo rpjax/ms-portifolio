@@ -1,10 +1,10 @@
-﻿using ModularSystem.TextAnalysis.Grammars;
-using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Parsing;
-using ModularSystem.TextAnalysis.Parsing.Components;
-using ModularSystem.TextAnalysis.Parsing.Tools;
+﻿using Aidan.TextAnalysis.Grammars;
+using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Parsing;
+using Aidan.TextAnalysis.Parsing.Components;
+using Aidan.TextAnalysis.Parsing.Tools;
 
-namespace ModularSystem.TextAnalysis.Gdef;
+namespace Aidan.TextAnalysis.Gdef;
 
 /// <summary>
 /// Reconizes and parses gdef files. (Grammar Definition Format)

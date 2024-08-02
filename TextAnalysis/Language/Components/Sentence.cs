@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
-namespace ModularSystem.TextAnalysis.Language.Components;
+namespace Aidan.TextAnalysis.Language.Components;
 
 /// <summary>
 /// Represents an immutable sequence of <see cref="Symbol"/> that form a sentence.

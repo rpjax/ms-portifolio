@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core;
+﻿namespace Aidan.Core;
 
 /// <summary>
 /// Represents a builder for creating <see cref="Error"/> objects.

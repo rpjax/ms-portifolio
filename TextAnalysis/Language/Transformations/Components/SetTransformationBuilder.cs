@@ -1,6 +1,6 @@
-using ModularSystem.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Components;
 
-namespace ModularSystem.TextAnalysis.Language.Transformations;
+namespace Aidan.TextAnalysis.Language.Transformations;
 
 public class SetTransformationBuilder
 {

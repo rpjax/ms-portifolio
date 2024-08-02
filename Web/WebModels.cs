@@ -1,12 +1,12 @@
-using ModularSystem.Core;
-using ModularSystem.Core.Expressions;
-using ModularSystem.Core.Linq;
-using ModularSystem.Core.Linq.Expressions;
-using ModularSystem.Web.Expressions;
+using Aidan.Core;
+using Aidan.Core.Expressions;
+using Aidan.Core.Linq;
+using Aidan.Core.Linq.Expressions;
+using Aidan.Web.Expressions;
 using System.Linq.Expressions;
 using System.Text.Json.Serialization;
 
-namespace ModularSystem.Web;
+namespace Aidan.Web;
 
 /// <summary>
 /// Represents a serializable and web encodable version of the <see cref="Query{T}"/> class.

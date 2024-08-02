@@ -1,5 +1,5 @@
-﻿using ModularSystem.Core.Extensions;
-using ModularSystem.Core.Threading;
+﻿using Aidan.Core.Extensions;
+using Aidan.Core.Threading;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
@@ -7,7 +7,7 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace ModularSystem.Core.Reflection;
+namespace Aidan.Core.Reflection;
 
 /// <summary>
 /// Provides functionalities for dynamic type creation, including the generation of anonymous types.

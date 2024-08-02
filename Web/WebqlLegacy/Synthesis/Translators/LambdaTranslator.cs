@@ -1,7 +1,7 @@
-﻿using ModularSystem.Web.Webql.Synthesis.Productions;
+﻿using Aidan.Web.Webql.Synthesis.Productions;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Synthesis;
+namespace Aidan.Webql.Synthesis;
 
 /// <summary>
 /// Translates the &lt;lambda&gt; symbol to an Expression.

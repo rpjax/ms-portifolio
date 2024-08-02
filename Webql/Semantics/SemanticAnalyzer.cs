@@ -6,7 +6,7 @@ using Webql.Semantics.Exceptions;
 using Webql.Core.Analysis;
 using Webql.Semantics.Symbols;
 using Webql.Core.Extensions;
-using ModularSystem.Core.Reflection;
+using Aidan.Core.Reflection;
 using System.Reflection;
 
 namespace Webql.Semantics.Analysis;

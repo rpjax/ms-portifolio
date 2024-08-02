@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace ModularSystem.TextAnalysis.Language.Components;
+namespace Aidan.TextAnalysis.Language.Components;
 
 /// <summary>
 /// Represents a production symbol in a context-free grammar.

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace ModularSystem.Web.AccessManagement.Services;
+namespace Aidan.Web.AccessManagement.Services;
 
 /// <summary>
 /// Represents a service for accessing access policies.

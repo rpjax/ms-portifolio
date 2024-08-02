@@ -1,8 +1,8 @@
-﻿using ModularSystem.Core;
+﻿using Aidan.Core;
 using System.Linq.Expressions;
 using System.Text.Json;
 
-namespace ModularSystem.Webql.Synthesis;
+namespace Aidan.Webql.Synthesis;
 
 public class LiteralTranslator : TranslatorBase
 {

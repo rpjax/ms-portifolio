@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Web.AccessManagement.Attributes;
+﻿namespace Aidan.Web.AccessManagement.Attributes;
 
 /// <summary>
 /// Serves as a base for attributes related to access management within an ASP.NET Core application. <br/>

@@ -1,6 +1,6 @@
-﻿using ModularSystem.TextAnalysis.Language.Components;
+﻿using Aidan.TextAnalysis.Language.Components;
 
-namespace ModularSystem.TextAnalysis.Language.Extensions;
+namespace Aidan.TextAnalysis.Language.Extensions;
 
 public static class ExpandedAlternativeMacroExtensions
 {

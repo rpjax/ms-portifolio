@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Web;
+﻿namespace Aidan.Web;
 
 public static partial class StaticHtml
 {

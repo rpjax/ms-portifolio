@@ -1,11 +1,11 @@
-﻿using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Language.Extensions;
-using ModularSystem.TextAnalysis.Parsing.Components;
-using ModularSystem.TextAnalysis.Parsing.LR1.Components;
-using ModularSystem.TextAnalysis.Tokenization;
+﻿using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Extensions;
+using Aidan.TextAnalysis.Parsing.Components;
+using Aidan.TextAnalysis.Parsing.LR1.Components;
+using Aidan.TextAnalysis.Tokenization;
 using System.Runtime.CompilerServices;
 
-namespace ModularSystem.TextAnalysis.Parsing;
+namespace Aidan.TextAnalysis.Parsing;
 
 /// <summary>
 /// Represents a LR(1) parser. It is capable of parsing text based on a given grammar.

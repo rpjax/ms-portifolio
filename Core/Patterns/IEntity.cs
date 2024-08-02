@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.Patterns;
+﻿namespace Aidan.Core.Patterns;
 
 /// <summary>
 /// Marker interface for explicitly identifying entities within the system. 

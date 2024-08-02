@@ -1,8 +1,8 @@
-﻿using ModularSystem.Core.Extensions;
+﻿using Aidan.Core.Extensions;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace ModularSystem.Core.Cryptography;
+namespace Aidan.Core.Cryptography;
 
 public class CryptographyUtils
 {

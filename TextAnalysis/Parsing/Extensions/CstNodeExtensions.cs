@@ -1,6 +1,6 @@
-﻿using ModularSystem.TextAnalysis.Parsing.Components;
+﻿using Aidan.TextAnalysis.Parsing.Components;
 
-namespace ModularSystem.TextAnalysis.Parsing.Extensions;
+namespace Aidan.TextAnalysis.Parsing.Extensions;
 
 public static class CstNodeExtensions
 {

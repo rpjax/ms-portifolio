@@ -1,8 +1,8 @@
-﻿using ModularSystem.Core.Linq;
-using ModularSystem.Core.Linq.Expressions;
+﻿using Aidan.Core.Linq;
+using Aidan.Core.Linq.Expressions;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Core.Patterns;
+namespace Aidan.Core.Patterns;
 
 /// <summary>
 /// Represents a repository contract for data access within the domain.

@@ -1,8 +1,8 @@
-﻿using ModularSystem.TextAnalysis.Language;
-using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Tokenization;
+﻿using Aidan.TextAnalysis.Language;
+using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Tokenization;
 
-namespace ModularSystem.Webql.Analysis.DocumentSyntax.Parsing;
+namespace Aidan.Webql.Analysis.DocumentSyntax.Parsing;
 
 public class WebqlGrammar : Grammar
 {

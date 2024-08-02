@@ -1,10 +1,10 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Webql.Analysis;
-using ModularSystem.Webql.Synthesis;
-using ModularSystem.Webql.Synthesis.Compilation.LINQ;
+﻿using Aidan.Core;
+using Aidan.Webql.Analysis;
+using Aidan.Webql.Synthesis;
+using Aidan.Webql.Synthesis.Compilation.LINQ;
 using System.Collections;
 
-namespace ModularSystem.Webql;
+namespace Aidan.Webql;
 
 public static class WebqlHelper
 {

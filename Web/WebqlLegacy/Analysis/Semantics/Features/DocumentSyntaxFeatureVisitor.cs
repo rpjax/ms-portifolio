@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace ModularSystem.Webql.Analysis.SyntaxFeatures;
+namespace Aidan.Webql.Analysis.SyntaxFeatures;
 
 public class DocumentSyntaxFeatureVisitor : SemanticsVisitor
 {

@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.EntityFramework;
+﻿namespace Aidan.EntityFramework;
 
 /// <summary>
 /// Interface for Entity Framework entities, providing a unique identifier of type <see cref="long"/>.

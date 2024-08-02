@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace ModularSystem.Core.Extensions;
+namespace Aidan.Core.Extensions;
 
 /// <summary>
 /// Provides extension methods for the .NET System.Type class, offering useful functionalities for working with types and type hierarchies at runtime.

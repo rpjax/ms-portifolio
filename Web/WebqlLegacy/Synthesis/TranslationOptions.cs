@@ -1,10 +1,10 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Mongo;
+﻿using Aidan.Core;
+using Aidan.Mongo;
 using MongoDB.Bson;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ModularSystem.Webql.Synthesis.Compilation.LINQ;
+namespace Aidan.Webql.Synthesis.Compilation.LINQ;
 
 /// <summary>
 /// Contains options for translating WebQL nodes into LINQ expressions.

@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Webql.Synthesis;
+﻿namespace Aidan.Webql.Synthesis;
 
 /// <summary>
 /// Represents a prodution rule, ex: &lt;expression&gt; ::= &lt;expression-lhs&gt; ':' &lt;expression-rhs&gt; <br/><br/>

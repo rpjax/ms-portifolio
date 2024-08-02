@@ -1,9 +1,9 @@
-﻿using ModularSystem.Core.Cryptography;
-using ModularSystem.Web.AccessManagement.Tokens;
+﻿using Aidan.Core.Cryptography;
+using Aidan.Web.AccessManagement.Tokens;
 using System.Text;
 using System.Text.Json;
 
-namespace ModularSystem.Web.Authentication;
+namespace Aidan.Web.Authentication;
 
 /// <summary>
 /// A token encrypter that utilizes the AES encryption standard.

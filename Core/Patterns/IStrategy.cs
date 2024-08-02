@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core;
+﻿namespace Aidan.Core;
 
 /// <summary>
 /// Defines a strategy pattern interface for executing an operation on a given state.

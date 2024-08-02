@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Webql.Synthesis.Compilation.LINQ;
+﻿namespace Aidan.Webql.Synthesis.Compilation.LINQ;
 
 public enum LinqSourceType
 {

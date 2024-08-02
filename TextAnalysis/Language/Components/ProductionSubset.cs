@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace ModularSystem.TextAnalysis.Language.Components;
+namespace Aidan.TextAnalysis.Language.Components;
 
 public class ProductionSubset : 
     IEnumerable<ProductionRule>

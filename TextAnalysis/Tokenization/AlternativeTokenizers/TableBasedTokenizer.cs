@@ -1,7 +1,7 @@
-﻿using ModularSystem.TextAnalysis.Tokenization.Components;
-using ModularSystem.TextAnalysis.Tokenization.Machine;
+﻿using Aidan.TextAnalysis.Tokenization.Components;
+using Aidan.TextAnalysis.Tokenization.Machine;
 
-namespace ModularSystem.TextAnalysis.Tokenization.Experimental;
+namespace Aidan.TextAnalysis.Tokenization.Experimental;
 
 //*
 //* first aproach

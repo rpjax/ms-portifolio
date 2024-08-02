@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace ModularSystem.Core.Linq.Expressions;
+namespace Aidan.Core.Linq.Expressions;
 
 /// <summary>
 /// Represents an update assignment expression for modifying entities.

@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Web.Authentication;
+﻿namespace Aidan.Web.Authentication;
 
 //public sealed class RsaTokenEncrypter
 //{

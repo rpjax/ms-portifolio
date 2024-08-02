@@ -1,6 +1,6 @@
-﻿using ModularSystem.Core.Cryptography;
+﻿using Aidan.Core.Cryptography;
 
-namespace ModularSystem.Web.AccessManagement.Tokens;
+namespace Aidan.Web.AccessManagement.Tokens;
 
 /// <summary>
 /// Defines an interface for a secure web token which can act as a bearer for credentials or claims.

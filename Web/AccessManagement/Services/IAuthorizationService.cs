@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
-using ModularSystem.Core.Patterns;
+using Aidan.Core.Patterns;
 
-namespace ModularSystem.Web.AccessManagement.Services;
+namespace Aidan.Web.AccessManagement.Services;
 
 /// <summary>
 /// Defines an interface for managing and retrieving authorization policies specific to web resources. <br/>

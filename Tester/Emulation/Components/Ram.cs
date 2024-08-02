@@ -1,4 +1,4 @@
-namespace ModularSystem.Core.Emulation.Components;
+namespace Aidan.Core.Emulation.Components;
 
 public class EmulatorTester
 {

@@ -1,14 +1,14 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
-using ModularSystem.Core.Patterns;
-using ModularSystem.Web.AccessManagement.Services;
-using ModularSystem.Web.AccessManagement.Tokens;
+using Aidan.Core.Patterns;
+using Aidan.Web.AccessManagement.Services;
+using Aidan.Web.AccessManagement.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 
-namespace ModularSystem.Web.AccessManagement.Jwt.Services;
+namespace Aidan.Web.AccessManagement.Jwt.Services;
 
 public class JwtIdentityService : IIdentityService
 {

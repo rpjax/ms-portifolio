@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-namespace ModularSystem.Core.Cryptography;
+namespace Aidan.Core.Cryptography;
 
 /// <summary>
 /// Represents different AES encryption key sizes.

@@ -2,7 +2,7 @@
 using System.Text;
 using System.Text.Json;
 
-namespace ModularSystem.Core.Extensions;
+namespace Aidan.Core.Extensions;
 
 /// <summary>
 /// Provides extension methods for string manipulation.

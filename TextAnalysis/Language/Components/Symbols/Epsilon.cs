@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.TextAnalysis.Language.Components;
+﻿namespace Aidan.TextAnalysis.Language.Components;
 
 /// <summary>
 /// Represents an epsilon(ε) symbol in a context-free grammar.

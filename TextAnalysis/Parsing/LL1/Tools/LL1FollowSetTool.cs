@@ -1,8 +1,8 @@
-using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Language.Extensions;
-using ModularSystem.TextAnalysis.Parsing.LL1.Components;
+using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Extensions;
+using Aidan.TextAnalysis.Parsing.LL1.Components;
 
-namespace ModularSystem.TextAnalysis.Parsing.LL1.Tools;
+namespace Aidan.TextAnalysis.Parsing.LL1.Tools;
 
 public class LL1FollowSetTool
 {

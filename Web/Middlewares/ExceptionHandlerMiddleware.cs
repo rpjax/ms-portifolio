@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
-using ModularSystem.Core;
-using ModularSystem.Core.Logging;
+using Aidan.Core;
+using Aidan.Core.Logging;
 
-namespace ModularSystem.Web;
+namespace Aidan.Web;
 
 internal class ExceptionHandlerMiddleware : Middleware
 {

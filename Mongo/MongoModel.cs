@@ -1,8 +1,8 @@
-﻿using ModularSystem.Core;
+﻿using Aidan.Core;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace ModularSystem.Mongo;
+namespace Aidan.Mongo;
 
 /// <summary>
 /// Defines an interface for MongoDB entities identified by an ObjectId.

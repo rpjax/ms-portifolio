@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.TextAnalysis.Grammars;
+﻿namespace Aidan.TextAnalysis.Grammars;
 
 public static class CanonicalGrammars
 {

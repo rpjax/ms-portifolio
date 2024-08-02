@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
-using ModularSystem.Core;
+using Aidan.Core;
 using System.Reflection;
 
-namespace ModularSystem.Web;
+namespace Aidan.Web;
 
 public static class AttributesMapper
 {

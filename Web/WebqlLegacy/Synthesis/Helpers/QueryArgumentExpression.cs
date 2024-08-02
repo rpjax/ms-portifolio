@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Synthesis.Symbols;
+namespace Aidan.Webql.Synthesis.Symbols;
 
 public class QueryArgumentExpression : Expression
 {

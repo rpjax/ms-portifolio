@@ -1,7 +1,7 @@
-﻿using ModularSystem.Webql.Analysis.Symbols;
+﻿using Aidan.Webql.Analysis.Symbols;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Synthesis.Compilation.LINQ;
+namespace Aidan.Webql.Synthesis.Compilation.LINQ;
 
 public class ExpressionTranslator
 {

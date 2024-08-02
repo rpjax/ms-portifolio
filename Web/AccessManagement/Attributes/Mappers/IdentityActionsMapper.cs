@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
-using ModularSystem.Web.AccessManagement;
-using ModularSystem.Web.AccessManagement.Attributes;
+using Aidan.Web.AccessManagement;
+using Aidan.Web.AccessManagement.Attributes;
 using System.Reflection;
 
-namespace ModularSystem.Web.Attributes;
+namespace Aidan.Web.Attributes;
 
 /// <summary>
 /// Represents an action within an ASP.NET Core MVC application with associated access control policies.

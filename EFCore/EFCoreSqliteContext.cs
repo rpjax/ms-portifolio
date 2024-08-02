@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ModularSystem.Core.Helpers;
+using Aidan.Core.Helpers;
 
-namespace ModularSystem.EntityFramework;
+namespace Aidan.EntityFramework;
 
 /// <summary>
 /// Represents an Entity Framework Core context specifically designed for SQLite databases.

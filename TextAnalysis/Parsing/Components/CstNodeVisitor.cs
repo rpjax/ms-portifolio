@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.TextAnalysis.Parsing.Components;
+﻿namespace Aidan.TextAnalysis.Parsing.Components;
 
 public class CstNodeVisitor
 {

@@ -1,6 +1,6 @@
-﻿using ModularSystem.Core.Helpers;
+﻿using Aidan.Core.Helpers;
 
-namespace ModularSystem.Core.Logging;
+namespace Aidan.Core.Logging;
 
 /// <summary>
 /// Provides utility methods for managing directories and file paths used by logger implementations.

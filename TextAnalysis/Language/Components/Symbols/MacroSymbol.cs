@@ -1,4 +1,4 @@
-namespace ModularSystem.TextAnalysis.Language.Components;
+namespace Aidan.TextAnalysis.Language.Components;
 
 /// <summary>
 /// Represents a macro symbol within a context-free grammar. <br/>

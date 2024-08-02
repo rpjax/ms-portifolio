@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Synthesis.Compilation;
+namespace Aidan.Webql.Synthesis.Compilation;
 
 public enum ILOpCode
 {

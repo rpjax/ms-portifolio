@@ -1,6 +1,6 @@
-﻿using ModularSystem.TextAnalysis.Tokenization;
+﻿using Aidan.TextAnalysis.Tokenization;
 
-namespace ModularSystem.TextAnalysis.Parsing.Components;
+namespace Aidan.TextAnalysis.Parsing.Components;
 
 /// <summary>
 /// Represents the type of a node in the concrete syntax tree (CST).

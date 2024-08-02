@@ -1,9 +1,9 @@
-using ModularSystem.Core;
-using ModularSystem.Core.Extensions;
-using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Language.Extensions;
+using Aidan.Core;
+using Aidan.Core.Extensions;
+using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Extensions;
 
-namespace ModularSystem.TextAnalysis.Parsing.LL1.Components;
+namespace Aidan.TextAnalysis.Parsing.LL1.Components;
 
 public class LL1LeftRecursionCicle
 {

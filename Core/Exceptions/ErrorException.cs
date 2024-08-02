@@ -1,6 +1,6 @@
-﻿using ModularSystem.Core.Patterns;
+﻿using Aidan.Core.Patterns;
 
-namespace ModularSystem.Core.Exceptions;
+namespace Aidan.Core.Exceptions;
 
 /// <summary>
 /// Represents an exception that encapsulates multiple errors. <br/>

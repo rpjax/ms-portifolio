@@ -1,8 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
-using ModularSystem.TextAnalysis.Gdef;
-using ModularSystem.TextAnalysis.Parsing;
-using ModularSystem.TextAnalysis.Parsing.Components;
-using ModularSystem.TextAnalysis.Parsing.Tools;
+using Aidan.TextAnalysis.Gdef;
+using Aidan.TextAnalysis.Parsing;
+using Aidan.TextAnalysis.Parsing.Components;
+using Aidan.TextAnalysis.Parsing.Tools;
 using Webql.Parsing.Ast;
 using Webql.Parsing.Ast.Builder;
 

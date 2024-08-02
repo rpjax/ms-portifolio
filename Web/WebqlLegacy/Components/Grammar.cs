@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Webql;
+﻿namespace Aidan.Webql;
 
 /// <summary>
 /// Defines the syntax rules for the language.

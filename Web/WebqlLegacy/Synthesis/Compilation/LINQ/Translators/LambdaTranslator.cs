@@ -1,9 +1,9 @@
-﻿using ModularSystem.Webql.Analysis.Semantics;
-using ModularSystem.Webql.Analysis.Symbols;
-using ModularSystem.Webql.Synthesis.Compilation.LINQ.Extensions;
+﻿using Aidan.Webql.Analysis.Semantics;
+using Aidan.Webql.Analysis.Symbols;
+using Aidan.Webql.Synthesis.Compilation.LINQ.Extensions;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Synthesis.Compilation.LINQ;
+namespace Aidan.Webql.Synthesis.Compilation.LINQ;
 
 public class LambdaTranslator
 {

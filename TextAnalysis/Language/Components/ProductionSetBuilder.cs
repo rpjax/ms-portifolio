@@ -1,4 +1,4 @@
-namespace ModularSystem.TextAnalysis.Language.Components;
+namespace Aidan.TextAnalysis.Language.Components;
 
 public class ProductionSetBuilder
 {

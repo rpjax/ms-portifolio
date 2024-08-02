@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.TextAnalysis.Parsing.Components;
+﻿namespace Aidan.TextAnalysis.Parsing.Components;
 
 /// <summary>
 /// Represents the position of a syntatical element in the source code.

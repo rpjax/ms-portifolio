@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace ModularSystem.Core.Linq;
+namespace Aidan.Core.Linq;
 
 /// <summary>
 /// Represents an asynchronous version of the <see cref="IQueryable"/> interface.

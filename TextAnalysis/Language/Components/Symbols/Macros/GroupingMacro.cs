@@ -1,6 +1,6 @@
-﻿using ModularSystem.TextAnalysis.Language.Extensions;
+﻿using Aidan.TextAnalysis.Language.Extensions;
 
-namespace ModularSystem.TextAnalysis.Language.Components;
+namespace Aidan.TextAnalysis.Language.Components;
 
 /// <summary>
 /// Represents a grouping macro. 

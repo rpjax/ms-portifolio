@@ -1,8 +1,8 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Core.Reflection;
+﻿using Aidan.Core;
+using Aidan.Core.Reflection;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Synthesis;
+namespace Aidan.Webql.Synthesis;
 
 /// <summary>
 /// Constructs a projection for a WebQL query by building an anonymous type. <br/>

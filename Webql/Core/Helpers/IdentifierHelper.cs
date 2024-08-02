@@ -1,4 +1,4 @@
-﻿using ModularSystem.Core.Extensions;
+﻿using Aidan.Core.Extensions;
 
 namespace Webql.Core.Helpers;
 

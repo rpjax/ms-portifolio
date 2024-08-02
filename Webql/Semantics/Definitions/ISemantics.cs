@@ -1,4 +1,4 @@
-﻿using ModularSystem.Core.Reflection;
+﻿using Aidan.Core.Reflection;
 using System.Reflection;
 
 namespace Webql.Semantics.Definitions;

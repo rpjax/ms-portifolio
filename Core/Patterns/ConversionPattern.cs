@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core;
+﻿namespace Aidan.Core;
 
 public delegate Out ConversionDelegate<In, Out>(In input);
 

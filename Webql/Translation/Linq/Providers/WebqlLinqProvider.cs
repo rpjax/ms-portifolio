@@ -1,5 +1,5 @@
-﻿using ModularSystem.Core.Linq;
-using ModularSystem.Core.Linq.Extensions;
+﻿using Aidan.Core.Linq;
+using Aidan.Core.Linq.Extensions;
 using System.Linq.Expressions;
 using System.Reflection;
 using Webql.Core;

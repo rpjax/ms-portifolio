@@ -1,8 +1,8 @@
-﻿using ModularSystem.Core;
+﻿using Aidan.Core;
 using System.Text;
 using System.Text.Json;
 
-namespace ModularSystem.Web.Client;
+namespace Aidan.Web.Client;
 
 //*
 // Base class for defining a HTTP endpoint integration with an endpoint exposed by a subclass of WebController of this library.

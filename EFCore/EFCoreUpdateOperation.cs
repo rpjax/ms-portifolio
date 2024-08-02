@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
-using ModularSystem.Core;
-using ModularSystem.Core.Extensions;
-using ModularSystem.Core.Linq.Expressions;
+using Aidan.Core;
+using Aidan.Core.Extensions;
+using Aidan.Core.Linq.Expressions;
 using System.Linq.Expressions;
 
-namespace ModularSystem.EntityFramework;
+namespace Aidan.EntityFramework;
 
 internal class EFCoreUpdateOperation<T> where T : class, IEFCoreModel
 {

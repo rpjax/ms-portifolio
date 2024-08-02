@@ -1,6 +1,6 @@
-﻿using ModularSystem.Core.Logging;
+﻿using Aidan.Core.Logging;
 
-namespace ModularSystem.Core.Threading;
+namespace Aidan.Core.Threading;
 
 /// <summary>
 /// A single threaded scope of execution for a set of functions. This class spawns a new worker thread. 

@@ -1,8 +1,8 @@
-﻿using ModularSystem.Webql.Analysis.Semantics;
-using ModularSystem.Webql.Synthesis.Symbols;
+﻿using Aidan.Webql.Analysis.Semantics;
+using Aidan.Webql.Synthesis.Symbols;
 using System.Reflection;
 
-namespace ModularSystem.Webql.Synthesis.Compilation.LINQ;
+namespace Aidan.Webql.Synthesis.Compilation.LINQ;
 
 //*
 // LINQ methods providers.

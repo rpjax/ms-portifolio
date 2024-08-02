@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ModularSystem.Core;
+namespace Aidan.Core;
 
 public class ErrorFlag
 {

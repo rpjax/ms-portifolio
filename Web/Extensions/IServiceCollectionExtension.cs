@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using ModularSystem.Core;
+using Aidan.Core;
 
-namespace ModularSystem.Web;
+namespace Aidan.Web;
 
 public static class IServiceCollectionExtensions
 {

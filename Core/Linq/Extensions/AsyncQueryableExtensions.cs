@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace ModularSystem.Core.Linq.Extensions;
+namespace Aidan.Core.Linq.Extensions;
 
 /*
  * TODO: Add all missing LINQ methods.

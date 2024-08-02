@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Web.AccessManagement;
+﻿namespace Aidan.Web.AccessManagement;
 
 public class IdentityActionDescriptionAttribute : Attribute
 {

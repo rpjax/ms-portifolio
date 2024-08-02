@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
-using ModularSystem.Core;
-using ModularSystem.Web.AccessManagement.Services;
+using Aidan.Core;
+using Aidan.Web.AccessManagement.Services;
 
-namespace ModularSystem.Web.AccessManagement.Middlewares;
+namespace Aidan.Web.AccessManagement.Middlewares;
 
 /// <summary>
 /// Middleware for managing access control within the application, integrating authentication and authorization services.

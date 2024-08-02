@@ -1,10 +1,10 @@
-﻿using ModularSystem.Core.Extensions;
-using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Tokenization;
-using ModularSystem.TextAnalysis.Tokenization.Tools;
+﻿using Aidan.Core.Extensions;
+using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Tokenization;
+using Aidan.TextAnalysis.Tokenization.Tools;
 using System.Runtime.CompilerServices;
 
-namespace ModularSystem.TextAnalysis.Language.Extensions;
+namespace Aidan.TextAnalysis.Language.Extensions;
 
 public static class TerminalExtensions
 {

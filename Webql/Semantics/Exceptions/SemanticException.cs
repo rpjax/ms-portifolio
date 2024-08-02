@@ -1,4 +1,4 @@
-﻿using ModularSystem.TextAnalysis.Parsing.Components;
+﻿using Aidan.TextAnalysis.Parsing.Components;
 using Webql.Exceptions;
 using Webql.Parsing.Ast;
 

@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core;
+﻿using Aidan.Core;
 using System.Collections;
 
-namespace ModularSystem.Webql;
+namespace Aidan.Webql;
 
 /// <summary>
 /// Represents the base class for all WebQL node types. <br/>

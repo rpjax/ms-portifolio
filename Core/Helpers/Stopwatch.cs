@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.Helpers;
+﻿namespace Aidan.Core.Helpers;
 
 public struct StopwatchMarker
 {

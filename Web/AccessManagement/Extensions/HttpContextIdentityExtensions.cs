@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace ModularSystem.Web.AccessManagement.Extensions;
+namespace Aidan.Web.AccessManagement.Extensions;
 
 /// <summary>
 /// Provides extension methods for <see cref="HttpContext"/> to manage custom identity objects within the HTTP context's items collection. <br/>

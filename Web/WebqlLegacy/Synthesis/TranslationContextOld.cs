@@ -1,7 +1,7 @@
-﻿using ModularSystem.Webql.Analysis;
-using ModularSystem.Webql.Synthesis.Compilation.LINQ;
+﻿using Aidan.Webql.Analysis;
+using Aidan.Webql.Synthesis.Compilation.LINQ;
 
-namespace ModularSystem.Webql.Synthesis;
+namespace Aidan.Webql.Synthesis;
 
 /// <summary>
 /// Represents the context for a translation process within the WebQL framework.

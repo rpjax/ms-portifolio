@@ -1,11 +1,11 @@
-﻿using ModularSystem.Core;
-using ModularSystem.Core.Linq;
-using ModularSystem.Web.Webql.Synthesis.Productions;
-using ModularSystem.Web.Webql.Synthesis.Symbols;
-using ModularSystem.Webql.Analysis;
+﻿using Aidan.Core;
+using Aidan.Core.Linq;
+using Aidan.Web.Webql.Synthesis.Productions;
+using Aidan.Web.Webql.Synthesis.Symbols;
+using Aidan.Webql.Analysis;
 using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Synthesis;
+namespace Aidan.Webql.Synthesis;
 
 /// <summary>
 /// Provides mechanisms for translating WebQL nodes, represented as JSON strings, into queryable expressions. <br/>

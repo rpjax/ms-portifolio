@@ -1,7 +1,7 @@
-﻿using ModularSystem.Webql.Analysis.Semantics;
+﻿using Aidan.Webql.Analysis.Semantics;
 using System.Collections;
 
-namespace ModularSystem.Webql.Synthesis.Compilation.LINQ.Extensions;
+namespace Aidan.Webql.Synthesis.Compilation.LINQ.Extensions;
 
 public static class ArgumentSemanticsExtensions
 {

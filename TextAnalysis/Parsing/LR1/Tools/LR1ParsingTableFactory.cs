@@ -1,9 +1,9 @@
-﻿using ModularSystem.Core;
-using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Language.Extensions;
-using ModularSystem.TextAnalysis.Parsing.LR1.Components;
+﻿using Aidan.Core;
+using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Extensions;
+using Aidan.TextAnalysis.Parsing.LR1.Components;
 
-namespace ModularSystem.TextAnalysis.Parsing.LR1.Tools;
+namespace Aidan.TextAnalysis.Parsing.LR1.Tools;
 
 /// <summary>
 /// Represents a factory that creates a LR(1) parsing table from a grammar.

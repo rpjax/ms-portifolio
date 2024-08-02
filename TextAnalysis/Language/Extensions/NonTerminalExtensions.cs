@@ -1,8 +1,8 @@
-﻿using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Tokenization.Tools;
+﻿using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Tokenization.Tools;
 using System.Runtime.CompilerServices;
 
-namespace ModularSystem.TextAnalysis.Language.Extensions;
+namespace Aidan.TextAnalysis.Language.Extensions;
 
 public static class NonTerminalExtensions
 {

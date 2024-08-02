@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.Patterns;
+﻿namespace Aidan.Core.Patterns;
 
 /// <summary>
 /// Provides an abstraction for obtaining repository instances. 

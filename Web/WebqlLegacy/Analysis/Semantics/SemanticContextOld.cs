@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace ModularSystem.Webql.Analysis;
+namespace Aidan.Webql.Analysis;
 
 /// <summary>
 /// Represents the semantic context within the analysis phase of a WebQL query. <br/>

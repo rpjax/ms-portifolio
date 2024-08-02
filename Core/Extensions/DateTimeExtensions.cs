@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.Extensions;
+﻿namespace Aidan.Core.Extensions;
 
 /// <summary>
 /// A static class containing extension methods for DateTime.

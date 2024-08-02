@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace ModularSystem.Core.Extensions;
+namespace Aidan.Core.Extensions;
 
 public static partial class ObjectExtentions
 {

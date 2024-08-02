@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ModularSystem.Core;
-using ModularSystem.Core.Linq.Extensions;
+using Aidan.Core;
+using Aidan.Core.Linq.Extensions;
 
-namespace ModularSystem.Web.Controllers;
+namespace Aidan.Web.Controllers;
 
 
 /// <summary>

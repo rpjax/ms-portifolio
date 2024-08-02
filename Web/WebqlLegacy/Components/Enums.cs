@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Webql;
+﻿namespace Aidan.Webql;
 
 public enum NodeType
 {

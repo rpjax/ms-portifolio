@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
-using ModularSystem.Core.Patterns;
+using Aidan.Core.Patterns;
 
-namespace ModularSystem.Web.AccessManagement.Services;
+namespace Aidan.Web.AccessManagement.Services;
 
 /// <summary>
 /// Defines an interface for a service that handles the authentication process within a web application. <br/>

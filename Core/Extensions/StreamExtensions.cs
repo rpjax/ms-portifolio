@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.Extensions;
+﻿namespace Aidan.Core.Extensions;
 
 public static class StreamExtensions
 {

@@ -1,9 +1,9 @@
-﻿using ModularSystem.Core;
+﻿using Aidan.Core;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
-namespace ModularSystem.Web.Http;
+namespace Aidan.Web.Http;
 
 /// <summary>
 /// Represents an abstract body of an HTTP request.

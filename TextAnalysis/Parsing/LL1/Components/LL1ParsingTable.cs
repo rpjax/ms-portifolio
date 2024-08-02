@@ -1,6 +1,6 @@
-﻿using ModularSystem.TextAnalysis.Tokenization;
+﻿using Aidan.TextAnalysis.Tokenization;
 
-namespace ModularSystem.TextAnalysis.Language.Components;
+namespace Aidan.TextAnalysis.Language.Components;
 
 public class LL1ParsingTableEntry
 {

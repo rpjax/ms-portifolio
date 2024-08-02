@@ -1,11 +1,11 @@
-using ModularSystem.Core;
-using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Language.Tools;
-using ModularSystem.TextAnalysis.Parsing.LL1.Components;
-using ModularSystem.TextAnalysis.Parsing.LL1.Tools;
+using Aidan.Core;
+using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Tools;
+using Aidan.TextAnalysis.Parsing.LL1.Components;
+using Aidan.TextAnalysis.Parsing.LL1.Tools;
 using System.Text.Json;
 
-namespace ModularSystem.TextAnalysis.Language.Extensions;
+namespace Aidan.TextAnalysis.Language.Extensions;
 
 public static class ProductionSetAnalysisExtensions
 {

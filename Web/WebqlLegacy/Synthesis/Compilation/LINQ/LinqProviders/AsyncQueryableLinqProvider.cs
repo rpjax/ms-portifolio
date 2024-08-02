@@ -1,7 +1,7 @@
-﻿using ModularSystem.Core.Linq;
+﻿using Aidan.Core.Linq;
 using System.Reflection;
 
-namespace ModularSystem.Webql.Synthesis;
+namespace Aidan.Webql.Synthesis;
 
 /// <summary>
 /// Provides a LINQ provider for asynchronous queryable data sources that implements the IAsyncQueryable interface. <br/>

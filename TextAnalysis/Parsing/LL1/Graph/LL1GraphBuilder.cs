@@ -1,10 +1,10 @@
-using ModularSystem.Core;
-using ModularSystem.Core.Extensions;
-using ModularSystem.TextAnalysis.Language.Components;
-using ModularSystem.TextAnalysis.Language.Extensions;
-using ModularSystem.TextAnalysis.Parsing.LL1.Tools;
+using Aidan.Core;
+using Aidan.Core.Extensions;
+using Aidan.TextAnalysis.Language.Components;
+using Aidan.TextAnalysis.Language.Extensions;
+using Aidan.TextAnalysis.Parsing.LL1.Tools;
 
-namespace ModularSystem.TextAnalysis.Language.Graph;
+namespace Aidan.TextAnalysis.Language.Graph;
 
 public enum ChildPosition
 {

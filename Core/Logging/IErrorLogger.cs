@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core.Logging;
+﻿namespace Aidan.Core.Logging;
 
 /// <summary>
 /// Represents an interface for logging errors.

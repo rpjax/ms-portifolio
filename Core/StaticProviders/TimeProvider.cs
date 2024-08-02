@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.Core;
+﻿namespace Aidan.Core;
 
 /// <summary>
 /// Represents a utility class that provides time-related methods. It serves as a singleton provider for <see cref="DateTime"/>.

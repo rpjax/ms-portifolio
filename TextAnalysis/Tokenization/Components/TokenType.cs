@@ -1,4 +1,4 @@
-﻿namespace ModularSystem.TextAnalysis.Tokenization;
+﻿namespace Aidan.TextAnalysis.Tokenization;
 
 /// <summary>
 /// Represents the type of a token. This enumeration is used by the tokenizer to classify tokens.

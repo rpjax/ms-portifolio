@@ -1,13 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ModularSystem.Core;
-using ModularSystem.Core.Linq;
-using ModularSystem.Core.Linq.Expressions;
-using ModularSystem.Core.Linq.Extensions;
-using ModularSystem.Core.Patterns;
-using ModularSystem.EntityFramework.Linq;
+using Aidan.Core;
+using Aidan.Core.Linq;
+using Aidan.Core.Linq.Expressions;
+using Aidan.Core.Linq.Extensions;
+using Aidan.Core.Patterns;
+using Aidan.EntityFramework.Linq;
 using System.Linq.Expressions;
 
-namespace ModularSystem.EntityFramework.Repositories;
+namespace Aidan.EntityFramework.Repositories;
 
 /// <summary>
 /// Represents the settings object for the repository.
