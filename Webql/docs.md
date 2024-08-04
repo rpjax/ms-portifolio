@@ -103,3 +103,5 @@ public TResult CreateQuery(IQueryable<TElement> source)
     ...
 }
 ```
+
+In the above example, `TElement` is the type of the elements in the data collection, and `TResult` is the type of the result returned by the query.
